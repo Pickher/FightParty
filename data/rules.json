@@ -1,0 +1,6 @@
+{
+  "version": "0.1.0", "tick_rate": 20, "wave_seconds": 30,
+  "start_budget": 600, "budget_growth": 100, "max_budget": 1200,
+  "base_hp": 3000, "match_seconds": 480, "unit_lifetime": 90,
+  "columns": 6, "rows": 4, "world_width": 1200, "world_height": 400
+}

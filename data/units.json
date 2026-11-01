@@ -1,0 +1,11 @@
+{
+ "version": "0.1.0",
+ "units": {
+  "guard": {"name":"盾卫","symbol":"G","cost":100,"hp":480,"armor":"heavy","damage":16,"interval":1.2,"range":25,"speed":34,"splash":0,"light_multiplier":1.0,"heavy_multiplier":0.8,"color":"7ed8ed","role":"前排承伤 · 保护后排","counter":"抵挡步枪与狙击；怕破甲手"},
+  "rifle": {"name":"步枪兵","symbol":"R","cost":75,"hp":120,"armor":"light","damage":18,"interval":0.55,"range":140,"speed":36,"splash":0,"light_multiplier":1.4,"heavy_multiplier":0.45,"color":"75e0ac","role":"持续输出 · 压制轻甲","counter":"克制蜂群；怕重甲与范围攻击"},
+  "breaker": {"name":"破甲手","symbol":"B","cost":125,"hp":130,"armor":"light","damage":58,"interval":1.5,"range":150,"speed":32,"splash":0,"light_multiplier":0.65,"heavy_multiplier":2.4,"color":"f5b66e","role":"反重甲 · 高穿透","counter":"克制盾卫；怕蜂群近身"},
+  "swarm": {"name":"蜂群兵","symbol":"W","cost":50,"hp":90,"armor":"light","damage":15,"interval":0.55,"range":22,"speed":65,"splash":0,"light_multiplier":1.0,"heavy_multiplier":0.7,"color":"dc9af2","role":"快速近战 · 数量包围","counter":"克制孤立狙击手；怕迫击炮"},
+  "mortar": {"name":"迫击炮","symbol":"M","cost":150,"hp":100,"armor":"light","damage":42,"interval":2.4,"range":190,"speed":26,"splash":62,"light_multiplier":1.4,"heavy_multiplier":0.5,"color":"ff8378","role":"范围伤害 · 打击密集阵形","counter":"克制成群轻甲；怕分散与狙击"},
+  "sniper": {"name":"狙击手","symbol":"S","cost":150,"hp":75,"armor":"light","damage":100,"interval":2.5,"range":220,"speed":30,"splash":0,"light_multiplier":1.4,"heavy_multiplier":0.35,"color":"a8b5ff","role":"远程爆发 · 优先脆弱后排","counter":"克制脆弱远程；怕蜂群包围"}
+ }
+}
