@@ -1,8 +1,12 @@
+# 中文导读：渲染性能测试。它会打开真实游戏画面，采样约 10 秒，不是正常游玩入口。
+# 这里测帧数/真实经过秒数；与 test_sim.gd 的“每个模拟步耗时”是不同指标。
 extends SceneTree
 
+## 等待场景树就绪后开始采样。
 func _initialize() -> void:
 	call_deferred("run")
 
+## 生成 200 个高血量单位保持压力，保留主场景的自动模拟与绘图，统计实际画面帧数。
 func run() -> void:
 	var game=load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)

@@ -1,7 +1,14 @@
+# 中文导读：游戏入口，负责界面、输入、本地对局调度和存档。战斗规则在 battle_sim.gd。
+# Control 是 2D 界面节点。_ready / _process / _draw 等以下划线开头的回调由 Godot 自动调用。
+# 初学时先找到 handle_action（按钮做什么）和 _draw_editor（配兵界面长什么样）。
+# 当前 UI 是代码直接绘制的，编辑器里不会出现每张卡片的独立 Button 节点。
+# 将来升级 3D 时可替换战场表现，继续使用 sim 计算出的状态和事件。
 extends Control
+# preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
 const Sim = preload("res://scripts/battle_sim.gd")
 const AI = preload("res://scripts/commander_ai.gd")
 const Catalog = preload("res://scripts/catalog.gd")
+# 界面颜色常量。修改这里可以调整主题；不会改变兵种伤害或阵营规则。
 const INK := Color("e4edf8")
 const MUTED := Color("8e9fb5")
 const MINT := Color("70e2b4")
@@ -10,13 +17,17 @@ const PANEL := Color("101e30")
 const FONT = preload("res://assets/NotoSansSC.ttf")
 var sim = Sim.new()
 var ai = AI.new()
+# selected 是当前选中的兵种 ID，也可能是 erase（删除）或 move（移动）工具。
 var selected := "rifle"
+# 移动模式第一次点击的来源格；-1 表示还没选来源。
 var move_source := -1
 var started := false
 var paused := false
 var backgrounded := false
 var help_open := false
+# 累计还没有交给模拟器处理的真实时间，单位为秒。
 var accumulator := 0.0
+# 每次重绘重新生成的按钮点击区域。effects 保存短暂视觉特效，ttl 表示剩余显示秒数。
 var buttons: Array = []
 var effects: Array = []
 var messages: Array = ["先选兵种，再点格子。绿色部队属于你。"]
@@ -25,6 +36,7 @@ var speaker := AudioStreamPlayer.new()
 var journal_error := false
 var elapsed_ui := 0.0
 
+## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(speaker)
@@ -33,6 +45,8 @@ func _ready() -> void:
 	_new_match()
 	set_process(true)
 
+## 用衰减正弦波生成短提示音，避免依赖外部音频文件。
+## 每个采样点写成 16 位小端字节；这段不影响游戏规则，可最后再研究。
 func _make_sound() -> void:
 	var data := PackedByteArray()
 	for i in range(3200):
@@ -45,6 +59,8 @@ func _make_sound() -> void:
 	stream.data = data
 	speaker.stream = stream
 
+## 新建模拟器与 AI，尝试恢复上次阵容；若超出首波预算则用默认阵容。
+## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
 	var prior: Array = Catalog.starter()
 	sim = Sim.new(42)
@@ -67,12 +83,14 @@ func _new_match() -> void:
 	journal_error = false
 	queue_redraw()
 
+## 从 user://settings.cfg 读取音量；user:// 是玩家数据目录，不是源码目录。
 func _load_settings() -> void:
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
 		volume = clampf(float(config.get_value("audio","volume",0.4)), 0.0, 1.0)
 	speaker.volume_db = linear_to_db(maxf(volume, 0.001))
 
+## 保存当前音量和下一波阵容。失败只给提示，不影响继续战斗。
 func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("audio","volume",volume)
@@ -80,6 +98,7 @@ func _save_settings() -> void:
 	if config.save("user://settings.cfg") != OK:
 		_note("设置保存失败；本局仍可继续。")
 
+## 写出最近一局的波次记录；最终结束事件会补写结果，用于重现战斗。
 func _save_journal() -> void:
 	var file := FileAccess.open("user://last_match.json", FileAccess.WRITE)
 	if file:
@@ -88,6 +107,7 @@ func _save_journal() -> void:
 		journal_error = true
 		_note("战报保存失败；本局仍可继续。")
 
+## 接收操作系统切后台/恢复通知。恢复时清空积累时间，避免把后台时间补算进战斗。
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED:
 		backgrounded = true
@@ -99,9 +119,13 @@ func _notification(what: int) -> void:
 		if OS.is_debug_build():
 			print("LIFECYCLE resumed tick=",sim.tick)
 
+## Godot 每个画面帧调用一次，delta 是上一帧到这一帧经过的秒数。
+## 累计够 0.05 秒才推进一步战斗；特效按画面时间更新，并请求重绘。
 func _process(delta: float) -> void:
 	elapsed_ui += delta
 	if started and not paused and not backgrounded and not help_open and not sim.finished:
+		# 每帧最多积累 0.25 秒，防止卡顿后瞬间补算过多步。当前节拍固定 20 Hz。
+		# 如果修改 rules.json 的 tick_rate，必须同步这里的 0.05 和下面插值、时间显示等计算。
 		accumulator += minf(delta, 0.25)
 		while accumulator >= 0.05:
 			accumulator -= 0.05
@@ -111,6 +135,8 @@ func _process(delta: float) -> void:
 	effects = effects.filter(func(e): return e.ttl > 0)
 	queue_redraw()
 
+## 推进战斗一步并消费事件；显示攻击、更新波次战报，以及让 AI 计划下一波。
+## AI 只拿到玩家刚刚出兵的公开阵容，不拿到玩家正在修改的下一波。
 func advance_tick() -> void:
 	for event in sim.step():
 		if event.type == "attack":
@@ -126,14 +152,17 @@ func advance_tick() -> void:
 			_save_journal()
 			speaker.play()
 
+## 将最新提示放在消息列表最前面，最多保留五条；界面显示最新一条。
 func _note(message: String) -> void:
 	messages.push_front(message)
 	if messages.size() > 5:
 		messages.pop_back()
 
+## 绘制一行文字。pos 是文字基线位置，font_size 是字号，color 是颜色。
 func _text(pos: Vector2, message: String, font_size: int = 20, color: Color = INK) -> void:
 	draw_string(FONT, pos, message, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
+## 绘制圆角面板；StyleBoxFlat 指定背景、边框和圆角。
 func _panel(rect: Rect2, color: Color = PANEL, border: Color = Color("26384e")) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
@@ -142,15 +171,19 @@ func _panel(rect: Rect2, color: Color = PANEL, border: Color = Color("26384e")) 
 	style.set_corner_radius_all(12)
 	draw_style_box(style, rect)
 
+## 绘制按钮，同时将点击矩形和动作名加入 buttons，稍后由 _gui_input 判定点击。
 func _button(rect: Rect2, label: String, action: String, active: bool = false) -> void:
 	_panel(rect, Color("204b43") if active else Color("192b40"), MINT if active else Color("34465c"))
 	_text(rect.position + Vector2(14, rect.size.y * 0.5 + 7), label, 19, MINT if active else INK)
 	buttons.append({"rect":rect,"action":action})
 
+## 绘制进度条/血条；ratio 是 0～1 的比例，先画底色，再画剩余部分。
 func _bar(rect: Rect2, ratio: float, color: Color) -> void:
 	draw_rect(rect, Color("263245"))
 	draw_rect(Rect2(rect.position, Vector2(rect.size.x * clampf(ratio,0,1),rect.size.y)),color)
 
+## 按 1440×900 的设计坐标绘制整屏，再缩放到当前窗口尺寸。
+## 这一步只表现数据；不要把扣血、出兵等游戏规则写进这里。
 func _draw() -> void:
 	if not is_node_ready():
 		return
@@ -187,9 +220,12 @@ func _draw() -> void:
 	if help_open:
 		_draw_help()
 
+## 把 1200×400 的逻辑战场坐标转换成屏幕战场区域坐标。
+## 未来改 3D 时，这种位置映射应交给独立的 3D 战场表现层。
 func _world(pos: Vector2) -> Vector2:
 	return Vector2(70,157) + pos * Vector2(1300.0/1200.0,0.88)
 
+## 绘制地面网格、基地、血条、攻击线和场上单位；所有位置来自模拟器。
 func _draw_battle() -> void:
 	_panel(Rect2(32,98,1376,458),Color("0d1c2b"))
 	for i in range(25):
@@ -217,6 +253,7 @@ func _draw_battle() -> void:
 		draw_line(_world(effect.from),_world(effect.to),color,2)
 		if effect.kind == "mortar":
 			draw_arc(_world(effect.to),38,0,TAU,24,color,2)
+	# 在上一模拟位置 prev 与当前位置 pos 之间插值，让 20 Hz 的计算看起来更平滑。
 	var alpha := clampf(accumulator/0.05,0,1)
 	for unit in sim.units:
 		var p := _world(unit.prev.lerp(unit.pos,alpha))
@@ -227,6 +264,7 @@ func _draw_battle() -> void:
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
 	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
 
+## 用不同几何形状区分六个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	match kind:
 		"guard":
@@ -244,10 +282,12 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 		_:
 			draw_circle(p,radius,color)
 
+## 绘制 6×4 布阵格子、兵种卡片、预算与敌情；敌情只使用上一波公开阵容。
 func _draw_editor() -> void:
 	_panel(Rect2(32,573,406,277))
 	_text(Vector2(52,606),"下一波布阵",23)
 	_text(Vector2(235,604),"后排  →  前线",18,MINT)
+	# 把阵容转为“格子编号 → 兵种”的字典，方便逐格绘制。
 	var occupied := {}
 	for slot in sim.formations[0]:
 		occupied[int(slot.cell)] = slot.kind
@@ -300,6 +340,7 @@ func _draw_editor() -> void:
 	if message.length()>16:
 		_text(Vector2(1132,844),message.substr(16,16),16,Color("e6c28e"))
 
+## 绘制说明弹层，并清空底层点击区域，防止点说明时误操作后面的配兵格。
 func _draw_help() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.8))
 	_panel(Rect2(290,130,860,640))
@@ -319,6 +360,7 @@ func _draw_help() -> void:
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
 	_text(Vector2(540,708),"查看手册时，对局计时暂停。",18,MUTED)
 
+## 根据 sim.winner 显示结算结果及重开按钮；不在界面里重新决定胜负。
 func _draw_result() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.75))
 	_panel(Rect2(420,210,600,440))
@@ -331,6 +373,7 @@ func _draw_result() -> void:
 	_button(Rect2(465,535,210,60),"调整阵容，再来一局","restart",true)
 	_button(Rect2(700,535,210,60),"查看玩法说明","help")
 
+## 处理左键/模拟鼠标的触摸点击：先还原设计坐标，再寻找命中的按钮矩形。
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
 		var p: Vector2 = event.position * Vector2(1440,900) / size
@@ -340,6 +383,7 @@ func _gui_input(event: InputEvent) -> void:
 				accept_event()
 				break
 
+## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_SPACE and not help_open and not sim.finished:
@@ -347,6 +391,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_ESCAPE:
 			handle_action("help")
 
+## 把动作字符串分发到具体操作；例如 select:guard 选择盾卫，cell:5 编辑第 5 格。
+## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
 func handle_action(action: String) -> void:
 	if action == "help":
 		help_open = not help_open
@@ -374,6 +420,7 @@ func handle_action(action: String) -> void:
 			_edit_cell(int(action.get_slice(":",1)))
 	queue_redraw()
 
+## 将编辑后的阵容送入统一校验入口。合法才保存，不合法则保留旧阵容并提示。
 func _commit(formation: Array) -> void:
 	var error: String = sim.submit_formation(0, formation)
 	if error != "":
@@ -381,7 +428,10 @@ func _commit(formation: Array) -> void:
 	else:
 		_save_settings()
 
+## 在阵容副本上执行放置、替换、删除或移动，再提交校验。
+## 移动分两次点击：第一次记住来源格，第二次移到空格或与已有单位交换。
 func _edit_cell(cell: int) -> void:
+	# 先改副本；若最后超预算被拒绝，原阵容仍然保持完整。
 	var formation: Array = sim.formations[0].duplicate(true)
 	var index := -1
 	for i in range(formation.size()):

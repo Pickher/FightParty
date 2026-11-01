@@ -1,3 +1,6 @@
+# 中文导读：自动验证战斗规则的开发脚本，不是玩家游戏入口。
+# 运行命令见 README；不需要打开游戏窗口，也不会修改玩家存档。
+# 测试中不少数值固定对应 v0.1 的基线；有意改平衡后，应检查预期而非直接删除失败测试。
 extends SceneTree
 const Sim = preload("res://scripts/battle_sim.gd")
 const AI = preload("res://scripts/commander_ai.gd")
@@ -5,22 +8,26 @@ const Catalog = preload("res://scripts/catalog.gd")
 var failures := 0
 var checks := 0
 
+## 记录一项检查；失败时打印原因并增加计数，最后用非零退出码提示失败。
 func check(condition: bool, label: String) -> void:
 	checks += 1
 	if not condition:
 		failures += 1
 		printerr("FAIL: " + label)
 
+## 测试辅助函数：生成单一兵种的简单阵容，按格子 0、1、2……放置。
 func formation(kind: String, count: int) -> Array:
 	var result: Array = []
 	for i in range(count):
 		result.append({"kind":kind,"cell":i})
 	return result
 
+## 连续推进若干模拟步，不等待真实时间，因此可以快速完成一整局测试。
 func ticks(sim, count: int) -> void:
 	for i in range(count):
 		sim.step()
 
+## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
 func _initialize() -> void:
 	var sim = Sim.new()
 	check(sim.budget()==600 and sim.budget(7)==1200 and sim.budget(99)==1200,"budget curve")
@@ -42,6 +49,7 @@ func _initialize() -> void:
 	sim.submit_formation(0,[])
 	check(sim.units[0].id==id and sim.last_formations[0].size()==7,"editing leaves battlefield intact")
 	check(sim.journal.waves[0].budget==600,"journal captures wave budget")
+	# 寿命边界：把出生时间放到过去，精确检查 90 秒前一刻和刚到 90 秒的区别。
 	var lifetime = Sim.new()
 	var survivor: Dictionary = lifetime.spawn_unit(0,"guard",Vector2(100,100))
 	survivor.born = -1798
@@ -55,6 +63,7 @@ func _initialize() -> void:
 	retained.submit_formation(0,formation("rifle",1))
 	retained.step()
 	check(retained.units.size()==2 and retained.units[0].id==1,"next wave retains survivors")
+	# 同时摧毁基地必须判平，不能因为某队先被处理就先判负。
 	var draw = Sim.new()
 	draw.bases=[1.0,1.0]
 	draw.spawn_unit(0,"rifle",Vector2(1150,200))
@@ -78,6 +87,7 @@ func _initialize() -> void:
 	for round_number in range(1,16):
 		var b: int = sim.budget(round_number)
 		check(sim.validate_formation(commander.choose(Catalog.starter(),b),b)=="","AI obeys budget and grid %d" % round_number)
+	# 镜像公平测试：相同配置放在两侧，击杀数与基地状态应保持一致。
 	var mirror = Sim.new()
 	mirror.submit_formation(0,Catalog.starter())
 	mirror.submit_formation(1,Catalog.starter())
@@ -93,6 +103,7 @@ func _initialize() -> void:
 	_counter("mortar",2,"swarm",6,"splash vs swarm")
 	_counter("swarm",6,"sniper",2,"swarm vs isolated sniper")
 	_counter("sniper",2,"mortar",2,"sniper vs fragile artillery")
+	# 压力测试使用 200 个高血量单位，避免测试过程中快速减员；这个测试不测画面 FPS。
 	var stress = Sim.new()
 	for team in range(2):
 		for i in range(100):
@@ -105,6 +116,7 @@ func _initialize() -> void:
 	print("RESULT %d checks, %d failures" % [checks,failures])
 	quit(1 if failures>0 else 0)
 
+## 让两个等预算单兵种编队作战，交换左右位置再测一次，排查阵营顺序优势。
 func _counter(a: String, a_count: int, b: String, b_count: int, label: String) -> void:
 	var outcomes: Array = []
 	for reverse in range(2):
