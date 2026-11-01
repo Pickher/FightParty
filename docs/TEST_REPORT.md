@@ -24,6 +24,8 @@ Windows：Intel Core i5-14600KF、NVIDIA GeForce RTX 4070 Ti SUPER，Compatibili
 
 原 Compatibility APK 在模拟器 GLES 后端出现 `GL_MAX_FRAGMENT_UNIFORM_VECTORS (261)` 着色器错误，故 Android 已调整为 Mobile/Vulkan。Windows 仍使用 Compatibility。安卓最终渲染、实际触摸和后台恢复验证尚未完成；电脑自动关机中断了该部分测试，最后一次截图未完整写入，不作为通过证据。
 
+恢复后，源码及安装包完整性检查通过，但模拟器 ADB 连接持续显示 `unauthorized`，未能继续最终 APK 的运行检查。因此 Mobile/Vulkan 目前是尚待设备验证的适配方案，不能视为已经确认修复 GLES 问题。已停止测试模拟器，交付包保留明确的未验证说明。
+
 交付的 APK 是开发测试包。正式发行前仍需在真实 Vulkan 安卓设备上进行安装、横屏布局、触摸、切后台、完整一局和 200 单位性能测试。核心后台暂停逻辑已有程序化测试，但与真实系统生命周期验证应分开记录。
 
 ## 平衡与功能限制
