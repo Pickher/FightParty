@@ -206,7 +206,56 @@ git -C 'D:\MyCode\FightParty' diff
 
 首版没有真人联机、账号、复杂地形、空军、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
 
-## 十三、项目与第三方声明
+## 十三、用 Excel 调整或新增兵种
+
+最方便的方式：打开 `D:\MyCode\FightParty\data\兵种配置.xlsx`，修改并保存，然后双击项目根目录的 `导入兵种.cmd`。看到“已写入”或“数据相同”后，完全关闭游戏并重新打开（桌面开始游戏快捷方式也可以）。
+
+表中包含当前全部 6 个兵种和 16 列：ID、名称、标记、价格、生命、护甲、伤害、攻击间隔、射程、移速、溅射半径、对轻甲倍率、对重甲倍率、颜色、定位说明和克制说明。“填写说明”页逐项解释字段和单位。
+
+操作规则：
+
+1. 在“兵种”页第 6 行开始修改数据，保留第 5 行英文列名。允许整行排序、整列移动；不要单独排序某一列。
+2. 新增兵种时，复制一条完整数据行到下方，填写唯一的新 ID 和全部字段。新增单位使用默认圆形图形，兵种卡片每页 6 张，超过后可翻页。
+3. 已有 ID 不可删除或改名，因为 AI 和存档可能引用；显示名称 `name` 可以改。ID 只能用小写英文字母、数字和下划线，以字母开头，不能是 `move` 或 `erase`。
+4. 价格必须为正整数；生命和攻击间隔必须大于 0；其他数值不可为负。护甲只支持 `light`（轻甲）和 `heavy`（重甲），颜色是 6 位十六进制文本，不带 `#`。
+5. 直接填写数字和文字。公式不会导入，避免读取到未重算的旧缓存；如在表中计算过，导入前先粘贴为值。
+
+导入工具只需要 Python 3.8+，不需要安装 pip 包，也不要求电脑安装 Excel（编辑表格可用 Excel 或 WPS）。本机已安装 Python。Windows 双击脚本优先使用 `py -3`，其次使用 `python`；其他电脑需安装 Python 并加入 PATH。
+
+也可以在仓库根目录运行（云端一般使用 `python3`）：
+
+```powershell
+python tools/import_units.py --check
+python tools/import_units.py
+python tools/import_units.py "其他位置的兵种配置.xlsx"
+```
+
+`--check` 只校验不写入。默认读取 `data/兵种配置.xlsx`，写入 `data/units.json`。英文键决定字段对应关系，行号与列名会出现在错误提示里。所有行校验通过后才写入；存在改动时先把原 JSON 备份到 `data/backups/units-时间戳.json`，再原子替换目标文件。重复导入相同数据不写入、不新增备份；原有版本号、额外元数据和表中未覆盖的未来字段会保留。
+
+恢复时，关闭游戏，把需要的备份复制覆盖 `data/units.json`，再同步 Excel 中相应数值。**这是 Excel 到 JSON 的单向导入**：手动修改 JSON 不会自动反映到 Excel；提交代码时应同时保存表格和导入后的 JSON。备份和 Excel 临时锁文件不进入 Git。
+
+新增兵种会进入 AI 的普通选择池；专属克制映射仍在 `scripts/commander_ai.gd`。改变价格后 AI 会按实际最低价寻找保底单位，默认阵容超预算时会保留其中买得起的单位。`role` 和 `counter` 只是说明文字，改成“刺客”不会自动获得侧翼切入行为；仇恨系统尚未实现。
+
+导入影响从源码运行的游戏，已经导出的 Windows EXE / Android APK 需要重新打包。改数值也可能改变原有平衡测试的结果，需检查预期是否还合理。
+
+工具测试（只在临时目录或内存修改数据，不覆盖玩家存档）：
+
+```powershell
+python -m unittest discover -s tests -p test_import_units.py
+godot --headless --path . --script res://tests/test_unit_editor.gd
+```
+
+## 十四、发给朋友的 Windows 调试包
+
+朋友无需 GitHub 账号或代码编辑器。包内附带 Godot，解压后双击“开始游戏.cmd”即可试玩；只有编辑、导入兵种表时需要 Excel/WPS 和 Python。
+
+- 朋友操作说明：[运行与兵种调试](docs/朋友调试说明.txt)。
+- 打包脚本模板与制作步骤：[tools/friend_package](tools/friend_package/README.md)。
+- 已交付包验证记录：[朋友调试包验证记录](docs/朋友调试包验证记录.txt)。
+
+调试包 ZIP 和引擎不提交到源码仓库；表格、导入工具、游戏源码、启动脚本模板及说明文件纳入版本管理。
+
+## 十五、项目与第三方声明
 
 完整项目仓库：https://github.com/Pickher/FightParty
 

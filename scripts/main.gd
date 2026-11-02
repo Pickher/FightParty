@@ -19,6 +19,8 @@ var sim = Sim.new()
 var ai = AI.new()
 # selected 是当前选中的兵种 ID，也可能是 erase（删除）或 move（移动）工具。
 var selected := "rifle"
+# Excel 新增兵种后，每页仍显示六张卡片，避免超出屏幕。
+var unit_page := 0
 # 移动模式第一次点击的来源格；-1 表示还没选来源。
 var move_source := -1
 var started := false
@@ -72,6 +74,15 @@ func _new_match() -> void:
 			prior = saved
 	if sim.validate_formation(prior, sim.budget()) != "":
 		prior = Catalog.starter()
+	# 修改价格后，默认阵容也可能超预算；保留其中买得起的单位。
+	if sim.validate_formation(prior, sim.budget()) != "":
+		var affordable: Array = []
+		for slot in prior:
+			var candidate: Array = affordable.duplicate(true)
+			candidate.append(slot)
+			if sim.validate_formation(candidate, sim.budget()) == "":
+				affordable = candidate
+		prior = affordable
 	sim.submit_formation(0, prior)
 	sim.submit_formation(1, ai.choose([], sim.budget()))
 	started = false
@@ -304,8 +315,12 @@ func _draw_editor() -> void:
 	_text(Vector2(475,605),"选择兵种",23)
 	var cost: int = sim.formation_cost(sim.formations[0])
 	_text(Vector2(675,605),"已配置 %d / %d   ·   剩余 %d" % [cost,sim.budget(),sim.budget()-cost],20,MINT)
-	var i := 0
-	for kind in sim.catalog:
+	var kinds: Array = sim.catalog.keys()
+	var page_count := maxi(1, ceili(kinds.size() / 6.0))
+	unit_page = clampi(unit_page, 0, page_count - 1)
+	for index in range(unit_page * 6, mini((unit_page + 1) * 6, kinds.size())):
+		var kind: String = kinds[index]
+		var i: int = index % 6
 		var stats: Dictionary = sim.catalog[kind]
 		var rect := Rect2(475+(i%3)*203,623+(i/3)*78,191,68)
 		_panel(rect,Color("233e41") if selected==kind else Color("17293c"),MINT if selected==kind else Color("304358"))
@@ -314,7 +329,10 @@ func _draw_editor() -> void:
 		_text(rect.position+Vector2(135,30),str(int(stats.cost)),18,MINT)
 		_text(rect.position+Vector2(12,56),str(stats.role),13,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
-		i += 1
+	if page_count > 1:
+		_button(Rect2(475,775,80,24),"上一页","unit_prev")
+		_button(Rect2(565,775,80,24),"下一页","unit_next")
+		_text(Vector2(660,794),"%d / %d" % [unit_page+1,page_count],16,MUTED)
 	if sim.catalog.has(selected):
 		_text(Vector2(475,809),sim.catalog[selected].counter,18,Color("e6c28e"))
 		_text(Vector2(475,836),"点格放置 / 替换  ·  合法调整自动保存",16,MUTED)
@@ -330,8 +348,12 @@ func _draw_editor() -> void:
 	else:
 		var n := 0
 		for kind in counts:
+			if n >= 6:
+				break
 			_text(Vector2(1132+(n%2)*130,637+(n/2)*27),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],17)
 			n+=1
+		if counts.size() > 6:
+			_text(Vector2(1132,716),"另有 %d 种战场单位" % [counts.size()-6],15,MUTED)
 	_text(Vector2(1132,732),"下一波敌方配置保密",16,MUTED)
 	_text(Vector2(1132,765),"击破 %d   /   损失 %d" % [sim.kills[0],sim.kills[1]],18,MINT)
 	_text(Vector2(1132,795),"最新战报",16,MUTED)
@@ -408,7 +430,10 @@ func handle_action(action: String) -> void:
 	elif action == "restart":
 		_new_match()
 	elif not sim.finished:
-		if action.begins_with("select:"):
+		if action == "unit_prev" or action == "unit_next":
+			var page_count := maxi(1, ceili(sim.catalog.size() / 6.0))
+			unit_page = posmod(unit_page + (1 if action == "unit_next" else -1), page_count)
+		elif action.begins_with("select:"):
 			selected = action.get_slice(":",1)
 			move_source = -1
 		elif action == "erase" or action == "move":

@@ -17,6 +17,15 @@ func choose(last_enemy: Array, budget: int) -> Array:
 	var counters := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"sniper","sniper":"swarm"}
 	# 抽取池里同一兵种出现越多，选中的机会越大。这里给步枪兵较高的基础权重。
 	var choices: Array = ["rifle","rifle","swarm"]
+	# Excel 新增的兵种也参与普通抽取；专属克制映射仍在上面的 counters 中设置。
+	for kind in catalog:
+		if not counters.has(kind):
+			choices.append(kind)
+	# 改价后最便宜的兵种未必还是蜂群，使用实际价格寻找保底选择。
+	var cheapest: String = "swarm"
+	for kind in catalog:
+		if int(catalog[kind].cost) < int(catalog[cheapest].cost):
+			cheapest = kind
 	for slot in last_enemy:
 		choices.append(counters.get(slot.kind,"rifle"))
 	var result: Array = []
@@ -24,10 +33,10 @@ func choose(last_enemy: Array, budget: int) -> Array:
 	# 放置顺序：先前排、后后排。当前布局固定为 6×4，改网格要一起改这里。
 	var cells: Array = [5,23,11,17,4,22,10,16,3,21,9,15,2,20,8,14,1,19,7,13,0,18,6,12]
 	for i in range(24):
-		# 预算足够时先放两个盾卫，其余位置从抽取池选择。买不起时尝试更便宜的蜂群。
+		# 预算足够时先放两个盾卫，其余位置从抽取池选择。买不起时尝试最便宜的兵种。
 		var kind: String = "guard" if i < 2 else str(choices[rng.randi_range(0, choices.size()-1)])
 		if int(catalog[kind].cost) > left:
-			kind = "swarm"
+			kind = cheapest
 		if int(catalog[kind].cost) > left:
 			break
 		result.append({"kind":kind,"cell":cells[i]})
