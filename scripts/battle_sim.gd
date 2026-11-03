@@ -5,6 +5,12 @@
 extends RefCounted
 ## 独立的固定步战斗模拟：不依赖场景节点或渲染器。
 const Catalog = preload("res://scripts/catalog.gd")
+const Deployment = preload("res://scripts/skills/deployment.gd")
+const Healing = preload("res://scripts/skills/healing.gd")
+const MultiAttack = preload("res://scripts/skills/multi_attack.gd")
+const LineAttack = preload("res://scripts/skills/line_attack.gd")
+const Stimulant = preload("res://scripts/skills/stimulant.gd")
+const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
 # 双方“下一波”的配兵计划；与战场上正在交战的 units 分开保存。
@@ -12,6 +18,8 @@ var formations: Array = [[], []]
 # 上一波已经出兵的阵容，是双方都能查看的信息。
 var last_formations: Array = [[], []]
 var units: Array = []
+# 已发出的传播攻击独立于发射者存活，按固定步推进。
+var attack_waves: Array = []
 var bases: Array = [3000.0, 3000.0]
 var tick: int = 0
 var wave: int = 0
@@ -81,7 +89,9 @@ func submit_formation(team: int, formation: Array) -> String:
 ## hp 是当前生命，cooldown 是距离下次攻击还要等几秒，born 是出生时的 tick。
 func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 	var unit := {"id":next_id,"team":team,"kind":kind,"pos":pos,"prev":pos,
-		"hp":float(catalog[kind].hp),"cooldown":0.0,"born":tick}
+		"hp":float(catalog[kind].hp),"cooldown":0.0,"born":tick,"locked_target_id":0}
+	if catalog[kind].get("skills",{}).has("deployment"):
+		Deployment.initialize(unit)
 	next_id += 1
 	units.append(unit)
 	return unit
@@ -121,25 +131,36 @@ func _nearby(pos: Vector2, radius: float) -> Array:
 					found.append(unit)
 	return found
 
-## 普通兵种选附近最近的敌人；狙击手对射程内低基础生命目标给予优先权。
-## 比较的是配置 hp，不是敌人剩余 hp；同分时用稳定 id 决定，以便复现。
+## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
+## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。
+## 狙击手在整个发现范围内偏好低基础生命目标；同分时以稳定 ID 决定。
 func _target(unit: Dictionary) -> Dictionary:
+	var reach := float(catalog[unit.kind].range)
+	var candidates := _nearby(unit.pos, reach * 1.5)
+	for other in candidates:
+		if other.id == unit.locked_target_id and other.team != unit.team and other.hp > 0:
+			if unit.pos.distance_to(other.pos) <= reach:
+				return other
+	unit.locked_target_id = 0
 	var best: Dictionary = {}
 	var best_score := INF
-	for other in _nearby(unit.pos, 290.0):
-		if other.team == unit.team:
+	for other in candidates:
+		if other.team == unit.team or other.hp <= 0:
 			continue
 		var distance: float = unit.pos.distance_to(other.pos)
 		var score := distance
-		if unit.kind == "sniper" and distance <= float(catalog.sniper.range):
+		if unit.kind == "sniper":
 			score = distance * 0.1 + float(catalog[other.kind].hp) * 0.2
 		if score < best_score or (is_equal_approx(score, best_score) and int(other.id) < int(best.get("id", 2147483647))):
 			best = other
 			best_score = score
 	return best
 
-## 核心循环：计时与撤离 → 到点出兵 → 寻敌/决定行动 → 统一应用伤害 → 判定胜负。
-## 每次只推进一个固定步，返回本步事件。对局结束后调用不会再推进时间。
+## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
+func _movement_speed(unit: Dictionary) -> float:
+	return float(catalog[unit.kind].speed) * Stimulant.speed_multiplier(unit,tick) * OnHitSlow.speed_multiplier(unit,tick)
+
+## 固定步：撤离/出兵 → 同时决定行动 → 统一应用代价、伤害和状态 → 胜负。
 func step() -> Array:
 	events = []
 	if finished:
@@ -148,10 +169,12 @@ func step() -> Array:
 	var dt: float = 1.0 / float(rules.tick_rate)
 	# 先撤离到期单位，再生成下一波；默认 90 秒寿命 / 30 秒间隔，最多三波共存。
 	var alive: Array = []
+	var motion: Dictionary = {}
 	for unit in units:
 		if tick - int(unit.born) >= int(rules.unit_lifetime * rules.tick_rate):
 			events.append({"type":"expired","id":unit.id})
 		else:
+			motion[unit.id] = unit.pos - unit.prev
 			unit.prev = unit.pos
 			alive.append(unit)
 	units = alive
@@ -160,11 +183,18 @@ func step() -> Array:
 	_build_buckets()
 	# 先把命中伤害和移动结果存下来，不立即改目标生命或位置，避免先处理的一方占便宜。
 	var hits: Dictionary = {}
+	var heals: Dictionary = {}
 	var moves: Dictionary = {}
+	var self_costs: Dictionary = {}
+	var pending_slows: Dictionary = {}
 	var base_hits: Array = [0.0, 0.0]
 	for unit in units:
 		var stats: Dictionary = catalog[unit.kind]
-		unit.cooldown = maxf(0.0, float(unit.cooldown) - dt)
+		var skills: Dictionary = stats.get("skills",{})
+		if skills.has("healing"):
+			unit.cooldown = maxf(0.0, float(unit.cooldown) - dt)
+			Healing.step(self, unit, dt, heals, moves)
+			continue
 		var target := _target(unit)
 		# 因为只有 0 和 1 两队，所以 1-team 正好得到敌方阵营。
 		var enemy: int = 1 - int(unit.team)
@@ -174,22 +204,39 @@ func step() -> Array:
 		var distance: float = unit.pos.distance_to(goal)
 		# 攻击基地时给基地中心额外 20 的判定距离，相当于允许攻击到基地边缘。
 		var reach: float = float(stats.range) + (20.0 if target.is_empty() else 0.0)
+		var can_act: bool = not skills.has("deployment") or Deployment.can_act(self, unit, distance <= reach, target.is_empty() and distance <= reach, motion)
+		if can_act and not target.is_empty() and distance <= reach:
+			Stimulant.activate(self,unit,self_costs)
+		# cooldown 保存基础攻击时间；增益改变消耗速度，兼容中途生效/到期。
+		unit.cooldown = maxf(0.0, float(unit.cooldown) - dt * Stimulant.attack_rate(unit,tick))
+		if not can_act:
+			continue
 		if distance <= reach:
 			if float(unit.cooldown) <= 0.00001:
 				unit.cooldown = float(stats.interval)
-				if target.is_empty():
-					base_hits[enemy] += float(stats.damage)
+				if skills.has("line_attack"):
+					if not target.is_empty():
+						unit.locked_target_id = target.id
+					LineAttack.launch(self, unit, goal)
 				else:
-					# splash=0 时只命中一个目标；大于 0 时以目标位置为圆心搜集范围内单位。
-					var victims: Array = [target] if float(stats.splash) == 0 else _nearby(target.pos, float(stats.splash))
-					for victim in victims:
-						if victim.team != unit.team:
-							# 按受击单位的 armor 标签选择攻击者的 light_multiplier 或 heavy_multiplier。
-							var multiplier: float = float(stats[catalog[victim.kind].armor + "_multiplier"])
-							var amount: float = float(stats.damage) * multiplier
-							hits[victim.id] = float(hits.get(victim.id, 0.0)) + amount
-							damage_done[int(unit.team)] += amount
-					events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team})
+					for strike in range(MultiAttack.count(stats)):
+						if target.is_empty():
+							base_hits[enemy] += float(stats.damage)
+						else:
+							# 只有实际开火才锁定；追击和等待首次攻击冷却时仍可重新选敌。
+							unit.locked_target_id = target.id
+							# splash=0 时只命中一个目标；大于 0 时以目标位置为圆心搜集范围内单位。
+							var victims: Array = [target] if float(stats.splash) == 0 else _nearby(target.pos, float(stats.splash))
+							for victim in victims:
+								if victim.team != unit.team:
+									# 按受击单位的 armor 标签选择攻击者的 light_multiplier 或 heavy_multiplier。
+									var multiplier: float = float(stats[catalog[victim.kind].armor + "_multiplier"])
+									var amount: float = float(stats.damage) * multiplier
+									hits[victim.id] = float(hits.get(victim.id, 0.0)) + amount
+									damage_done[int(unit.team)] += amount
+									events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
+									OnHitSlow.queue_hit(self,victim,skills.get("on_hit_slow",{}),pending_slows)
+							events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team})
 		else:
 			var direction: Vector2 = (goal - unit.pos).normalized()
 			# 局部分离：离其他单位太近时轻微避让，降低拥挤；这里不是复杂障碍物寻路。
@@ -201,13 +248,19 @@ func step() -> Array:
 				if offset.length_squared() > 0.01:
 					separation += offset.normalized() * (20.0 - offset.length()) / 20.0
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
-			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * float(stats.speed)
+			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
 			moves[unit.id] = Vector2(clampf(unit.pos.x + velocity.x * dt, 30.0, 1170.0), clampf(unit.pos.y + velocity.y * dt, 20.0, 380.0))
+	LineAttack.advance(self, dt, moves, hits, base_hits, pending_slows)
 	# 所有决定基于同一份步初状态，最后统一应用；同一步互相造成致命伤害时双方仍能开火。
 	alive = []
 	for unit in units:
 		unit.pos = moves.get(unit.id, unit.pos)
-		unit.hp -= float(hits.get(unit.id, 0.0))
+		if pending_slows.has(unit.id):
+			OnHitSlow.apply(unit,pending_slows[unit.id],tick)
+		# 治疗按步初缺血量封顶后再承受本步伤害，过量治疗不能充当护盾。
+		if heals.has(unit.id):
+			unit.hp = minf(float(catalog[unit.kind].hp), float(unit.hp) + float(heals[unit.id]))
+		unit.hp -= float(hits.get(unit.id, 0.0)) + float(self_costs.get(unit.id,0.0))
 		if hits.has(unit.id):
 			events.append({"type":"damage","id":unit.id,"amount":hits[unit.id]})
 		if unit.hp > 0:
@@ -238,5 +291,5 @@ func _end(result: int) -> void:
 ## 不包含对方下一波阵容；未来联网也应保留这个信息边界。
 func get_snapshot(viewer: int = 0) -> Dictionary:
 	return {"tick":tick,"wave":wave,"budget":budget(),"bases":bases.duplicate(),
-		"units":units.duplicate(true),"last_formations":last_formations.duplicate(true),
+		"units":units.duplicate(true),"attack_waves":attack_waves.duplicate(true),"last_formations":last_formations.duplicate(true),
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}

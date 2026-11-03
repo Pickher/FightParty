@@ -19,6 +19,8 @@ var sim = Sim.new()
 var ai = AI.new()
 # selected 是当前选中的兵种 ID，也可能是 erase（删除）或 move（移动）工具。
 var selected := "rifle"
+const UNITS_PER_PAGE := 9
+var unit_page := 0
 # 移动模式第一次点击的来源格；-1 表示还没选来源。
 var move_source := -1
 var started := false
@@ -139,8 +141,8 @@ func _process(delta: float) -> void:
 ## AI 只拿到玩家刚刚出兵的公开阵容，不拿到玩家正在修改的下一波。
 func advance_tick() -> void:
 	for event in sim.step():
-		if event.type == "attack":
-			event.ttl = 0.16
+		if event.type == "attack" or event.type == "heal" or event.type == "line_attack":
+			event.ttl = 0.24 if event.type == "line_attack" else 0.16
 			effects.append(event)
 		elif event.type == "wave":
 			_note("第 %d 波出兵 · 我方 %d / 敌方 %d" % [sim.wave,sim.last_formations[0].size(),sim.last_formations[1].size()])
@@ -205,7 +207,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.1  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.1.7  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -249,7 +251,27 @@ func _draw_battle() -> void:
 		draw_rect(Rect2(p-Vector2(17,26),Vector2(34,52)),color,false,2)
 		_text(p+Vector2(-7,7),"F" if team == 0 else "P",22,color)
 	for effect in effects:
+		if effect.type == "line_attack":
+			var start := _world(effect.from)
+			var finish := _world(effect.to)
+			var direction := (finish-start).normalized()
+			var normal := Vector2(-direction.y,direction.x)
+			var attack_color := Color(Color(sim.catalog[effect.kind].color),clampf(effect.ttl/0.24,0,1))
+			if effect.effect == "beam":
+				# 双束光束分别连接各自推进到的落点，不提前命中整条横线。
+				draw_line(_world(effect.source),finish,Color(attack_color,attack_color.a*0.35),1.5)
+				draw_line(start,finish,attack_color,5)
+				draw_circle(finish,3,Color(INK,attack_color.a))
+			else:
+				draw_line(start,finish,attack_color,3)
+				for fraction in [0.3,0.8]:
+					var point: Vector2 = start.lerp(finish,fraction)
+					draw_colored_polygon(PackedVector2Array([point+normal*6,point-normal*6,point+direction*9]),attack_color)
+			continue
 		var color := Color(MINT if effect.team == 0 else CORAL,clampf(effect.ttl/0.16,0,1))
+		if effect.type == "heal":
+			color = Color(Color("85efd9"), clampf(effect.ttl/0.16,0,1))
+			draw_arc(_world(effect.to),18,0,TAU,20,color,2)
 		draw_line(_world(effect.from),_world(effect.to),color,2)
 		if effect.kind == "mortar":
 			draw_arc(_world(effect.to),38,0,TAU,24,color,2)
@@ -259,14 +281,58 @@ func _draw_battle() -> void:
 		var p := _world(unit.prev.lerp(unit.pos,alpha))
 		var color: Color = MINT if unit.team == 0 else CORAL
 		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
+		if sim.tick < int(unit.get("stim_until_tick",0)):
+			draw_arc(p,18,0,TAU,20,Color("ffbe65"),2)
+		if sim.tick < int(unit.get("slow_until_tick",0)):
+			draw_line(p+Vector2(-10,17),p+Vector2(0,22),Color("77cfff"),2)
+			draw_line(p+Vector2(0,22),p+Vector2(10,17),Color("77cfff"),2)
+		if unit.has("siege_state"):
+			var state: String = unit.siege_state
+			var deployment: Dictionary = sim.catalog[unit.kind].skills.deployment
+			var burrowing: bool = deployment.mode == "burrow"
+			if burrowing and state == "deployed":
+				draw_circle(p,12,Color("3d294b"))
+				draw_arc(p,13,0,PI,10,Color(sim.catalog[unit.kind].color),3)
+			if not burrowing and state != "mobile":
+				# 展开支架与状态进度条，区分架设/收起和可开火状态。
+				for side in [-1,1]:
+					draw_line(p+Vector2(side*8,6),p+Vector2(side*19,16),color,3)
+			if state == "deploying" or state == "packing":
+				var duration: float = deployment.deploy_seconds if state == "deploying" else deployment.pack_seconds
+				var progress: float = 1.0 - float(unit.siege_until_tick-sim.tick)/(duration*float(sim.rules.tick_rate))
+				_bar(Rect2(p+Vector2(-16,21),Vector2(32,3)),progress,Color("f5b66e"))
+				_text(p+Vector2(-18,38),("埋地" if burrowing else "架设") if state == "deploying" else ("出土" if burrowing else "收起"),12,color)
+			elif state == "deployed":
+				_text(p+Vector2(-18,32),"已埋地" if burrowing else "炮击",12,color)
 		draw_arc(p,14,0,TAU,16,color,1.8)
 		_bar(Rect2(p+Vector2(-13,-22),Vector2(26,3)),float(unit.hp)/float(sim.catalog[unit.kind].hp),color)
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
 	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
 
-## 用不同几何形状区分六个兵种。这里只画外形，不包含移动或攻击逻辑。
+## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	match kind:
+		"marauder":
+			# 重装躯干和双侧榴弹发射器；外观不改变单次攻击次数。
+			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.8),Vector2(radius*1.3,radius*1.6)),color)
+			for side in [-1,1]:
+				draw_rect(Rect2(p+Vector2(side*radius-radius*0.3,-radius*0.55),Vector2(radius*0.6,radius*1.1)),color)
+			draw_line(p+Vector2(-radius*0.35,-radius*0.3),p+Vector2(radius*0.35,-radius*0.3),INK,2)
+		"colossus":
+			for side in [-1,1]:
+				for vertical in [-1,1]:
+					draw_line(p+Vector2(side*radius*0.4,vertical*radius*0.4),p+Vector2(side*radius*1.3,vertical*radius*1.2),color,2)
+				draw_circle(p+Vector2(side*radius*0.9,0),radius*0.25,INK)
+			draw_rect(Rect2(p-Vector2(radius*0.55,radius*0.75),Vector2(radius*1.1,radius*1.5)),color)
+		"piercer":
+			for side in [-1,1]:
+				for offset in [-0.6,0.6]:
+					draw_line(p+Vector2(side*radius*0.4,offset*radius),p+Vector2(side*radius*1.3,offset*radius*1.3),color,2)
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius*0.7,0),p+Vector2(0,radius),p-Vector2(radius*0.7,0)]),color)
+		"medic":
+			draw_circle(p,radius,color)
+			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.2),Vector2(radius*1.3,radius*0.4)),Color("162334"))
+			draw_rect(Rect2(p-Vector2(radius*0.2,radius*0.65),Vector2(radius*0.4,radius*1.3)),Color("162334"))
 		"guard":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(-radius,-radius),p+Vector2(radius,-radius),p+Vector2(radius,radius*0.4),p+Vector2(0,radius*1.3),p+Vector2(-radius,radius*0.4)]),color)
 		"swarm":
@@ -302,17 +368,23 @@ func _draw_editor() -> void:
 	_button(Rect2(296,805,122,32),"清空阵容","clear")
 	_panel(Rect2(453,573,644,277))
 	_text(Vector2(475,605),"选择兵种",23)
+	var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
+	if page_count > 1:
+		_button(Rect2(577,579,30,32),"<","units_prev")
+		_text(Vector2(611,602),"%d/%d" % [unit_page+1,page_count],15,MUTED)
+		_button(Rect2(644,579,30,32),">","units_next")
 	var cost: int = sim.formation_cost(sim.formations[0])
 	_text(Vector2(675,605),"已配置 %d / %d   ·   剩余 %d" % [cost,sim.budget(),sim.budget()-cost],20,MINT)
 	var i := 0
-	for kind in sim.catalog:
+	var kinds: Array = sim.catalog.keys()
+	for kind in kinds.slice(unit_page*UNITS_PER_PAGE,(unit_page+1)*UNITS_PER_PAGE):
 		var stats: Dictionary = sim.catalog[kind]
-		var rect := Rect2(475+(i%3)*203,623+(i/3)*78,191,68)
+		var rect := Rect2(475+(i%3)*203,619+(i/3)*55,191,50)
 		_panel(rect,Color("233e41") if selected==kind else Color("17293c"),MINT if selected==kind else Color("304358"))
-		_draw_unit(rect.position+Vector2(22,26),kind,Color(stats.color),10)
-		_text(rect.position+Vector2(43,31),stats.name,21)
-		_text(rect.position+Vector2(135,30),str(int(stats.cost)),18,MINT)
-		_text(rect.position+Vector2(12,56),str(stats.role),13,MUTED)
+		_draw_unit(rect.position+Vector2(22,20),kind,Color(stats.color),10)
+		_text(rect.position+Vector2(43,25),stats.name,21)
+		_text(rect.position+Vector2(135,24),str(int(stats.cost)),18,MINT)
+		_text(rect.position+Vector2(12,44),str(stats.role),13,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
 		i += 1
 	if sim.catalog.has(selected):
@@ -330,7 +402,7 @@ func _draw_editor() -> void:
 	else:
 		var n := 0
 		for kind in counts:
-			_text(Vector2(1132+(n%2)*130,637+(n/2)*27),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],17)
+			_text(Vector2(1132+(n%2)*130,631+(n/2)*21),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],17)
 			n+=1
 	_text(Vector2(1132,732),"下一波敌方配置保密",16,MUTED)
 	_text(Vector2(1132,765),"击破 %d   /   损失 %d" % [sim.kills[0],sim.kills[1]],18,MINT)
@@ -408,8 +480,14 @@ func handle_action(action: String) -> void:
 	elif action == "restart":
 		_new_match()
 	elif not sim.finished:
-		if action.begins_with("select:"):
+		if action == "units_prev" or action == "units_next":
+			var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
+			unit_page = posmod(unit_page + (1 if action == "units_next" else -1),page_count)
+		elif action.begins_with("select:"):
 			selected = action.get_slice(":",1)
+			var index: int = sim.catalog.keys().find(selected)
+			if index >= 0:
+				unit_page = index / UNITS_PER_PAGE
 			move_source = -1
 		elif action == "erase" or action == "move":
 			selected=action

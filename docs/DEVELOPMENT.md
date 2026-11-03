@@ -60,3 +60,24 @@ python tools/subset_font.py C:/Temp/NotoSansSC-original.ttf
 ```
 
 原字体来源：https://github.com/google/fonts/tree/main/ofl/notosanssc 。许可证位于 `assets/OFL.txt`。Godot MIT 声明位于 `assets/GODOT-LICENSE.txt`，同时保留 https://godotengine.org/license/ 的引用以查看引擎第三方组件声明。
+
+## 云端安卓测试包（2026-11-03）
+
+当前云端使用 Godot 4.6.3.stable.official.7d41c59c4 及匹配的 4.6.3.stable Android debug 模板、OpenJDK 21、Android SDK Build Tools 36.0.0、platforms;android-36 和 platform-tools。Android SDK 位于 `/home/agent/android-sdk`，Java SDK 位于 `/usr/lib/jvm/java-21-openjdk-amd64`；路径通过云端 Godot 编辑器设置配置，不写入项目导出预设。
+
+本机生成的开发测试签名保存在项目外的 Godot keystores 目录，不能提交到仓库。后续生成同包名更新包应继续使用同一签名；云端环境重建前需妥善保存签名才能保留升级兼容性。
+
+新增 `Android Cloud Test` 预设，包名 `org.pickher.fightparty.cloudtest`、显示名称 `FightParty Test`、当前预设 versionCode 8 / versionName 0.1.7，可以与原包并存。原 Android 预设仍保留原包名。两者存档独立。
+
+```bash
+mkdir -p build
+godot --headless --path . --editor --import --quit
+godot --headless --path . --script res://tests/test_sim.gd
+godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0.1.7-cloud-test.apk
+/home/agent/android-sdk/build-tools/36.0.0/apksigner verify --verbose build/FightParty-0.1.7-cloud-test.apk
+/home/agent/android-sdk/build-tools/36.0.0/zipalign -c -P 16 4 build/FightParty-0.1.7-cloud-test.apk
+```
+
+产物在已忽略的 build 目录，不提交到源码仓库。安装只需要 APK，不需要旁边的 idsig 文件。此包保持 Mobile/Vulkan，最低 Android API 24 不等同于所有 Android 7.0 手机都能运行，仍需要实际设备验证。
+
+以上命令用于重新构建当前源码；本轮未执行 0.1.7 导出，已有下载页仍为 0.1.4。

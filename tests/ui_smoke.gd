@@ -19,6 +19,8 @@ func verify(ok: bool, message: String) -> void:
 func run() -> void:
 	game=load("res://scenes/main.tscn").instantiate()
 	root.add_child(game)
+	# 无窗口模式不验证音频；避免极速退出时混音线程仍持有播放对象。
+	if DisplayServer.get_name() == "headless":game.speaker.stream = null
 	await process_frame
 	# 测试主动控制模拟时间，关闭每帧自动推进以避免时间不确定；绘图仍可按需触发。
 	game.set_process(false)
@@ -33,7 +35,56 @@ func run() -> void:
 	game.handle_action("erase")
 	game.handle_action("cell:11")
 	verify(game.sim.formations[0].is_empty(),"erase")
-	game._commit(preload("res://scripts/catalog.gd").starter())
+	game.handle_action("select:medic")
+	game.handle_action("cell:0")
+	verify(game.sim.formations[0][0].kind=="medic","place medic")
+	game.handle_action("move")
+	game.handle_action("cell:0")
+	game.handle_action("cell:6")
+	verify(game.sim.formations[0][0].cell==6,"move medic")
+	game.handle_action("erase")
+	game.handle_action("cell:6")
+	verify(game.sim.formations[0].is_empty(),"erase medic")
+	game.handle_action("select:piercer")
+	game.handle_action("cell:1")
+	verify(game.sim.formations[0][0].kind=="piercer","place piercer")
+	game.handle_action("move")
+	game.handle_action("cell:1")
+	game.handle_action("cell:7")
+	verify(game.sim.formations[0][0].cell==7,"move piercer")
+	game.handle_action("erase")
+	game.handle_action("cell:7")
+	verify(game.sim.formations[0].is_empty(),"erase piercer")
+	game.handle_action("select:colossus")
+	game.handle_action("cell:2")
+	verify(game.sim.formations[0][0].kind=="colossus","place colossus")
+	game.handle_action("move")
+	game.handle_action("cell:2")
+	game.handle_action("cell:8")
+	verify(game.sim.formations[0][0].cell==8,"move colossus")
+	game.handle_action("erase")
+	game.handle_action("cell:8")
+	verify(game.sim.formations[0].is_empty(),"erase colossus")
+	game.handle_action("units_next")
+	verify(game.unit_page==1,"next unit page")
+	game.handle_action("select:marauder")
+	game.handle_action("cell:3")
+	verify(game.sim.formations[0][0].kind=="marauder","place marauder from second page")
+	game.handle_action("move")
+	game.handle_action("cell:3")
+	game.handle_action("cell:9")
+	verify(game.sim.formations[0][0].cell==9,"move marauder")
+	game.handle_action("erase")
+	game.handle_action("cell:9")
+	verify(game.sim.formations[0].is_empty(),"erase marauder")
+	game.handle_action("units_next")
+	verify(game.unit_page==0,"unit pages wrap forward")
+	game.handle_action("units_prev")
+	verify(game.unit_page==1,"unit pages wrap backward")
+	game.handle_action("select:rifle")
+	verify(game.unit_page==0,"select keeps chosen card visible")
+	# 565 预算混编，覆盖劫掠者及两种传播攻击的完整对局。
+	game._commit([{"kind":"marauder","cell":5},{"kind":"piercer","cell":8},{"kind":"colossus","cell":6}])
 	game.handle_action("start")
 	game.handle_action("start")
 	var before: int=game.sim.tick
@@ -51,21 +102,27 @@ func run() -> void:
 	for i in range(90):await process_frame
 	game.queue_redraw()
 	await process_frame
-	await RenderingServer.frame_post_draw
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
 	var destination := "user://ui-smoke.png"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture="):destination=arg.trim_prefix("--capture=")
-	root.get_texture().get_image().save_png(destination)
+	if DisplayServer.get_name() != "headless":
+		root.get_texture().get_image().save_png(destination)
 	while not game.sim.finished:game.advance_tick()
 	verify(game.sim.journal.has("result"),"full match reaches recorded result")
 	game.effects.clear()
 	game.queue_redraw()
 	await process_frame
-	await RenderingServer.frame_post_draw
-	root.get_texture().get_image().save_png(destination.replace(".png","-result.png"))
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+	if DisplayServer.get_name() != "headless":
+		root.get_texture().get_image().save_png(destination.replace(".png","-result.png"))
 	game.handle_action("restart")
 	verify(not game.started and not game.sim.finished and game.sim.tick==0,"restart resets match")
-	print("UI SMOKE: ","FAIL" if failed else "PASS", " capture=",destination)
+	print("UI SMOKE: ","FAIL" if failed else "PASS", " capture=",destination if DisplayServer.get_name() != "headless" else "skipped (headless)")
+	game.speaker.stop()
+	game.speaker.stream = null
 	game.queue_free()
 	await process_frame
 	quit(1 if failed else 0)

@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。目前为 Windows + Android 离线人机原型 v0.1.0，使用 Godot 4.7.2 标准版和 GDScript。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.1.7，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -28,7 +28,7 @@ C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_
 
 ## 二、游戏打开后怎么玩
 
-1. 看下方兵种卡片的价格、定位与克制提示。
+1. 看下方兵种卡片的价格、定位与克制提示。超过九种时，点“选择兵种”右侧的 < / > 翻页。
 2. 点兵种卡片，再点左下方网格，放置或替换单位。右边是前排，左边是后排。
 3. “移除单位”：先点工具，再点要移除的单位。
 4. “移动位置”：先点来源格，再点目标格；目标已占用时交换位置。
@@ -101,7 +101,7 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 ## 七、units.json：兵种字段解释
 
-打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）。
+打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）、medic（医疗兵）、piercer（穿刺者）、colossus（巨像）、marauder（劫掠者）。
 
 - name：界面显示的中文名称。
 - symbol：预留的字母标识；当前单位形状主要由 main.gd 绘制代码决定。
@@ -112,6 +112,13 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - interval：攻击间隔，单位秒，越小攻击越快。
 - range：攻击距离，按逻辑战场坐标计算，不等于屏幕像素。
 - speed：每秒移动的逻辑距离。
+- skills：可复用技能配置，省略时使用普通移动/攻击。详细字段及组合示例见 [docs/SKILLS.md](docs/SKILLS.md)。
+- skills.healing：`heal` 为单次治疗量；`follow_distance`、`danger_distance` 控制后排跟随与避敌。医疗兵当前每 0.5 秒治疗 12，范围 160。
+- skills.deployment：`deploy_seconds`、`pack_seconds` 为展开/收起耗时；`deploy_enemy_threshold`、`scan_seconds` 控制人数阈值与扫描确认；`hold_range_multiplier` 控制外围保持范围。`mode` 用 siege 显示架设，用 burrow 显示埋地，埋地暂不隐身。
+- skills.line_attack：`pattern` 为 forward（从自身沿目标方向传播）或 transverse（以目标位置为中心横向扫射）；`speed` 为传播速度，`half_width` 为半宽，`length` 为固定长度，省略时使用 range；`effect` 选择 spike/beam 外观。
+- skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
+- skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
+- skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击使用 damage 和护甲倍率，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
 - splash：范围伤害半径，0 表示单体攻击。
 - light_multiplier：攻击轻甲的伤害倍率。
 - heavy_multiplier：攻击重甲的伤害倍率。
@@ -201,6 +208,7 @@ git -C 'D:\MyCode\FightParty' diff
 
 - D:\MyCode\FightParty\docs\DESIGN.md：玩法与兵种初始数值。
 - D:\MyCode\FightParty\docs\ARCHITECTURE.md：分层、接口、数据流和联机边界。
+- [docs/SKILLS.md](docs/SKILLS.md)：技能配置、组合方式与扩展入口。
 - D:\MyCode\FightParty\docs\DEVELOPMENT.md：测试、打包、字体维护。
 - D:\MyCode\FightParty\docs\TEST_REPORT.md：实际验证结果与安卓未验证项。
 

@@ -14,9 +14,9 @@ func _init(seed_value: int = 42) -> void:
 ## 最终仍由 BattleSim.submit_formation() 校验，AI 不能绕开玩家同样遵守的规则。
 func choose(last_enemy: Array, budget: int) -> Array:
 	# 键是观察到的敌方兵种，值是准备购买的反制兵种；ID 必须存在于 units.json。
-	var counters := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"sniper","sniper":"swarm"}
+	var counters := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"swarm","sniper":"swarm","medic":"sniper","piercer":"mortar","colossus":"breaker","marauder":"breaker"}
 	# 抽取池里同一兵种出现越多，选中的机会越大。这里给步枪兵较高的基础权重。
-	var choices: Array = ["rifle","rifle","swarm"]
+	var choices: Array = ["rifle","rifle","swarm","piercer","colossus","marauder"]
 	for slot in last_enemy:
 		choices.append(counters.get(slot.kind,"rifle"))
 	var result: Array = []
@@ -26,6 +26,11 @@ func choose(last_enemy: Array, budget: int) -> Array:
 	for i in range(24):
 		# 预算足够时先放两个盾卫，其余位置从抽取池选择。买不起时尝试更便宜的蜂群。
 		var kind: String = "guard" if i < 2 else str(choices[rng.randi_range(0, choices.size()-1)])
+		# 较高预算时带一名医疗兵，优先安排在后排。
+		if i == 2 and budget >= 700:
+			kind = "medic"
+			cells.erase(0)
+			cells.insert(i,0)
 		if int(catalog[kind].cost) > left:
 			kind = "swarm"
 		if int(catalog[kind].cost) > left:
