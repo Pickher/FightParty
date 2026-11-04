@@ -1,0 +1,17 @@
+{
+ "version": "0.3.0",
+ "races": {
+  "terran": {"name":"人族","color":"7fb8ff","flavor":"正面军团：兵种扎实，火力持续",
+   "starter":[{"kind":"hellbat","cell":53},{"kind":"hellbat","cell":107},{"kind":"hellbat","cell":71},{"kind":"rifle","cell":69},{"kind":"rifle","cell":87},{"kind":"rifle","cell":51},{"kind":"rifle","cell":105}],
+   "ai":{"front":"hellbat","front_min":2,"support":"medic","support_value":700}},
+  "zerg": {"name":"虫族","color":"e39bd0","flavor":"适应性：兵种多样，善于突入",
+   "starter":[{"kind":"zergling","cell":53},{"kind":"zergling","cell":107},{"kind":"zergling","cell":71},{"kind":"zergling","cell":89},{"kind":"roach","cell":69},{"kind":"hydralisk","cell":87},{"kind":"hydralisk","cell":51}],
+   "ai":{"front":"roach","front_min":2}},
+  "protoss": {"name":"神族","color":"f0d070","flavor":"少而精：护盾与高科技，讲究配合",
+   "starter":[{"kind":"vanguard","cell":53},{"kind":"vanguard","cell":107},{"kind":"vanguard","cell":71},{"kind":"stalker","cell":69},{"kind":"stalker","cell":87}],
+   "ai":{"front":"vanguard","front_min":2}},
+  "blight": {"name":"腐族","color":"a8d060","flavor":"原创：廉价海量，消耗与再生",
+   "starter":[{"kind":"swarm","cell":53},{"kind":"swarm","cell":107},{"kind":"swarm","cell":71},{"kind":"swarm","cell":89},{"kind":"spitter","cell":69},{"kind":"spitter","cell":87},{"kind":"spitter","cell":105},{"kind":"abomination","cell":51}],
+   "ai":{"front":"abomination","front_min":1}}
+ }
+}

@@ -12,8 +12,13 @@ const LineAttack = preload("res://scripts/skills/line_attack.gd")
 const Stimulant = preload("res://scripts/skills/stimulant.gd")
 const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
 const DefenderZone = preload("res://scripts/skills/defender_zone.gd")
+const Shield = preload("res://scripts/skills/shield.gd")
+const Regen = preload("res://scripts/skills/regen.gd")
+const WeaponSwitch = preload("res://scripts/skills/weapon_switch.gd")
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
+# 双方种族，整局固定（开局设置的 races 覆盖 rules 默认值）；只能购买本方种族的已实装兵种。
+var races: Array = ["terran", "terran"]
 # 双方的永久兵营：每格 {kind, cell, deployed}；每波整份生成一次。deployed 表示已至少出场一次。
 var formations: Array = [[], []]
 # 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
@@ -54,6 +59,7 @@ const FINE := 20.0
 ## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	rules.merge(overrides, true)
+	races = rules.races.duplicate()
 	bases = [float(rules.base_hp), float(rules.base_hp)]
 	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
 	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
@@ -102,6 +108,16 @@ func formation_cost(formation: Array) -> int:
 func _buyable(kind) -> bool:
 	return kind is String and catalog.has(kind) and not bool(catalog[kind].get("structure", false))
 
+## 某方能否购买该兵种：未知兵种、结构体、未实装（stub）或不属于本方种族都会被拒绝。
+func kind_error(team: int, kind) -> String:
+	if not _buyable(kind):
+		return "未知兵种"
+	if not Catalog.is_ready(catalog[kind]):
+		return "该兵种尚未实装"
+	if str(catalog[kind].get("race", "")) != str(races[team]):
+		return "不属于本方种族"
+	return ""
+
 func _cell_error(cell) -> String:
 	# JSON 读出的数字可能是浮点数，所以允许 5.0，但拒绝 5.5 这样的非整数格子。
 	if not (cell is int or cell is float) or float(cell) != floor(float(cell)):
@@ -110,13 +126,16 @@ func _cell_error(cell) -> String:
 		return "超出布阵范围"
 	return ""
 
-## 检查兵种、格子类型、范围、重复占格和总价。
+## 检查兵种（含种族与实装状态）、格子类型、范围、重复占格和总价。
 ## 返回空字符串表示合法；其他字符串是展示给玩家的错误原因。空阵容是合法的。
-func validate_formation(formation: Array, allowed_budget: int) -> String:
+func validate_formation(formation: Array, allowed_budget: int, team: int = 0) -> String:
 	var occupied: Dictionary = {}
 	for slot in formation:
-		if not slot is Dictionary or not _buyable(slot.get("kind", "")):
+		if not slot is Dictionary:
 			return "未知兵种"
+		var kind_problem := kind_error(team, slot.get("kind", ""))
+		if not kind_problem.is_empty():
+			return kind_problem
 		var error := _cell_error(slot.get("cell", -1))
 		if not error.is_empty():
 			return error
@@ -155,8 +174,8 @@ func _log(team: int, action: Dictionary) -> void:
 ## 在空格购买一名永久单位，立即扣矿。
 func buy(team: int, kind: String, cell: int) -> String:
 	var error := _editable(team)
-	if error.is_empty() and not _buyable(kind):
-		error = "未知兵种"
+	if error.is_empty():
+		error = kind_error(team, kind)
 	if error.is_empty():
 		error = _cell_error(cell)
 	if error.is_empty() and _slot_index(team, cell) >= 0:
@@ -202,7 +221,7 @@ func move(team: int, from_cell: int, to_cell: int) -> String:
 func submit_formation(team: int, formation: Array) -> String:
 	var error := _editable(team)
 	if error.is_empty():
-		error = validate_formation(formation, 2147483647)
+		error = validate_formation(formation, 2147483647, team)
 	if not error.is_empty():
 		return error
 	var wanted: Dictionary = {}
@@ -259,6 +278,7 @@ func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 		"hp":float(catalog[kind].hp),"cooldown":0.0,"born":tick,"locked_target_id":0}
 	if catalog[kind].get("skills",{}).has("deployment") or catalog[kind].get("skills",{}).has("defender_zone"):
 		Deployment.initialize(unit)
+	Shield.initialize(self, unit)
 	next_id += 1
 	units.append(unit)
 	return unit
@@ -347,8 +367,40 @@ func _neighbors(pos: Vector2) -> Array:
 					found.append(unit)
 	return found
 
+## 当前开火用的武器数据：防卫模式与多武器单位会合并出专用数据，其他单位就是兵种本身。
 func _weapon_stats(unit: Dictionary) -> Dictionary:
-	return DefenderZone.weapon(self,unit) if catalog[unit.kind].get("skills",{}).has("defender_zone") else catalog[unit.kind]
+	var skills = catalog[unit.kind].get("skills")
+	if skills != null and skills.has("defender_zone"):
+		return DefenderZone.weapon(self,unit)
+	if skills != null and skills.has("weapon_switch"):
+		return WeaponSwitch.weapon(self,unit)
+	return catalog[unit.kind]
+
+## 索敌用的数据：多武器单位按兵种的射程与目标层（各武器的并集）找目标，其余同开火武器。
+func _search_stats(unit: Dictionary) -> Dictionary:
+	var skills = catalog[unit.kind].get("skills")
+	return catalog[unit.kind] if skills != null and skills.has("weapon_switch") else _weapon_stats(unit)
+
+## 护甲规则：攻击力 + 对应护甲类型的穿甲加成（bonus.light / bonus.heavy）。
+## 无甲（none）与特殊甲（special）不吃任何加成。返回扣护盾/护甲之前的原始伤害。
+func raw_damage(weapon: Dictionary, victim_kind: String) -> float:
+	var raw := float(weapon.damage)
+	var armor_type: String = str(catalog[victim_kind].get("armor_type", "none"))
+	if armor_type == "light" or armor_type == "heavy":
+		var bonus = weapon.get("bonus")
+		if bonus != null:
+			raw += float(bonus.get(armor_type, 0))
+	return raw
+
+## 不考虑护盾剩余量的单发预估伤害：有护盾时按原始伤害，否则减去护甲点数，至少 min_damage。
+## 用于统计、事件与电脑/多武器的选择；真正扣血在 step() 末尾经 Shield.absorb 结算。
+func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
+	var raw := raw_damage(weapon, victim.kind)
+	if raw <= 0.0:
+		return 0.0
+	if float(victim.get("shield", 0.0)) > 0.0:
+		return maxf(raw, float(rules.min_damage))
+	return maxf(raw - float(catalog[victim.kind].get("armor", 0)), float(rules.min_damage))
 
 ## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
 func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
@@ -365,10 +417,9 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 	return skills == null or not skills.has("defender_zone") or DefenderZone.contains(self,unit,other.pos)
 
 ## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
-## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。
-## 狙击手在整个发现范围内偏好低基础生命目标；同分时以稳定 ID 决定。
+## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。同距时以稳定 ID 决定。
 func _target(unit: Dictionary) -> Dictionary:
-	var weapon := _weapon_stats(unit)
+	var weapon := _search_stats(unit)
 	var reach := float(weapon.range)
 	var radius := reach * 1.5
 	var locked = by_id.get(unit.locked_target_id)
@@ -378,17 +429,16 @@ func _target(unit: Dictionary) -> Dictionary:
 	unit.locked_target_id = 0
 	var best: Dictionary = {}
 	var best_score := INF
-	var sniper: bool = unit.kind == "sniper"
 	var enemies: Dictionary = team_buckets[1 - int(unit.team)]
 	var area := _search_area(unit.pos, radius)
 	# 按空间桶的环由近到远搜索。第 ring 环内任何单位距离至少 (ring-1)×BUCKET，
-	# 已找到更近目标时可以提前结束；按距离评分以外的狙击手需完整搜索。
+	# 已找到更近目标时可以提前结束。
 	for ring in range(int(area.rings)):
-		if not sniper and best_score < float(ring - 1) * BUCKET:
+		if best_score < float(ring - 1) * BUCKET:
 			break
 		for key in _ring_cells(area, ring):
 			var bucket = enemies.get(key)
-			if bucket == null or (not sniper and _cell_distance(unit.pos, key) > minf(best_score, radius)):
+			if bucket == null or _cell_distance(unit.pos, key) > minf(best_score, radius):
 				continue
 			for other in bucket:
 				if other.hp <= 0:
@@ -397,8 +447,6 @@ func _target(unit: Dictionary) -> Dictionary:
 				if distance > radius or not _can_hit_unit(unit,other,weapon):
 					continue
 				var score := distance
-				if sniper:
-					score = distance * 0.1 + float(catalog[other.kind].hp) * 0.2
 				if score < best_score or (is_equal_approx(score, best_score) and int(other.id) < int(best.get("id", 2147483647))):
 					best = other
 					best_score = score
@@ -475,6 +523,12 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 					found.append(unit)
 	return found
 
+## 把一次命中的原始伤害（含穿甲加成）排入本步待结算列表；hits 是 id → 原始伤害数组。
+func queue_hit(hits: Dictionary, victim: Dictionary, raw: float) -> void:
+	if not hits.has(victim.id):
+		hits[victim.id] = []
+	hits[victim.id].append(raw)
+
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
 	return float(catalog[unit.kind].speed) * Stimulant.speed_multiplier(unit,tick) * OnHitSlow.speed_multiplier(unit,tick)
@@ -520,6 +574,11 @@ func step() -> Array:
 			mode_allowed = DefenderZone.prepare(self,unit,motion)
 			stats = _weapon_stats(unit)
 		var target := _target(unit)
+		# 多武器单位按目标换武器；换弹期间 armed 为 false，单位原地等待、不能开火。
+		var armed := true
+		if skills.has("weapon_switch"):
+			armed = WeaponSwitch.prepare(self, unit, target)
+			stats = _weapon_stats(unit)
 		# 因为只有 0 和 1 两队，所以 1-team 正好得到敌方阵营。
 		var enemy: int = 1 - int(unit.team)
 		var goal := base_pos(enemy)
@@ -540,7 +599,7 @@ func step() -> Array:
 		if distance <= reach:
 			if target.is_empty() and (unit.has("defender_goal") or not bool(stats.get("attacks_base",true))):
 				continue
-			if float(unit.cooldown) <= 0.00001:
+			if armed and float(unit.cooldown) <= 0.00001:
 				unit.cooldown = float(stats.interval)
 				if skills.has("line_attack"):
 					if not target.is_empty():
@@ -557,10 +616,9 @@ func step() -> Array:
 							var victims: Array = [target] if float(stats.splash) == 0 else _nearby(target.pos, float(stats.splash))
 							for victim in victims:
 								if victim.team != unit.team and _can_hit_unit(unit,victim,stats):
-									# 按受击单位的 armor 标签选择攻击者的 light_multiplier 或 heavy_multiplier。
-									var multiplier: float = float(stats[catalog[victim.kind].armor + "_multiplier"])
-									var amount: float = float(stats.damage) * multiplier
-									hits[victim.id] = float(hits.get(victim.id, 0.0)) + amount
+									# 按受击单位的护甲类型加上穿甲加成；护盾与护甲点数在统一结算时扣除。
+									var amount: float = expected_damage(stats, victim)
+									queue_hit(hits, victim, raw_damage(stats, victim.kind))
 									damage_done[int(unit.team)] += amount
 									events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
 									OnHitSlow.queue_hit(self,victim,skills.get("on_hit_slow",{}),pending_slows)
@@ -590,10 +648,20 @@ func step() -> Array:
 		# 治疗按步初缺血量封顶后再承受本步伤害，过量治疗不能充当护盾。
 		if heals.has(unit.id):
 			unit.hp = minf(float(catalog[unit.kind].hp), float(unit.hp) + float(heals[unit.id]))
-		unit.hp -= float(hits.get(unit.id, 0.0)) + float(self_costs.get(unit.id,0.0))
+		# 同一步的多次命中按发生顺序逐发结算：先扣护盾，再按生命护甲减免（见 shield.gd）。
+		var lost: float = float(self_costs.get(unit.id,0.0))
 		if hits.has(unit.id):
-			events.append({"type":"damage","id":unit.id,"amount":hits[unit.id]})
+			var shield_before: float = float(unit.shield)
+			var hp_loss := 0.0
+			for raw in hits[unit.id]:
+				hp_loss += Shield.absorb(self, unit, float(raw))
+			lost += hp_loss
+			unit.last_hit_tick = tick
+			events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})
+		unit.hp -= lost
 		if unit.hp > 0:
+			Shield.recharge(self, unit, dt)
+			Regen.recover(self, unit, dt)
 			alive.append(unit)
 		elif is_structure(unit):
 			# 结构体不计击杀；只有宝库给攻击方奖励，同一座宝库只会死亡一次。

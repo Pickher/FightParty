@@ -1,4 +1,4 @@
-# 可复用技能配置（0.1.8）
+# 可复用技能配置（0.3.0）
 
 每个 `data/units.json` 兵种可添加 `skills` 字典。未配置技能时使用普通移动、索敌和攻击。技能实现位于 `scripts/skills/`；状态与计算属于模拟层，外观由 `main.gd` 绘制。
 
@@ -10,10 +10,30 @@
 | `line_attack` | 沿固定路径逐步推进，到达才伤害 | `pattern`：`forward`/`transverse`；`length`：路径长度，默认兵种 range；`speed`：传播速度；`half_width`：路径半宽；`effect`：`spike`/`beam` 外观 |
 | `multi_attack` | 一次攻击分别打击多次，共享一次冷却 | `count`：次数，默认 1，巨像为 2 |
 | `healing` | 跟随后排、躲避敌军、治疗友军 | `heal`：单次治疗；`follow_distance`：前排后方距离；`danger_distance`：敌军后方安全距离；使用兵种 range/interval 作为治疗距离/间隔 |
+| `weapon_switch` | 多把武器，按目标自动切换（0.3.0） | `switch_seconds`：换武器耗时，期间不能开火；`weapons`：武器数组，每把可覆盖 `damage`、`bonus`、`interval`、`range`、`splash`、`target_layers`、`attacks_base`，并带 `id`、`label` |
+| `regen` | 脱战后自动回血（0.3.0） | `delay`：最后一次受伤后多少秒开始；`per_second`：每秒回复生命 |
 
 必填参数按表完整填写；仅 `line_attack.length`、`multi_attack.count` 有默认值。正向直线从自身向目标方向走满 length；横向直线以开火瞬间目标位置为中心，垂直于攻击方向。横向多击从两端交替起始，每条都走完全长。
 
 `damage` 是每击伤害，`interval` 是整组攻击间隔，`range` 是启动攻击/锁定的距离。每条传播轨迹独立记录命中，不保证命中目标。没有 `line_attack` 的多重攻击会在开火步分别结算普通单体/溅射伤害；有此技能时使用传播判定，不使用 `splash` 圆形溅射。
+
+## 多武器、回血与护盾（0.3.0）
+
+`weapon_switch.gd`：索敌时用兵种顶层的 `range`、`target_layers`（应填写各武器的并集），选定目标后对每把能打该层的武器计算“预期每击伤害 ÷ 间隔”，取最高者，同分保留当前武器；没有敌军目标（攻击基地）时用第一把 `attacks_base` 不为 false 的武器。换到另一把武器后 `switch_seconds` 内不能开火，产生 `weapon_switch` 事件。合并后的武器按“兵种:序号”缓存在 `sim.mode_weapons`。特工用它在穿甲弹（克重甲）与狙击弹（克轻甲）之间切换，1.5 秒切换期是它的破绽；雷神的对地重炮与对空导弹切换为 0 秒。
+
+```json
+"weapon_switch": {
+  "switch_seconds": 1.5,
+  "weapons": [
+    { "id": "armor_piercing", "label": "穿甲弹", "damage": 30, "bonus": { "heavy": 60 }, "interval": 1.5 },
+    { "id": "precision", "label": "狙击弹", "damage": 30, "bonus": { "light": 30 }, "interval": 1.07 }
+  ]
+}
+```
+
+`regen.gd`：单位最后一次受伤（`last_hit_tick`）`delay` 秒后，每步回复 `per_second × 0.05` 生命，封顶最大生命。蟑螂为 3 秒、20/秒；缝合巨尸为 5 秒、8/秒。
+
+护盾不是技能，而是兵种顶层的 `shield` 数值，由 `shield.gd` 处理：出生时初始化；每击的加成后伤害先由护盾全额吸收（不减护甲值），溢出部分再减护甲值进入生命；距上次受伤 `rules.shield_regen_delay` 秒后按 `shield_regen_per_second` 恢复。治疗不恢复护盾。
 
 ## 强化剂与命中减速
 
@@ -121,4 +141,4 @@
 }
 ```
 
-既有兵种的对空名单已由用户确认：步枪兵、狙击手的 target_layers 为 [ground, air]，其余原有攻击单位为 [ground]。对空能力是配置属性，后续新增兵种无需在索敌逻辑中添加 ID 分支。
+对空能力是配置属性（`target_layers`），新增兵种无需在索敌逻辑中添加 ID 分支。0.3.0 的完整对空名单见 [DESIGN.md](DESIGN.md) 兵种表的“层 → 目标”列；每个种族都有可用的对空单位。
