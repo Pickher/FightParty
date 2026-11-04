@@ -10,19 +10,23 @@ static func initialize(unit: Dictionary) -> void:
 ## 少量敌人需要连续两次扫描确认同一 ID，多于阈值则立即架设。
 ## 已展开/正在展开时，120% 射程内仍有靠近的敌人就继续保持。
 ## motion 是统一保存的上一步位移，不依赖本步单位处理顺序。
-static func can_act(sim, unit: Dictionary, in_range: bool, base_in_range: bool, motion: Dictionary) -> bool:
+static func can_act(sim, unit: Dictionary, in_range: bool, base_in_range: bool, motion: Dictionary, context: Dictionary = {}) -> bool:
 	var stats: Dictionary = sim.catalog[unit.kind]
-	var config: Dictionary = stats.skills.deployment
+	var config: Dictionary = context.get("config",stats.get("skills",{}).get("deployment",{}))
 	var ids: Array = []
 	var approaching := false
-	var reach := float(stats.range)
-	for other in sim._nearby(unit.pos, reach * float(config.hold_range_multiplier)):
+	var reach: float = float(context.get("range",stats.range))
+	var center: Vector2 = context.get("center",unit.pos)
+	var layers: Array = context.get("target_layers",stats.get("target_layers",["ground"]))
+	for other in sim._nearby(center, reach * float(config.hold_range_multiplier)):
 		if other.team == unit.team or other.hp <= 0:
 			continue
-		if unit.pos.distance_squared_to(other.pos) <= reach * reach:
+		if not layers.has(sim.catalog[other.kind].get("layer","ground")):
+			continue
+		if center.distance_squared_to(other.pos) <= reach * reach:
 			ids.append(other.id)
 		var displacement: Vector2 = motion.get(other.id, Vector2.ZERO)
-		if displacement.dot(unit.pos - other.pos) > 0.001:
+		if displacement.dot(center - other.pos) > 0.001:
 			approaching = true
 	var keep_deployed: bool = not ids.is_empty() or approaching or base_in_range
 	match unit.siege_state:

@@ -9,7 +9,7 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 	var forward: float = 1.0 if unit.team == 0 else -1.0
 	var front: Dictionary = {}
 	for ally in sim.units:
-		if ally.team != unit.team or sim.catalog[ally.kind].get("skills",{}).has("healing"):
+		if ally.team != unit.team or sim.catalog[ally.kind].get("skills",{}).has("healing") or sim.catalog[ally.kind].get("layer","ground") != "ground":
 			continue
 		if front.is_empty() or float(ally.pos.x) * forward > float(front.pos.x) * forward:
 			front = ally

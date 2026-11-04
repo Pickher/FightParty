@@ -150,7 +150,8 @@ func _targeting() -> void:
 		var boundary = Sim.new()
 		var observer = boundary.spawn_unit(0, kind, Vector2(500,200))
 		var radius: float = float(boundary.catalog[kind].range) * 1.5
-		var enemy = boundary.spawn_unit(1, "guard", Vector2(500+radius,200))
+		var enemy_kind: String = "liberator" if boundary.catalog[kind].get("target_layers",["ground"]) == ["air"] else "guard"
+		var enemy = boundary.spawn_unit(1, enemy_kind, Vector2(500+radius,200))
 		boundary._build_buckets()
 		check(boundary._target(observer).get("id",0)==enemy.id,kind+" discovers at 150% range")
 		enemy.pos.x += 0.01

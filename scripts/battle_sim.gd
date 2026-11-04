@@ -11,6 +11,7 @@ const MultiAttack = preload("res://scripts/skills/multi_attack.gd")
 const LineAttack = preload("res://scripts/skills/line_attack.gd")
 const Stimulant = preload("res://scripts/skills/stimulant.gd")
 const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
+const DefenderZone = preload("res://scripts/skills/defender_zone.gd")
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
 # 双方“下一波”的配兵计划；与战场上正在交战的 units 分开保存。
@@ -90,7 +91,7 @@ func submit_formation(team: int, formation: Array) -> String:
 func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 	var unit := {"id":next_id,"team":team,"kind":kind,"pos":pos,"prev":pos,
 		"hp":float(catalog[kind].hp),"cooldown":0.0,"born":tick,"locked_target_id":0}
-	if catalog[kind].get("skills",{}).has("deployment"):
+	if catalog[kind].get("skills",{}).has("deployment") or catalog[kind].get("skills",{}).has("defender_zone"):
 		Deployment.initialize(unit)
 	next_id += 1
 	units.append(unit)
@@ -131,14 +132,23 @@ func _nearby(pos: Vector2, radius: float) -> Array:
 					found.append(unit)
 	return found
 
+func _weapon_stats(unit: Dictionary) -> Dictionary:
+	return DefenderZone.weapon(self,unit) if catalog[unit.kind].get("skills",{}).has("defender_zone") else catalog[unit.kind]
+
+func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
+	if not weapon.get("target_layers",["ground"]).has(catalog[other.kind].get("layer","ground")):
+		return false
+	return not catalog[unit.kind].get("skills",{}).has("defender_zone") or DefenderZone.contains(self,unit,other.pos)
+
 ## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
 ## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。
 ## 狙击手在整个发现范围内偏好低基础生命目标；同分时以稳定 ID 决定。
 func _target(unit: Dictionary) -> Dictionary:
-	var reach := float(catalog[unit.kind].range)
+	var weapon := _weapon_stats(unit)
+	var reach := float(weapon.range)
 	var candidates := _nearby(unit.pos, reach * 1.5)
 	for other in candidates:
-		if other.id == unit.locked_target_id and other.team != unit.team and other.hp > 0:
+		if other.id == unit.locked_target_id and other.team != unit.team and other.hp > 0 and _can_hit_unit(unit,other,weapon):
 			if unit.pos.distance_to(other.pos) <= reach:
 				return other
 	unit.locked_target_id = 0
@@ -146,6 +156,8 @@ func _target(unit: Dictionary) -> Dictionary:
 	var best_score := INF
 	for other in candidates:
 		if other.team == unit.team or other.hp <= 0:
+			continue
+		if not _can_hit_unit(unit,other,weapon):
 			continue
 		var distance: float = unit.pos.distance_to(other.pos)
 		var score := distance
@@ -195,16 +207,22 @@ func step() -> Array:
 			unit.cooldown = maxf(0.0, float(unit.cooldown) - dt)
 			Healing.step(self, unit, dt, heals, moves)
 			continue
+		var mode_allowed := true
+		if skills.has("defender_zone"):
+			mode_allowed = DefenderZone.prepare(self,unit,motion)
+			stats = _weapon_stats(unit)
 		var target := _target(unit)
 		# 因为只有 0 和 1 两队，所以 1-team 正好得到敌方阵营。
 		var enemy: int = 1 - int(unit.team)
 		var goal := Vector2(1170.0 if enemy == 1 else 30.0, 200.0)
+		if unit.has("defender_goal"):
+			goal = unit.defender_goal
 		if not target.is_empty():
 			goal = target.pos
 		var distance: float = unit.pos.distance_to(goal)
 		# 攻击基地时给基地中心额外 20 的判定距离，相当于允许攻击到基地边缘。
 		var reach: float = float(stats.range) + (20.0 if target.is_empty() else 0.0)
-		var can_act: bool = not skills.has("deployment") or Deployment.can_act(self, unit, distance <= reach, target.is_empty() and distance <= reach, motion)
+		var can_act: bool = mode_allowed and (not skills.has("deployment") or Deployment.can_act(self, unit, distance <= reach, target.is_empty() and distance <= reach and bool(stats.get("attacks_base",true)), motion))
 		if can_act and not target.is_empty() and distance <= reach:
 			Stimulant.activate(self,unit,self_costs)
 		# cooldown 保存基础攻击时间；增益改变消耗速度，兼容中途生效/到期。
@@ -212,6 +230,8 @@ func step() -> Array:
 		if not can_act:
 			continue
 		if distance <= reach:
+			if target.is_empty() and (unit.has("defender_goal") or not bool(stats.get("attacks_base",true))):
+				continue
 			if float(unit.cooldown) <= 0.00001:
 				unit.cooldown = float(stats.interval)
 				if skills.has("line_attack"):
@@ -228,7 +248,7 @@ func step() -> Array:
 							# splash=0 时只命中一个目标；大于 0 时以目标位置为圆心搜集范围内单位。
 							var victims: Array = [target] if float(stats.splash) == 0 else _nearby(target.pos, float(stats.splash))
 							for victim in victims:
-								if victim.team != unit.team:
+								if victim.team != unit.team and _can_hit_unit(unit,victim,stats):
 									# 按受击单位的 armor 标签选择攻击者的 light_multiplier 或 heavy_multiplier。
 									var multiplier: float = float(stats[catalog[victim.kind].armor + "_multiplier"])
 									var amount: float = float(stats.damage) * multiplier
@@ -243,6 +263,8 @@ func step() -> Array:
 			var separation := Vector2.ZERO
 			for other in _nearby(unit.pos, 20.0):
 				if other.id == unit.id:
+					continue
+				if catalog[other.kind].get("layer","ground") != stats.get("layer","ground"):
 					continue
 				var offset: Vector2 = unit.pos - other.pos
 				if offset.length_squared() > 0.01:

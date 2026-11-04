@@ -207,7 +207,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.1.7  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.1.8  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -250,6 +250,18 @@ func _draw_battle() -> void:
 		draw_rect(Rect2(p-Vector2(17,26),Vector2(34,52)),Color(color,0.2))
 		draw_rect(Rect2(p-Vector2(17,26),Vector2(34,52)),color,false,2)
 		_text(p+Vector2(-7,7),"F" if team == 0 else "P",22,color)
+	# 防卫圈是真正的攻击许可区域；按战场缩放绘制椭圆，不能误画成爆炸范围。
+	for unit in sim.units:
+		if unit.has("defender_center") and unit.get("siege_state","mobile") != "mobile":
+			var zone_points := PackedVector2Array()
+			var zone_radius: float = sim.catalog[unit.kind].skills.defender_zone.radius
+			for segment in range(64):
+				var angle: float = TAU * segment / 64.0
+				zone_points.append(_world(unit.defender_center+Vector2(cos(angle),sin(angle))*zone_radius))
+			var zone_color: Color = MINT if unit.team == 0 else CORAL
+			draw_colored_polygon(zone_points,Color(zone_color,0.07))
+			zone_points.append(zone_points[0])
+			draw_polyline(zone_points,Color(zone_color,0.7),2)
 	for effect in effects:
 		if effect.type == "line_attack":
 			var start := _world(effect.from)
@@ -288,12 +300,14 @@ func _draw_battle() -> void:
 			draw_line(p+Vector2(0,22),p+Vector2(10,17),Color("77cfff"),2)
 		if unit.has("siege_state"):
 			var state: String = unit.siege_state
-			var deployment: Dictionary = sim.catalog[unit.kind].skills.deployment
+			var unit_skills: Dictionary = sim.catalog[unit.kind].skills
+			var defending: bool = unit_skills.has("defender_zone")
+			var deployment: Dictionary = unit_skills.defender_zone if defending else unit_skills.deployment
 			var burrowing: bool = deployment.mode == "burrow"
 			if burrowing and state == "deployed":
 				draw_circle(p,12,Color("3d294b"))
 				draw_arc(p,13,0,PI,10,Color(sim.catalog[unit.kind].color),3)
-			if not burrowing and state != "mobile":
+			if not burrowing and not defending and state != "mobile":
 				# 展开支架与状态进度条，区分架设/收起和可开火状态。
 				for side in [-1,1]:
 					draw_line(p+Vector2(side*8,6),p+Vector2(side*19,16),color,3)
@@ -301,9 +315,11 @@ func _draw_battle() -> void:
 				var duration: float = deployment.deploy_seconds if state == "deploying" else deployment.pack_seconds
 				var progress: float = 1.0 - float(unit.siege_until_tick-sim.tick)/(duration*float(sim.rules.tick_rate))
 				_bar(Rect2(p+Vector2(-16,21),Vector2(32,3)),progress,Color("f5b66e"))
-				_text(p+Vector2(-18,38),("埋地" if burrowing else "架设") if state == "deploying" else ("出土" if burrowing else "收起"),12,color)
+				var deploying_text: String = "防卫展开" if defending else ("埋地" if burrowing else "架设")
+				var packing_text: String = "恢复飞行" if defending else ("出土" if burrowing else "收起")
+				_text(p+Vector2(-18,38),deploying_text if state == "deploying" else packing_text,12,color)
 			elif state == "deployed":
-				_text(p+Vector2(-18,32),"已埋地" if burrowing else "炮击",12,color)
+				_text(p+Vector2(-18,32),"防卫对地" if defending else ("已埋地" if burrowing else "炮击"),12,color)
 		draw_arc(p,14,0,TAU,16,color,1.8)
 		_bar(Rect2(p+Vector2(-13,-22),Vector2(26,3)),float(unit.hp)/float(sim.catalog[unit.kind].hp),color)
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
@@ -312,6 +328,11 @@ func _draw_battle() -> void:
 ## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	match kind:
+		"liberator":
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.4),p+Vector2(radius*1.5,radius*0.8),p+Vector2(0,radius*0.35),p+Vector2(-radius*1.5,radius*0.8)]),color)
+			for side in [-1,1]:
+				draw_circle(p+Vector2(side*radius*0.8,radius*0.4),radius*0.3,Color("223751"))
+			draw_line(p+Vector2(0,-radius*0.65),p+Vector2(0,radius*0.25),INK,2)
 		"marauder":
 			# 重装躯干和双侧榴弹发射器；外观不改变单次攻击次数。
 			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.8),Vector2(radius*1.3,radius*1.6)),color)
@@ -402,7 +423,7 @@ func _draw_editor() -> void:
 	else:
 		var n := 0
 		for kind in counts:
-			_text(Vector2(1132+(n%2)*130,631+(n/2)*21),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],17)
+			_text(Vector2(1132+(n%2)*130,631+(n/2)*16),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],16)
 			n+=1
 	_text(Vector2(1132,732),"下一波敌方配置保密",16,MUTED)
 	_text(Vector2(1132,765),"击破 %d   /   损失 %d" % [sim.kills[0],sim.kills[1]],18,MINT)

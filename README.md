@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.1.7，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.1.8，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -101,13 +101,15 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 ## 七、units.json：兵种字段解释
 
-打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）、medic（医疗兵）、piercer（穿刺者）、colossus（巨像）、marauder（劫掠者）。
+打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）、medic（医疗兵）、piercer（穿刺者）、colossus（巨像）、marauder（劫掠者）、liberator（解放者）。
 
 - name：界面显示的中文名称。
 - symbol：预留的字母标识；当前单位形状主要由 main.gd 绘制代码决定。
 - cost：单位占用的配兵预算。
 - hp：单位出生生命值。
 - armor：护甲标签，light 为轻甲，heavy 为重甲。
+- layer：自身所属层，ground 地面或 air 空中；变换武器模式不改变所属层。
+- target_layers：武器可攻击的层列表；attacks_base 表示是否可以攻击基地。步枪兵、狙击手可对空，其余原有攻击单位仅对地。
 - damage：基础单次伤害。
 - interval：攻击间隔，单位秒，越小攻击越快。
 - range：攻击距离，按逻辑战场坐标计算，不等于屏幕像素。
@@ -116,6 +118,7 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - skills.healing：`heal` 为单次治疗量；`follow_distance`、`danger_distance` 控制后排跟随与避敌。医疗兵当前每 0.5 秒治疗 12，范围 160。
 - skills.deployment：`deploy_seconds`、`pack_seconds` 为展开/收起耗时；`deploy_enemy_threshold`、`scan_seconds` 控制人数阈值与扫描确认；`hold_range_multiplier` 控制外围保持范围。`mode` 用 siege 显示架设，用 burrow 显示埋地，埋地暂不隐身。
 - skills.line_attack：`pattern` 为 forward（从自身沿目标方向传播）或 transverse（以目标位置为中心横向扫射）；`speed` 为传播速度，`half_width` 为半宽，`length` 为固定长度，省略时使用 range；`effect` 选择 spike/beam 外观。
+- skills.defender_zone：划定固定防卫圈并切换武器，复用展开/收起时序。解放者普通模式对空，防卫模式仅对圈内地面单位。
 - skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
 - skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
 - skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击使用 damage 和护甲倍率，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
@@ -127,6 +130,8 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - 顶层 version：配置版本标记，规则变化时应考虑版本和旧战报兼容性。
 
 例如基础伤害 20、轻甲倍率 1.5，对轻甲的单次理论伤害是 30。攻击基地只使用基础伤害，范围攻击不伤友军。
+
+解放者价格为 1200，当前第七波起预算才足够；它在两个模式下都不能攻击基地。防卫圈是允许选取地面目标的范围，圈内仍逐个攻击。
 
 不要随意改内部 ID：AI 字典、默认阵容、绘制和测试都可能引用它。新增兵种也要同时考虑这些位置。
 
@@ -212,7 +217,7 @@ git -C 'D:\MyCode\FightParty' diff
 - D:\MyCode\FightParty\docs\DEVELOPMENT.md：测试、打包、字体维护。
 - D:\MyCode\FightParty\docs\TEST_REPORT.md：实际验证结果与安卓未验证项。
 
-首版没有真人联机、账号、复杂地形、空军、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
+首版没有真人联机、账号、复杂地形、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
 
 ## 十三、项目与第三方声明
 

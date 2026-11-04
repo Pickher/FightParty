@@ -1,4 +1,4 @@
-# 可复用技能配置（0.1.7）
+# 可复用技能配置（0.1.8）
 
 每个 `data/units.json` 兵种可添加 `skills` 字典。未配置技能时使用普通移动、索敌和攻击。技能实现位于 `scripts/skills/`；状态与计算属于模拟层，外观由 `main.gd` 绘制。
 
@@ -85,3 +85,40 @@
 新增兵种复用上述能力只需挂载配置，并补充价格/数值、UI 外观与 AI 选择。新增突进、隐身或变形等能力时，需要实现独立技能模块，并在生成单位、移动/索敌或攻击阶段接入相应调用，补充行为测试。任意填写一个新技能名不会自动获得功能，当前没有通用触发器或插件注册系统。
 
 0.1.5 的顶层 `deploy_seconds` 等字段已迁至 `skills.deployment`，治疗字段迁至 `skills.healing`，`spike_speed`/`spike_half_width` 改为 `skills.line_attack.speed`/`half_width`。自定义旧兵种配置需一并迁移；规则版本 0.1.6 会拒绝旧版本战报重放。
+
+## 防卫区域与武器模式
+
+`skills.defender_zone` 组合通用部署状态机与固定圆形警戒区，不需要同时挂 `deployment`。参数包含 `deploy_seconds`、`pack_seconds`、`deploy_enemy_threshold`、`scan_seconds`、`hold_range_multiplier`，再加 `radius`（圆半径）和 `weapon`（防卫模式武器覆盖字段）。展开时固定中心，收起后才能重新圈地。
+
+解放者的 `weapon` 覆盖 damage=160、interval=2.56、range=476、splash=0、target_layers=[ground]、attacks_base=false。基础武器配置用于飞行模式。单位自身 `layer=air` 始终保持，所以对地防卫不等于降落。
+
+当前该技能的自动策略专门在对空武器与对地防卫区之间切换，可以给其他具有相同模式规则的兵种复用；不是任意多形态的通用变形编辑器。不要同时挂载另一套 deployment 或 healing，以免争用状态或支援行为优先跳过模式调度。
+
+解放者配置示例（基础属性仍在兵种顶层）：
+
+```json
+"layer": "air",
+"target_layers": ["air"],
+"attacks_base": false,
+"skills": {
+  "defender_zone": {
+    "deploy_seconds": 2.9,
+    "pack_seconds": 1.5,
+    "deploy_enemy_threshold": 2,
+    "scan_seconds": 0.5,
+    "hold_range_multiplier": 1.2,
+    "radius": 140,
+    "mode": "defender",
+    "weapon": {
+      "target_layers": ["ground"],
+      "attacks_base": false,
+      "damage": 160,
+      "interval": 2.56,
+      "range": 476,
+      "splash": 0
+    }
+  }
+}
+```
+
+既有兵种的对空名单已由用户确认：步枪兵、狙击手的 target_layers 为 [ground, air]，其余原有攻击单位为 [ground]。对空能力是配置属性，后续新增兵种无需在索敌逻辑中添加 ID 分支。
