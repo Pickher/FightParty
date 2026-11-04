@@ -161,6 +161,37 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 			for offset in [Vector2(-0.45,-0.25),Vector2(0.4,-0.3),Vector2(0,0.4)]:
 				canvas.draw_circle(p+offset*radius,radius*0.7,color)
 			canvas.draw_line(p+Vector2(-radius*0.5,0),p+Vector2(radius*0.5,radius*0.1),Color("162334"),2)
+		"baneling":
+			canvas.draw_circle(p,radius,color)
+			for side in [-1,1]:canvas.draw_circle(p+Vector2(side*radius*.45,-radius*.2),radius*.3,Color("91cf49"))
+		"ravager":
+			canvas.draw_circle(p,radius*.8,color)
+			for i in range(3):
+				var x: float = (i-1)*radius*.6
+				canvas.draw_line(p+Vector2(x,-radius*.3),p+Vector2(x,-radius*1.25),INK,2)
+		"mutalisk":
+			for side in [-1,1]:
+				canvas.draw_colored_polygon(PackedVector2Array([p,p+Vector2(side*radius*1.4,-radius),p+Vector2(side*radius,radius*.8)]),color)
+			canvas.draw_circle(p,radius*.35,INK)
+		"infestor", "tunneler":
+			canvas.draw_circle(p,radius,color)
+			for i in range(3):canvas.draw_circle(p+Vector2((i-1)*radius*.6,0),radius*.25,Color("395b30"))
+		"brood_lord", "carrier":
+			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(-radius*1.3,0),p+Vector2(0,-radius*.8),p+Vector2(radius*1.3,0),p+Vector2(0,radius*.8)]),color)
+			for side in [-1,1]:canvas.draw_circle(p+Vector2(side*radius*.65,0),radius*.25,INK)
+		"sentry", "high_templar":
+			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius,radius),p+Vector2(-radius,radius)]),color)
+			canvas.draw_circle(p,radius*.35,INK)
+		"disruptor":
+			canvas.draw_circle(p,radius*.7,color)
+			canvas.draw_arc(p,radius*1.15,0,TAU,16,INK,2)
+		"broodling", "interceptor":
+			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0),p+Vector2(-radius,-radius*.7),p+Vector2(-radius,radius*.7)]),color)
+		"rotling", "splitter", "bloater", "plague_herald", "gravedigger", "brood_mother":
+			canvas.draw_circle(p,radius,color)
+			canvas.draw_line(p+Vector2(-radius*.6,-radius*.4),p+Vector2(radius*.6,radius*.4),INK,2)
+			canvas.draw_circle(p+Vector2(radius*.2,-radius*.2),radius*.2,Color("3d5329"))
+
 		_:
 			# 尚无专属外形的兵种：圆形加兵种字母。
 			canvas.draw_circle(p,radius,color)

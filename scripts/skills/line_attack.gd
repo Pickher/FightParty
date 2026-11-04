@@ -60,15 +60,19 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 		for victim in sim.nearby_team(wave.origin + wave.direction * middle, sweep_radius, 1 - int(wave.team)):
 			if wave.hit_ids.has(victim.id):
 				continue
-			if not layers.has(sim.catalog[victim.kind].get("layer","ground")):
-				continue
+			var targetable: Array = sim.catalog[victim.kind].get("targetable_layers",[sim.catalog[victim.kind].get("layer","ground")])
+			var compatible := false
+			for layer in targetable:
+				if layers.has(layer):compatible=true
+			if not compatible:continue
 			if sim.is_structure(victim) and not bool(wave.get("attacks_structures", wave.get("attacks_base", true))):
 				continue
 			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),duration_fraction)
-			if crosses(wave, victim.pos, finish, next_distance):
+			var start: Vector2 = finish if sim.teleports.has(victim.id) else victim.pos
+			if crosses(wave, start, finish, next_distance):
 				wave.hit_ids[victim.id] = true
 				var amount: float = sim.expected_damage(wave, victim)
-				sim.queue_hit(hits, victim, sim.raw_damage(wave, victim.kind))
+				sim.queue_hit(hits, victim, sim.raw_damage(wave, victim.kind),true)
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				OnHitSlow.queue_hit(sim,victim,wave.on_hit_slow,pending_slows)

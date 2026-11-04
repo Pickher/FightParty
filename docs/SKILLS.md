@@ -1,4 +1,4 @@
-# 可复用技能配置（0.4.0）
+# 可复用技能配置（0.5.0）
 
 每个 `data/units.json` 兵种可添加 `skills` 字典。未配置技能时使用普通移动、索敌和攻击。技能实现位于 `scripts/skills/`；状态与计算属于模拟层，外观由 `main.gd` 绘制。
 
@@ -159,3 +159,7 @@
 weapon_switch.policy=air_superiority 用于雷神，preferred_layer=air 控制未锁定时优先对空，light_air_threshold=3 与 cluster_radius=2.5 控制成群轻甲模式。weapons 顺序为高爆单体对空、轻甲溅射对空、后备对地。数值与边界见 [WORLD_UNITS.md](WORLD_UNITS.md)。
 
 spawn_count 与 size 是单位基础字段，而不是需要单独调度的技能；各个个体仍独立使用自己的技能和状态。
+
+## 0.5.0 预留技能实现
+
+本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。

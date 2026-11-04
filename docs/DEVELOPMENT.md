@@ -89,3 +89,9 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 以上命令用于重新构建当前源码；本轮未执行 0.3.1 导出，已有下载页仍为 0.1.4。
 
 当前源码 0.4.0 / Android versionCode 17。本轮未导出 APK，旧战报与旧测试尺度不兼容；验证前先阅读 docs/WORLD_UNITS.md。
+
+## 0.5.0 预留技能实现
+
+本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。
+
+当前导出版本 0.5.0 / Android versionCode 18，未生成 APK。

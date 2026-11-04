@@ -49,6 +49,15 @@ func _draw() -> void:
 			draw_circle(p,r,Color(color,0.15))
 			draw_arc(p,r,0,TAU,32,color,2)
 			label(p+Vector2(-14,-r-4),"基地",color)
+	for area in sim.skill_areas:
+		var config: Dictionary = area.config
+		var tint: Color = game.CORAL if game._hidden_team(int(area.team)) else Color(sim.catalog[area.kind].color)
+		var pending: bool = sim.tick<int(area.ready_tick)
+		ring(area.pos,float(config.radius),Color(tint,0.4 if pending else 0.9))
+		if not pending:draw_circle(point(area.pos),pixels(float(config.radius)),Color(tint,0.12))
+		if pending and bool(config.get("projectile",false)):
+			var progress: float = clampf(float(sim.tick-int(area.born))/maxf(1.0,float(int(area.ready_tick)-int(area.born))),0,1)
+			draw_circle(point(area.origin.lerp(area.pos,progress)),maxf(2,pixels(0.35)),tint)
 	for unit in sim.units:
 		if not game._hidden_team(int(unit.team)) and unit.has("siege_state") and sim.catalog[unit.kind].get("skills",{}).has("defender_zone") and unit.siege_state!="mobile":
 			var config: Dictionary = sim.catalog[unit.kind].skills.defender_zone
@@ -66,6 +75,9 @@ func _draw() -> void:
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
 		var a := point(effect.from)
 		var b := point(effect.to)
+		if effect.type=="area_impact":
+			ring(effect.to,float(effect.radius),Color(color,clampf(float(effect.ttl)/0.16,0,1)))
+			continue
 		if effect.type=="yamato":
 			var fade: float = clampf(float(effect.ttl)/0.5,0,1)
 			draw_line(a,b,Color(Color("ffb347"),fade),maxf(2,pixels(0.35)))
@@ -107,6 +119,12 @@ func _draw() -> void:
 		if hidden:
 			label(p+Vector2(-3,4),"?",color)
 			continue
+		if sim.tick<int(unit.get("barrier_until_tick",0)) and float(unit.get("barrier_hp",0))>0:
+			draw_arc(p,maxf(4,dimensions.x*.7),0,TAU,20,Color("b9a2ff"),2)
+		if sim.tick<int(unit.get("root_until_tick",0)):
+			draw_line(p-Vector2(dimensions.x*.5,0),p+Vector2(dimensions.x*.5,0),Color("9cba51"),2)
+		if stats.get("skills",{}).has("aura") and sim.tick<int(unit.get("aura_until_tick",0)):
+			ring(position,float(stats.skills.aura.radius),Color(game.SHIELD,0.25))
 		if stats.get("skills",{}).has("yamato"):
 			var charge: float = Yamato.charge(sim,unit)
 			if charge>=0:

@@ -4,9 +4,11 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.4.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.5.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 当前世界尺度为 **长 800 × 宽 120 格**。步枪兵一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮已改名攻城坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
+
+0.5.0 已接入神族、虫族及腐族预留技能；机制、自动施法与原型取舍见 [兵种技能实现说明](docs/ROSTER_SKILLS.md)。本轮按要求未运行验证。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -246,3 +248,7 @@ git -C 'D:\MyCode\FightParty' diff
 Godot Engine 使用 MIT 许可：https://godotengine.org/license/ 。中文字体来自 Google Noto Sans SC（SIL OFL 1.1），声明位于 assets/OFL.txt；Godot 声明位于 assets/GODOT-LICENSE.txt。
 
 单位图形、图标和短音效由项目代码生成，未使用《星际争霸》的素材、角色或商标作为游戏内容。
+
+## 0.5.0 预留技能实现
+
+本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](docs/ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。
