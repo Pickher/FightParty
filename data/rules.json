@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0", "tick_rate": 20, "wave_seconds": 30,
+  "version": "0.3.1", "tick_rate": 20, "wave_seconds": 30,
   "races": ["terran", "terran"],
   "min_damage": 0.5, "shield_regen_delay": 7.0, "shield_regen_per_second": 7.5,
   "start_minerals": 600, "wave_income": 300,
@@ -12,6 +12,7 @@
     "wave_income": {"label": "每轮收入（每次出兵后）", "unit": "矿", "choices": [100, 300, 500], "recommended": 300, "step": 50, "min": 0, "max": 2000},
     "wave_seconds": {"label": "出兵间隔", "unit": "秒", "choices": [20, 30, 45], "recommended": 30, "step": 5, "min": 10, "max": 120}
   },
+  "race_setup": {"labels": ["我方种族", "电脑种族"], "recommended": ["terran", "random"]},
   "layout": {
     "base_x": 30, "base_y": 200, "base_radius": 20,
     "spawn_x": 140, "spawn_dx": 13, "spawn_y": 32, "spawn_dy": 48,

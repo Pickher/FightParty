@@ -14,7 +14,8 @@
 - `submit_formation(team, formation) -> String`：成功返回空串，失败返回原因，原提交保持不变。深拷贝输入，防止调用方随后改动影响待出兵阵容。
 - `validate_formation(formation, allowed_budget, team)`：AI、玩家和测试共享校验；兵种合法性由 `kind_error(team, kind)` 判断（未知/结构体、stub 未实装、不属于本方种族都拒绝）。
 - `step() -> Array[Dictionary]`：推进一个 0.05 秒模拟步，产生 wave、attack、heal、line_attack、attack_hit、skill_used、damage、death、expired、base_damage、weapon_switch、ended 事件。damage 事件的数值是生命与护盾损失之和。结束后的 step 不再推进。
-- `get_snapshot(viewer)`：深拷贝 tick、wave、budget、bases、units、attack_waves、双方上一波阵容、查看方自己的下一波阵容与胜负，不含敌方待出兵阵容。
+- `get_snapshot(viewer)`：深拷贝 tick、wave、budget、bases、units、attack_waves、双方上一波阵容、双方种族、`revealed`、查看方自己的下一波阵容与胜负，不含敌方待出兵阵容；首次交战前对方种族为空字符串、对方上一波阵容为空数组。
+- `visible_enemy_formation(viewer)` / `visible_race(viewer, team)`：按公开规则给出 viewer 可见的对方上一波阵容与种族。`main.gd` 的电脑购买和敌情栏只用这两个接口。
 - `CommanderAI.choose(last_enemy, budget)`：返回合法网格阵容。调用者不得传入未公开信息。
 
 单位状态包括稳定 ID、team、kind、当前位置/上一步位置、hp、cooldown、born tick，以及首次开火后记录的 locked_target_id（0 表示未锁定）。表现层以模拟余量在 prev 与 pos 之间插值，绘制的形状、颜色、血条和弹道不参与命中判定。
@@ -41,7 +42,7 @@
 
 ## 保存与复现
 
-Godot `user://settings.cfg` 保存音量、最近阵容和上次的开局设置（`match` 段，超出 setup_options 范围的值被忽略）；开局设置以 `Sim.new(seed, overrides)` 的 overrides 传入模拟；`user://last_match.json` 保存规则版本、种子、开局设置（`settings`，覆盖 rules 的字段）、双方全部买/卖/移动操作及其 tick（`actions`）、每波 tick/出兵前矿物/阵容（`waves`，仅供查看）和结束结果。只保留最近一局；无云端上传。文件写失败时提示，游戏仍可继续。Windows 的 user:// 通常位于 `%APPDATA%/Godot/app_userdata/FightParty`。
+Godot `user://settings.cfg` 保存音量、每个种族各自的最近阵容（`player` 段的 `formation_<种族>`）和上次的开局设置（`match` 段，含 `race_0`/`race_1` 种族选择；超出 setup_options 范围的值被忽略）；保存时先读入旧文件，避免覆盖其他种族的阵容；开局设置以 `Sim.new(seed, overrides)` 的 overrides 传入模拟；`user://last_match.json` 保存规则版本、种子、开局设置（`settings`，覆盖 rules 的字段）、双方全部买/卖/移动操作及其 tick（`actions`）、每波 tick/出兵前矿物/阵容（`waves`，仅供查看）和结束结果。只保留最近一局；无云端上传。文件写失败时提示，游戏仍可继续。Windows 的 user:// 通常位于 `%APPDATA%/Godot/app_userdata/FightParty`。
 
 `tests/replay.gd` 读入记录，用相同种子和设置新建模拟，在每步之前执行该 tick 记录的操作（`BattleSim.apply_action()`），推进到结束并比较结果。相同引擎、相同数据版本是复现前提；配置版本不匹配直接拒绝。
 
@@ -51,7 +52,7 @@ Godot `user://settings.cfg` 保存音量、最近阵容和上次的开局设置�
 
 届时需要新增房间生命周期、轮次锁定、超时沿用阵容、连接恢复与协议版本管理。这些功能首版仅预留边界，不包含伪装成可用后端的空实现，不宣称已有联网防作弊能力。
 
-当前规则版本为 0.3.0，旧版战报会因规则版本不同被拒绝重放。目标有效性依据每步开始时的状态判断，因此本步死亡或移出射程会在下一步触发重新索敌。攻击基地沿用无敌军目标时的推进逻辑，不建立敌军单位锁定。
+当前规则版本为 0.3.1，旧版战报会因规则版本不同被拒绝重放。目标有效性依据每步开始时的状态判断，因此本步死亡或移出射程会在下一步触发重新索敌。攻击基地沿用无敌军目标时的推进逻辑，不建立敌军单位锁定。
 
 ## 可复用技能
 
@@ -73,6 +74,8 @@ Godot `user://settings.cfg` 保存音量、最近阵容和上次的开局设置�
 ## 种族（0.3.0）
 
 `sim.races` 来自 `rules.races`（可被开局 overrides 覆盖并写入战报）。`buy` 与阵容校验用 `kind_error` 拒绝其他种族与 stub 兵种。`main.gd` 的配兵卡只列本方种族兵种，stub 显示为灰色“尚未实装”。AI 的反制函数 `counter_for` 不查表，按“对该敌方兵种的预期每秒伤害 ÷ 价格”在本方可用兵种中选最高者；前排与辅助兵种来自 `races.json` 的 `ai` 配置。
+
+0.3.1 起 `revealed` 在第一次有单位、结构体或基地受到敌方伤害的那一步末尾置为 true，并发出 `revealed` 事件（只发一次）。它完全由模拟过程决定，所以战报不需要额外记录，重放时会在同一 tick 公开。表现层在公开前把敌方单位画成灰色“?”、敌方结构体画成灰色八边形，传播攻击也只用阵营色。
 
 ## 结构体（0.2.2）
 

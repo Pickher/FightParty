@@ -923,7 +923,7 @@ func _economy() -> void:
 			live.buy(team,slot.kind,slot.cell)
 	ticks(live,700)
 	live.sell(0,int(live.formations[0][0].cell))
-	for slot in ai.buy_list(live.last_formations[0],live.formations[1],live.minerals[1]):
+	for slot in ai.buy_list(live.visible_enemy_formation(1),live.formations[1],live.minerals[1]):
 		live.buy(1,slot.kind,slot.cell)
 	if live.formations[0].size()>1:
 		live.move(0,int(live.formations[0][1].cell),int(live.rules.columns)-1)
@@ -1242,3 +1242,26 @@ func _races() -> void:
 	var ai = AI.new(1,"protoss")
 	check(ai.counter_for("liberator")!="" and Catalog.units()[ai.counter_for("liberator")].target_layers.has("air"),"AI counter picks a unit that can hit air")
 	check(AI.new(1,"terran").counter_for("immortal")!="","AI finds counters across races")
+	check(bare(1,{"races":["martian","zerg"]}).races==["terran","zerg"],"unknown race falls back to terran")
+	# 首次交战前看不到对方种族与上一波阵容；首次受伤后双方同时公开，之后保持公开。
+	var hidden = bare(2,{"races":["zerg","blight"]})
+	hidden.submit_formation(0,Catalog.starter("zerg"))
+	hidden.submit_formation(1,Catalog.starter("blight"))
+	ticks(hidden,int(hidden.wave_ticks())+1)
+	var before: Dictionary = hidden.get_snapshot(0)
+	check(hidden.wave==1 and not hidden.revealed and hidden.last_formations[1].size()==8,"first wave spawned before any engagement")
+	check(before.races==["zerg",""] and before.last_formations[1].is_empty() and before.last_formations[0].size()==7,"snapshot hides enemy race and last wave before reveal")
+	check(hidden.visible_enemy_formation(1).is_empty() and hidden.get_snapshot(1).races==["","blight"],"computer side is equally blind before reveal")
+	var reveal_events: Array = []
+	var guard := 0
+	while not hidden.revealed and guard < 2000:
+		for event in hidden.step():
+			if event.type=="revealed":
+				reveal_events.append(event)
+		guard += 1
+	var after: Dictionary = hidden.get_snapshot(0)
+	check(hidden.revealed and reveal_events.size()==1 and hidden.revealed_tick==hidden.tick,"first hit reveals both races once")
+	check(after.races==["zerg","blight"] and after.last_formations[1].size()==8 and hidden.visible_enemy_formation(1).size()==7,"after reveal both sides see races and last waves")
+	var quiet = bare(2)
+	ticks(quiet,200)
+	check(not quiet.revealed,"no fighting keeps races hidden")

@@ -19,6 +19,9 @@ var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
 # 双方种族，整局固定（开局设置的 races 覆盖 rules 默认值）；只能购买本方种族的已实装兵种。
 var races: Array = ["terran", "terran"]
+# 第一次交战（任何单位、结构体或基地首次受到敌方伤害）之后才公开双方种族与上一波阵容。
+var revealed: bool = false
+var revealed_tick: int = -1
 # 双方的永久兵营：每格 {kind, cell, deployed}；每波整份生成一次。deployed 表示已至少出场一次。
 var formations: Array = [[], []]
 # 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
@@ -60,6 +63,9 @@ const FINE := 20.0
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	rules.merge(overrides, true)
 	races = rules.races.duplicate()
+	for team in range(2):
+		if not Catalog.RACES.has(races[team]):
+			races[team] = "terran"
 	bases = [float(rules.base_hp), float(rules.base_hp)]
 	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
 	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
@@ -676,6 +682,10 @@ func step() -> Array:
 		bases[team] = maxf(0.0, float(bases[team]) - float(base_hits[team]))
 		if base_hits[team] > 0:
 			events.append({"type":"base_damage","team":team,"amount":base_hits[team]})
+	if not revealed and (not hits.is_empty() or float(base_hits[0]) + float(base_hits[1]) > 0.0):
+		revealed = true
+		revealed_tick = tick
+		events.append({"type":"revealed","races":races.duplicate()})
 	# 先结算双方基地伤害，再判断同一步双双归零。
 	# 最后一波出场后，先失去全部可攻击部队的一方判负；超过安全时限则比较基地剩余生命。
 	if bases[0] <= 0 or bases[1] <= 0:
@@ -698,9 +708,21 @@ func _end(result: int) -> void:
 	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"kills":kills.duplicate()}
 	events.append({"type":"ended","winner":winner})
 
+## viewer 能看到的对方上一波阵容：首次交战前为空数组。电脑与敌情栏都只能用它。
+func visible_enemy_formation(viewer: int) -> Array:
+	return last_formations[1 - viewer].duplicate(true) if revealed else []
+
+## viewer 眼中某方的种族；首次交战前对方种族为空字符串。
+func visible_race(viewer: int, team: int) -> String:
+	return str(races[team]) if revealed or team == viewer else ""
+
 ## 给指定玩家一份可读取的状态副本。包含已公开阵容、自己的兵营与矿物。
-## 不包含对方兵营的最新改动与对方矿物；未来联网也应保留这个信息边界。
+## 不包含对方兵营的最新改动与对方矿物；首次交战前也不含对方种族与上一波阵容。
 func get_snapshot(viewer: int = 0) -> Dictionary:
+	var public_formations: Array = [[], []]
+	public_formations[viewer] = last_formations[viewer].duplicate(true)
+	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
-		"units":units.duplicate(true),"attack_waves":attack_waves.duplicate(true),"last_formations":last_formations.duplicate(true),
+		"units":units.duplicate(true),"attack_waves":attack_waves.duplicate(true),"last_formations":public_formations,
+		"races":[visible_race(viewer, 0), visible_race(viewer, 1)],"revealed":revealed,
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}

@@ -46,11 +46,17 @@ var setup_open := true
 var match_settings: Dictionary = {}
 # 玩家选了“自定义”的字段；自定义时显示 −/+ 步进。
 var custom_fields: Dictionary = {}
+# 开局弹窗的种族选择：[我方, 电脑]，可为 random；建局时把 random 换成具体种族再交给模拟器并写入战报。
+var race_choices: Array = ["terran", "random"]
+var race_rng := RandomNumberGenerator.new()
+# races.json 的种族表（名称、主题色），只用于界面显示。
+var race_info: Dictionary = Catalog.races()
 
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(speaker)
+	race_rng.randomize()
 	_make_sound()
 	_load_settings()
 	_new_match()
@@ -74,12 +80,15 @@ func _make_sound() -> void:
 ## 新建模拟器与 AI，尝试用开局资金买回上次的兵营；买不起则用默认阵容，再买不起则留空。
 ## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
-	sim = Sim.new(42, match_settings.duplicate())
+	var overrides: Dictionary = match_settings.duplicate()
+	overrides["races"] = [_resolve_race(race_choices[0]), _resolve_race(race_choices[1])]
+	sim = Sim.new(42, overrides)
 	ai = AI.new(42, sim.races[1])
 	var prior: Array = Catalog.starter(sim.races[0])
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
-		var saved = config.get_value("player", "formation", prior)
+		# 每个种族单独记住兵营；旧版只有一份 formation，按当前种族校验，不合法就用默认阵容。
+		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
 		if saved is Array:
 			prior = saved
 	if sim.submit_formation(0, prior) != "":
@@ -97,6 +106,15 @@ func _new_match() -> void:
 	journal_error = false
 	queue_redraw()
 
+## random 在建局时随机成具体种族；结果写入战报，重放时不再随机。
+func _resolve_race(choice: String) -> String:
+	if Catalog.RACES.has(choice):
+		return choice
+	return Catalog.RACES[race_rng.randi_range(0, Catalog.RACES.size() - 1)]
+
+func _race_name(race: String) -> String:
+	return str(race_info[race].name) if race_info.has(race) else "随机"
+
 ## 从 user://settings.cfg 读取音量；user:// 是玩家数据目录，不是源码目录。
 func _load_settings() -> void:
 	var config := ConfigFile.new()
@@ -112,6 +130,11 @@ func _load_settings() -> void:
 			match_settings[field] = int(value)
 			if not options[field].choices.has(int(value)):
 				custom_fields[field] = true
+	race_choices = Catalog.rules().race_setup.recommended.duplicate()
+	for index in range(2):
+		var choice = config.get_value("match", "race_%d" % index, race_choices[index])
+		if choice is String and (Catalog.RACES.has(choice) or choice == "random"):
+			race_choices[index] = choice
 
 ## 每个设置字段的推荐值。
 func _recommended_settings() -> Dictionary:
@@ -121,16 +144,21 @@ func _recommended_settings() -> Dictionary:
 		result[field] = int(options[field].recommended)
 	return result
 
-## 保存当前音量和下一波阵容。失败只给提示，不影响继续战斗。
+## 保存当前音量、开局设置和本方种族的下一波阵容；先读入旧文件，保留其他种族的兵营。失败只给提示，不影响继续战斗。
 func _save_settings() -> void:
 	var config := ConfigFile.new()
+	config.load("user://settings.cfg")
 	config.set_value("audio","volume",volume)
 	var formation: Array = []
 	for slot in sim.formations[0]:
 		formation.append({"kind":slot.kind,"cell":slot.cell})
-	config.set_value("player","formation",formation)
+	if config.has_section_key("player","formation"):
+		config.erase_section_key("player","formation")
+	config.set_value("player","formation_"+str(sim.races[0]),formation)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
+	for index in range(2):
+		config.set_value("match","race_%d" % index,race_choices[index])
 	if config.save("user://settings.cfg") != OK:
 		_note("设置保存失败；本局仍可继续。")
 
@@ -193,21 +221,24 @@ func advance_tick() -> void:
 				_note("%s门口防御塔失守 · 基地已无防御" % side)
 			else:
 				_note("%s%s被摧毁" % [side,names[event.kind]])
+		elif event.type == "revealed":
+			_note("首次交战 · 敌方种族：%s" % _race_name(str(sim.races[1])))
 		elif event.type == "tower_built" and event.team == 1:
 			_note("敌方建造了防御塔")
 		elif event.type == "ended":
 			_save_journal()
 			speaker.play()
 
-## 电脑在开局和每次出兵后用当前矿物增量购买；只看到玩家刚出场的公开阵容。
+## 电脑在开局和每次出兵后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
 ## 落后时先建防御塔，买不起就本轮攒矿不买兵。
 func _ai_shop() -> void:
-	var plan: String = ai.tower_plan(sim.last_formations[0], sim.formations[1], int(sim.minerals[1]), int(sim.tower_builds[1]))
+	var seen: Array = sim.visible_enemy_formation(1)
+	var plan: String = ai.tower_plan(seen, sim.formations[1], int(sim.minerals[1]), int(sim.tower_builds[1]))
 	if plan == "build":
 		sim.build_tower(1)
 	elif plan == "save":
 		return
-	for slot in ai.buy_list(sim.last_formations[0], sim.formations[1], int(sim.minerals[1])):
+	for slot in ai.buy_list(seen, sim.formations[1], int(sim.minerals[1])):
 		sim.buy(1, slot.kind, slot.cell)
 
 ## 将最新提示放在消息列表最前面，最多保留五条；界面显示最新一条。
@@ -268,7 +299,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.3.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.3.1  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -307,6 +338,9 @@ func _draw_battle() -> void:
 	_text(Vector2(1000,130),"敌方基地",18,CORAL)
 	_bar(Rect2(1100,116,230,10),float(sim.bases[1])/float(sim.rules.base_hp),CORAL)
 	_text(Vector2(1340,130),"%d" % sim.bases[1],16)
+	_text(Vector2(470,130),_race_name(str(sim.races[0])),16,_race_color(str(sim.races[0])))
+	var enemy_race: String = sim.visible_race(0, 1)
+	_text(Vector2(900,130),_race_name(enemy_race) if enemy_race != "" else "种族未知",16,_race_color(enemy_race) if enemy_race != "" else MUTED)
 	for team in range(2):
 		var p := _world(sim.base_pos(team))
 		var color: Color = MINT if team == 0 else CORAL
@@ -333,7 +367,8 @@ func _draw_battle() -> void:
 			var finish := _world(effect.to)
 			var direction := (finish-start).normalized()
 			var normal := Vector2(-direction.y,direction.x)
-			var attack_color := Color(Color(sim.catalog[effect.kind].color),clampf(effect.ttl/0.24,0,1))
+			var base_color: Color = CORAL if _hidden_team(int(effect.team)) else Color(sim.catalog[effect.kind].color)
+			var attack_color := Color(base_color,clampf(effect.ttl/0.24,0,1))
 			if effect.effect == "beam":
 				# 双束光束分别连接各自推进到的落点，不提前命中整条横线。
 				draw_line(_world(effect.source),finish,Color(attack_color,attack_color.a*0.35),1.5)
@@ -359,6 +394,12 @@ func _draw_battle() -> void:
 		var color: Color = MINT if unit.team == 0 else CORAL
 		if sim.is_structure(unit):
 			_draw_structure(unit,p,color)
+			continue
+		if _hidden_team(int(unit.team)):
+			# 首次交战前只看到有敌军在移动，看不出兵种与种族。
+			draw_circle(p,9,Color("4a5a6c"))
+			_text(p+Vector2(-4,5),"?",13,INK)
+			draw_arc(p,14,0,TAU,16,color,1.8)
 			continue
 		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
 		if sim.tick < int(unit.get("stim_until_tick",0)):
@@ -399,7 +440,14 @@ func _draw_battle() -> void:
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
 	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
 
-## 结构体：淡色射程圈（按战场缩放）、较大的外形、阵营圈与较宽血条。
+## 对方种族尚未公开时，界面不能画出对方的兵种外形。
+func _hidden_team(team: int) -> bool:
+	return team != 0 and not sim.revealed
+
+func _race_color(race: String) -> Color:
+	return Color(str(race_info[race].color)) if race_info.has(race) else MUTED
+
+## 结构体：淡色射程圈（按战场缩放）、按种族区分的外形（数值相同）、阵营圈与较宽血条。
 func _draw_structure(unit: Dictionary, p: Vector2, color: Color) -> void:
 	var stats: Dictionary = sim.catalog[unit.kind]
 	var ring := PackedVector2Array()
@@ -408,9 +456,54 @@ func _draw_structure(unit: Dictionary, p: Vector2, color: Color) -> void:
 		var point: Vector2 = unit.pos+Vector2(cos(angle),sin(angle))*float(stats.range)
 		ring.append(_world(point.clamp(Vector2.ZERO,Vector2(float(sim.rules.world_width),float(sim.rules.world_height)))))
 	draw_polyline(ring,Color(color,0.18),1.5)
-	_draw_unit(p,unit.kind,Color(stats.color),15)
+	_draw_structure_shape(p,unit.kind,sim.visible_race(0,int(unit.team)),15)
 	draw_arc(p,22,0,TAU,24,color,2)
 	_bar(Rect2(p+Vector2(-22,-32),Vector2(44,4)),float(unit.hp)/float(stats.hp),color)
+
+## 结构体外形按种族区分：人族方正砖石、虫族有机肉瘤、神族晶体、腐族破烂尖刺；种族未知时画灰色八边形。
+func _draw_structure_shape(p: Vector2, kind: String, race: String, radius: float) -> void:
+	var tint: Color = _race_color(race)
+	var dark := Color("162334")
+	match race:
+		"terran":
+			_draw_unit(p,kind,Color(sim.catalog[kind].color),radius)
+		"zerg":
+			draw_circle(p,radius*0.95,tint)
+			var spikes: int = 3 if kind == "treasury" else 5
+			for i in range(spikes):
+				var angle: float = -PI*0.5 + TAU*i/spikes
+				var dir := Vector2(cos(angle),sin(angle))
+				var side := Vector2(-dir.y,dir.x)
+				draw_colored_polygon(PackedVector2Array([p+dir*radius*0.7+side*radius*0.25,p+dir*radius*1.45,p+dir*radius*0.7-side*radius*0.25]),tint)
+			draw_circle(p,radius*0.4,dark)
+			if kind == "tower":
+				draw_circle(p,radius*0.2,tint)
+		"protoss":
+			if kind == "treasury":
+				var hexagon := PackedVector2Array()
+				for i in range(6):
+					hexagon.append(p+Vector2(cos(TAU*i/6.0),sin(TAU*i/6.0))*radius)
+				draw_colored_polygon(hexagon,tint)
+			else:
+				draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.35),p+Vector2(radius*0.7,0),p+Vector2(0,radius*1.1),p+Vector2(-radius*0.7,0)]),tint)
+			draw_arc(p,radius*0.55,0,TAU,20,INK,2)
+			if kind != "treasury":
+				draw_circle(p,radius*0.25,INK)
+		"blight":
+			var blob := PackedVector2Array()
+			for i in range(10):
+				var length: float = radius*(1.25 if i % 2 == 0 else 0.75)
+				blob.append(p+Vector2(cos(TAU*i/10.0),sin(TAU*i/10.0))*length)
+			draw_colored_polygon(blob,tint)
+			draw_circle(p,radius*0.45,dark)
+			for x in [-0.35,0.15]:
+				draw_line(p+Vector2(x*radius,radius*0.6),p+Vector2(x*radius,radius*1.3),tint,2)
+		_:
+			var octagon := PackedVector2Array()
+			for i in range(8):
+				octagon.append(p+Vector2(cos(TAU*(i+0.5)/8.0),sin(TAU*(i+0.5)/8.0))*radius)
+			draw_colored_polygon(octagon,Color("4a5a6c"))
+			_text(p+Vector2(-5,6),"?",16,INK)
 
 ## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
@@ -473,6 +566,56 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 		"void_ray":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.3),p+Vector2(radius*1.1,0),p+Vector2(0,radius*1.3),p+Vector2(-radius*1.1,0)]),color)
 			draw_circle(p,radius*0.4,INK)
+		"rifle":
+			draw_circle(p,radius*0.8,color)
+			draw_rect(Rect2(p+Vector2(radius*0.3,-radius*0.2),Vector2(radius*0.9,radius*0.4)),color)
+		"widow_mine":
+			for angle in [PI*0.25,PI*0.75,PI*1.25,PI*1.75]:
+				draw_line(p,p+Vector2(cos(angle),sin(angle))*radius*1.2,color,2)
+			draw_circle(p,radius*0.55,color)
+			draw_circle(p,radius*0.2,Color("ff6f5e"))
+		"thor":
+			draw_rect(Rect2(p-Vector2(radius*0.75,radius*0.6),Vector2(radius*1.5,radius*1.5)),color)
+			for side in [-1,1]:
+				draw_circle(p+Vector2(side*radius*0.95,-radius*0.55),radius*0.45,color)
+			draw_rect(Rect2(p+Vector2(-radius*0.3,-radius*0.25),Vector2(radius*0.6,radius*0.3)),Color("162334"))
+		"roach":
+			var shell := PackedVector2Array()
+			for i in range(12):
+				shell.append(p+Vector2(cos(TAU*i/12.0)*radius*1.1,sin(TAU*i/12.0)*radius*0.75))
+			draw_colored_polygon(shell,color)
+			draw_line(p+Vector2(-radius*0.7,0),p+Vector2(radius*0.7,0),Color("162334"),2)
+		"hydralisk":
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.2),p+Vector2(radius*0.45,radius),p+Vector2(-radius*0.45,radius)]),color)
+			for side in [-1,1]:
+				draw_colored_polygon(PackedVector2Array([p+Vector2(side*radius*0.2,-radius*0.7),p+Vector2(side*radius*1.1,-radius*0.2),p+Vector2(side*radius*0.3,0)]),color)
+		"ultralisk":
+			draw_circle(p,radius,color)
+			for side in [-1,1]:
+				draw_line(p+Vector2(radius*0.6,side*radius*0.4),p+Vector2(radius*1.4,side*radius*0.9),INK,2)
+		"stalker":
+			for side in [-1,1]:
+				for vertical in [-1,1]:
+					draw_line(p,p+Vector2(side*radius*1.2,vertical*radius*1.1),color,2)
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.8),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),color)
+			draw_circle(p+Vector2(0,-radius*0.1),radius*0.2,INK)
+		"immortal":
+			var hull := PackedVector2Array()
+			for i in range(6):
+				hull.append(p+Vector2(cos(TAU*i/6.0+PI/6.0),sin(TAU*i/6.0+PI/6.0))*radius)
+			draw_colored_polygon(hull,color)
+			draw_rect(Rect2(p-Vector2(radius*0.35,radius*0.35),Vector2(radius*0.7,radius*0.7)),Color("162334"))
+		"archon":
+			draw_circle(p,radius*0.75,color)
+			draw_arc(p,radius*1.15,0,TAU,20,Color(color,0.6),2)
+			draw_circle(p,radius*0.3,INK)
+		"spitter":
+			draw_circle(p,radius*0.85,color)
+			draw_circle(p+Vector2(radius*0.45,0),radius*0.3,Color("162334"))
+		"abomination":
+			for offset in [Vector2(-0.45,-0.25),Vector2(0.4,-0.3),Vector2(0,0.4)]:
+				draw_circle(p+offset*radius,radius*0.7,color)
+			draw_line(p+Vector2(-radius*0.5,0),p+Vector2(radius*0.5,radius*0.1),Color("162334"),2)
 		_:
 			# 尚无专属外形的兵种：圆形加兵种字母。
 			draw_circle(p,radius,color)
@@ -548,14 +691,19 @@ func _draw_editor() -> void:
 	_panel(Rect2(1212,573,196,287))
 	_text(Vector2(1226,604),"敌情 / 上一波",20,CORAL)
 	var counts: Dictionary = {}
-	for slot in sim.last_formations[1]:
+	for slot in sim.visible_enemy_formation(0):
 		counts[slot.kind] = int(counts.get(slot.kind,0))+1
-	if counts.is_empty():
-		_text(Vector2(1226,636),"尚未出兵",16,MUTED)
+	if not sim.revealed:
+		_text(Vector2(1226,636),"尚未交战",16,MUTED)
+		_text(Vector2(1226,658),"种族与阵容未知",14,MUTED)
 	else:
+		_text(Vector2(1226,632),"敌方种族：%s" % _race_name(str(sim.races[1])),15,_race_color(str(sim.races[1])))
+		if counts.is_empty():
+			_text(Vector2(1226,654),"上一波没有兵",14,MUTED)
 		var n := 0
 		for kind in counts:
-			_text(Vector2(1226+(n%2)*92,630+(n/2)*17),"%s×%d" % [sim.catalog[kind].name,counts[kind]],14)
+			var label: String = "%s×%d" % [sim.catalog[kind].name,counts[kind]]
+			_text(Vector2(1226+(n%2)*92,652+(n/2)*17),label,14 if label.length() <= 6 else 11)
 			n+=1
 	_text(Vector2(1226,742),"下一波敌方配置保密",14,MUTED)
 	_text(Vector2(1226,770),"击破 %d / 损失 %d" % [sim.kills[0],sim.kills[1]],16,MINT)
@@ -585,9 +733,10 @@ func _draw_help() -> void:
 		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog.tower.cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
+		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",
 		"提示：重甲怕穿甲加成，轻甲怕溅射；神族护盾脱战后会恢复。"]
 	for i in range(lines.size()):
-		_text(Vector2(335,240+i*38),lines[i],20,INK if i<lines.size()-1 else MINT)
+		_text(Vector2(335,236+i*35),lines[i],20,INK if i<lines.size()-1 else MINT)
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
 	_text(Vector2(540,708),"查看手册时，对局计时暂停。",18,MUTED)
 
@@ -604,18 +753,31 @@ func _draw_result() -> void:
 	_button(Rect2(465,535,210,60),"调整阵容，再来一局","restart",true)
 	_button(Rect2(700,535,210,60),"查看玩法说明","help")
 
-## 开局设置弹层：每个字段三个预设（★ 推荐）加自定义；自定义用 −/+ 按 step 调整。
+## 开局设置弹层：先选双方种族（可随机，允许同族），再选数值字段。
+## 每个数值字段三个预设（★ 推荐）加自定义；自定义用 −/+ 按 step 调整。
 func _draw_setup() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.82))
-	_panel(Rect2(290,120,860,640),PANEL,MINT)
+	_panel(Rect2(290,40,860,770),PANEL,MINT)
 	buttons.clear()
-	_text(Vector2(335,180),"开局设置",32,MINT)
-	_text(Vector2(500,178),"双方使用相同设置  ·  ★ 为推荐",18,MUTED)
-	var options: Dictionary = sim.rules.setup_options
+	_text(Vector2(335,96),"开局设置",32,MINT)
+	_text(Vector2(500,94),"种族整局固定，首次交战后公开  ·  ★ 为推荐",18,MUTED)
+	var race_setup: Dictionary = sim.rules.race_setup
 	var row := 0
+	for index in range(2):
+		var y: float = 112 + row * 106
+		_text(Vector2(335,y+30),str(race_setup.labels[index]),22)
+		var column := 0
+		for choice in Catalog.RACES + ["random"]:
+			var label: String = _race_name(choice)
+			if choice == str(race_setup.recommended[index]):
+				label += " ★"
+			_button(Rect2(335+column*158,y+44,146,50),label,"setup_race:%d:%s" % [index,choice],race_choices[index] == choice)
+			column += 1
+		row += 1
+	var options: Dictionary = sim.rules.setup_options
 	for field in options:
 		var option: Dictionary = options[field]
-		var y: float = 220 + row * 140
+		var y: float = 112 + row * 106
 		var value: int = int(match_settings[field])
 		var custom: bool = custom_fields.has(field)
 		_text(Vector2(335,y+30),str(option.label),22)
@@ -624,18 +786,18 @@ func _draw_setup() -> void:
 			var label: String = "%d %s" % [int(choice), option.unit]
 			if int(choice) == int(option.recommended):
 				label += " ★"
-			_button(Rect2(335+column*158,y+48,146,54),label,"setup_pick:%s:%d" % [field,int(choice)],not custom and value == int(choice))
+			_button(Rect2(335+column*158,y+44,146,50),label,"setup_pick:%s:%d" % [field,int(choice)],not custom and value == int(choice))
 			column += 1
-		_button(Rect2(335+column*158,y+48,146,54),"自定义","setup_custom:"+field,custom)
+		_button(Rect2(335+column*158,y+44,146,50),"自定义","setup_custom:"+field,custom)
 		if custom:
-			_button(Rect2(985,y+48,48,54),"−","setup_step:%s:-1" % field)
-			_text(Vector2(1040,y+84),"%d" % value,22,MINT)
-			_button(Rect2(1090,y+48,48,54),"+","setup_step:%s:1" % field)
+			_button(Rect2(985,y+44,48,50),"−","setup_step:%s:-1" % field)
+			_text(Vector2(1040,y+78),"%d" % value,22,MINT)
+			_button(Rect2(1090,y+44,48,50),"+","setup_step:%s:1" % field)
 		row += 1
 	var minutes: float = float(sim.rules.wave_limit) * float(match_settings.wave_seconds) / 60.0
-	_text(Vector2(335,660),"共 %d 波，出满约 %d 分钟；之后先没有可攻击部队的一方失败。" % [int(sim.rules.wave_limit),int(round(minutes))],17,MUTED)
-	_button(Rect2(335,684,180,56),"恢复推荐","setup_reset")
-	_button(Rect2(880,684,224,56),"确认，开始布阵","setup_confirm",true)
+	_text(Vector2(335,700),"共 %d 波，出满约 %d 分钟；之后先没有可攻击部队的一方失败。" % [int(sim.rules.wave_limit),int(round(minutes))],17,MUTED)
+	_button(Rect2(335,728,180,56),"恢复推荐","setup_reset")
+	_button(Rect2(880,728,224,56),"确认，开始布阵","setup_confirm",true)
 
 ## 处理开局设置弹层的按钮；确认后按新设置重建对局。
 func _handle_setup(action: String) -> void:
@@ -644,6 +806,10 @@ func _handle_setup(action: String) -> void:
 	if parts[0] == "setup_reset":
 		match_settings = _recommended_settings()
 		custom_fields.clear()
+		race_choices = sim.rules.race_setup.recommended.duplicate()
+	elif parts[0] == "setup_race" and parts.size() == 3:
+		if int(parts[1]) in [0, 1] and (Catalog.RACES.has(parts[2]) or parts[2] == "random"):
+			race_choices[int(parts[1])] = parts[2]
 	elif parts[0] == "setup_confirm":
 		_new_match()
 		setup_open = false

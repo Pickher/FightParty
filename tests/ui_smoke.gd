@@ -14,6 +14,12 @@ func verify(ok: bool, message: String) -> void:
 		failed=true
 		printerr("UI FAIL: "+message)
 
+func _capture_path() -> String:
+	var destination := "user://ui-smoke.png"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture="):destination=arg.trim_prefix("--capture=")
+	return destination
+
 ## 加载真实游戏场景，依次模拟编辑、暂停、后台通知、完成一局和重开。
 ## 截图必须等待 RenderingServer.frame_post_draw，确保这一帧已经绘制完。
 func run() -> void:
@@ -37,8 +43,13 @@ func run() -> void:
 	game.handle_action("restart")
 	verify(game.setup_open and game.custom_fields.has("wave_seconds"),"restart reopens setup with previous custom values")
 	game.handle_action("setup_reset")
+	verify(game.race_choices==["terran","random"],"reset restores recommended races")
+	game.handle_action("setup_race:1:zerg")
 	game.handle_action("setup_confirm")
 	verify(game.sim.rules.wave_seconds==30 and game.sim.rules.wave_income==300 and game.sim.journal.settings.start_minerals==600,"reset restores recommended settings")
+	verify(game.sim.races==["terran","zerg"] and game.sim.journal.settings.races==["terran","zerg"],"chosen races applied and journaled")
+	verify(game._shop_kinds().all(func(k): return game.sim.catalog[k].race=="terran"),"shop lists own race only")
+	verify(game.sim.formations[1].all(func(s): return game.sim.catalog[s.kind].race=="zerg"),"computer buys its own race")
 	game.handle_action("clear")
 	game.handle_action("select:hellbat")
 	game.handle_action("cell:5")
@@ -110,7 +121,18 @@ func run() -> void:
 	game._process(0.2)
 	verify(game.sim.tick==before,"background stops ticks")
 	game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
+	# 第一波出场后、交战前：敌方种族、阵容与兵种外形都不公开。
+	while game.sim.wave < 1:game.advance_tick()
+	for i in range(10):game.advance_tick()
+	verify(not game.sim.revealed and game.sim.visible_enemy_formation(0).is_empty() and game.sim.visible_race(0,1)=="","enemy hidden before first engagement")
+	game.effects.clear()
+	game.queue_redraw()
+	await process_frame
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(_capture_path().replace(".png","-hidden.png"))
 	for i in range(1500):game.advance_tick()
+	verify(game.sim.revealed and game.sim.visible_race(0,1)=="zerg","races revealed after engagement")
 	# 已出场单位取消不退款：先弹确认，拒绝后兵营不变，确认后移除且矿物不变。
 	var deployed_cell: int=int(game.sim.formations[0][0].cell)
 	var minerals_before: int=int(game.sim.minerals[0])
@@ -139,9 +161,7 @@ func run() -> void:
 	await process_frame
 	if DisplayServer.get_name() != "headless":
 		await RenderingServer.frame_post_draw
-	var destination := "user://ui-smoke.png"
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--capture="):destination=arg.trim_prefix("--capture=")
+	var destination := _capture_path()
 	if DisplayServer.get_name() != "headless":
 		root.get_texture().get_image().save_png(destination)
 	while not game.sim.finished:game.advance_tick()
@@ -163,6 +183,24 @@ func run() -> void:
 		root.get_texture().get_image().save_png(destination.replace(".png","-setup.png"))
 	game.handle_action("setup_confirm")
 	verify(game.sim.minerals==[0,0] and game.sim.formations[0].is_empty(),"zero start funds leave roster empty")
+	# 每个种族分别记住兵营：虫族阵容不会带到人族，换回虫族时恢复。
+	game.handle_action("restart")
+	game.handle_action("setup_reset")
+	game.handle_action("setup_race:0:zerg")
+	game.handle_action("setup_confirm")
+	verify(game.sim.races[0]=="zerg" and game.selected=="zergling","player plays zerg with a zerg card selected")
+	game._commit([{"kind":"zergling","cell":3}])
+	game.handle_action("restart")
+	game.handle_action("setup_race:0:terran")
+	game.handle_action("setup_confirm")
+	verify(game.sim.formations[0].all(func(s): return game.sim.catalog[s.kind].race=="terran"),"terran roster does not inherit zerg units")
+	game.handle_action("restart")
+	game.handle_action("setup_race:0:zerg")
+	game.handle_action("setup_confirm")
+	verify(game.sim.formations[0].size()==1 and game.sim.formations[0][0].kind=="zergling" and int(game.sim.formations[0][0].cell)==3,"zerg roster restored per race")
+	game.handle_action("restart")
+	game.handle_action("setup_reset")
+	game.handle_action("setup_confirm")
 	print("UI SMOKE: ","FAIL" if failed else "PASS", " capture=",destination if DisplayServer.get_name() != "headless" else "skipped (headless)")
 	game.speaker.stop()
 	game.speaker.stream = null
