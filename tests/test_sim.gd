@@ -899,7 +899,7 @@ func _economy() -> void:
 	var shop = Sim.new()
 	var buyer = AI.new(11)
 	var ok := true
-	for round_number in range(24):
+	for round_number in range(120):
 		var plan: Array = buyer.buy_list(Catalog.starter(),shop.formations[1],shop.minerals[1])
 		ok = ok and shop.formation_cost(plan) <= shop.minerals[1]
 		for slot in plan:

@@ -42,6 +42,8 @@ var buckets: Dictionary = {}
 # 按阵营分开的同尺寸空间桶，以及本步的 id → 单位索引；只用于索敌加速，不改变选择结果。
 var team_buckets: Array = [{}, {}]
 var by_id: Dictionary = {}
+# 带模式切换的兵种（解放者防卫）合并后的武器数据缓存。
+var mode_weapons: Dictionary = {}
 # 分离避让只看 20 距离内的邻居，用更细的 20×20 网格避免密集时遍历整个 80 格。
 var fine_buckets: Dictionary = {}
 const BUCKET := 80.0
@@ -327,31 +329,85 @@ func _target(unit: Dictionary) -> Dictionary:
 	var best_score := INF
 	var sniper: bool = unit.kind == "sniper"
 	var enemies: Dictionary = team_buckets[1 - int(unit.team)]
-	var cx := floori(unit.pos.x / BUCKET)
-	var cy := floori(unit.pos.y / BUCKET)
+	var area := _search_area(unit.pos, radius)
 	# 按空间桶的环由近到远搜索。第 ring 环内任何单位距离至少 (ring-1)×BUCKET，
 	# 已找到更近目标时可以提前结束；按距离评分以外的狙击手需完整搜索。
-	for ring in range(ceili(radius / BUCKET) + 2):
+	for ring in range(int(area.rings)):
 		if not sniper and best_score < float(ring - 1) * BUCKET:
 			break
-		for x in range(cx - ring, cx + ring + 1):
-			var edge: bool = x == cx - ring or x == cx + ring
-			var y := cy - ring
-			while y <= cy + ring:
-				for other in enemies.get(Vector2i(x, y), []):
-					if other.hp <= 0:
-						continue
-					var distance: float = unit.pos.distance_to(other.pos)
-					if distance > radius or not _can_hit_unit(unit,other,weapon):
-						continue
-					var score := distance
-					if sniper:
-						score = distance * 0.1 + float(catalog[other.kind].hp) * 0.2
-					if score < best_score or (is_equal_approx(score, best_score) and int(other.id) < int(best.get("id", 2147483647))):
-						best = other
-						best_score = score
-				y += 1 if edge or ring == 0 else 2 * ring
+		for key in _ring_cells(area, ring):
+			for other in enemies.get(key, []):
+				if other.hp <= 0:
+					continue
+				var distance: float = unit.pos.distance_to(other.pos)
+				if distance > radius or not _can_hit_unit(unit,other,weapon):
+					continue
+				var score := distance
+				if sniper:
+					score = distance * 0.1 + float(catalog[other.kind].hp) * 0.2
+				if score < best_score or (is_equal_approx(score, best_score) and int(other.id) < int(best.get("id", 2147483647))):
+					best = other
+					best_score = score
 	return best
+
+## 距离最近（同距按 ID）的存活敌方地面单位，供防卫圈选择圈地方向。
+func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
+	var best: Dictionary = {}
+	var best_distance := INF
+	var enemies: Dictionary = team_buckets[1 - int(unit.team)]
+	var area := _search_area(unit.pos, radius)
+	for ring in range(int(area.rings)):
+		if best_distance < float(ring - 1) * BUCKET:
+			break
+		for key in _ring_cells(area, ring):
+			for other in enemies.get(key, []):
+				if other.hp <= 0 or catalog[other.kind].get("layer","ground") != "ground":
+					continue
+				var distance: float = unit.pos.distance_to(other.pos)
+				if distance > radius:
+					continue
+				if distance < best_distance or (is_equal_approx(distance,best_distance) and int(other.id) < int(best.get("id",2147483647))):
+					best = other
+					best_distance = distance
+	return best
+
+## 搜索圆的包围盒（按空间桶编号）与需要搜索的环数。
+func _search_area(pos: Vector2, radius: float) -> Dictionary:
+	var cx := floori(pos.x / BUCKET)
+	var cy := floori(pos.y / BUCKET)
+	var low := Vector2i(floori((pos.x - radius) / BUCKET), floori((pos.y - radius) / BUCKET))
+	var high := Vector2i(floori((pos.x + radius) / BUCKET), floori((pos.y + radius) / BUCKET))
+	var rings: int = maxi(maxi(cx - low.x, high.x - cx), maxi(cy - low.y, high.y - cy)) + 1
+	return {"cx":cx,"cy":cy,"low":low,"high":high,"rings":rings}
+
+## 以 (cx, cy) 为中心第 ring 环、且位于包围盒内的空间桶编号。
+func _ring_cells(area: Dictionary, ring: int) -> Array:
+	var cells: Array = []
+	var cx: int = area.cx
+	var cy: int = area.cy
+	var low: Vector2i = area.low
+	var high: Vector2i = area.high
+	for x in range(maxi(cx - ring, low.x), mini(cx + ring, high.x) + 1):
+		if x == cx - ring or x == cx + ring:
+			for y in range(maxi(cy - ring, low.y), mini(cy + ring, high.y) + 1):
+				cells.append(Vector2i(x, y))
+		else:
+			if cy - ring >= low.y:
+				cells.append(Vector2i(x, cy - ring))
+			if cy + ring <= high.y:
+				cells.append(Vector2i(x, cy + ring))
+	return cells
+
+## 只返回指定阵营、位于半径内的单位；顺序与 _nearby 无关，调用处不得依赖顺序。
+func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
+	var found: Array = []
+	var side: Dictionary = team_buckets[team]
+	for x in range(floori((pos.x - radius) / BUCKET), floori((pos.x + radius) / BUCKET) + 1):
+		for y in range(floori((pos.y - radius) / BUCKET), floori((pos.y + radius) / BUCKET) + 1):
+			for unit in side.get(Vector2i(x,y), []):
+				if pos.distance_squared_to(unit.pos) <= radius * radius:
+					found.append(unit)
+	return found
 
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
