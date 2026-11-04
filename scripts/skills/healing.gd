@@ -1,7 +1,7 @@
 extends RefCounted
 
 ## 医疗兵以己方最前方战斗单位为掩护；全队只剩辅助时退向己方基地。
-## 每步按剩余生命比例选择治疗范围内最危急的友军（不治疗自身或基地）。
+## 每步按剩余生命比例选择治疗范围内最危急的友军（不治疗自身、基地或结构体）。
 ## 追赶伤员也不能越过安全线；附近敌军逼近时优先后撤，可边移动边治疗。
 static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary) -> void:
 	var stats: Dictionary = sim.catalog[unit.kind]
@@ -9,7 +9,7 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 	var forward: float = 1.0 if unit.team == 0 else -1.0
 	var front: Dictionary = {}
 	for ally in sim.units:
-		if ally.team != unit.team or sim.catalog[ally.kind].get("skills",{}).has("healing") or sim.catalog[ally.kind].get("layer","ground") != "ground":
+		if ally.team != unit.team or sim.is_structure(ally) or sim.catalog[ally.kind].get("skills",{}).has("healing") or sim.catalog[ally.kind].get("layer","ground") != "ground":
 			continue
 		if front.is_empty() or float(ally.pos.x) * forward > float(front.pos.x) * forward:
 			front = ally
@@ -26,7 +26,7 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 	var best_ratio := INF
 	var chase_ratio := INF
 	for ally in sim._nearby(unit.pos, float(stats.range) * 1.5):
-		if ally.team != unit.team or ally.id == unit.id or ally.hp <= 0:
+		if ally.team != unit.team or ally.id == unit.id or ally.hp <= 0 or sim.is_structure(ally):
 			continue
 		var ratio: float = float(ally.hp) / float(sim.catalog[ally.kind].hp)
 		if ratio >= 1.0:

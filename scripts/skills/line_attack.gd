@@ -62,6 +62,8 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 				continue
 			if not layers.has(sim.catalog[victim.kind].get("layer","ground")):
 				continue
+			if sim.is_structure(victim) and not bool(wave.get("attacks_structures", wave.get("attacks_base", true))):
+				continue
 			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),duration_fraction)
 			if crosses(wave, victim.pos, finish, next_distance):
 				wave.hit_ids[victim.id] = true

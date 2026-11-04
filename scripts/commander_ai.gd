@@ -50,6 +50,16 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 		left -= int(catalog[kind].cost)
 	return result
 
+## 防御塔策略：对方上一波总价高于自己兵营（落后）且还能建塔时，买得起就建（"build"），
+## 买不起就本轮不买兵、攒矿（"save"）；其他情况返回空字符串。
+func tower_plan(last_enemy: Array, roster: Array, minerals: int, builds: int) -> String:
+	if builds >= int(rules.tower_max_builds) or _roster_value(last_enemy) <= _roster_value(roster):
+		return ""
+	return "build" if minerals >= int(catalog.tower.cost) else "save"
+
+func wants_tower(last_enemy: Array, roster: Array, minerals: int, builds: int) -> bool:
+	return tower_plan(last_enemy, roster, minerals, builds) == "build"
+
 ## 从空兵营开始的一整份阵容，供测试与旧接口使用。
 func choose(last_enemy: Array, budget: int) -> Array:
 	return buy_list(last_enemy, [], budget)

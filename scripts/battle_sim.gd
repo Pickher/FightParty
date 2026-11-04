@@ -18,8 +18,10 @@ var catalog: Dictionary = Catalog.units()
 var formations: Array = [[], []]
 # 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
 var last_formations: Array = [[], []]
-# 双方当前矿物；买兵立即扣除，出兵时各加 wave_income。
+# 双方当前矿物；买兵立即扣除，出兵时各加 wave_income，摧毁对方宝库加 treasury_reward。
 var minerals: Array = [0, 0]
+# 双方已建造防御塔的次数（被摧毁不会归还次数）。
+var tower_builds: Array = [0, 0]
 var units: Array = []
 # 已发出的传播攻击独立于发射者存活，按固定步推进。
 var attack_waves: Array = []
@@ -55,6 +57,38 @@ func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	bases = [float(rules.base_hp), float(rules.base_hp)]
 	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
 	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
+	if bool(rules.get("structures", true)):
+		for team in range(2):
+			_place_structure(team, "gate_tower", "gate")
+			_place_structure(team, "treasury", "treasury")
+
+## 结构体（门口防御塔、宝库、防御塔）也是 units 中的静止单位，坐标来自 layout 的 <name>_x/<name>_y。
+func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
+	var layout: Dictionary = rules.layout
+	return spawn_unit(team, kind, Vector2(mirror_x(team, float(layout[slot + "_x"])), float(layout[slot + "_y"])))
+
+func is_structure(unit: Dictionary) -> bool:
+	return bool(catalog[unit.kind].get("structure", false))
+
+## 防御塔还能否建造：未达到 tower_max_builds，且矿物足够。返回空字符串表示可以。
+func tower_error(team: int) -> String:
+	var error := _editable(team)
+	if error.is_empty() and int(tower_builds[team]) >= int(rules.tower_max_builds):
+		error = "防御塔已达建造上限"
+	if error.is_empty() and int(minerals[team]) < int(catalog.tower.cost):
+		error = "矿物不足"
+	return error
+
+## 在固定建造位立即建成一座防御塔并扣矿；被摧毁不给对方奖励，也不能重建。
+func build_tower(team: int) -> String:
+	var error := tower_error(team)
+	if error.is_empty():
+		minerals[team] -= int(catalog.tower.cost)
+		tower_builds[team] += 1
+		_place_structure(team, "tower", "tower")
+		events.append({"type":"tower_built","team":team})
+		_log(team, {"type":"build_tower"})
+	return error
 
 ## 累计一份阵容的总价；未知兵种或错误元素返回 -1，由校验函数拒绝。
 func formation_cost(formation: Array) -> int:
@@ -204,6 +238,8 @@ func apply_action(action: Dictionary) -> String:
 			return sell(int(action.team), int(action.cell))
 		"move":
 			return move(int(action.team), int(action.from), int(action.to))
+		"build_tower":
+			return build_tower(int(action.team))
 	return "未知操作"
 
 ## 某方当前在场、能造成伤害的部队数量（不含结构体与治疗等无攻击单位）。
@@ -322,6 +358,9 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 		layer = "ground"
 	if (layer != "ground") if layers == null else not layers.has(layer):
 		return false
+	# 结构体按 attacks_structures 判断（缺省同 attacks_base），解放者不能攻击建筑。
+	if catalog[other.kind].get("structure", false) and not weapon.get("attacks_structures", weapon.get("attacks_base", true)):
+		return false
 	var skills = catalog[unit.kind].get("skills")
 	return skills == null or not skills.has("defender_zone") or DefenderZone.contains(self,unit,other.pos)
 
@@ -365,7 +404,7 @@ func _target(unit: Dictionary) -> Dictionary:
 					best_score = score
 	return best
 
-## 距离最近（同距按 ID）的存活敌方地面单位，供防卫圈选择圈地方向。
+## 距离最近（同距按 ID）的存活敌方地面单位（不含结构体），供防卫圈选择圈地方向。
 func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 	var best: Dictionary = {}
 	var best_distance := INF
@@ -379,7 +418,7 @@ func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 			if bucket == null or _cell_distance(unit.pos, key) > minf(best_distance, radius):
 				continue
 			for other in bucket:
-				if other.hp <= 0 or catalog[other.kind].get("layer","ground") != "ground":
+				if other.hp <= 0 or catalog[other.kind].get("layer","ground") != "ground" or catalog[other.kind].get("structure", false):
 					continue
 				var distance: float = unit.pos.distance_to(other.pos)
 				if distance > radius:
@@ -556,6 +595,11 @@ func step() -> Array:
 			events.append({"type":"damage","id":unit.id,"amount":hits[unit.id]})
 		if unit.hp > 0:
 			alive.append(unit)
+		elif is_structure(unit):
+			# 结构体不计击杀；只有宝库给攻击方奖励，同一座宝库只会死亡一次。
+			if unit.kind == "treasury":
+				minerals[1 - int(unit.team)] += int(rules.treasury_reward)
+			events.append({"type":"structure_destroyed","id":unit.id,"kind":unit.kind,"pos":unit.pos,"team":unit.team})
 		else:
 			kills[1 - int(unit.team)] += 1
 			events.append({"type":"death","id":unit.id,"pos":unit.pos,"team":unit.team})
