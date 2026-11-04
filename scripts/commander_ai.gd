@@ -1,41 +1,77 @@
-# 中文导读：电脑如何选择下一波阵容。它只做选择，不负责移动、攻击或扣血。
+# 中文导读：电脑如何决定购买哪些永久单位。它只做选择，不负责移动、攻击或扣血。
 # 初学者可以先改 counters 的克制映射或 choices 的权重，观察电脑的选择变化。
 extends RefCounted
 const Catalog = preload("res://scripts/catalog.gd")
 var catalog: Dictionary = Catalog.units()
+var rules: Dictionary = Catalog.rules()
 var rng := RandomNumberGenerator.new()
+# 键是观察到的敌方兵种，值是准备购买的反制兵种；ID 必须存在于 units.json。
+const COUNTERS := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"swarm","sniper":"swarm","medic":"sniper","piercer":"mortar","colossus":"breaker","marauder":"breaker","liberator":"rifle"}
+# 射程低于此值的单位视为前排，优先放在最靠前的空格；其余放在后方空格。
+const FRONT_RANGE := 60.0
 
 ## 给随机生成器设置种子。相同种子与调用顺序会产生相同选择，方便复现问题。
 func _init(seed_value: int = 42) -> void:
 	rng.seed = seed_value
 
-## 公平约束：这里只接收已公开信息，不接收模拟器对象，更不能偷看玩家待出兵阵容。
-## 输入：敌方上一波的公开阵容，以及本波预算；输出：准备提交的阵容数组。
-## 最终仍由 BattleSim.submit_formation() 校验，AI 不能绕开玩家同样遵守的规则。
-func choose(last_enemy: Array, budget: int) -> Array:
-	# 键是观察到的敌方兵种，值是准备购买的反制兵种；ID 必须存在于 units.json。
-	var counters := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"swarm","sniper":"swarm","medic":"sniper","piercer":"mortar","colossus":"breaker","marauder":"breaker","liberator":"rifle"}
-	# 抽取池里同一兵种出现越多，选中的机会越大。这里给步枪兵较高的基础权重。
+## 公平约束：只接收敌方上一波的公开阵容、自己的兵营和矿物，不接收模拟器对象。
+## 返回准备购买的 [{kind, cell}]，只使用空格，总价不超过 minerals；仍由 BattleSim.buy() 校验。
+func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 	var choices: Array = ["rifle","rifle","swarm","piercer","colossus","marauder","liberator"]
 	for slot in last_enemy:
-		choices.append(counters.get(slot.kind,"rifle"))
+		choices.append(COUNTERS.get(slot.kind,"rifle"))
+	var taken: Dictionary = {}
+	var guards := 0
+	var has_medic := false
+	for slot in roster:
+		taken[int(slot.cell)] = true
+		guards += 1 if slot.kind == "guard" else 0
+		has_medic = has_medic or slot.kind == "medic"
 	var result: Array = []
-	var left := budget
-	# 放置顺序：先前排、后后排。当前布局固定为 6×4，改网格要一起改这里。
-	var cells: Array = [5,23,11,17,4,22,10,16,3,21,9,15,2,20,8,14,1,19,7,13,0,18,6,12]
-	for i in range(24):
-		# 预算足够时先放两个盾卫，其余位置从抽取池选择。买不起时尝试更便宜的蜂群。
-		var kind: String = "guard" if i < 2 else str(choices[rng.randi_range(0, choices.size()-1)])
-		# 较高预算时带一名医疗兵，优先安排在后排。
-		if i == 2 and budget >= 700:
+	var left := minerals
+	while true:
+		# 兵营里先保证两个盾卫；兵营总价加可用矿物达到 700 时带一名医疗兵，其余从抽取池选择。
+		var kind: String = str(choices[rng.randi_range(0, choices.size()-1)])
+		if guards < 2:
+			kind = "guard"
+		elif not has_medic and _roster_value(roster) + minerals >= 700:
 			kind = "medic"
-			cells.erase(0)
-			cells.insert(i,0)
 		if int(catalog[kind].cost) > left:
 			kind = "swarm"
 		if int(catalog[kind].cost) > left:
 			break
-		result.append({"kind":kind,"cell":cells[i]})
-		# 只扣本次配兵的剩余预算，不会给电脑额外收入。
+		var cell := _free_cell(taken, float(catalog[kind].range) < FRONT_RANGE and kind != "medic")
+		if cell < 0:
+			break
+		taken[cell] = true
+		guards += 1 if kind == "guard" else 0
+		has_medic = has_medic or kind == "medic"
+		result.append({"kind":kind,"cell":cell})
 		left -= int(catalog[kind].cost)
 	return result
+
+## 从空兵营开始的一整份阵容，供测试与旧接口使用。
+func choose(last_enemy: Array, budget: int) -> Array:
+	return buy_list(last_enemy, [], budget)
+
+func _roster_value(roster: Array) -> int:
+	var total := 0
+	for slot in roster:
+		total += int(catalog[slot.kind].cost)
+	return total
+
+## 前排单位从最右（最靠前）一列找空格，后排单位从最左一列找；同列内从中间行向两侧。
+func _free_cell(taken: Dictionary, front: bool) -> int:
+	var columns := int(rules.columns)
+	var rows := int(rules.rows)
+	var row_order: Array = []
+	for offset in range(rows):
+		var row: int = (rows - 1) / 2 + (offset + 1) / 2 * (1 if offset % 2 == 1 else -1)
+		row_order.append(row)
+	for step in range(columns):
+		var col: int = columns - 1 - step if front else step
+		for row in row_order:
+			var cell: int = row * columns + col
+			if not taken.has(cell):
+				return cell
+	return -1

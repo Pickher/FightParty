@@ -14,16 +14,20 @@ const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
 const DefenderZone = preload("res://scripts/skills/defender_zone.gd")
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
-# 双方“下一波”的配兵计划；与战场上正在交战的 units 分开保存。
+# 双方的永久兵营：每格 {kind, cell, deployed}；每波整份生成一次。deployed 表示已至少出场一次。
 var formations: Array = [[], []]
-# 上一波已经出兵的阵容，是双方都能查看的信息。
+# 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
 var last_formations: Array = [[], []]
+# 双方当前矿物；买兵立即扣除，出兵时各加 wave_income。
+var minerals: Array = [0, 0]
 var units: Array = []
 # 已发出的传播攻击独立于发射者存活，按固定步推进。
 var attack_waves: Array = []
 var bases: Array = [3000.0, 3000.0]
 var tick: int = 0
 var wave: int = 0
+# 最后一波出兵的 tick；-1 表示还没到最后一波。
+var final_wave_tick: int = -1
 var next_id: int = 1
 var finished: bool = false
 # 胜负编码：-2 尚未结束，-1 平局，0 玩家赢，1 电脑赢。
@@ -36,55 +40,172 @@ var kills: Array = [0, 0]
 var damage_done: Array = [0.0, 0.0]
 var buckets: Dictionary = {}
 
-## 创建一局新的战斗数据，使用配置中的基地生命，并初始化可复现的波次记录。
-func _init(seed_value: int = 42) -> void:
+## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
+func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
+	rules.merge(overrides, true)
 	bases = [float(rules.base_hp), float(rules.base_hp)]
-	journal = {"rules_version":rules.version,"seed":seed_value,"waves":[]}
-
-## 计算某波的预算；不传参数（-1）表示下一波。
-## 从 start_budget 起，每波加 budget_growth，不超过 max_budget；双方使用同一公式。
-func budget(for_wave: int = -1) -> int:
-	var number: int = wave + 1 if for_wave < 0 else for_wave
-	return mini(int(rules.max_budget), int(rules.start_budget + maxi(0, number - 1) * rules.budget_growth))
+	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
+	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
 
 ## 累计一份阵容的总价；未知兵种或错误元素返回 -1，由校验函数拒绝。
 func formation_cost(formation: Array) -> int:
 	var total := 0
 	for slot in formation:
-		if not slot is Dictionary or not catalog.has(slot.get("kind", "")):
+		if not slot is Dictionary or not _buyable(slot.get("kind", "")):
 			return -1
 		total += int(catalog[slot.kind].cost)
 	return total
+
+func _buyable(kind) -> bool:
+	return kind is String and catalog.has(kind) and not bool(catalog[kind].get("structure", false))
+
+func _cell_error(cell) -> String:
+	# JSON 读出的数字可能是浮点数，所以允许 5.0，但拒绝 5.5 这样的非整数格子。
+	if not (cell is int or cell is float) or float(cell) != floor(float(cell)):
+		return "格子编号无效"
+	if cell < 0 or cell >= int(rules.columns * rules.rows):
+		return "超出布阵范围"
+	return ""
 
 ## 检查兵种、格子类型、范围、重复占格和总价。
 ## 返回空字符串表示合法；其他字符串是展示给玩家的错误原因。空阵容是合法的。
 func validate_formation(formation: Array, allowed_budget: int) -> String:
 	var occupied: Dictionary = {}
 	for slot in formation:
-		if not slot is Dictionary or not catalog.has(slot.get("kind", "")):
+		if not slot is Dictionary or not _buyable(slot.get("kind", "")):
 			return "未知兵种"
-		# JSON 读出的数字可能是浮点数，所以允许 5.0，但拒绝 5.5 这样的非整数格子。
-		var cell = slot.get("cell", -1)
-		if not (cell is int or cell is float) or float(cell) != floor(float(cell)):
-			return "格子编号无效"
-		if cell < 0 or cell >= int(rules.columns * rules.rows):
-			return "超出布阵范围"
-		if occupied.has(int(cell)):
+		var error := _cell_error(slot.get("cell", -1))
+		if not error.is_empty():
+			return error
+		if occupied.has(int(slot.cell)):
 			return "同一格不能重复放置"
-		occupied[int(cell)] = true
+		occupied[int(slot.cell)] = true
 	if formation_cost(formation) > allowed_budget:
-		return "预算不足，请先移除其他单位"
+		return "矿物不足，请先移除其他单位"
 	return ""
 
-## 玩家和 AI 共用的提交入口。仅在整份阵容通过检查后替换下一波配置。
-## duplicate(true) 深拷贝数组及其内部字典，避免调用者继续改原数组时偷偷改变已提交内容。
-func submit_formation(team: int, formation: Array) -> String:
-	if team < 0 or team > 1 or finished:
-		return "对局不可编辑"
-	var error := validate_formation(formation, budget())
+func _slot_index(team: int, cell: int) -> int:
+	for i in range(formations[team].size()):
+		if int(formations[team][i].cell) == cell:
+			return i
+	return -1
+
+## 取消某格单位可退还的矿物：本轮新买未出场退全款，已出场过的不退。
+func refund_value(team: int, cell: int) -> int:
+	var index := _slot_index(team, cell)
+	if index < 0 or bool(formations[team][index].deployed):
+		return 0
+	return int(catalog[formations[team][index].kind].cost)
+
+func is_deployed(team: int, cell: int) -> bool:
+	var index := _slot_index(team, cell)
+	return index >= 0 and bool(formations[team][index].deployed)
+
+func _editable(team: int) -> String:
+	return "对局不可编辑" if team < 0 or team > 1 or finished else ""
+
+func _log(team: int, action: Dictionary) -> void:
+	action.tick = tick
+	action.team = team
+	journal.actions.append(action)
+
+## 在空格购买一名永久单位，立即扣矿。
+func buy(team: int, kind: String, cell: int) -> String:
+	var error := _editable(team)
+	if error.is_empty() and not _buyable(kind):
+		error = "未知兵种"
 	if error.is_empty():
-		formations[team] = formation.duplicate(true)
+		error = _cell_error(cell)
+	if error.is_empty() and _slot_index(team, cell) >= 0:
+		error = "该格已有单位"
+	if error.is_empty() and int(catalog[kind].cost) > int(minerals[team]):
+		error = "矿物不足"
+	if error.is_empty():
+		minerals[team] -= int(catalog[kind].cost)
+		formations[team].append({"kind":kind,"cell":cell,"deployed":false})
+		_log(team, {"type":"buy","kind":kind,"cell":cell})
 	return error
+
+## 取消某格单位：只影响之后的波次，战场上已有的单位不受影响。
+func sell(team: int, cell: int) -> String:
+	var error := _editable(team)
+	var index := _slot_index(team, cell)
+	if error.is_empty() and index < 0:
+		error = "该格没有单位"
+	if error.is_empty():
+		minerals[team] += refund_value(team, cell)
+		formations[team].remove_at(index)
+		_log(team, {"type":"sell","cell":cell})
+	return error
+
+## 移动或交换两格单位；免费，并保留各自的出场状态。
+func move(team: int, from_cell: int, to_cell: int) -> String:
+	var error := _editable(team)
+	if error.is_empty():
+		error = _cell_error(to_cell)
+	if error.is_empty() and _slot_index(team, from_cell) < 0:
+		error = "来源格没有单位"
+	if error.is_empty():
+		for slot in formations[team]:
+			if int(slot.cell) == from_cell:
+				slot.cell = to_cell
+			elif int(slot.cell) == to_cell:
+				slot.cell = from_cell
+		_log(team, {"type":"move","from":from_cell,"to":to_cell})
+	return error
+
+## 便捷入口：把兵营改成指定阵容。按格比较，同格同兵种保留，其余先卖后买；
+## 只有整份合法且矿物足够才执行，否则原兵营不变。UI 移动单位请用 move() 以保留出场状态。
+func submit_formation(team: int, formation: Array) -> String:
+	var error := _editable(team)
+	if error.is_empty():
+		error = validate_formation(formation, 2147483647)
+	if not error.is_empty():
+		return error
+	var wanted: Dictionary = {}
+	for slot in formation:
+		wanted[int(slot.cell)] = slot.kind
+	var sells: Array = []
+	var available: int = int(minerals[team])
+	for slot in formations[team]:
+		if wanted.get(int(slot.cell), "") != slot.kind:
+			sells.append(int(slot.cell))
+			available += refund_value(team, int(slot.cell))
+	var buys: Array = []
+	var cost := 0
+	for cell in wanted:
+		var index := _slot_index(team, cell)
+		if index < 0 or formations[team][index].kind != wanted[cell]:
+			buys.append(cell)
+			cost += int(catalog[wanted[cell]].cost)
+	if cost > available:
+		return "矿物不足，请先移除其他单位"
+	for cell in sells:
+		sell(team, cell)
+	for cell in buys:
+		buy(team, wanted[cell], cell)
+	return ""
+
+## 重放战报中的一个操作；返回值与原操作相同。
+func apply_action(action: Dictionary) -> String:
+	match str(action.get("type", "")):
+		"buy":
+			return buy(int(action.team), str(action.kind), int(action.cell))
+		"sell":
+			return sell(int(action.team), int(action.cell))
+		"move":
+			return move(int(action.team), int(action.from), int(action.to))
+	return "未知操作"
+
+## 某方当前在场、能造成伤害的部队数量（不含结构体与治疗等无攻击单位）。
+func combat_units(team: int) -> int:
+	var count := 0
+	for unit in units:
+		if unit.team != team or bool(catalog[unit.kind].get("structure", false)):
+			continue
+		if float(catalog[unit.kind].damage) > 0.0:
+			count += 1
+	return count
 
 ## 创建一个在战场上活动的单位：id 是唯一编号，pos 是位置，prev 用于画面插值。
 ## hp 是当前生命，cooldown 是距离下次攻击还要等几秒，born 是出生时的 tick。
@@ -97,12 +218,18 @@ func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 	units.append(unit)
 	return unit
 
-## 锁定双方本波阵容，记录战报，再生成新单位；不清空已有的残兵。
+## 双方整份兵营同时出场，标记为已部署，再发放每轮收入；不清空已有的残兵。
 ## 此处没有随机偏置，双方出生点按水平方向镜像。
 func _spawn_wave() -> void:
 	wave += 1
-	last_formations = formations.duplicate(true)
-	journal.waves.append({"tick":tick,"wave":wave,"budget":budget(wave),"formations":last_formations.duplicate(true)})
+	if wave >= int(rules.wave_limit):
+		final_wave_tick = tick
+	for team in range(2):
+		last_formations[team] = []
+		for slot in formations[team]:
+			slot.deployed = true
+			last_formations[team].append({"kind":slot.kind,"cell":slot.cell})
+	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true)})
 	for team in range(2):
 		for slot in last_formations[team]:
 			# 取余 % 得到列，整数除法 / 得到行。出生区坐标来自 rules.layout。
@@ -111,6 +238,7 @@ func _spawn_wave() -> void:
 			var layout: Dictionary = rules.layout
 			var x: float = float(layout.spawn_x) + col * float(layout.spawn_dx)
 			spawn_unit(team, slot.kind, Vector2(mirror_x(team, x), float(layout.spawn_y) + row * float(layout.spawn_dy)))
+		minerals[team] += int(rules.wave_income)
 	events.append({"type":"wave","wave":wave})
 
 ## rules.layout 以我方（team 0）坐标填写，敌方按战场宽度水平镜像。
@@ -191,18 +319,19 @@ func step() -> Array:
 		return events
 	tick += 1
 	var dt: float = 1.0 / float(rules.tick_rate)
-	# 先撤离到期单位，再生成下一波；默认 90 秒寿命 / 30 秒间隔，最多三波共存。
+	# unit_lifetime 大于 0 时撤离到期单位；默认 0 表示单位一直战斗到死亡。
 	var alive: Array = []
 	var motion: Dictionary = {}
+	var lifetime_ticks: int = int(float(rules.get("unit_lifetime", 0)) * float(rules.tick_rate))
 	for unit in units:
-		if tick - int(unit.born) >= int(rules.unit_lifetime * rules.tick_rate):
+		if lifetime_ticks > 0 and tick - int(unit.born) >= lifetime_ticks:
 			events.append({"type":"expired","id":unit.id})
 		else:
 			motion[unit.id] = unit.pos - unit.prev
 			unit.prev = unit.pos
 			alive.append(unit)
 	units = alive
-	if tick % int(rules.wave_seconds * rules.tick_rate) == 0 and tick < int(rules.match_seconds * rules.tick_rate):
+	if wave < int(rules.wave_limit) and tick % wave_ticks() == 0:
 		_spawn_wave()
 	_build_buckets()
 	# 先把命中伤害和移动结果存下来，不立即改目标生命或位置，避免先处理的一方占便宜。
@@ -307,12 +436,20 @@ func step() -> Array:
 		bases[team] = maxf(0.0, float(bases[team]) - float(base_hits[team]))
 		if base_hits[team] > 0:
 			events.append({"type":"base_damage","team":team,"amount":base_hits[team]})
-	# 先结算双方基地伤害，再判断同一步双双归零。超时比较剩余生命（双方初始血量相同）。
+	# 先结算双方基地伤害，再判断同一步双双归零。
+	# 最后一波出场后，先失去全部可攻击部队的一方判负；超过安全时限则比较基地剩余生命。
 	if bases[0] <= 0 or bases[1] <= 0:
 		_end(-1 if bases[0] <= 0 and bases[1] <= 0 else (0 if bases[1] <= 0 else 1))
-	elif tick >= int(rules.match_seconds * rules.tick_rate):
-		_end(-1 if is_equal_approx(bases[0], bases[1]) else (0 if bases[0] > bases[1] else 1))
+	elif final_wave_tick >= 0:
+		var armed: Array = [combat_units(0) > 0, combat_units(1) > 0]
+		if not armed[0] or not armed[1]:
+			_end(-1 if not armed[0] and not armed[1] else (0 if armed[0] else 1))
+		elif tick - final_wave_tick >= int(float(rules.final_phase_max_seconds) * float(rules.tick_rate)):
+			_end(-1 if is_equal_approx(bases[0], bases[1]) else (0 if bases[0] > bases[1] else 1))
 	return events
+
+func wave_ticks() -> int:
+	return int(float(rules.wave_seconds) * float(rules.tick_rate))
 
 ## 记录最终结果，发出 ended 事件；界面收到后显示结算页、保存战报。
 func _end(result: int) -> void:
@@ -321,9 +458,9 @@ func _end(result: int) -> void:
 	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"kills":kills.duplicate()}
 	events.append({"type":"ended","winner":winner})
 
-## 给指定玩家一份可读取的状态副本。包含已公开阵容与自己的待出兵阵容。
-## 不包含对方下一波阵容；未来联网也应保留这个信息边界。
+## 给指定玩家一份可读取的状态副本。包含已公开阵容、自己的兵营与矿物。
+## 不包含对方兵营的最新改动与对方矿物；未来联网也应保留这个信息边界。
 func get_snapshot(viewer: int = 0) -> Dictionary:
-	return {"tick":tick,"wave":wave,"budget":budget(),"bases":bases.duplicate(),
+	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
 		"units":units.duplicate(true),"attack_waves":attack_waves.duplicate(true),"last_formations":last_formations.duplicate(true),
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}
