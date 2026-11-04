@@ -1,5 +1,5 @@
 {
- "version": "0.3.0",
+ "version": "0.3.1",
  "units": {
   "rifle": {"name":"步枪兵","symbol":"R","race":"terran","status":"ready","sc2":"陆战队员 Marine","cost":75,"hp":120,"armor_type":"light","armor":0,"damage":18,"interval":0.61,"range":140,"speed":36,"splash":0,"color":"75e0ac","role":"中排主力 · 对空对地","counter":"数量多、能对空；怕溅射与反轻甲","layer":"ground","target_layers":["ground","air"]},
   "hellbat": {"name":"恶火","symbol":"F","race":"terran","status":"ready","sc2":"恶蝠 Hellbat","cost":100,"hp":365,"armor_type":"light","armor":0,"damage":54,"bonus":{"light":36},"interval":1.43,"range":56,"speed":36,"splash":0,"color":"ff9f5a","role":"前排喷火 · 克轻甲","counter":"短程直线喷火，克密集轻甲；怕远程与重甲","skills":{"line_attack":{"pattern":"forward","length":70,"speed":420,"half_width":24,"effect":"flame"}},"layer":"ground","target_layers":["ground"]},
