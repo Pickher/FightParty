@@ -15,6 +15,6 @@ static func units() -> Dictionary:
 ## kind 为兵种内部 ID，cell 为格子编号：第 0 行是 0～5，第 1 行是 6～11，以此类推。
 ## 同一行越靠右越接近前线。若修改兵种价格或起始预算，也要检查此阵容是否合法。
 static func starter() -> Array:
-	return [{"kind":"guard","cell":5},{"kind":"guard","cell":23},
-		{"kind":"rifle","cell":9},{"kind":"rifle","cell":15},
-		{"kind":"breaker","cell":3},{"kind":"swarm","cell":11},{"kind":"rifle","cell":21}]
+	return [{"kind":"guard","cell":53},{"kind":"guard","cell":107},
+		{"kind":"rifle","cell":69},{"kind":"rifle","cell":87},
+		{"kind":"breaker","cell":51},{"kind":"swarm","cell":71},{"kind":"rifle","cell":105}]
