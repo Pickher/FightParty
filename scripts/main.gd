@@ -37,6 +37,9 @@ var volume := 0.4
 var speaker := AudioStreamPlayer.new()
 var journal_error := false
 var elapsed_ui := 0.0
+# 取消已出场单位不退款，需要二次确认；确认前把目标阵容暂存在这里。pending_message 为空表示没有待确认操作。
+var pending_formation: Array = []
+var pending_message := ""
 
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
 func _ready() -> void:
@@ -61,7 +64,7 @@ func _make_sound() -> void:
 	stream.data = data
 	speaker.stream = stream
 
-## 新建模拟器与 AI，尝试恢复上次阵容；若超出首波预算则用默认阵容。
+## 新建模拟器与 AI，尝试用开局资金买回上次的兵营；买不起则用默认阵容，再买不起则留空。
 ## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
 	var prior: Array = Catalog.starter()
@@ -72,15 +75,15 @@ func _new_match() -> void:
 		var saved = config.get_value("player", "formation", Catalog.starter())
 		if saved is Array:
 			prior = saved
-	if sim.validate_formation(prior, sim.budget()) != "":
-		prior = Catalog.starter()
-	sim.submit_formation(0, prior)
-	sim.submit_formation(1, ai.choose([], sim.budget()))
+	if sim.submit_formation(0, prior) != "":
+		sim.submit_formation(0, Catalog.starter())
+	_ai_shop()
 	started = false
 	paused = false
 	accumulator = 0.0
 	effects.clear()
-	messages = ["双方同额预算。击杀不加钱，下一波可自由重配。"]
+	messages = ["兵营永久保留，每波全部出场；每轮收入 +%d。" % int(sim.rules.wave_income)]
+	pending_formation = []
 	move_source = -1
 	journal_error = false
 	queue_redraw()
@@ -96,7 +99,10 @@ func _load_settings() -> void:
 func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("audio","volume",volume)
-	config.set_value("player","formation",sim.formations[0])
+	var formation: Array = []
+	for slot in sim.formations[0]:
+		formation.append({"kind":slot.kind,"cell":slot.cell})
+	config.set_value("player","formation",formation)
 	if config.save("user://settings.cfg") != OK:
 		_note("设置保存失败；本局仍可继续。")
 
@@ -146,13 +152,18 @@ func advance_tick() -> void:
 			effects.append(event)
 		elif event.type == "wave":
 			_note("第 %d 波出兵 · 我方 %d / 敌方 %d" % [sim.wave,sim.last_formations[0].size(),sim.last_formations[1].size()])
-			sim.submit_formation(1, ai.choose(sim.last_formations[0], sim.budget()))
+			_ai_shop()
 			_save_journal()
 			if volume > 0:
 				speaker.play()
 		elif event.type == "ended":
 			_save_journal()
 			speaker.play()
+
+## 电脑在开局和每次出兵后用当前矿物增量购买；只看到玩家刚出场的公开阵容。
+func _ai_shop() -> void:
+	for slot in ai.buy_list(sim.last_formations[0], sim.formations[1], int(sim.minerals[1])):
+		sim.buy(1, slot.kind, slot.cell)
 
 ## 将最新提示放在消息列表最前面，最多保留五条；界面显示最新一条。
 func _note(message: String) -> void:
@@ -194,31 +205,38 @@ func _draw() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color("091321"))
 	_text(Vector2(32,43),"FIGHT / PARTY",30,MINT)
 	_text(Vector2(33,70),"公平配兵 · 自动推进",16,MUTED)
-	_text(Vector2(400,37),"下一波  %02d" % (sim.wave+1),18,MUTED)
-	var countdown: int = int(ceil(float(int(sim.rules.wave_seconds * sim.rules.tick_rate) - sim.tick % int(sim.rules.wave_seconds * sim.rules.tick_rate)) / float(sim.rules.tick_rate)))
-	_text(Vector2(400,74),"%02d 秒" % countdown,30,INK)
-	_text(Vector2(577,37),"双方本波预算",18,MUTED)
-	_text(Vector2(577,74),str(sim.budget()),30,MINT)
-	_text(Vector2(762,37),"战局时间",18,MUTED)
+	var limit: int = int(sim.rules.wave_limit)
+	if sim.wave < limit:
+		_text(Vector2(400,37),"下一波  %d / %d" % [sim.wave+1,limit],18,MUTED)
+		var countdown: int = int(ceil(float(sim.wave_ticks() - sim.tick % sim.wave_ticks()) / float(sim.rules.tick_rate)))
+		_text(Vector2(400,74),"%02d 秒" % countdown,30,INK)
+	else:
+		_text(Vector2(400,37),"已出满 %d 波" % limit,18,MUTED)
+		_text(Vector2(400,74),"最终决战",30,CORAL)
+	_text(Vector2(577,37),"矿物 · 每轮 +%d" % int(sim.rules.wave_income),18,MUTED)
+	_text(Vector2(577,74),str(int(sim.minerals[0])),30,MINT)
+	_text(Vector2(800,37),"战局时间",18,MUTED)
 	var seconds: int = sim.tick / int(sim.rules.tick_rate)
-	_text(Vector2(762,74),"%02d:%02d / 08:00" % [seconds/60,seconds%60],24)
+	_text(Vector2(800,74),"%02d:%02d" % [seconds/60,seconds%60],24)
 	_button(Rect2(1000,24,120,48),"音量 %d" % int(volume*100),"volume")
 	_button(Rect2(1132,24,120,48),"玩法说明","help")
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.1.9  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.2.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
 		_text(Vector2(475,308),"先布阵，再让军队替你战斗。",28,MINT)
-		_text(Vector2(475,346),"点击右上角「开始准备」，30 秒后双方同时出兵。",18)
-		_text(Vector2(475,373),"战斗期间随时修改下一波；不能直接指挥场上单位。",18,MUTED)
+		_text(Vector2(475,346),"点击右上角「开始准备」，%d 秒后双方同时出兵。" % int(sim.rules.wave_seconds),18)
+		_text(Vector2(475,373),"买下的单位每波都会出场；不能直接指挥场上单位。",18,MUTED)
 	if paused and not sim.finished:
 		_panel(Rect2(525,284,390,90))
 		_text(Vector2(580,338),"已暂停 · 阵容仍可调整",25,MINT)
 	if sim.finished:
 		_draw_result()
+	if pending_message != "":
+		_draw_confirm()
 	if help_open:
 		_draw_help()
 
@@ -372,7 +390,7 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 ## 绘制 6×4 布阵格子、兵种卡片、预算与敌情；敌情只使用上一波公开阵容。
 func _draw_editor() -> void:
 	_panel(Rect2(32,573,406,277))
-	_text(Vector2(52,606),"下一波布阵",23)
+	_text(Vector2(52,606),"兵营布阵",23)
 	_text(Vector2(235,604),"后排  →  前线",18,MINT)
 	# 把阵容转为“格子编号 → 兵种”的字典，方便逐格绘制。
 	var occupied := {}
@@ -386,7 +404,7 @@ func _draw_editor() -> void:
 		buttons.append({"rect":rect,"action":"cell:%d" % cell})
 	_button(Rect2(52,805,110,32),"移除单位","erase",selected=="erase")
 	_button(Rect2(174,805,110,32),"移动位置","move",selected=="move")
-	_button(Rect2(296,805,122,32),"清空阵容","clear")
+	_button(Rect2(296,805,122,32),"清空兵营","clear")
 	_panel(Rect2(453,573,644,277))
 	_text(Vector2(475,605),"选择兵种",23)
 	var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
@@ -395,7 +413,7 @@ func _draw_editor() -> void:
 		_text(Vector2(611,602),"%d/%d" % [unit_page+1,page_count],15,MUTED)
 		_button(Rect2(644,579,30,32),">","units_next")
 	var cost: int = sim.formation_cost(sim.formations[0])
-	_text(Vector2(675,605),"已配置 %d / %d   ·   剩余 %d" % [cost,sim.budget(),sim.budget()-cost],20,MINT)
+	_text(Vector2(690,605),"兵营总价 %d   ·   可用 %d" % [cost,int(sim.minerals[0])],20,MINT)
 	var i := 0
 	var kinds: Array = sim.catalog.keys()
 	for kind in kinds.slice(unit_page*UNITS_PER_PAGE,(unit_page+1)*UNITS_PER_PAGE):
@@ -410,9 +428,9 @@ func _draw_editor() -> void:
 		i += 1
 	if sim.catalog.has(selected):
 		_text(Vector2(475,809),sim.catalog[selected].counter,18,Color("e6c28e"))
-		_text(Vector2(475,836),"点格放置 / 替换  ·  合法调整自动保存",16,MUTED)
+		_text(Vector2(475,836),"点空格购买  ·  本轮新买的单位取消可全额退回",16,MUTED)
 	else:
-		_text(Vector2(475,809),"点击要移除的单位" if selected=="erase" else "先点单位，再点目标格；占用格会交换。",18,MINT)
+		_text(Vector2(475,809),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",18,MINT)
 	_panel(Rect2(1112,573,296,277))
 	_text(Vector2(1132,605),"敌情 / 上一波",22,CORAL)
 	var counts: Dictionary = {}
@@ -439,13 +457,13 @@ func _draw_help() -> void:
 	_panel(Rect2(290,130,860,640))
 	buttons.clear()
 	_text(Vector2(335,188),"指挥官手册",32,MINT)
-	var lines := ["1. 选兵种，再点下方网格。右侧是前排，左侧是后排。",
-		"2. 每 30 秒双方同时出兵；战斗不停，阵容修改用于下一波。",
-		"3. 每波预算相同：600 起步，每波 +100，最多 1200。",
-		"4. 剩余预算不结转；击杀不加钱。可随时免费换阵容。",
-		"5. 残兵保留位置与血量继续推进，90 秒后自动撤离。",
+	var lines := ["1. 选兵种，再点下方空格购买。右侧是前排，左侧是后排。",
+		"2. 买下的单位永久留在兵营，每 %d 秒全部出场一次。" % int(sim.rules.wave_seconds),
+		"3. 开局 %d 矿，每次出兵后双方各得 %d 矿；击杀不加钱。" % [int(sim.rules.start_minerals),int(sim.rules.wave_income)],
+		"4. 本轮新买、未出场的单位取消可全额退回；出场过的取消不退款。",
+		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
-		"7. 摧毁基地获胜；8 分钟后比较基地血量，相同则平局。",
+		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
 		"提示：盾卫保护后排；分散站位可以降低迫击炮的收益。"]
 	for i in range(lines.size()):
@@ -459,12 +477,22 @@ func _draw_result() -> void:
 	_panel(Rect2(420,210,600,440))
 	buttons.clear()
 	_text(Vector2(465,275),"战线突破 · 胜利" if sim.winner==0 else ("基地失守 · 失败" if sim.winner==1 else "势均力敌 · 平局"),34,MINT if sim.winner!=1 else CORAL)
-	_text(Vector2(465,330),"完成 %d 波出兵   ·   战斗 %d 秒" % [sim.wave,sim.tick/20],22)
+	_text(Vector2(465,330),"完成 %d 波出兵   ·   战斗 %d 秒" % [sim.wave,sim.tick/int(sim.rules.tick_rate)],22)
 	_text(Vector2(465,380),"基地剩余    我方 %d  /  敌方 %d" % [sim.bases[0],sim.bases[1]],22)
 	_text(Vector2(465,425),"击破 %d    损失 %d" % [sim.kills[0],sim.kills[1]],22)
 	_text(Vector2(465,472),"战报保存失败，请检查磁盘空间。" if journal_error else "战报已保存，可用于复现配兵与战斗过程。",18,MUTED)
 	_button(Rect2(465,535,210,60),"调整阵容，再来一局","restart",true)
 	_button(Rect2(700,535,210,60),"查看玩法说明","help")
+
+## 取消已出场单位的二次确认弹层；清空底层点击区域，只保留确认与取消。
+func _draw_confirm() -> void:
+	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.7))
+	_panel(Rect2(420,300,600,220),PANEL,CORAL)
+	buttons.clear()
+	_text(Vector2(460,360),pending_message,22,INK)
+	_text(Vector2(460,398),"该单位从下一波起不再出场；战场上已有的不受影响。",17,MUTED)
+	_button(Rect2(460,430,200,56),"确定取消","confirm_yes",true)
+	_button(Rect2(690,430,200,56),"保留单位","confirm_no")
 
 ## 处理左键/模拟鼠标的触摸点击：先还原设计坐标，再寻找命中的按钮矩形。
 func _gui_input(event: InputEvent) -> void:
@@ -500,6 +528,12 @@ func handle_action(action: String) -> void:
 			paused=not paused
 	elif action == "restart":
 		_new_match()
+	elif action == "confirm_yes" or action == "confirm_no":
+		var formation: Array = pending_formation
+		pending_formation = []
+		pending_message = ""
+		if action == "confirm_yes":
+			_commit(formation, true)
 	elif not sim.finished:
 		if action == "units_prev" or action == "units_next":
 			var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
@@ -520,7 +554,19 @@ func handle_action(action: String) -> void:
 	queue_redraw()
 
 ## 将编辑后的阵容送入统一校验入口。合法才保存，不合法则保留旧阵容并提示。
-func _commit(formation: Array) -> void:
+## 会丢弃已出场过的单位时（不退款），先弹出确认，confirmed 为 true 才真正执行。
+func _commit(formation: Array, confirmed: bool = false) -> void:
+	var wanted: Dictionary = {}
+	for slot in formation:
+		wanted[int(slot.cell)] = slot.kind
+	var lost: Array = []
+	for slot in sim.formations[0]:
+		if bool(slot.deployed) and wanted.get(int(slot.cell), "") != slot.kind:
+			lost.append(sim.catalog[slot.kind].name)
+	if not lost.is_empty() and not confirmed:
+		pending_formation = formation
+		pending_message = "取消 %d 个已出场的单位不退款，确定吗？" % lost.size() if lost.size() > 1 else "取消已出场的%s不退款，确定吗？" % lost[0]
+		return
 	var error: String = sim.submit_formation(0, formation)
 	if error != "":
 		_note(error)
@@ -541,13 +587,12 @@ func _edit_cell(cell: int) -> void:
 			if index>=0:
 				move_source=cell
 		else:
-			for slot in formation:
-				if int(slot.cell)==move_source:
-					slot.cell=cell
-				elif int(slot.cell)==cell:
-					slot.cell=move_source
+			var error: String = sim.move(0, move_source, cell)
 			move_source=-1
-			_commit(formation)
+			if error != "":
+				_note(error)
+			else:
+				_save_settings()
 		return
 	if index>=0:
 		formation.remove_at(index)

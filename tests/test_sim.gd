@@ -39,34 +39,46 @@ func _initialize() -> void:
 	_marauders()
 	_stimulant_and_slow()
 	_liberators()
+	_economy()
+	_final_phase()
 	var sim = Sim.new()
-	check(sim.budget()==600 and sim.budget(7)==1200 and sim.budget(99)==1200,"budget curve")
-	check(sim.submit_formation(0,formation("guard",7))!="","reject over budget")
+	var grid: int = int(sim.rules.columns * sim.rules.rows)
+	check(sim.minerals==[600,600],"both sides start with start_minerals")
+	check(sim.submit_formation(0,formation("guard",7))!="" and sim.formations[0].is_empty() and sim.minerals[0]==600,"reject over minerals without partial purchase")
 	check(sim.submit_formation(0,[{"kind":"guard","cell":0},{"kind":"rifle","cell":0}])!="","reject duplicate cell")
-	check(sim.submit_formation(0,[{"kind":"guard","cell":24}])!="","reject out of range")
+	check(sim.submit_formation(0,[{"kind":"guard","cell":grid}])!="","reject out of range")
 	check(sim.submit_formation(0,[{"kind":"guard","cell":1.5}])!="","reject fractional cell")
 	check(sim.submit_formation(0,[{"kind":"unknown","cell":0}])!="","reject unknown unit")
 	check(sim.submit_formation(0,[])=="","allow empty formation")
 	for team in range(2):
 		check(sim.submit_formation(team,Catalog.starter())=="","same validator team %d" % team)
-	check(not sim.get_snapshot(0).has("formations"),"snapshot hides pending opponent")
+	check(sim.minerals==[0,0],"starter roster spends all 600")
+	check(not sim.get_snapshot(0).has("formations") and sim.get_snapshot(0).minerals==0,"snapshot hides opponent roster and minerals")
 	ticks(sim,599)
 	check(sim.units.is_empty() and sim.wave==0,"no early spawn")
 	sim.step()
 	check(sim.wave==1 and sim.units.size()==14,"simultaneous first wave")
-	check(sim.budget()==700,"next budget follows wave")
+	check(sim.minerals==[300,300],"wave income credited after spawn")
 	var id: int = sim.units[0].id
 	sim.submit_formation(0,[])
 	check(sim.units[0].id==id and sim.last_formations[0].size()==7,"editing leaves battlefield intact")
-	check(sim.journal.waves[0].budget==600,"journal captures wave budget")
-	# 寿命边界：把出生时间放到过去，精确检查 90 秒前一刻和刚到 90 秒的区别。
-	var lifetime = Sim.new()
+	check(sim.minerals[0]==300,"cancelling deployed units refunds nothing")
+	check(sim.journal.waves[0].formations[0].size()==7 and sim.journal.actions.size()==21,"journal records waves and every buy/sell")
+	ticks(sim,600)
+	check(sim.wave==2 and sim.units.size()>=7 and sim.last_formations[0].is_empty() and sim.last_formations[1].size()==7,"permanent roster respawns every wave")
+	# 寿命为可选规则：默认 0 不撤离；配置为 90 秒时精确检查前一刻和刚到 90 秒的区别。
+	var immortal = Sim.new()
+	var veteran: Dictionary = immortal.spawn_unit(0,"guard",Vector2(100,100))
+	veteran.born = -100000
+	immortal.step()
+	check(immortal.units.size()==1,"default rules never expire units")
+	var lifetime = Sim.new(42,{"unit_lifetime":90})
 	var survivor: Dictionary = lifetime.spawn_unit(0,"guard",Vector2(100,100))
 	survivor.born = -1798
 	lifetime.step()
 	check(lifetime.units.size()==1,"survivor retained before expiry")
 	lifetime.step()
-	check(lifetime.units.is_empty(),"expiry exactly 90 seconds")
+	check(lifetime.units.is_empty(),"optional expiry exactly 90 seconds")
 	var retained = Sim.new()
 	retained.spawn_unit(0,"guard",Vector2(500,100))
 	retained.tick=599
@@ -85,18 +97,9 @@ func _initialize() -> void:
 	mutual.spawn_unit(1,"sniper",Vector2(650,200))
 	mutual.step()
 	check(mutual.units.is_empty() and mutual.kills==[1,1],"simultaneous lethal attacks both fire")
-	var empty = Sim.new()
-	ticks(empty,9600)
-	check(empty.finished and empty.winner==-1,"empty match times out as draw")
-	var timed = Sim.new()
-	timed.tick=9599
-	timed.bases=[2500.0,2000.0]
-	timed.step()
-	check(timed.winner==0,"timeout compares base hp")
 	var commander = AI.new()
-	for round_number in range(1,16):
-		var b: int = sim.budget(round_number)
-		check(sim.validate_formation(commander.choose(Catalog.starter(),b),b)=="","AI obeys budget and grid %d" % round_number)
+	for minerals in [0,50,600,900,1200,5000]:
+		check(sim.validate_formation(commander.choose(Catalog.starter(),minerals),minerals)=="","AI obeys minerals and grid %d" % minerals)
 	# 镜像公平测试：相同配置放在两侧，击杀数与基地状态应保持一致。
 	var mirror = Sim.new()
 	mirror.submit_formation(0,Catalog.starter())
@@ -195,6 +198,7 @@ func _targeting() -> void:
 	shooter.cooldown = 0.0
 	sim.step()
 	check(shooter.locked_target_id==closer.id,"dead target replaced")
+	sim.rules.unit_lifetime = 90
 	closer.born = sim.tick - int(sim.rules.unit_lifetime * sim.rules.tick_rate)
 	sim.step()
 	check(shooter.locked_target_id==0,"expired target releases lock")
@@ -280,7 +284,7 @@ func _medics() -> void:
 	check(not lethal.units.has(victim),"overhealing cannot act as a shield")
 	var ai=AI.new()
 	var formation_with_medic: Array=ai.choose([],700)
-	check(formation_with_medic.any(func(s): return s.kind=="medic" and s.cell==0),"AI buys medic in rear cell")
+	check(formation_with_medic.any(func(s): return s.kind=="medic" and int(s.cell) % int(lethal.rules.columns)==0),"AI buys medic in rear column")
 	check(lethal.validate_formation(formation_with_medic,700)=="","AI medic formation within budget")
 
 ## 架设与收起按模拟时间推进，轻重甲伤害、基地攻击与锁定行为共用规则。
@@ -838,3 +842,101 @@ func _liberators() -> void:
 	var raider = siege.spawn_unit(0,"liberator",Vector2(1100,200))
 	ticks(siege,200)
 	check(siege.bases[1]==3000 and raider.siege_state=="mobile","liberator never attacks base")
+
+## 永久兵营的买、卖、移动与退款规则；动作写入战报并可按 tick 重放。
+func _economy() -> void:
+	var sim = Sim.new()
+	check(sim.buy(0,"guard",5)=="" and sim.minerals[0]==500,"buy deducts cost immediately")
+	check(sim.buy(0,"rifle",5)!="" and sim.minerals[0]==500,"cannot buy into occupied cell")
+	check(sim.buy(0,"gate_tower",6)!="" and sim.buy(0,"unknown",6)!="","cannot buy unknown kinds")
+	check(sim.refund_value(0,5)==100 and sim.sell(0,5)=="" and sim.minerals[0]==600,"undeployed unit refunds 100 percent")
+	check(sim.sell(0,5)!="","cannot sell empty cell")
+	sim.buy(0,"guard",5)
+	sim.buy(0,"sniper",0)
+	check(sim.move(0,5,11)=="" and sim.move(0,0,11)=="" and sim.formations[0].any(func(s): return s.kind=="guard" and s.cell==0),"move swaps cells for free")
+	check(sim.minerals[0]==350,"moves cost nothing")
+	ticks(sim,600)
+	check(sim.is_deployed(0,0) and sim.is_deployed(0,11) and sim.minerals[0]==650,"spawned units become deployed and income arrives")
+	check(sim.move(0,0,1)=="" and sim.is_deployed(0,1),"moving keeps deployed status")
+	check(sim.refund_value(0,1)==0 and sim.sell(0,1)=="" and sim.minerals[0]==650,"deployed unit can be cancelled without refund")
+	sim.buy(0,"rifle",2)
+	check(not sim.is_deployed(0,2) and sim.refund_value(0,2)==75,"new purchase after a wave is undeployed again")
+	# 整份提交：替换已出场单位不退款；矿物不足时整份拒绝，兵营不变。
+	var before: Array = sim.formations[0].duplicate(true)
+	check(sim.submit_formation(0,[{"kind":"colossus","cell":11},{"kind":"colossus","cell":12},{"kind":"colossus","cell":13}])!="" and sim.formations[0]==before,"unaffordable replacement is atomic")
+	check(sim.submit_formation(0,[{"kind":"breaker","cell":11},{"kind":"rifle","cell":2}])=="" and sim.minerals[0]==450,"replacing deployed unit charges full price without refund")
+	sim.finished = true
+	check(sim.buy(0,"rifle",3)!="" and sim.sell(0,2)!="" and sim.move(0,2,3)!="","finished match rejects edits")
+	# 收入与开局资金来自 rules，可被开局设置覆盖。
+	var custom = Sim.new(7,{"start_minerals":0,"wave_income":500,"wave_seconds":20})
+	check(custom.minerals==[0,0] and custom.submit_formation(0,[{"kind":"swarm","cell":0}])!="","zero start funds leave first wave empty")
+	ticks(custom,400)
+	check(custom.wave==1 and custom.units.is_empty() and custom.minerals==[500,500],"custom interval and income")
+	check(custom.journal.settings.wave_income==500,"journal records match settings")
+	# 动作日志重放：按记录的 tick 在下一步前执行，结果与原局逐项一致。
+	var live = Sim.new(3)
+	var ai = AI.new(3)
+	for team in range(2):
+		for slot in ai.buy_list([],live.formations[team],live.minerals[team]):
+			live.buy(team,slot.kind,slot.cell)
+	ticks(live,700)
+	live.sell(0,int(live.formations[0][0].cell))
+	for slot in ai.buy_list(live.last_formations[0],live.formations[1],live.minerals[1]):
+		live.buy(1,slot.kind,slot.cell)
+	if live.formations[0].size()>1:
+		live.move(0,int(live.formations[0][1].cell),int(live.rules.columns)-1)
+	ticks(live,1500)
+	var copy = Sim.new(3,live.journal.settings)
+	var index := 0
+	while copy.tick < live.tick:
+		while index < live.journal.actions.size() and int(live.journal.actions[index].tick)==copy.tick:
+			check(copy.apply_action(live.journal.actions[index])=="","replayed action %d valid" % index)
+			index += 1
+		copy.step()
+	check(copy.get_snapshot(0)==live.get_snapshot(0) and copy.minerals==live.minerals,"action log reproduces simulation")
+	# AI 长期增量购买：每波只用自己的矿物、只放空格，总价不超过当时矿物。
+	# 只检查购买逻辑，不推进战斗：每轮直接发放收入。
+	var shop = Sim.new()
+	var buyer = AI.new(11)
+	var ok := true
+	for round_number in range(24):
+		var plan: Array = buyer.buy_list(Catalog.starter(),shop.formations[1],shop.minerals[1])
+		ok = ok and shop.formation_cost(plan) <= shop.minerals[1]
+		for slot in plan:
+			ok = ok and shop.buy(1,slot.kind,slot.cell)==""
+		shop.minerals[1] += int(shop.rules.wave_income)
+	check(ok and shop.formations[1].size()==int(shop.rules.columns*shop.rules.rows),"AI buys incrementally within minerals until grid is full")
+
+## 最后一波后的胜负：先失去可攻击部队的一方失败；治疗单位不算；双方同时失去为平局；安全时限比较基地。
+func _final_phase() -> void:
+	var quick = Sim.new(42,{"wave_limit":2})
+	quick.submit_formation(0,[{"kind":"guard","cell":0}])
+	ticks(quick,1200)
+	check(quick.wave==2 and quick.final_wave_tick==1200 and quick.finished and quick.winner==0,"after final wave, side without attackers loses")
+	var limited = Sim.new(42,{"wave_limit":1})
+	ticks(limited,600)
+	check(limited.finished and limited.winner==-1,"both sides without attackers after final wave draw")
+	var stop = Sim.new(42,{"wave_limit":1})
+	stop.spawn_unit(0,"guard",Vector2(100,60))
+	stop.spawn_unit(1,"guard",Vector2(1100,60))
+	stop.catalog.guard.speed=0
+	ticks(stop,1300)
+	check(stop.wave==1 and not stop.finished and stop.minerals==[900,900],"no spawns or income after final wave")
+	var medics = Sim.new(42,{"wave_limit":1})
+	medics.spawn_unit(0,"medic",Vector2(100,200))
+	medics.spawn_unit(1,"guard",Vector2(1100,60))
+	medics.catalog.guard.speed=0
+	ticks(medics,600)
+	check(medics.finished and medics.winner==1,"medic-only side has no attackers")
+	var capped = Sim.new(42,{"wave_limit":1,"final_phase_max_seconds":10})
+	capped.catalog.guard.speed=0
+	capped.spawn_unit(0,"guard",Vector2(100,60))
+	capped.spawn_unit(1,"guard",Vector2(1100,60))
+	capped.bases=[2500.0,2000.0]
+	ticks(capped,799)
+	check(not capped.finished,"safety limit not reached early")
+	capped.step()
+	check(capped.finished and capped.winner==0,"safety limit compares base hp")
+	var empty = Sim.new()
+	ticks(empty,64*600)
+	check(empty.finished and empty.winner==-1 and empty.wave==64,"default match runs 64 waves")
