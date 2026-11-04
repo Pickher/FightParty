@@ -1,5 +1,5 @@
 {
- "version": "0.2.2",
+ "version": "0.2.3",
  "units": {
   "guard": {"name":"盾卫","symbol":"G","cost":100,"hp":480,"armor":"heavy","damage":16,"interval":1.2,"range":25,"speed":34,"splash":0,"light_multiplier":1.0,"heavy_multiplier":0.8,"color":"7ed8ed","role":"前排承伤 · 保护后排","counter":"抵挡步枪与狙击；怕破甲手","layer":"ground","target_layers":["ground"]},
   "rifle": {"name":"步枪兵","symbol":"R","cost":75,"hp":120,"armor":"light","damage":18,"interval":0.55,"range":140,"speed":36,"splash":0,"light_multiplier":1.4,"heavy_multiplier":0.45,"color":"75e0ac","role":"持续输出 · 压制轻甲","counter":"克制蜂群；怕重甲与范围攻击","layer":"ground","target_layers":["ground","air"]},

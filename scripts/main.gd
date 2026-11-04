@@ -40,6 +40,11 @@ var elapsed_ui := 0.0
 # 取消已出场单位不退款，需要二次确认；确认前把目标阵容暂存在这里。pending_message 为空表示没有待确认操作。
 var pending_formation: Array = []
 var pending_message := ""
+# 开局设置弹窗：每局开始前选择，双方使用同一份设置；字段与选项来自 rules.setup_options。
+var setup_open := true
+var match_settings: Dictionary = {}
+# 玩家选了“自定义”的字段；自定义时显示 −/+ 步进。
+var custom_fields: Dictionary = {}
 
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
 func _ready() -> void:
@@ -48,6 +53,7 @@ func _ready() -> void:
 	_make_sound()
 	_load_settings()
 	_new_match()
+	setup_open = true
 	set_process(true)
 
 ## 用衰减正弦波生成短提示音，避免依赖外部音频文件。
@@ -68,7 +74,7 @@ func _make_sound() -> void:
 ## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
 	var prior: Array = Catalog.starter()
-	sim = Sim.new(42)
+	sim = Sim.new(42, match_settings.duplicate())
 	ai = AI.new(42)
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
@@ -94,6 +100,23 @@ func _load_settings() -> void:
 	if config.load("user://settings.cfg") == OK:
 		volume = clampf(float(config.get_value("audio","volume",0.4)), 0.0, 1.0)
 	speaker.volume_db = linear_to_db(maxf(volume, 0.001))
+	match_settings = _recommended_settings()
+	custom_fields.clear()
+	var options: Dictionary = Catalog.rules().setup_options
+	for field in options:
+		var value = config.get_value("match", field, match_settings[field])
+		if (value is int or value is float) and value >= options[field].min and value <= options[field].max:
+			match_settings[field] = int(value)
+			if not options[field].choices.has(int(value)):
+				custom_fields[field] = true
+
+## 每个设置字段的推荐值。
+func _recommended_settings() -> Dictionary:
+	var result: Dictionary = {}
+	var options: Dictionary = Catalog.rules().setup_options
+	for field in options:
+		result[field] = int(options[field].recommended)
+	return result
 
 ## 保存当前音量和下一波阵容。失败只给提示，不影响继续战斗。
 func _save_settings() -> void:
@@ -103,6 +126,8 @@ func _save_settings() -> void:
 	for slot in sim.formations[0]:
 		formation.append({"kind":slot.kind,"cell":slot.cell})
 	config.set_value("player","formation",formation)
+	for field in match_settings:
+		config.set_value("match",field,match_settings[field])
 	if config.save("user://settings.cfg") != OK:
 		_note("设置保存失败；本局仍可继续。")
 
@@ -240,7 +265,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.2.2  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.2.3  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -254,6 +279,8 @@ func _draw() -> void:
 		_draw_result()
 	if pending_message != "":
 		_draw_confirm()
+	if setup_open:
+		_draw_setup()
 	if help_open:
 		_draw_help()
 
@@ -551,6 +578,62 @@ func _draw_result() -> void:
 	_button(Rect2(465,535,210,60),"调整阵容，再来一局","restart",true)
 	_button(Rect2(700,535,210,60),"查看玩法说明","help")
 
+## 开局设置弹层：每个字段三个预设（★ 推荐）加自定义；自定义用 −/+ 按 step 调整。
+func _draw_setup() -> void:
+	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.82))
+	_panel(Rect2(290,120,860,640),PANEL,MINT)
+	buttons.clear()
+	_text(Vector2(335,180),"开局设置",32,MINT)
+	_text(Vector2(500,178),"双方使用相同设置  ·  ★ 为推荐",18,MUTED)
+	var options: Dictionary = sim.rules.setup_options
+	var row := 0
+	for field in options:
+		var option: Dictionary = options[field]
+		var y: float = 220 + row * 140
+		var value: int = int(match_settings[field])
+		var custom: bool = custom_fields.has(field)
+		_text(Vector2(335,y+30),str(option.label),22)
+		var column := 0
+		for choice in option.choices:
+			var label: String = "%d %s" % [int(choice), option.unit]
+			if int(choice) == int(option.recommended):
+				label += " ★"
+			_button(Rect2(335+column*158,y+48,146,54),label,"setup_pick:%s:%d" % [field,int(choice)],not custom and value == int(choice))
+			column += 1
+		_button(Rect2(335+column*158,y+48,146,54),"自定义","setup_custom:"+field,custom)
+		if custom:
+			_button(Rect2(985,y+48,48,54),"−","setup_step:%s:-1" % field)
+			_text(Vector2(1040,y+84),"%d" % value,22,MINT)
+			_button(Rect2(1090,y+48,48,54),"+","setup_step:%s:1" % field)
+		row += 1
+	var minutes: float = float(sim.rules.wave_limit) * float(match_settings.wave_seconds) / 60.0
+	_text(Vector2(335,660),"共 %d 波，出满约 %d 分钟；之后先没有可攻击部队的一方失败。" % [int(sim.rules.wave_limit),int(round(minutes))],17,MUTED)
+	_button(Rect2(335,684,180,56),"恢复推荐","setup_reset")
+	_button(Rect2(880,684,224,56),"确认，开始布阵","setup_confirm",true)
+
+## 处理开局设置弹层的按钮；确认后按新设置重建对局。
+func _handle_setup(action: String) -> void:
+	var options: Dictionary = sim.rules.setup_options
+	var parts: PackedStringArray = action.split(":")
+	if parts[0] == "setup_reset":
+		match_settings = _recommended_settings()
+		custom_fields.clear()
+	elif parts[0] == "setup_confirm":
+		_new_match()
+		setup_open = false
+		_save_settings()
+	elif parts.size() >= 2 and options.has(parts[1]):
+		var field: String = parts[1]
+		var option: Dictionary = options[field]
+		if parts[0] == "setup_pick" and parts.size() == 3:
+			match_settings[field] = int(parts[2])
+			custom_fields.erase(field)
+		elif parts[0] == "setup_custom":
+			custom_fields[field] = true
+		elif parts[0] == "setup_step" and parts.size() == 3:
+			custom_fields[field] = true
+			match_settings[field] = clampi(int(match_settings[field]) + int(parts[2]) * int(option.step), int(option.min), int(option.max))
+
 ## 取消已出场单位的二次确认弹层；清空底层点击区域，只保留确认与取消。
 func _draw_confirm() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.7))
@@ -574,7 +657,7 @@ func _gui_input(event: InputEvent) -> void:
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE and not help_open and not sim.finished:
+		if event.keycode == KEY_SPACE and not help_open and not setup_open and not sim.finished:
 			handle_action("start")
 		elif event.keycode == KEY_ESCAPE:
 			handle_action("help")
@@ -582,6 +665,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 ## 把动作字符串分发到具体操作；例如 select:guard 选择盾卫，cell:5 编辑第 5 格。
 ## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
 func handle_action(action: String) -> void:
+	if setup_open:
+		if action.begins_with("setup"):
+			_handle_setup(action)
+		queue_redraw()
+		return
 	if action == "help":
 		help_open = not help_open
 	elif action == "volume":
@@ -595,6 +683,7 @@ func handle_action(action: String) -> void:
 			paused=not paused
 	elif action == "restart":
 		_new_match()
+		setup_open = true
 	elif action == "confirm_yes" or action == "confirm_no":
 		var formation: Array = pending_formation
 		pending_formation = []

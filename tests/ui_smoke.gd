@@ -24,6 +24,21 @@ func run() -> void:
 	await process_frame
 	# 测试主动控制模拟时间，关闭每帧自动推进以避免时间不确定；绘图仍可按需触发。
 	game.set_process(false)
+	# 开局设置：弹窗挡住其他操作；预设、自定义步进、确认后按设置建局；重开再弹出并可恢复推荐。
+	verify(game.setup_open,"setup popup shown before match")
+	game.handle_action("start")
+	verify(not game.started,"setup blocks start")
+	game.handle_action("setup_pick:start_minerals:1000")
+	game.handle_action("setup_step:wave_seconds:1")
+	game.handle_action("setup_step:wave_income:-1")
+	game.handle_action("setup_confirm")
+	verify(not game.setup_open and game.sim.rules.wave_seconds==35 and game.sim.rules.wave_income==250,"custom settings applied")
+	verify(game.sim.minerals[1]<=1000 and game.sim.journal.settings.start_minerals==1000,"chosen start funds recorded")
+	game.handle_action("restart")
+	verify(game.setup_open and game.custom_fields.has("wave_seconds"),"restart reopens setup with previous custom values")
+	game.handle_action("setup_reset")
+	game.handle_action("setup_confirm")
+	verify(game.sim.rules.wave_seconds==30 and game.sim.rules.wave_income==300 and game.sim.journal.settings.start_minerals==600,"reset restores recommended settings")
 	game.handle_action("clear")
 	game.handle_action("select:guard")
 	game.handle_action("cell:5")
@@ -139,7 +154,15 @@ func run() -> void:
 	if DisplayServer.get_name() != "headless":
 		root.get_texture().get_image().save_png(destination.replace(".png","-result.png"))
 	game.handle_action("restart")
-	verify(not game.started and not game.sim.finished and game.sim.tick==0,"restart resets match")
+	verify(not game.started and not game.sim.finished and game.sim.tick==0 and game.setup_open,"restart resets match and reopens setup")
+	game.handle_action("setup_pick:start_minerals:0")
+	game.queue_redraw()
+	await process_frame
+	if DisplayServer.get_name() != "headless":
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(destination.replace(".png","-setup.png"))
+	game.handle_action("setup_confirm")
+	verify(game.sim.minerals==[0,0] and game.sim.formations[0].is_empty(),"zero start funds leave roster empty")
 	print("UI SMOKE: ","FAIL" if failed else "PASS", " capture=",destination if DisplayServer.get_name() != "headless" else "skipped (headless)")
 	game.speaker.stop()
 	game.speaker.stream = null
