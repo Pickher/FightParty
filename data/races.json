@@ -1,5 +1,5 @@
 {
- "version": "0.3.2",
+ "version": "0.4.0",
  "races": {
   "terran": {"name":"人族","color":"7fb8ff","flavor":"正面军团：兵种扎实，火力持续",
    "starter":[{"kind":"hellbat","cell":53},{"kind":"hellbat","cell":107},{"kind":"hellbat","cell":71},{"kind":"rifle","cell":69},{"kind":"rifle","cell":87},{"kind":"rifle","cell":51},{"kind":"rifle","cell":105}],

@@ -14,7 +14,7 @@ var config: Dictionary = {}
 # 只用来调用护甲公式，不推进战斗。
 var calculator = Sim.new(0, {"structures": false})
 # 射程低于此值的单位视为前排，优先放在最靠前的空格；其余放在后方空格。
-const FRONT_RANGE := 60.0
+const FRONT_RANGE := 2.2
 
 ## 给随机生成器设置种子。相同种子与调用顺序会产生相同选择，方便复现问题。
 func _init(seed_value: int = 42, race_id: String = "terran") -> void:
@@ -38,7 +38,7 @@ func counter_for(enemy_kind: String) -> String:
 			if not weapon.get("target_layers", stats.get("target_layers", ["ground"])).has(layer) or float(weapon.get("damage", 0)) <= 0.0:
 				continue
 			score = maxf(score, calculator.expected_damage(weapon, victim) / float(weapon.interval))
-		score /= float(stats.cost)
+		score *= float(stats.get("spawn_count",1)) / float(stats.cost)
 		if score > best_score + 0.000001:
 			best = kind
 			best_score = score

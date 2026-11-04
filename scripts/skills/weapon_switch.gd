@@ -16,8 +16,28 @@ static func weapon(sim, unit: Dictionary) -> Dictionary:
 
 ## 选择对目标最有效的武器；同分保留当前武器。没有目标（攻击基地）时用第一把能打基地的武器。
 static func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
-	var weapons: Array = sim.catalog[unit.kind].skills.weapon_switch.weapons
+	var config: Dictionary = sim.catalog[unit.kind].skills.weapon_switch
+	var weapons: Array = config.weapons
 	var current: int = int(unit.get("weapon_index", 0))
+	if config.get("policy","") == "air_superiority":
+		if target.is_empty() or sim.catalog[target.kind].get("layer","ground") != "air":
+			return 2
+		var light: Array = []
+		var heavy := 0
+		var scan_range: float = float(sim.catalog[unit.kind].range)
+		for enemy in sim.nearby_team(unit.pos,scan_range,1-int(unit.team)):
+			if enemy.hp<=0 or sim.catalog[enemy.kind].get("layer","ground")!="air":
+				continue
+			var armor: String = sim.catalog[enemy.kind].get("armor_type","none")
+			if armor=="light":light.append(enemy)
+			elif armor=="heavy":heavy+=1
+		if light.size()>=int(config.light_air_threshold) and light.size()>heavy:
+			for center in light:
+				var cluster := 0
+				for enemy in light:
+					if center.pos.distance_to(enemy.pos)<=float(config.cluster_radius):cluster+=1
+				if cluster>=int(config.light_air_threshold):return 1
+		return int(config.get("default_index",0))
 	if target.is_empty():
 		if bool(weapons[current].get("attacks_base", true)):
 			return current

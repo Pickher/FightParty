@@ -55,10 +55,11 @@ var team_buckets: Array = [{}, {}]
 var by_id: Dictionary = {}
 # 带模式切换的兵种（解放者防卫）合并后的武器数据缓存。
 var mode_weapons: Dictionary = {}
-# 分离避让只看 20 距离内的邻居，用更细的 20×20 网格避免密集时遍历整个 80 格。
+# 分离按模型体积检查邻居；粗桶 4 格，细桶 2 格。
 var fine_buckets: Dictionary = {}
-const BUCKET := 80.0
-const FINE := 20.0
+const BUCKET := 4.0
+const FINE := 2.0
+var max_body_radius := 0.5
 
 ## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
@@ -309,7 +310,15 @@ func _spawn_wave() -> void:
 			var row: int = int(slot.cell) / int(rules.columns)
 			var layout: Dictionary = rules.layout
 			var x: float = float(layout.spawn_x) + col * float(layout.spawn_dx)
-			spawn_unit(team, slot.kind, Vector2(mirror_x(team, x), float(layout.spawn_y) + row * float(layout.spawn_dy)))
+			var stats: Dictionary = catalog[slot.kind]
+			var count := maxi(1,int(stats.get("spawn_count",1)))
+			var pack_columns := ceili(sqrt(float(count)))
+			var pack_rows := ceili(float(count)/pack_columns)
+			var body: Array = stats.get("size",[1.0,1.0])
+			for member in range(count):
+				var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(float(body[0])+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(float(body[1])+0.1))
+				var point := Vector2(x,float(layout.spawn_y)+row*float(layout.spawn_dy))+offset
+				spawn_unit(team,slot.kind,clamp_to_field(Vector2(mirror_x(team,point.x),point.y)))
 		minerals[team] += int(rules.wave_income)
 	events.append({"type":"wave","wave":wave})
 
@@ -324,13 +333,15 @@ func clamp_to_field(point: Vector2) -> Vector2:
 	var bounds: Dictionary = rules.layout.bounds
 	return Vector2(clampf(point.x, float(bounds.left), float(bounds.right)), clampf(point.y, float(bounds.top), float(bounds.bottom)))
 
-## 将战场按 80×80 逻辑单位分区，给每个区域记录附近单位，减少寻敌时的遍历。
+## 将战场按 4×4 格分区，给每个区域记录附近单位，减少寻敌时的遍历。
 func _build_buckets() -> void:
+	max_body_radius = 0.5
 	buckets.clear()
 	team_buckets = [{}, {}]
 	fine_buckets.clear()
 	by_id.clear()
 	for unit in units:
+		max_body_radius = maxf(max_body_radius,body_radius(unit))
 		by_id[unit.id] = unit
 		var key := Vector2i(floori(unit.pos.x / BUCKET), floori(unit.pos.y / BUCKET))
 		if not buckets.has(key):
@@ -359,18 +370,23 @@ func _nearby(pos: Vector2, radius: float) -> Array:
 					found.append(unit)
 	return found
 
-## 分离避让用：返回 20 距离内的单位，遍历顺序与 _nearby(pos, 20) 无关，仅用于求和。
-func _neighbors(pos: Vector2) -> Array:
+## 按两者体积之和检查局部分离，仅在接触距离内产生避让。
+func body_radius(unit: Dictionary) -> float:
+	var body: Array = catalog[unit.kind].get("size",[1.0,1.0])
+	return maxf(float(body[0]),float(body[1]))*0.5
+
+func _neighbors(pos: Vector2, radius: float = FINE) -> Array:
 	var found: Array = []
 	var fx := floori(pos.x / FINE)
 	var fy := floori(pos.y / FINE)
-	for x in range(fx - 1, fx + 2):
-		for y in range(fy - 1, fy + 2):
+	var cells := ceili(radius/FINE)
+	for x in range(fx - cells, fx + cells + 1):
+		for y in range(fy - cells, fy + cells + 1):
 			var bucket = fine_buckets.get(Vector2i(x, y))
 			if bucket == null:
 				continue
 			for unit in bucket:
-				if pos.distance_squared_to(unit.pos) <= FINE * FINE:
+				if pos.distance_squared_to(unit.pos) <= radius * radius:
 					found.append(unit)
 	return found
 
@@ -428,12 +444,28 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 func _target(unit: Dictionary) -> Dictionary:
 	var weapon := _search_stats(unit)
 	var reach := float(weapon.range)
-	var radius := reach * 1.5
 	var locked = by_id.get(unit.locked_target_id)
 	if locked != null and locked.team != unit.team and locked.hp > 0 and _can_hit_unit(unit,locked,weapon):
-		if unit.pos.distance_to(locked.pos) <= reach:
+		if unit.pos.distance_to(locked.pos) <= float(_weapon_stats(unit).range):
 			return locked
-	unit.locked_target_id = 0
+	unit.locked_target_id=0
+	var switch_config: Dictionary = catalog[unit.kind].get("skills",{}).get("weapon_switch",{})
+	if switch_config.has("preferred_layer"):
+		var priority: Dictionary = {}
+		var priority_distance := INF
+		for other in nearby_team(unit.pos,reach*1.5,1-int(unit.team)):
+			if other.hp<=0 or catalog[other.kind].get("layer","ground") != switch_config.preferred_layer or not _can_hit_unit(unit,other,weapon):
+				continue
+			if other.id == unit.locked_target_id and unit.pos.distance_to(other.pos)<=reach:
+				return other
+			var candidate_distance: float = unit.pos.distance_to(other.pos)
+			if candidate_distance<priority_distance or (is_equal_approx(candidate_distance,priority_distance) and int(other.id)<int(priority.get("id",2147483647))):
+				priority=other
+				priority_distance=candidate_distance
+		if not priority.is_empty():
+			unit.locked_target_id=0
+			return priority
+	var radius := reach * 1.5
 	var best: Dictionary = {}
 	var best_score := INF
 	var enemies: Dictionary = team_buckets[1 - int(unit.team)]
@@ -633,19 +665,20 @@ func step() -> Array:
 									damage_done[int(unit.team)] += amount
 									events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
 									OnHitSlow.queue_hit(self,victim,skills.get("on_hit_slow",{}),pending_slows)
-							events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team})
+							events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team,"splash":float(stats.splash)})
 		else:
 			var direction: Vector2 = (goal - unit.pos).normalized()
 			# 局部分离：离其他单位太近时轻微避让，降低拥挤；这里不是复杂障碍物寻路。
 			var separation := Vector2.ZERO
-			for other in _neighbors(unit.pos):
+			for other in _neighbors(unit.pos,body_radius(unit)+max_body_radius):
 				if other.id == unit.id:
 					continue
 				if catalog[other.kind].get("layer","ground") != stats.get("layer","ground"):
 					continue
 				var offset: Vector2 = unit.pos - other.pos
-				if offset.length_squared() > 0.01:
-					separation += offset.normalized() * (20.0 - offset.length()) / 20.0
+				var contact: float = body_radius(unit)+body_radius(other)
+				if offset.length_squared() > 0.000001 and offset.length() < contact:
+					separation += offset.normalized() * (contact-offset.length()) / contact
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
