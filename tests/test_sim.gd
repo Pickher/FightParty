@@ -47,6 +47,7 @@ func _initialize() -> void:
 	_liberators()
 	_spatial_equivalence()
 	_structures()
+	_setup_options()
 	_economy()
 	_final_phase()
 	var sim = bare()
@@ -1087,3 +1088,14 @@ func _structures() -> void:
 	var ai = AI.new()
 	check(ai.wants_tower(Catalog.starter(),[],600,0) and not ai.wants_tower([],[],600,0) and not ai.wants_tower(Catalog.starter(),[],600,1),"AI builds tower only when behind and allowed")
 	check(not ai.wants_tower(Catalog.starter(),Catalog.starter(),2000,0),"AI skips tower when roster is not behind")
+
+## 开局设置选项：推荐值即 rules 默认值，预设都在自定义范围内且能被步进到达。
+func _setup_options() -> void:
+	var rules: Dictionary = Catalog.rules()
+	for field in rules.setup_options:
+		var option: Dictionary = rules.setup_options[field]
+		check(int(option.recommended)==int(rules[field]) and option.choices.has(option.recommended),"recommended %s equals default" % field)
+		for choice in option.choices:
+			check(choice>=option.min and choice<=option.max and int(choice-option.min) % int(option.step)==0,"%s choice %d reachable by custom step" % [field,int(choice)])
+		var sim = Sim.new(1,{field:option.max})
+		check(int(sim.rules[field])==int(option.max) and int(sim.journal.settings[field])==int(option.max),"%s override applied and journaled" % field)

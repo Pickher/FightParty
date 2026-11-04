@@ -41,7 +41,7 @@
 
 ## 保存与复现
 
-Godot `user://settings.cfg` 保存音量与最近阵容；`user://last_match.json` 保存规则版本、种子、开局设置（`settings`，覆盖 rules 的字段）、双方全部买/卖/移动操作及其 tick（`actions`）、每波 tick/出兵前矿物/阵容（`waves`，仅供查看）和结束结果。只保留最近一局；无云端上传。文件写失败时提示，游戏仍可继续。Windows 的 user:// 通常位于 `%APPDATA%/Godot/app_userdata/FightParty`。
+Godot `user://settings.cfg` 保存音量、最近阵容和上次的开局设置（`match` 段，超出 setup_options 范围的值被忽略）；开局设置以 `Sim.new(seed, overrides)` 的 overrides 传入模拟；`user://last_match.json` 保存规则版本、种子、开局设置（`settings`，覆盖 rules 的字段）、双方全部买/卖/移动操作及其 tick（`actions`）、每波 tick/出兵前矿物/阵容（`waves`，仅供查看）和结束结果。只保留最近一局；无云端上传。文件写失败时提示，游戏仍可继续。Windows 的 user:// 通常位于 `%APPDATA%/Godot/app_userdata/FightParty`。
 
 `tests/replay.gd` 读入记录，用相同种子和设置新建模拟，在每步之前执行该 tick 记录的操作（`BattleSim.apply_action()`），推进到结束并比较结果。相同引擎、相同数据版本是复现前提；配置版本不匹配直接拒绝。
 
@@ -51,7 +51,7 @@ Godot `user://settings.cfg` 保存音量与最近阵容；`user://last_match.jso
 
 届时需要新增房间生命周期、轮次锁定、超时沿用阵容、连接恢复与协议版本管理。这些功能首版仅预留边界，不包含伪装成可用后端的空实现，不宣称已有联网防作弊能力。
 
-当前规则版本为 0.2.2，旧版战报会因规则版本不同被拒绝重放。目标有效性依据每步开始时的状态判断，因此本步死亡或移出射程会在下一步触发重新索敌。攻击基地沿用无敌军目标时的推进逻辑，不建立敌军单位锁定。
+当前规则版本为 0.2.3，旧版战报会因规则版本不同被拒绝重放。目标有效性依据每步开始时的状态判断，因此本步死亡或移出射程会在下一步触发重新索敌。攻击基地沿用无敌军目标时的推进逻辑，不建立敌军单位锁定。
 
 ## 可复用技能
 

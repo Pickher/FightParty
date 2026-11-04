@@ -1,10 +1,15 @@
 {
-  "version": "0.2.2", "tick_rate": 20, "wave_seconds": 30,
+  "version": "0.2.3", "tick_rate": 20, "wave_seconds": 30,
   "start_minerals": 600, "wave_income": 300,
   "wave_limit": 64, "final_phase_max_seconds": 600,
   "base_hp": 3000, "unit_lifetime": 0,
   "structures": true, "treasury_reward": 400, "tower_max_builds": 1,
   "columns": 18, "rows": 8, "world_width": 1200, "world_height": 400,
+  "setup_options": {
+    "start_minerals": {"label": "开局资金", "unit": "矿", "choices": [0, 600, 1000], "recommended": 600, "step": 100, "min": 0, "max": 5000},
+    "wave_income": {"label": "每轮收入（每次出兵后）", "unit": "矿", "choices": [100, 300, 500], "recommended": 300, "step": 50, "min": 0, "max": 2000},
+    "wave_seconds": {"label": "出兵间隔", "unit": "秒", "choices": [20, 30, 45], "recommended": 30, "step": 5, "min": 10, "max": 120}
+  },
   "layout": {
     "base_x": 30, "base_y": 200, "base_radius": 20,
     "spawn_x": 140, "spawn_dx": 13, "spawn_y": 32, "spawn_dy": 48,
