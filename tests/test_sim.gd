@@ -16,6 +16,12 @@ func check(condition: bool, label: String) -> void:
 		failures += 1
 		printerr("FAIL: " + label)
 
+## 不放置门口塔与宝库的模拟，用于隔离单位行为；结构体规则在 _structures() 中单独测试。
+func bare(seed_value: int = 42, overrides: Dictionary = {}):
+	var settings: Dictionary = overrides.duplicate(true)
+	settings.structures = false
+	return Sim.new(seed_value, settings)
+
 ## 测试辅助函数：生成单一兵种的简单阵容，按格子 0、1、2……放置。
 func formation(kind: String, count: int) -> Array:
 	var result: Array = []
@@ -40,9 +46,10 @@ func _initialize() -> void:
 	_stimulant_and_slow()
 	_liberators()
 	_spatial_equivalence()
+	_structures()
 	_economy()
 	_final_phase()
-	var sim = Sim.new()
+	var sim = bare()
 	var grid: int = int(sim.rules.columns * sim.rules.rows)
 	check(sim.minerals==[600,600],"both sides start with start_minerals")
 	check(sim.submit_formation(0,formation("guard",7))!="" and sim.formations[0].is_empty() and sim.minerals[0]==600,"reject over minerals without partial purchase")
@@ -68,32 +75,32 @@ func _initialize() -> void:
 	ticks(sim,600)
 	check(sim.wave==2 and sim.units.size()>=7 and sim.last_formations[0].is_empty() and sim.last_formations[1].size()==7,"permanent roster respawns every wave")
 	# 寿命为可选规则：默认 0 不撤离；配置为 90 秒时精确检查前一刻和刚到 90 秒的区别。
-	var immortal = Sim.new()
+	var immortal = bare()
 	var veteran: Dictionary = immortal.spawn_unit(0,"guard",Vector2(100,100))
 	veteran.born = -100000
 	immortal.step()
 	check(immortal.units.size()==1,"default rules never expire units")
-	var lifetime = Sim.new(42,{"unit_lifetime":90})
+	var lifetime = bare(42,{"unit_lifetime":90})
 	var survivor: Dictionary = lifetime.spawn_unit(0,"guard",Vector2(100,100))
 	survivor.born = -1798
 	lifetime.step()
 	check(lifetime.units.size()==1,"survivor retained before expiry")
 	lifetime.step()
 	check(lifetime.units.is_empty(),"optional expiry exactly 90 seconds")
-	var retained = Sim.new()
+	var retained = bare()
 	retained.spawn_unit(0,"guard",Vector2(500,100))
 	retained.tick=599
 	retained.submit_formation(0,formation("rifle",1))
 	retained.step()
 	check(retained.units.size()==2 and retained.units[0].id==1,"next wave retains survivors")
 	# 同时摧毁基地必须判平，不能因为某队先被处理就先判负。
-	var draw = Sim.new()
+	var draw = bare()
 	draw.bases=[1.0,1.0]
 	draw.spawn_unit(0,"rifle",Vector2(1150,200))
 	draw.spawn_unit(1,"rifle",Vector2(50,200))
 	draw.step()
 	check(draw.finished and draw.winner==-1,"simultaneous base destruction draws")
-	var mutual = Sim.new()
+	var mutual = bare()
 	mutual.spawn_unit(0,"sniper",Vector2(550,200))
 	mutual.spawn_unit(1,"sniper",Vector2(650,200))
 	mutual.step()
@@ -102,12 +109,12 @@ func _initialize() -> void:
 	for minerals in [0,50,600,900,1200,5000]:
 		check(sim.validate_formation(commander.choose(Catalog.starter(),minerals),minerals)=="","AI obeys minerals and grid %d" % minerals)
 	# 镜像公平测试：相同配置放在两侧，击杀数与基地状态应保持一致。
-	var mirror = Sim.new()
+	var mirror = bare()
 	mirror.submit_formation(0,Catalog.starter())
 	mirror.submit_formation(1,Catalog.starter())
 	ticks(mirror,2400)
 	check(is_equal_approx(mirror.bases[0],mirror.bases[1]) and mirror.kills[0]==mirror.kills[1],"mirror battle has no side advantage")
-	var replay = Sim.new()
+	var replay = bare()
 	replay.submit_formation(0,Catalog.starter())
 	replay.submit_formation(1,Catalog.starter())
 	ticks(replay,2400)
@@ -118,7 +125,7 @@ func _initialize() -> void:
 	_counter("swarm",6,"sniper",2,"swarm vs isolated sniper")
 	_counter("mortar",2,"sniper",2,"siege outranges sniper")
 	# 压力测试使用 200 个高血量单位，避免测试过程中快速减员；这个测试不测画面 FPS。
-	var stress = Sim.new()
+	var stress = bare()
 	for team in range(2):
 		for i in range(100):
 			var u: Dictionary = stress.spawn_unit(team,"guard",Vector2(400+team*400+(i%10)*4,30+(i/10)*34))
@@ -134,7 +141,7 @@ func _initialize() -> void:
 func _counter(a: String, a_count: int, b: String, b_count: int, label: String) -> void:
 	var outcomes: Array = []
 	for reverse in range(2):
-		var sim = Sim.new()
+		var sim = bare()
 		for i in range(a_count):
 			sim.spawn_unit(reverse,a,Vector2(430 if reverse==0 else 770,170+(i%3)*20))
 		for i in range(b_count):
@@ -152,7 +159,7 @@ func _counter(a: String, a_count: int, b: String, b_count: int, label: String) -
 ## 发现边界、追击重选、实际开火锁定、冷却保持及失效后的重新索敌。
 func _targeting() -> void:
 	for kind in Catalog.units():
-		var boundary = Sim.new()
+		var boundary = bare()
 		var observer = boundary.spawn_unit(0, kind, Vector2(500,200))
 		var radius: float = float(boundary.catalog[kind].range) * 1.5
 		var enemy_kind: String = "liberator" if boundary.catalog[kind].get("target_layers",["ground"]) == ["air"] else "guard"
@@ -162,7 +169,7 @@ func _targeting() -> void:
 		enemy.pos.x += 0.01
 		boundary._build_buckets()
 		check(boundary._target(observer).is_empty(),kind+" ignores beyond discovery range")
-	var sim = Sim.new()
+	var sim = bare()
 	# 静止、高生命敌人用于隔离索敌行为，避免移动或死亡干扰测试。
 	sim.catalog.guard.speed = 0
 	var shooter = sim.spawn_unit(0,"rifle",Vector2(500,200))
@@ -203,7 +210,7 @@ func _targeting() -> void:
 	closer.born = sim.tick - int(sim.rules.unit_lifetime * sim.rules.tick_rate)
 	sim.step()
 	check(shooter.locked_target_id==0,"expired target releases lock")
-	var special = Sim.new()
+	var special = bare()
 	special.catalog.guard.speed = 0
 	special.catalog.mortar.speed = 0
 	var sniper = special.spawn_unit(0,"sniper",Vector2(500,200))
@@ -223,7 +230,7 @@ func _targeting() -> void:
 ## 治疗、冷却、上限、阵营与前排安全站位，双方方向均需一致。
 func _medics() -> void:
 	for team in range(2):
-		var sim = Sim.new()
+		var sim = bare()
 		sim.catalog.guard.speed = 0
 		var direction: float = 1 if team == 0 else -1
 		var medic = sim.spawn_unit(team,"medic",Vector2(600,200))
@@ -255,7 +262,7 @@ func _medics() -> void:
 		before=medic.pos.x
 		sim.step()
 		check(float(medic.pos.x)*direction<before*direction and sim.bases==[3000.0,3000.0],"isolated medic retreats and never attacks base")
-	var priority = Sim.new()
+	var priority = bare()
 	priority.catalog.guard.speed=0
 	priority.catalog.rifle.speed=0
 	var healer=priority.spawn_unit(0,"medic",Vector2(500,200))
@@ -275,7 +282,7 @@ func _medics() -> void:
 	priority.step()
 	check(support.hp==22,"medic can heal another medic")
 	# 两个治疗同时生效，过量治疗不能抵消本步本应致死的伤害。
-	var lethal=Sim.new()
+	var lethal=bare()
 	var victim=lethal.spawn_unit(0,"rifle",Vector2(600,200))
 	victim.hp=119
 	lethal.spawn_unit(0,"medic",Vector2(500,180))
@@ -291,7 +298,7 @@ func _medics() -> void:
 ## 架设与收起按模拟时间推进，轻重甲伤害、基地攻击与锁定行为共用规则。
 func _siege() -> void:
 	for team in range(2):
-		var sim=Sim.new()
+		var sim=bare()
 		sim.catalog.guard.speed=0
 		sim.catalog.rifle.speed=0
 		sim.catalog.guard.damage=0
@@ -352,7 +359,7 @@ func _siege() -> void:
 		gun.cooldown=0
 		sim.step()
 		check(gun.siege_state=="deployed" and gun.locked_target_id==light.id,"deployed gun reacquires without unnecessary setup")
-	var base=Sim.new()
+	var base=bare()
 	var siege=base.spawn_unit(0,"mortar",Vector2(900,200))
 	base.step()
 	ticks(base,29)
@@ -360,7 +367,7 @@ func _siege() -> void:
 	base.step()
 	check(base.bases[1]==2910 and siege.siege_state=="deployed","deployed artillery attacks base")
 	# 脆弱炮兵在完成架设前仍可被射程内狙击手击杀。
-	var ambush=Sim.new()
+	var ambush=bare()
 	var fragile=ambush.spawn_unit(0,"mortar",Vector2(500,200))
 	ambush.spawn_unit(1,"sniper",Vector2(700,200))
 	ambush.step()
@@ -368,7 +375,7 @@ func _siege() -> void:
 
 ## 防止短暂目标导致反复架设：确认同一敌人，以及外圈接近方向。
 func _siege_scanning() -> void:
-	var scan=Sim.new()
+	var scan=bare()
 	scan.catalog.guard.speed=0
 	var gun=scan.spawn_unit(0,"mortar",Vector2(500,200))
 	var first=scan.spawn_unit(1,"guard",Vector2(770,200))
@@ -386,7 +393,7 @@ func _siege_scanning() -> void:
 	check(gun.siege_state=="mobile","empty scan clears old observations")
 	ticks(scan,10)
 	check(gun.siege_state=="deploying","same enemy across consecutive scans confirms setup")
-	var crowd=Sim.new()
+	var crowd=bare()
 	crowd.catalog.guard.speed=0
 	var artillery=crowd.spawn_unit(0,"mortar",Vector2(500,200))
 	crowd.spawn_unit(1,"guard",Vector2(770,180))
@@ -398,7 +405,7 @@ func _siege_scanning() -> void:
 	check(artillery.siege_state=="deploying","more than X enemies deploy immediately between scans")
 	# 靠近判断采用上一模拟步的位移；双方镜像均须保持架设并最终开火。
 	for team in range(2):
-		var sim=Sim.new()
+		var sim=bare()
 		var direction: float=1 if team==0 else -1
 		var cannon=sim.spawn_unit(team,"mortar",Vector2(600,200))
 		cannon.siege_state="deployed"
@@ -416,7 +423,7 @@ func _siege_scanning() -> void:
 		check(cannon.siege_state=="deployed" and cannon.locked_target_id==incoming.id,"held artillery fires when next enemy reaches range")
 	# 120% 边界包含接近敌人；静止、远离、切向及超出边界不算接近。
 	for scenario in ["approaching","stationary","away","tangent","outside"]:
-		var sim=Sim.new()
+		var sim=bare()
 		sim.catalog.guard.speed=0
 		var cannon=sim.spawn_unit(0,"mortar",Vector2(500,200))
 		cannon.siege_state="deployed"
@@ -429,7 +436,7 @@ func _siege_scanning() -> void:
 		sim.step()
 		check(cannon.siege_state==("deployed" if scenario=="approaching" else "packing"),"outer approach check: "+scenario)
 	# 架设中也保持相同的外圈判定，避免刚启动就因原目标死亡取消。
-	var setup=Sim.new()
+	var setup=bare()
 	var cannon=setup.spawn_unit(0,"mortar",Vector2(500,200))
 	cannon.siege_state="deploying"
 	cannon.siege_until_tick=2
@@ -443,7 +450,7 @@ func _siege_scanning() -> void:
 ## 地刺沿开火方向传播到固定射程，每波对每个敌人最多命中一次。
 func _piercers() -> void:
 	for team in range(2):
-		var sim=Sim.new()
+		var sim=bare()
 		sim.catalog.guard.speed=0
 		sim.catalog.guard.damage=0
 		var forward: float=1 if team==0 else -1
@@ -481,7 +488,7 @@ func _piercers() -> void:
 		check(width_edge.hp==932.5 and outside.hp==1000,"line half-width boundary")
 		check(friend.hp==1000 and behind.hp==1000,"no friendly fire or damage behind origin")
 		check(far.hp==932.5 and sim.attack_waves.is_empty(),"one hit per victim and completed wave cleaned up")
-	var dodge=Sim.new()
+	var dodge=bare()
 	dodge.catalog.rifle.speed=0
 	dodge.catalog.rifle.damage=0
 	var gun=dodge.spawn_unit(0,"piercer",Vector2(500,200))
@@ -500,7 +507,7 @@ func _piercers() -> void:
 	var wave={"origin":Vector2.ZERO,"direction":Vector2.RIGHT,"distance":0.0,"half_width":14.0}
 	check(LineAttack.crosses(wave,Vector2(10,30),Vector2(10,-30),20),"swept hit catches crossing during tick")
 	check(not LineAttack.crosses(wave,Vector2(10,40),Vector2(10,20),20),"swept hit excludes missed path")
-	var setup=Sim.new()
+	var setup=bare()
 	setup.catalog.guard.speed=0
 	setup.catalog.guard.damage=0
 	var burrower=setup.spawn_unit(0,"piercer",Vector2(500,200))
@@ -525,7 +532,7 @@ func _piercers() -> void:
 	setup.step()
 	setup.step()
 	check(burrower.siege_state=="mobile" and burrower.pos.x>500,"movement resumes only after emerging")
-	var base=Sim.new()
+	var base=bare()
 	var attacker=base.spawn_unit(0,"piercer",Vector2(890,200))
 	attacker.siege_state="deployed"
 	base.step()
@@ -533,7 +540,7 @@ func _piercers() -> void:
 	check(base.bases[1]==3000,"base waits for wave to reach its edge")
 	base.step()
 	check(base.bases[1]==2955,"base takes delayed wave damage at maximum range")
-	var multi=Sim.new()
+	var multi=bare()
 	multi.catalog.guard.speed=0
 	multi.catalog.guard.damage=0
 	var source=multi.spawn_unit(0,"piercer",Vector2(500,200))
@@ -547,7 +554,7 @@ func _piercers() -> void:
 ## 巨像横向双束传播与可配置技能复用，不保证必中。
 func _colossi_and_skills() -> void:
 	for team in range(2):
-		var sim=Sim.new()
+		var sim=bare()
 		for kind in ["rifle","guard"]:
 			sim.catalog[kind].speed=0
 			sim.catalog[kind].damage=0
@@ -582,7 +589,7 @@ func _colossi_and_skills() -> void:
 		check(sim.attack_waves.is_empty(),"double attack uses one shared attack cooldown")
 		sim.step()
 		check(sim.attack_waves.size()==2,"next cooldown launches exactly two waves")
-	var dodge=Sim.new()
+	var dodge=bare()
 	dodge.catalog.rifle.speed=0
 	dodge.catalog.rifle.damage=0
 	var giant=dodge.spawn_unit(0,"colossus",Vector2(500,200))
@@ -593,7 +600,7 @@ func _colossi_and_skills() -> void:
 	ticks(dodge,20)
 	check(target.hp==120 and dodge.attack_waves.is_empty(),"sweep stays fixed and can miss even after shooter disappears")
 	# 侧翼单位第一次受击后离开横线，可躲开另一束，证明双击独立结算。
-	var partial=Sim.new()
+	var partial=bare()
 	partial.catalog.rifle.speed=0
 	partial.catalog.rifle.damage=0
 	var shooter=partial.spawn_unit(0,"colossus",Vector2(500,200))
@@ -607,7 +614,7 @@ func _colossi_and_skills() -> void:
 	ticks(partial,16)
 	check(side.hp==84,"side target can dodge the second strike")
 	# 相同技能挂载到全新 ID，仍然可以三重直线攻击并保留部署要求。
-	var reuse=Sim.new()
+	var reuse=bare()
 	reuse.catalog["borrowed"]=reuse.catalog.piercer.duplicate(true)
 	reuse.catalog.borrowed.skills.multi_attack={"count":3}
 	reuse.catalog.guard.speed=0
@@ -621,7 +628,7 @@ func _colossi_and_skills() -> void:
 	ticks(reuse,8)
 	check(victim.hp==277.5,"three independent line hits apply to borrowed unit")
 	# 普通单体攻击也能复用双击，不依赖波形攻击。
-	var instant=Sim.new()
+	var instant=bare()
 	instant.catalog["borrowed"]=instant.catalog.rifle.duplicate(true)
 	instant.catalog.borrowed.skills={"multi_attack":{"count":2}}
 	instant.catalog.rifle.speed=0
@@ -630,7 +637,7 @@ func _colossi_and_skills() -> void:
 	var light=instant.spawn_unit(1,"rifle",Vector2(600,200))
 	var instant_events: Array=instant.step()
 	check(is_equal_approx(light.hp,69.6) and instant_events.filter(func(e): return e.type=="attack_hit" and e.team==0).size()==2,"ordinary weapon supports two separate strikes")
-	var base=Sim.new()
+	var base=bare()
 	base.spawn_unit(0,"colossus",Vector2(920,200))
 	base.step()
 	ticks(base,7)
@@ -638,7 +645,7 @@ func _colossi_and_skills() -> void:
 	base.step()
 	check(base.bases[1]==2952,"base receives both delayed beams")
 	# 全局旋转后的横线仍垂直于发射方向，不固定在屏幕上下方向。
-	var diagonal=Sim.new()
+	var diagonal=bare()
 	var rotated=diagonal.spawn_unit(0,"colossus",Vector2(500,100))
 	var goal=Vector2(700,250)
 	LineAttack.launch(diagonal,rotated,goal)
@@ -647,7 +654,7 @@ func _colossi_and_skills() -> void:
 
 ## 图片基础兵种：单体榴弹、普通索敌、重甲标签及四人预算。
 func _marauders() -> void:
-	var sim = Sim.new()
+	var sim = bare()
 	sim.catalog.marauder.skills = {}
 	check(sim.formation_cost(formation("marauder",4))==560 and sim.validate_formation(formation("marauder",4),600)=="", "four marauders fit screenshot budget")
 	sim.catalog.rifle.speed = 0
@@ -666,7 +673,7 @@ func _marauders() -> void:
 	shooter.cooldown=0
 	sim.step()
 	check(heavy.hp==454 and shooter.locked_target_id==heavy.id,"marauder switches after range exit and applies base heavy damage")
-	var armor = Sim.new()
+	var armor = bare()
 	armor.catalog.marauder.skills = {}
 	var marauder = armor.spawn_unit(0,"marauder",Vector2(500,200))
 	armor.spawn_unit(1,"rifle",Vector2(600,200))
@@ -682,7 +689,7 @@ func _marauders() -> void:
 
 ## 强化剂与减速必须独立于兵种 ID，按模拟时钟到期并维持同时行动公平。
 func _stimulant_and_slow() -> void:
-	var stim = Sim.new()
+	var stim = bare()
 	stim.catalog.guard.speed = 0
 	var caster = stim.spawn_unit(0,"marauder",Vector2(500,200))
 	var target = stim.spawn_unit(1,"guard",Vector2(650,200))
@@ -703,19 +710,19 @@ func _stimulant_and_slow() -> void:
 	stim.step()
 	check(is_equal_approx(stim._movement_speed(caster),36),"stim expires without combat and restores base speed")
 	check(caster.hp==87.5,"stim does not consume health without enemy target")
-	var low = Sim.new()
+	var low = bare()
 	low.catalog.guard.speed=0
 	var fragile = low.spawn_unit(0,"marauder",Vector2(500,200))
 	var foe = low.spawn_unit(1,"guard",Vector2(650,200))
 	fragile.hp=18.75
 	low.step()
 	check(fragile.hp==18.75 and not fragile.has("stim_until_tick") and foe.hp==454,"low health blocks stimulant but still permits firing")
-	var base = Sim.new()
+	var base = bare()
 	var sieger = base.spawn_unit(0,"marauder",Vector2(1100,200))
 	base.step()
 	check(sieger.hp==125 and not sieger.has("stim_until_tick") and base.bases[1]==2974,"base alone does not trigger stimulant")
 	for reverse in range(2):
-		var healing = Sim.new()
+		var healing = bare()
 		healing.catalog.guard.speed=0
 		if reverse==0:healing.spawn_unit(0,"medic",Vector2(450,200))
 		var ally = healing.spawn_unit(0,"marauder",Vector2(500,200))
@@ -727,7 +734,7 @@ func _stimulant_and_slow() -> void:
 		check(ally.hp==118.25,"medic heals stim cost next tick, order %d" % reverse)
 	# 比较不同单位处理顺序；首次命中的同一步仍走完整基础速度。
 	for reverse in range(2):
-		var slow = Sim.new()
+		var slow = bare()
 		var victim: Dictionary
 		if reverse==0:victim=slow.spawn_unit(1,"swarm",Vector2(650,200))
 		var attacker = slow.spawn_unit(0,"marauder",Vector2(500,200))
@@ -743,7 +750,7 @@ func _stimulant_and_slow() -> void:
 		check(is_equal_approx(slow._movement_speed(victim),32.5),"slow includes entire final tick order %d" % reverse)
 		slow.step()
 		check(is_equal_approx(slow._movement_speed(victim),65),"slow expires after exactly 40 movement ticks order %d" % reverse)
-	var refresh = Sim.new()
+	var refresh = bare()
 	refresh.catalog.guard.speed=0
 	var a = refresh.spawn_unit(0,"marauder",Vector2(500,200))
 	var b = refresh.spawn_unit(1,"guard",Vector2(650,200))
@@ -751,7 +758,7 @@ func _stimulant_and_slow() -> void:
 	a.cooldown=0
 	refresh.step()
 	check(b.slow_multiplier==0.5 and b.slow_until_tick==43,"repeated hits refresh slow without multiplying it")
-	var both = Sim.new()
+	var both = bare()
 	var left = both.spawn_unit(0,"marauder",Vector2(500,200))
 	var right = both.spawn_unit(1,"marauder",Vector2(600,200))
 	both.step()
@@ -760,7 +767,7 @@ func _stimulant_and_slow() -> void:
 	snapshot.units[0].slow_until_tick=0
 	check(left.slow_until_tick>0,"snapshot status changes cannot mutate simulation")
 	# 慢速光束只有实际命中才施加减速；改名兵种仍可组合多重攻击和被动。
-	var wave = Sim.new()
+	var wave = bare()
 	wave.catalog["borrowed_slow"] = wave.catalog.colossus.duplicate(true)
 	wave.catalog.borrowed_slow.skills.on_hit_slow={"speed_multiplier":0.5,"duration":2}
 	wave.catalog.guard.speed=0
@@ -770,20 +777,20 @@ func _stimulant_and_slow() -> void:
 	check(not center.has("slow_until_tick"),"line attack does not slow before arrival")
 	ticks(wave,10)
 	check(center.hp==432 and center.slow_multiplier==0.5,"two delayed hits apply one nonstacking slow on actual impact")
-	var support = Sim.new()
+	var support = bare()
 	var medic = support.spawn_unit(0,"medic",Vector2(500,200))
 	medic.slow_until_tick=100
 	medic.slow_multiplier=0.5
 	support.step()
 	check(is_equal_approx(medic.pos.x,499.1),"support movement also respects reusable slow")
-	var renamed = Sim.new()
+	var renamed = bare()
 	renamed.catalog["borrowed_stim"] = renamed.catalog.rifle.duplicate(true)
 	renamed.catalog.borrowed_stim.skills={"stimulant":renamed.catalog.marauder.skills.stimulant.duplicate(true)}
 	var borrowed=renamed.spawn_unit(0,"borrowed_stim",Vector2(500,200))
 	renamed.spawn_unit(1,"guard",Vector2(600,200))
 	renamed.step()
 	check(borrowed.hp==102 and borrowed.has("stim_until_tick"),"stimulant can be assigned to another unit without ID checks")
-	var entry = Sim.new()
+	var entry = bare()
 	entry.catalog.guard.speed=0
 	var approaching = entry.spawn_unit(0,"marauder",Vector2(500,200))
 	entry.spawn_unit(1,"guard",Vector2(669,200))
@@ -800,7 +807,7 @@ func _stimulant_and_slow() -> void:
 ## 解放者：空中层、对空普通武器、防卫圈展开时序、圈内对地与不攻击基地。
 func _liberators() -> void:
 	for team in range(2):
-		var sim = Sim.new()
+		var sim = bare()
 		sim.catalog.guard.speed = 0
 		sim.catalog.guard.damage = 0
 		var forward: float = 1 if team == 0 else -1
@@ -828,25 +835,25 @@ func _liberators() -> void:
 		ship.cooldown = 0
 		sim.step()
 		check(near.hp==9840 and ship.locked_target_id==0,"target leaving zone releases lock %d" % team)
-	var air = Sim.new()
+	var air = bare()
 	var hunter = air.spawn_unit(0,"liberator",Vector2(500,200))
 	var prey = air.spawn_unit(1,"liberator",Vector2(620,200))
 	var wing = air.spawn_unit(1,"liberator",Vector2(620,240))
 	air.step()
 	check(hunter.siege_state=="mobile" and prey.hp==160 and wing.hp==160,"mobile liberator splashes air targets")
-	var rifle_sim = Sim.new()
+	var rifle_sim = bare()
 	var rifle = rifle_sim.spawn_unit(0,"rifle",Vector2(500,200))
 	var flyer = rifle_sim.spawn_unit(1,"liberator",Vector2(620,200))
 	rifle_sim._build_buckets()
 	check(rifle_sim._target(rifle).get("id",0)==flyer.id,"anti-air rifle targets liberator")
-	var siege = Sim.new()
+	var siege = bare()
 	var raider = siege.spawn_unit(0,"liberator",Vector2(1100,200))
 	ticks(siege,200)
 	check(siege.bases[1]==3000 and raider.siege_state=="mobile","liberator never attacks base")
 
 ## 永久兵营的买、卖、移动与退款规则；动作写入战报并可按 tick 重放。
 func _economy() -> void:
-	var sim = Sim.new()
+	var sim = bare()
 	check(sim.buy(0,"guard",5)=="" and sim.minerals[0]==500,"buy deducts cost immediately")
 	check(sim.buy(0,"rifle",5)!="" and sim.minerals[0]==500,"cannot buy into occupied cell")
 	check(sim.buy(0,"gate_tower",6)!="" and sim.buy(0,"unknown",6)!="","cannot buy unknown kinds")
@@ -869,13 +876,13 @@ func _economy() -> void:
 	sim.finished = true
 	check(sim.buy(0,"rifle",3)!="" and sim.sell(0,2)!="" and sim.move(0,2,3)!="","finished match rejects edits")
 	# 收入与开局资金来自 rules，可被开局设置覆盖。
-	var custom = Sim.new(7,{"start_minerals":0,"wave_income":500,"wave_seconds":20})
+	var custom = bare(7,{"start_minerals":0,"wave_income":500,"wave_seconds":20})
 	check(custom.minerals==[0,0] and custom.submit_formation(0,[{"kind":"swarm","cell":0}])!="","zero start funds leave first wave empty")
 	ticks(custom,400)
 	check(custom.wave==1 and custom.units.is_empty() and custom.minerals==[500,500],"custom interval and income")
 	check(custom.journal.settings.wave_income==500,"journal records match settings")
 	# 动作日志重放：按记录的 tick 在下一步前执行，结果与原局逐项一致。
-	var live = Sim.new(3)
+	var live = bare(3)
 	var ai = AI.new(3)
 	for team in range(2):
 		for slot in ai.buy_list([],live.formations[team],live.minerals[team]):
@@ -887,7 +894,7 @@ func _economy() -> void:
 	if live.formations[0].size()>1:
 		live.move(0,int(live.formations[0][1].cell),int(live.rules.columns)-1)
 	ticks(live,1500)
-	var copy = Sim.new(3,live.journal.settings)
+	var copy = bare(3,live.journal.settings)
 	var index := 0
 	while copy.tick < live.tick:
 		while index < live.journal.actions.size() and int(live.journal.actions[index].tick)==copy.tick:
@@ -897,7 +904,7 @@ func _economy() -> void:
 	check(copy.get_snapshot(0)==live.get_snapshot(0) and copy.minerals==live.minerals,"action log reproduces simulation")
 	# AI 长期增量购买：每波只用自己的矿物、只放空格，总价不超过当时矿物。
 	# 只检查购买逻辑，不推进战斗：每轮直接发放收入。
-	var shop = Sim.new()
+	var shop = bare()
 	var buyer = AI.new(11)
 	var ok := true
 	for round_number in range(120):
@@ -910,26 +917,26 @@ func _economy() -> void:
 
 ## 最后一波后的胜负：先失去可攻击部队的一方失败；治疗单位不算；双方同时失去为平局；安全时限比较基地。
 func _final_phase() -> void:
-	var quick = Sim.new(42,{"wave_limit":2})
+	var quick = bare(42,{"wave_limit":2})
 	quick.submit_formation(0,[{"kind":"guard","cell":0}])
 	ticks(quick,1200)
 	check(quick.wave==2 and quick.final_wave_tick==1200 and quick.finished and quick.winner==0,"after final wave, side without attackers loses")
-	var limited = Sim.new(42,{"wave_limit":1})
+	var limited = bare(42,{"wave_limit":1})
 	ticks(limited,600)
 	check(limited.finished and limited.winner==-1,"both sides without attackers after final wave draw")
-	var stop = Sim.new(42,{"wave_limit":1})
+	var stop = bare(42,{"wave_limit":1})
 	stop.spawn_unit(0,"guard",Vector2(100,60))
 	stop.spawn_unit(1,"guard",Vector2(1100,60))
 	stop.catalog.guard.speed=0
 	ticks(stop,1300)
 	check(stop.wave==1 and not stop.finished and stop.minerals==[900,900],"no spawns or income after final wave")
-	var medics = Sim.new(42,{"wave_limit":1})
+	var medics = bare(42,{"wave_limit":1})
 	medics.spawn_unit(0,"medic",Vector2(100,200))
 	medics.spawn_unit(1,"guard",Vector2(1100,60))
 	medics.catalog.guard.speed=0
 	ticks(medics,600)
 	check(medics.finished and medics.winner==1,"medic-only side has no attackers")
-	var capped = Sim.new(42,{"wave_limit":1,"final_phase_max_seconds":10})
+	var capped = bare(42,{"wave_limit":1,"final_phase_max_seconds":10})
 	capped.catalog.guard.speed=0
 	capped.spawn_unit(0,"guard",Vector2(100,60))
 	capped.spawn_unit(1,"guard",Vector2(1100,60))
@@ -950,7 +957,7 @@ func _spatial_equivalence() -> void:
 	var mismatches := 0
 	var compared := 0
 	for trial in range(6):
-		var sim = Sim.new()
+		var sim = bare()
 		for i in range(160):
 			var unit = sim.spawn_unit(i % 2, kinds[rng.randi_range(0, kinds.size()-1)], Vector2(rng.randf_range(30,1170), rng.randf_range(20,380)))
 			if unit.has("siege_state") and rng.randf() < 0.5:
@@ -991,7 +998,7 @@ func _brute_ground(sim, unit: Dictionary, radius: float) -> Dictionary:
 	var best: Dictionary = {}
 	var best_distance := INF
 	for other in sim.units:
-		if other.team == unit.team or other.hp <= 0 or sim.catalog[other.kind].get("layer","ground") != "ground":
+		if other.team == unit.team or other.hp <= 0 or sim.catalog[other.kind].get("layer","ground") != "ground" or sim.is_structure(other):
 			continue
 		var distance: float = unit.pos.distance_to(other.pos)
 		if distance > radius:
@@ -1000,3 +1007,83 @@ func _brute_ground(sim, unit: Dictionary, radius: float) -> Dictionary:
 			best = other
 			best_distance = distance
 	return best
+
+## 门口防御塔、宝库与可建造防御塔：镜像位置、静止、攻击、奖励、建造上限与 AI 规则。
+func _structures() -> void:
+	var sim = Sim.new()
+	var kinds: Array = sim.units.map(func(u): return "%s:%d" % [u.kind,u.team])
+	check(kinds.size()==4 and kinds.has("gate_tower:0") and kinds.has("treasury:1"),"each side starts with gate tower and treasury")
+	for unit in sim.units:
+		var mirror: Dictionary = sim.units.filter(func(o): return o.kind==unit.kind and o.team!=unit.team)[0]
+		check(is_equal_approx(unit.pos.x+mirror.pos.x,1200.0) and unit.pos.y==mirror.pos.y,"structure positions mirrored: "+unit.kind)
+	check(sim.buy(0,"treasury",0)!="" and sim.buy(0,"tower",0)!="" and sim.buy(0,"gate_tower",0)!="","structures are not purchasable roster units")
+	var gate: Dictionary = sim.units.filter(func(u): return u.kind=="gate_tower" and u.team==1)[0]
+	var raider = sim.spawn_unit(0,"guard",gate.pos+Vector2(-200,0))
+	raider.hp = 10000
+	sim.catalog.guard.speed = 0
+	sim.catalog.guard.damage = 0
+	sim.step()
+	check(raider.hp==9955 and gate.pos==Vector2(1100,200),"gate tower fires 45 and never moves")
+	check(sim.bases==[3000.0,3000.0],"structures never attack base")
+	var flyer = sim.spawn_unit(0,"liberator",gate.pos+Vector2(-150,0))
+	sim._build_buckets()
+	check(sim._target(gate).get("id",0) in [raider.id,flyer.id] and sim._target(flyer).is_empty(),"towers hit air; liberator cannot attack structures")
+	# 宝库：反击弱；摧毁后攻击方得一次奖励，不计击杀。
+	var loot = Sim.new()
+	var treasury: Dictionary = loot.units.filter(func(u): return u.kind=="treasury" and u.team==1)[0]
+	var sniper = loot.spawn_unit(0,"sniper",treasury.pos+Vector2(-100,0))
+	sniper.hp = 10000
+	loot.catalog.sniper.speed = 0
+	loot.step()
+	check(sniper.hp==9990,"treasury counterattack is weak")
+	treasury.hp = 1
+	sniper.cooldown = 0
+	var events: Array = loot.step()
+	check(not loot.units.has(treasury) and loot.minerals==[1000,600] and loot.kills==[0,0],"destroying treasury rewards attacker once without kill credit")
+	check(events.any(func(e): return e.type=="structure_destroyed" and e.kind=="treasury" and e.team==1),"treasury destruction event")
+	ticks(loot,10)
+	check(loot.minerals==[1000,600],"treasury reward is not repeated")
+	# 门口防御塔被摧毁后，基地本身没有任何攻击。
+	var open = Sim.new()
+	var tower_unit: Dictionary = open.units.filter(func(u): return u.kind=="gate_tower" and u.team==1)[0]
+	open.units.erase(tower_unit)
+	var intruder = open.spawn_unit(0,"guard",Vector2(1150,200))
+	ticks(open,40)
+	check(intruder.hp==480 and open.bases[1]<3000,"base without gate tower cannot fight back")
+	# 可建造防御塔：扣矿、固定建造位、每局一次、被摧毁不给奖励。
+	var build = Sim.new()
+	check(build.tower_error(0)=="" and build.build_tower(0)=="" and build.minerals[0]==100,"build tower costs 500")
+	var built: Dictionary = build.units.filter(func(u): return u.kind=="tower")[0]
+	check(built.team==0 and built.pos==Vector2(420,290),"tower built at fixed site")
+	build.minerals[0] = 5000
+	check(build.build_tower(0)!="" and build.minerals[0]==5000,"only one tower per match")
+	built.hp = 1
+	var killer = build.spawn_unit(1,"guard",built.pos+Vector2(20,0))
+	killer.hp = 100000
+	build.step()
+	check(not build.units.has(built) and build.minerals[1]==600 and build.build_tower(0)!="","destroyed tower gives no reward and cannot be rebuilt")
+	var poor = Sim.new(42,{"start_minerals":499})
+	check(poor.build_tower(1)!="" and poor.tower_builds==[0,0],"tower requires minerals")
+	check(build.journal.actions.any(func(a): return a.type=="build_tower" and a.team==0),"tower build is journaled")
+	# 医疗兵不治疗结构体；结构体不算最后阶段的可攻击部队。
+	var care = Sim.new()
+	var own_gate: Dictionary = care.units.filter(func(u): return u.kind=="gate_tower" and u.team==0)[0]
+	own_gate.hp = 100
+	care.spawn_unit(0,"medic",own_gate.pos+Vector2(40,0))
+	care.step()
+	check(own_gate.hp==100 and care.combat_units(0)==0,"medics ignore structures; structures are not combat units")
+	# 带结构体的镜像对局仍然完全对称。
+	var mirror = Sim.new()
+	mirror.submit_formation(0,Catalog.starter())
+	mirror.submit_formation(1,Catalog.starter())
+	mirror.build_tower(0)
+	mirror.build_tower(1)
+	ticks(mirror,2400)
+	var hp: Array = [0.0,0.0]
+	for unit in mirror.units:
+		hp[unit.team] += float(unit.hp)
+	check(is_equal_approx(mirror.bases[0],mirror.bases[1]) and mirror.kills[0]==mirror.kills[1] and is_equal_approx(hp[0],hp[1]) and mirror.minerals[0]==mirror.minerals[1],"mirror battle with structures has no side advantage")
+	# AI：落后（对方上一波总价高于自己兵营）且未建塔时优先建塔。
+	var ai = AI.new()
+	check(ai.wants_tower(Catalog.starter(),[],600,0) and not ai.wants_tower([],[],600,0) and not ai.wants_tower(Catalog.starter(),[],600,1),"AI builds tower only when behind and allowed")
+	check(not ai.wants_tower(Catalog.starter(),Catalog.starter(),2000,0),"AI skips tower when roster is not behind")

@@ -156,12 +156,29 @@ func advance_tick() -> void:
 			_save_journal()
 			if volume > 0:
 				speaker.play()
+		elif event.type == "structure_destroyed":
+			var names := {"treasury":"宝库","gate_tower":"门口防御塔","tower":"防御塔"}
+			var side: String = "我方" if event.team == 0 else "敌方"
+			if event.kind == "treasury":
+				_note("%s宝库被摧毁 · %s +%d 矿" % [side,"敌方" if event.team == 0 else "我方",int(sim.rules.treasury_reward)])
+			elif event.kind == "gate_tower":
+				_note("%s门口防御塔失守 · 基地已无防御" % side)
+			else:
+				_note("%s%s被摧毁" % [side,names[event.kind]])
+		elif event.type == "tower_built" and event.team == 1:
+			_note("敌方建造了防御塔")
 		elif event.type == "ended":
 			_save_journal()
 			speaker.play()
 
 ## 电脑在开局和每次出兵后用当前矿物增量购买；只看到玩家刚出场的公开阵容。
+## 落后时先建防御塔，买不起就本轮攒矿不买兵。
 func _ai_shop() -> void:
+	var plan: String = ai.tower_plan(sim.last_formations[0], sim.formations[1], int(sim.minerals[1]), int(sim.tower_builds[1]))
+	if plan == "build":
+		sim.build_tower(1)
+	elif plan == "save":
+		return
 	for slot in ai.buy_list(sim.last_formations[0], sim.formations[1], int(sim.minerals[1])):
 		sim.buy(1, slot.kind, slot.cell)
 
@@ -223,7 +240,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.2.1  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.2.2  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -310,6 +327,9 @@ func _draw_battle() -> void:
 	for unit in sim.units:
 		var p := _world(unit.prev.lerp(unit.pos,alpha))
 		var color: Color = MINT if unit.team == 0 else CORAL
+		if sim.is_structure(unit):
+			_draw_structure(unit,p,color)
+			continue
 		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
 		if sim.tick < int(unit.get("stim_until_tick",0)):
 			draw_arc(p,18,0,TAU,20,Color("ffbe65"),2)
@@ -343,9 +363,34 @@ func _draw_battle() -> void:
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
 	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
 
+## 结构体：淡色射程圈（按战场缩放）、较大的外形、阵营圈与较宽血条。
+func _draw_structure(unit: Dictionary, p: Vector2, color: Color) -> void:
+	var stats: Dictionary = sim.catalog[unit.kind]
+	var ring := PackedVector2Array()
+	for segment in range(49):
+		var angle: float = TAU * segment / 48.0
+		var point: Vector2 = unit.pos+Vector2(cos(angle),sin(angle))*float(stats.range)
+		ring.append(_world(point.clamp(Vector2.ZERO,Vector2(float(sim.rules.world_width),float(sim.rules.world_height)))))
+	draw_polyline(ring,Color(color,0.18),1.5)
+	_draw_unit(p,unit.kind,Color(stats.color),15)
+	draw_arc(p,22,0,TAU,24,color,2)
+	_bar(Rect2(p+Vector2(-22,-32),Vector2(44,4)),float(unit.hp)/float(stats.hp),color)
+
 ## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	match kind:
+		"gate_tower":
+			draw_rect(Rect2(p-Vector2(radius*0.9,radius*0.6),Vector2(radius*1.8,radius*1.5)),color)
+			for x in [-0.9,-0.15,0.6]:
+				draw_rect(Rect2(p+Vector2(x*radius,-radius),Vector2(radius*0.3,radius*0.4)),color)
+			draw_rect(Rect2(p+Vector2(-radius*0.25,radius*0.2),Vector2(radius*0.5,radius*0.7)),Color("162334"))
+		"treasury":
+			draw_circle(p,radius,color)
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.6),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),Color("6b4f10"))
+		"tower":
+			draw_rect(Rect2(p-Vector2(radius*0.8,radius*0.3),Vector2(radius*1.6,radius*1.1)),color)
+			draw_circle(p+Vector2(0,-radius*0.3),radius*0.55,color)
+			draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),INK,3)
 		"liberator":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.4),p+Vector2(radius*1.5,radius*0.8),p+Vector2(0,radius*0.35),p+Vector2(-radius*1.5,radius*0.8)]),color)
 			for side in [-1,1]:
@@ -393,7 +438,7 @@ func _draw_editor() -> void:
 	var rows: int = int(sim.rules.rows)
 	_panel(Rect2(32,573,700,287))
 	_text(Vector2(52,604),"兵营布阵",23)
-	_text(Vector2(200,602),"%d×%d · 每波全部出场" % [columns,rows],16,MUTED)
+	_text(Vector2(178,602),"金框：本轮新买，取消全额退回",15,Color("e6c28e"))
 	_text(Vector2(590,602),"后排  →  前线",18,MINT)
 	# 把兵营转为“格子编号 → 兵营格”的字典，方便逐格绘制。
 	var occupied := {}
@@ -415,7 +460,12 @@ func _draw_editor() -> void:
 	_button(Rect2(52,816,110,32),"移除单位","erase",selected=="erase")
 	_button(Rect2(174,816,110,32),"移动位置","move",selected=="move")
 	_button(Rect2(296,816,122,32),"清空兵营","clear")
-	_text(Vector2(440,838),"金框：本轮新买，取消全额退回",15,Color("e6c28e"))
+	var tower_cost: int = int(sim.catalog.tower.cost)
+	if int(sim.tower_builds[0]) >= int(sim.rules.tower_max_builds):
+		_panel(Rect2(440,816,180,32),Color("142233"),Color("2b3b50"))
+		_text(Vector2(454,839),"防御塔已建造",17,MUTED)
+	else:
+		_button(Rect2(440,816,180,32),"建造防御塔 %d" % tower_cost,"build_tower",int(sim.minerals[0]) >= tower_cost)
 	_panel(Rect2(746,573,452,287))
 	_text(Vector2(764,604),"选择兵种",23)
 	var kinds: Array = _shop_kinds()
@@ -478,11 +528,13 @@ func _draw_help() -> void:
 		"4. 本轮新买、未出场的单位取消可全额退回；出场过的取消不退款。",
 		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
+		"   门口塔守护基地，塔倒后基地无还手；摧毁敌方宝库奖励 %d 矿。" % int(sim.rules.treasury_reward),
+		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog.tower.cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
 		"提示：盾卫保护后排；分散站位可以降低迫击炮的收益。"]
 	for i in range(lines.size()):
-		_text(Vector2(335,247+i*43),lines[i],21,INK if i<8 else MINT)
+		_text(Vector2(335,240+i*38),lines[i],20,INK if i<lines.size()-1 else MINT)
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
 	_text(Vector2(540,708),"查看手册时，对局计时暂停。",18,MUTED)
 
@@ -564,6 +616,9 @@ func handle_action(action: String) -> void:
 			move_source=-1
 		elif action == "clear":
 			_commit([])
+		elif action == "build_tower":
+			var error: String = sim.build_tower(0)
+			_note(error if error != "" else "防御塔已建成，一局只能建造一座。")
 		elif action.begins_with("cell:"):
 			_edit_cell(int(action.get_slice(":",1)))
 	queue_redraw()

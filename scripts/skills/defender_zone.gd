@@ -44,7 +44,7 @@ static func prepare(sim, unit: Dictionary, motion: Dictionary) -> bool:
 		return allowed
 	var occupied := false
 	for other in sim.nearby_team(unit.defender_center,float(config.radius),1-int(unit.team)):
-		if other.hp > 0 and sim.catalog[other.kind].get("layer","ground") == "ground":
+		if other.hp > 0 and sim.catalog[other.kind].get("layer","ground") == "ground" and not sim.is_structure(other):
 			occupied = true
 			break
 	return Deployment.can_act(sim,unit,occupied,false,motion,

@@ -110,6 +110,12 @@ func run() -> void:
 	game.handle_action("select:rifle")
 	game.handle_action("cell:%d" % deployed_cell)
 	verify(game.sim.formations[0].size()==3 and game.sim.minerals[0]==minerals_before-75,"buy into freed cell")
+	# 防御塔：矿物足够时建成一座，再按一次被拒绝。
+	var affordable: bool=int(game.sim.minerals[0])>=int(game.sim.catalog.tower.cost)
+	game.handle_action("build_tower")
+	verify(game.sim.tower_builds[0]==(1 if affordable else 0),"build tower button")
+	game.handle_action("build_tower")
+	verify(game.sim.tower_builds[0]<=1,"only one tower")
 	game.effects.clear()
 	game.selected="rifle"
 	game.queue_redraw()

@@ -1,12 +1,14 @@
 {
-  "version": "0.2.1", "tick_rate": 20, "wave_seconds": 30,
+  "version": "0.2.2", "tick_rate": 20, "wave_seconds": 30,
   "start_minerals": 600, "wave_income": 300,
   "wave_limit": 64, "final_phase_max_seconds": 600,
   "base_hp": 3000, "unit_lifetime": 0,
+  "structures": true, "treasury_reward": 400, "tower_max_builds": 1,
   "columns": 18, "rows": 8, "world_width": 1200, "world_height": 400,
   "layout": {
     "base_x": 30, "base_y": 200, "base_radius": 20,
     "spawn_x": 140, "spawn_dx": 13, "spawn_y": 32, "spawn_dy": 48,
+    "gate_x": 100, "gate_y": 200, "treasury_x": 420, "treasury_y": 110, "tower_x": 420, "tower_y": 290,
     "bounds": {"left": 30, "top": 20, "right": 1170, "bottom": 380}
   }
 }
