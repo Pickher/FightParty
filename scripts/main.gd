@@ -14,6 +14,7 @@ const MUTED := Color("8e9fb5")
 const MINT := Color("70e2b4")
 const CORAL := Color("ff927f")
 const PANEL := Color("101e30")
+const SHIELD := Color("6fb6ff")
 const FONT = preload("res://assets/NotoSansSC.ttf")
 var sim = Sim.new()
 var ai = AI.new()
@@ -73,16 +74,18 @@ func _make_sound() -> void:
 ## 新建模拟器与 AI，尝试用开局资金买回上次的兵营；买不起则用默认阵容，再买不起则留空。
 ## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
-	var prior: Array = Catalog.starter()
 	sim = Sim.new(42, match_settings.duplicate())
-	ai = AI.new(42)
+	ai = AI.new(42, sim.races[1])
+	var prior: Array = Catalog.starter(sim.races[0])
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
-		var saved = config.get_value("player", "formation", Catalog.starter())
+		var saved = config.get_value("player", "formation", prior)
 		if saved is Array:
 			prior = saved
 	if sim.submit_formation(0, prior) != "":
-		sim.submit_formation(0, Catalog.starter())
+		sim.submit_formation(0, Catalog.starter(sim.races[0]))
+	if not sim.catalog.has(selected) or sim.kind_error(0, selected) != "":
+		selected = _shop_kinds()[0]
 	_ai_shop()
 	started = false
 	paused = false
@@ -265,7 +268,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.2.3  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.3.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -387,6 +390,12 @@ func _draw_battle() -> void:
 				_text(p+Vector2(-18,32),"防卫对地" if defending else ("已埋地" if burrowing else "炮击"),12,color)
 		draw_arc(p,14,0,TAU,16,color,1.8)
 		_bar(Rect2(p+Vector2(-13,-22),Vector2(26,3)),float(unit.hp)/float(sim.catalog[unit.kind].hp),color)
+		var max_shield: float = float(sim.catalog[unit.kind].get("shield",0))
+		if max_shield > 0:
+			# 护盾条画在血条上方；有盾时外圈再加一道蓝色弧线。
+			_bar(Rect2(p+Vector2(-13,-26),Vector2(26,2)),float(unit.shield)/max_shield,SHIELD)
+			if float(unit.shield) > 0:
+				draw_arc(p,16,0,TAU,20,Color(SHIELD,0.6),1.5)
 	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
 	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
 
@@ -444,20 +453,30 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 			draw_circle(p,radius,color)
 			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.2),Vector2(radius*1.3,radius*0.4)),Color("162334"))
 			draw_rect(Rect2(p-Vector2(radius*0.2,radius*0.65),Vector2(radius*0.4,radius*1.3)),Color("162334"))
-		"guard":
+		"vanguard":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(-radius,-radius),p+Vector2(radius,-radius),p+Vector2(radius,radius*0.4),p+Vector2(0,radius*1.3),p+Vector2(-radius,radius*0.4)]),color)
 		"swarm":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius,radius),p+Vector2(-radius,radius)]),color)
 		"mortar":
 			draw_rect(Rect2(p-Vector2.ONE*radius,Vector2.ONE*radius*2),color)
 			draw_circle(p,radius*0.5,Color("162334"))
-		"sniper":
-			draw_line(p-Vector2(radius,0),p+Vector2(radius,0),color,4)
-			draw_line(p-Vector2(0,radius),p+Vector2(0,radius),color,4)
-		"breaker":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius,0),p+Vector2(0,radius),p+Vector2(-radius,0)]),color)
+		"agent":
+			# 十字准星叠菱形：远程狙击与穿甲两种弹药。
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.7),p+Vector2(radius*0.7,0),p+Vector2(0,radius*0.7),p+Vector2(-radius*0.7,0)]),color)
+			draw_line(p-Vector2(radius*1.2,0),p+Vector2(radius*1.2,0),color,2)
+			draw_line(p-Vector2(0,radius*1.2),p+Vector2(0,radius*1.2),color,2)
+		"zergling", "hellbat":
+			draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0),p+Vector2(-radius*0.8,-radius),p+Vector2(-radius*0.3,0),p+Vector2(-radius*0.8,radius)]),color)
+		"viking", "fly_swarm", "spore_drifter":
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.2),p+Vector2(radius*1.3,radius*0.7),p+Vector2(-radius*1.3,radius*0.7)]),color)
+			draw_circle(p,radius*0.3,Color("223751"))
+		"void_ray":
+			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.3),p+Vector2(radius*1.1,0),p+Vector2(0,radius*1.3),p+Vector2(-radius*1.1,0)]),color)
+			draw_circle(p,radius*0.4,INK)
 		_:
+			# 尚无专属外形的兵种：圆形加兵种字母。
 			draw_circle(p,radius,color)
+			_text(p+Vector2(-radius*0.45,radius*0.5),str(sim.catalog[kind].get("symbol","?")),int(maxf(radius*1.2,8)),Color("162334"))
 
 ## 按 rules 的列数×行数绘制兵营格子、兵种卡片、矿物与敌情；敌情只使用上一波公开阵容。
 func _draw_editor() -> void:
@@ -507,9 +526,16 @@ func _draw_editor() -> void:
 	for kind in kinds.slice(unit_page*UNITS_PER_PAGE,(unit_page+1)*UNITS_PER_PAGE):
 		var stats: Dictionary = sim.catalog[kind]
 		var rect := Rect2(762+(i%3)*146,616+(i/3)*55,140,50)
+		if not Catalog.is_ready(stats):
+			_panel(rect,Color("111c2a"),Color("243344"))
+			_draw_unit(rect.position+Vector2(20,20),kind,Color(Color(stats.color),0.35),9)
+			_text(rect.position+Vector2(37,25),stats.name,17 if stats.name.length() <= 4 else 13,MUTED)
+			_text(rect.position+Vector2(10,44),"尚未实装",12,Color("5d6e82"))
+			i += 1
+			continue
 		_panel(rect,Color("233e41") if selected==kind else Color("17293c"),MINT if selected==kind else Color("304358"))
 		_draw_unit(rect.position+Vector2(20,20),kind,Color(stats.color),9)
-		_text(rect.position+Vector2(37,25),stats.name,19)
+		_text(rect.position+Vector2(37,25),stats.name,19 if stats.name.length() <= 3 else (15 if stats.name.length() == 4 else 12))
 		_text(rect.position+Vector2(102,24),str(int(stats.cost)),16,MINT)
 		_text(rect.position+Vector2(10,44),str(stats.role),12,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
@@ -539,9 +565,9 @@ func _draw_editor() -> void:
 	if message.length()>12:
 		_text(Vector2(1226,842),message.substr(12,12),14,Color("e6c28e"))
 
-## 可购买的兵种卡片（排除结构体），顺序与 units.json 一致。
+## 本方种族的兵种卡片（含未实装的预留兵种，显示为灰色、不可选），顺序与 units.json 一致。
 func _shop_kinds() -> Array:
-	return sim.catalog.keys().filter(func(kind): return not bool(sim.catalog[kind].get("structure", false)))
+	return Catalog.race_units(sim.catalog, str(sim.races[0]), true)
 
 ## 绘制说明弹层，并清空底层点击区域，防止点说明时误操作后面的配兵格。
 func _draw_help() -> void:
@@ -559,7 +585,7 @@ func _draw_help() -> void:
 		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog.tower.cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
-		"提示：盾卫保护后排；分散站位可以降低迫击炮的收益。"]
+		"提示：重甲怕穿甲加成，轻甲怕溅射；神族护盾脱战后会恢复。"]
 	for i in range(lines.size()):
 		_text(Vector2(335,240+i*38),lines[i],20,INK if i<lines.size()-1 else MINT)
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
@@ -662,7 +688,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_ESCAPE:
 			handle_action("help")
 
-## 把动作字符串分发到具体操作；例如 select:guard 选择盾卫，cell:5 编辑第 5 格。
+## 把动作字符串分发到具体操作；例如 select:rifle 选择步枪兵，cell:5 编辑第 5 格。
 ## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
 func handle_action(action: String) -> void:
 	if setup_open:

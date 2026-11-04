@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.2.3，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.3.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -89,8 +89,8 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 1. data/units.json：兵种价格、血量、伤害、射程，最适合第一次修改。
 2. data/rules.json：出兵间隔、开局矿物与每轮收入、基地血量与波数上限。
-3. scripts/catalog.gd：读取配置，以及定义默认开局阵容。
-4. scripts/commander_ai.gd：电脑怎样根据上一波选择反制兵种。
+3. data/races.json：四个种族、默认开局阵容与电脑配兵参数。scripts/catalog.gd 负责读取这些配置。
+4. scripts/commander_ai.gd：电脑怎样根据上一波按护甲公式现算反制兵种。
 5. scripts/battle_sim.gd：配兵校验、生成单位、自动寻敌、移动、扣血和胜负。
 6. scripts/main.gd：入口、界面、按钮操作、每帧调度和存档。
 7. scenes/main.tscn：绑定 main.gd 的主场景，是 F5 启动的画面。
@@ -101,16 +101,23 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 ## 七、units.json：兵种字段解释
 
-打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）、medic（医疗兵）、piercer（穿刺者）、colossus（巨像）、marauder（劫掠者）、liberator（解放者）。
+打开 data/units.json，找到 units 下的对象。0.3.0 起共有四个种族（人族、虫族、神族、腐族）约 40 个兵种，完整清单与 SC2 参考见 docs/DESIGN.md 的“种族、护甲与护盾”一节。旧 ID guard（盾卫）、breaker（破甲手）、sniper（狙击手）已经删除：盾卫改名“先锋” vanguard 归神族，破甲手与狙击手合并为人族“特工” agent。
 
 - name：界面显示的中文名称。
-- symbol：预留的字母标识；当前单位形状主要由 main.gd 绘制代码决定。
+- symbol：字母标识；还没有专属外形的兵种画成圆形加这个字母。
+- race：所属种族 terran / zerg / protoss / blight；结构体为 neutral。每局只能买本方种族的兵种。
+- status：ready 表示已实装、可购买；stub 表示只是预留数据（缺少技能），卡片显示灰色“尚未实装”，电脑也不会选。
+- pending：stub（或部分 ready 兵种）还缺的技能模块名单，方便以后实现。
+- requires：以后要做的“解锁前置”（兵营里有前置兵种才能买），目前只记录、不生效。
+- sc2：参考的《星际争霸 II》单位，只借定位与数值比例，不使用素材。
 - cost：购买一名永久单位花费的矿物。
-- hp：单位出生生命值。
-- armor：护甲标签，light 为轻甲，heavy 为重甲。
+- hp：单位出生生命值。shield：神族护盾值，见下文。
+- armor_type：护甲类型 none（无甲）/ light（轻甲）/ heavy（重甲）/ special（特殊甲）。
+- armor：护甲点数，每次受击先减去这么多伤害（护盾吸收的部分不减）。无甲单位的护甲点数必须为 0。
 - layer：自身所属层，ground 地面或 air 空中；变换武器模式不改变所属层。
-- target_layers：武器可攻击的层列表；attacks_base 表示是否可以攻击基地。步枪兵、狙击手可对空，其余原有攻击单位仅对地。
+- target_layers：武器可攻击的层列表；attacks_base 表示是否可以攻击基地。
 - damage：基础单次伤害。
+- bonus：穿甲加成，例如 {"heavy":30} 表示打重甲时每发多 30。
 - interval：攻击间隔，单位秒，越小攻击越快。
 - range：攻击距离，按逻辑战场坐标计算，不等于屏幕像素。
 - speed：每秒移动的逻辑距离。
@@ -121,19 +128,21 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - skills.defender_zone：划定固定防卫圈并切换武器，复用展开/收起时序。解放者普通模式对空，防卫模式仅对圈内地面单位。
 - skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
 - skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
-- skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击使用 damage 和护甲倍率，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
+- skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击都按护甲规则结算，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
+- skills.weapon_switch：多武器。特工有穿甲弹与狙击弹，按目标护甲自动换弹，换弹 1.5 秒不能开火；雷神对地、对空各一把武器，换武器没有延迟。
+- skills.regen：脱战再生，`delay` 秒没受伤后每秒回 `per_second` 生命（蟑螂、缝合巨尸）。
 - splash：范围伤害半径，0 表示单体攻击。
-- light_multiplier：攻击轻甲的伤害倍率。
-- heavy_multiplier：攻击重甲的伤害倍率。
 - color：单位的十六进制颜色。
 - role、counter：定位和克制提示；改数值不会自动重写这些文字。
 - 顶层 version：配置版本标记，规则变化时应考虑版本和旧战报兼容性。
 
-例如基础伤害 20、轻甲倍率 1.5，对轻甲的单次理论伤害是 30。攻击基地只使用基础伤害，范围攻击不伤友军。
+护甲规则（0.3.0）：每发伤害 = damage + 对应护甲类型的 bonus − 目标 armor，最少 0.5。无甲和特殊甲不吃任何 bonus。例如劫掠者 damage 30、bonus heavy 30，打重甲、护甲 3 的蟑螂是 30 + 30 − 3 = 57；打轻甲、护甲 0 的步枪兵是 30。神族先扣护盾：护盾按 damage + bonus 扣，不减护甲点数；打穿护盾的剩余部分再减护甲。连续 7 秒没受伤后每秒回 7.5 护盾；医疗兵只回生命。攻击基地只使用基础伤害，范围攻击不伤友军。
 
 解放者价格为 300（0.1.9 起，原为 1200），开局矿物即可购买；它在两个模式下都不能攻击基地。防卫圈是允许选取地面目标的范围，圈内仍逐个攻击。
 
-不要随意改内部 ID：AI 字典、默认阵容、绘制和测试都可能引用它。新增兵种也要同时考虑这些位置。
+不要随意改内部 ID：data/races.json 的默认阵容和电脑配兵参数、绘制和测试都可能引用它。新增兵种也要同时考虑这些位置。
+
+data/races.json 是种族表：每个种族的中文名、主题色、一句风格描述（只是介绍，不带任何种族克制机制）、开局默认阵容 starter，以及电脑参数 ai（front 为保证数量的前排兵种、front_min 为数量；support 为辅助兵种，兵营总价加矿物达到 support_value 时买一个）。
 
 ## 八、rules.json：对局规则字段解释
 
@@ -151,24 +160,26 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
 - world_width、world_height：逻辑战场尺寸，当前 1200×400；敌方坐标按 world_width 镜像，画面映射也按这两个值缩放。
 - layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius 是基地中心与判定半径；gate_x/gate_y、treasury_x/treasury_y、tower_x/tower_y 是门口防御塔、宝库与防御塔建造位；spawn_x/spawn_dx/spawn_y/spawn_dy 是出生区第 0 格位置与列/行间距；bounds 是单位可移动的边界。医疗兵无掩护时退向 spawn_x。
+- races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。
+- min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。
 - setup_options：开局设置弹窗的选项。每个字段（start_minerals、wave_income、wave_seconds）有 label、unit、choices 三个预设、recommended 推荐值（应等于同名默认值）、自定义的 step/min/max。
 - version：战报采用的规则版本；规则改变后应同步考虑版本，避免混用旧战报。
 
 更改出兵间隔、最长时间和残兵寿命时，界面里的固定说明也要同步修改。更快出兵或更长寿命会增加同屏单位，需要重新检查性能。
 
-## 九、第一次练习：让盾卫更耐打
+## 九、第一次练习：让恶火更耐打
 
 1. 关闭正在运行的游戏。
 2. 打开 D:\MyCode\FightParty\data\units.json。
-3. 找到 "guard" 对象中的 "hp":480，只把 480 改为 800。
+3. 找到 "hellbat" 对象中的 "hp":365，只把 365 改为 600。
 4. 保存，保留原来的逗号、引号、花括号和 .json 文件后缀。
 5. 按 F5，或双击桌面“FightParty开始游戏”，开始新的一局。
-6. 放置盾卫，观察它能否坚持更久。双方共用配置，因此敌方盾卫也变成 800 血。
-7. 想恢复，把 800 改回 480，再保存并重启。
+6. 放置恶火，观察它能否坚持更久。双方共用配置，因此敌方恶火也变成 600 血。
+7. 想恢复，把 600 改回 365，再保存并重启。
 
 一次只改一项，更容易看出结果。之后可以练习改价格、攻击间隔和出兵间隔。
 
-修改价格或开局矿物后，要检查 scripts/catalog.gd 中的 starter 默认阵容是否仍买得起（买不起时开局兵营为空）。平衡调整可能让原来的克制测试失败，需要判断是否属于预期变化，而不是直接删除失败测试。
+修改价格或开局矿物后，要检查 data/races.json 中各种族的 starter 默认阵容是否仍买得起（买不起时开局兵营为空）。平衡调整可能让原来的克制测试失败，需要判断是否属于预期变化，而不是直接删除失败测试。
 
 以前导出的 FightParty.exe 是导出当时的快照，不会读取源码的后续修改。测试最新代码用 F5 或桌面源码快捷方式；要把修改后的游戏发给别人，则需要重新导出。
 

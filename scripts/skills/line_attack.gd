@@ -24,7 +24,7 @@ static func launch(sim, unit: Dictionary, goal: Vector2) -> void:
 			"team":unit.team,"kind":unit.kind,"effect":config.effect,"strike":strike,
 			"distance":0.0,"length":length,"speed":float(config.speed),
 			"half_width":float(config.half_width),"damage":float(stats.damage),
-			"light_multiplier":float(stats.light_multiplier),"heavy_multiplier":float(stats.heavy_multiplier),
+			"bonus":stats.get("bonus",{}).duplicate(),
 			"on_hit_slow":stats.skills.get("on_hit_slow",{}).duplicate(true),
 			"target_layers":stats.get("target_layers",["ground"]).duplicate(),"attacks_base":stats.get("attacks_base",true),
 			"born":sim.tick,"hit_ids":{},"base_hit":false})
@@ -67,9 +67,8 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),duration_fraction)
 			if crosses(wave, victim.pos, finish, next_distance):
 				wave.hit_ids[victim.id] = true
-				var multiplier: float = float(wave[sim.catalog[victim.kind].armor + "_multiplier"])
-				var amount: float = float(wave.damage) * multiplier
-				hits[victim.id] = float(hits.get(victim.id,0.0)) + amount
+				var amount: float = sim.expected_damage(wave, victim)
+				sim.queue_hit(hits, victim, sim.raw_damage(wave, victim.kind))
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				OnHitSlow.queue_hit(sim,victim,wave.on_hit_slow,pending_slows)
