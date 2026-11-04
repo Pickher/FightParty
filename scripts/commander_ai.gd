@@ -16,12 +16,9 @@ func choose(last_enemy: Array, budget: int) -> Array:
 	# 键是观察到的敌方兵种，值是准备购买的反制兵种；ID 必须存在于 units.json。
 	var counters := {"guard":"breaker","rifle":"mortar","breaker":"swarm","swarm":"mortar","mortar":"swarm","sniper":"swarm","medic":"sniper","piercer":"mortar","colossus":"breaker","marauder":"breaker","liberator":"rifle"}
 	# 抽取池里同一兵种出现越多，选中的机会越大。这里给步枪兵较高的基础权重。
-	var choices: Array = ["rifle","rifle","swarm","piercer","colossus","marauder"]
+	var choices: Array = ["rifle","rifle","swarm","piercer","colossus","marauder","liberator"]
 	for slot in last_enemy:
 		choices.append(counters.get(slot.kind,"rifle"))
-	# 满预算时才买得起整架解放者；先作独立选择，避免先买盾卫后永远买不起。
-	if budget >= int(catalog.liberator.cost) and rng.randi_range(0,3) == 0:
-		return [{"kind":"liberator","cell":2}]
 	var result: Array = []
 	var left := budget
 	# 放置顺序：先前排、后后排。当前布局固定为 6×4，改网格要一起改这里。

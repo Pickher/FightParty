@@ -105,12 +105,24 @@ func _spawn_wave() -> void:
 	journal.waves.append({"tick":tick,"wave":wave,"budget":budget(wave),"formations":last_formations.duplicate(true)})
 	for team in range(2):
 		for slot in last_formations[team]:
-			# 取余 % 得到列，整数除法 / 得到行。出生位置仍以 1200×400 战场为基础。
+			# 取余 % 得到列，整数除法 / 得到行。出生区坐标来自 rules.layout。
 			var col: int = int(slot.cell) % int(rules.columns)
 			var row: int = int(slot.cell) / int(rules.columns)
-			var x: float = 90.0 + col * 28.0
-			spawn_unit(team, slot.kind, Vector2(x if team == 0 else 1200.0 - x, 104.0 + row * 64.0))
+			var layout: Dictionary = rules.layout
+			var x: float = float(layout.spawn_x) + col * float(layout.spawn_dx)
+			spawn_unit(team, slot.kind, Vector2(mirror_x(team, x), float(layout.spawn_y) + row * float(layout.spawn_dy)))
 	events.append({"type":"wave","wave":wave})
+
+## rules.layout 以我方（team 0）坐标填写，敌方按战场宽度水平镜像。
+func mirror_x(team: int, x: float) -> float:
+	return x if team == 0 else float(rules.world_width) - x
+
+func base_pos(team: int) -> Vector2:
+	return Vector2(mirror_x(team, float(rules.layout.base_x)), float(rules.layout.base_y))
+
+func clamp_to_field(point: Vector2) -> Vector2:
+	var bounds: Dictionary = rules.layout.bounds
+	return Vector2(clampf(point.x, float(bounds.left), float(bounds.right)), clampf(point.y, float(bounds.top), float(bounds.bottom)))
 
 ## 将战场按 80×80 逻辑单位分区，给每个区域记录附近单位，减少寻敌时的遍历。
 func _build_buckets() -> void:
@@ -214,14 +226,14 @@ func step() -> Array:
 		var target := _target(unit)
 		# 因为只有 0 和 1 两队，所以 1-team 正好得到敌方阵营。
 		var enemy: int = 1 - int(unit.team)
-		var goal := Vector2(1170.0 if enemy == 1 else 30.0, 200.0)
+		var goal := base_pos(enemy)
 		if unit.has("defender_goal"):
 			goal = unit.defender_goal
 		if not target.is_empty():
 			goal = target.pos
 		var distance: float = unit.pos.distance_to(goal)
-		# 攻击基地时给基地中心额外 20 的判定距离，相当于允许攻击到基地边缘。
-		var reach: float = float(stats.range) + (20.0 if target.is_empty() else 0.0)
+		# 攻击基地时加上基地半径，相当于允许攻击到基地边缘。
+		var reach: float = float(stats.range) + (float(rules.layout.base_radius) if target.is_empty() else 0.0)
 		var can_act: bool = mode_allowed and (not skills.has("deployment") or Deployment.can_act(self, unit, distance <= reach, target.is_empty() and distance <= reach and bool(stats.get("attacks_base",true)), motion))
 		if can_act and not target.is_empty() and distance <= reach:
 			Stimulant.activate(self,unit,self_costs)
@@ -271,7 +283,7 @@ func step() -> Array:
 					separation += offset.normalized() * (20.0 - offset.length()) / 20.0
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
-			moves[unit.id] = Vector2(clampf(unit.pos.x + velocity.x * dt, 30.0, 1170.0), clampf(unit.pos.y + velocity.y * dt, 20.0, 380.0))
+			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 	LineAttack.advance(self, dt, moves, hits, base_hits, pending_slows)
 	# 所有决定基于同一份步初状态，最后统一应用；同一步互相造成致命伤害时双方仍能开火。
 	alive = []

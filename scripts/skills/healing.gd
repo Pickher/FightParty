@@ -13,7 +13,7 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 			continue
 		if front.is_empty() or float(ally.pos.x) * forward > float(front.pos.x) * forward:
 			front = ally
-	var goal := Vector2(90.0 if unit.team == 0 else 1110.0, unit.pos.y)
+	var goal := Vector2(sim.mirror_x(unit.team, float(sim.rules.layout.spawn_x)), unit.pos.y)
 	var safe_x: float = goal.x * forward
 	if not front.is_empty():
 		safe_x = float(front.pos.x) * forward - float(config.follow_distance)
@@ -47,7 +47,7 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 	elif not chase.is_empty() and not front.is_empty():
 		goal = chase.pos
 	# 即使正在治疗，也必须退回前排后方或远离逼近的敌军。
-	goal.x = clampf(minf(float(goal.x) * forward, safe_x) * forward, 30.0, 1170.0)
-	goal.y = clampf(goal.y, 20.0, 380.0)
+	goal.x = minf(float(goal.x) * forward, safe_x) * forward
+	goal = sim.clamp_to_field(goal)
 	moves[unit.id] = unit.pos.move_toward(goal, sim._movement_speed(unit) * dt)
 

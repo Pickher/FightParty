@@ -38,6 +38,7 @@ func _initialize() -> void:
 	_colossi_and_skills()
 	_marauders()
 	_stimulant_and_slow()
+	_liberators()
 	var sim = Sim.new()
 	check(sim.budget()==600 and sim.budget(7)==1200 and sim.budget(99)==1200,"budget curve")
 	check(sim.submit_formation(0,formation("guard",7))!="","reject over budget")
@@ -790,3 +791,50 @@ func _stimulant_and_slow() -> void:
 	entry.tick=approaching.stim_until_tick-1
 	entry.step()
 	check(approaching.hp==18.75 and is_equal_approx(entry._movement_speed(approaching),36),"expired stimulant rechecks health and cannot renew at lethal cost")
+
+## 解放者：空中层、对空普通武器、防卫圈展开时序、圈内对地与不攻击基地。
+func _liberators() -> void:
+	for team in range(2):
+		var sim = Sim.new()
+		sim.catalog.guard.speed = 0
+		sim.catalog.guard.damage = 0
+		var forward: float = 1 if team == 0 else -1
+		var ship = sim.spawn_unit(team,"liberator",Vector2(600,200))
+		var near = sim.spawn_unit(1-team,"guard",Vector2(600+forward*300,200))
+		var outside = sim.spawn_unit(1-team,"guard",Vector2(600+forward*300,380))
+		near.hp = 10000
+		outside.hp = 10000
+		sim._build_buckets()
+		check(sim._target(ship).is_empty(),"mobile liberator cannot target ground %d" % team)
+		check(sim._target(near).is_empty(),"ground-only guard cannot target air %d" % team)
+		sim.step()
+		check(ship.siege_state=="mobile" and ship.pos==Vector2(600,200),"liberator stops to scan ground target %d" % team)
+		ticks(sim,10)
+		check(ship.siege_state=="deploying" and ship.has("defender_center"),"confirmed ground target starts defender mode %d" % team)
+		var center: Vector2 = ship.defender_center
+		check(center.distance_to(near.pos) <= 140.0 and center.distance_to(ship.pos) <= 476.0 - 140.0 + 0.001,"zone covers target and stays within weapon reach %d" % team)
+		ticks(sim,57)
+		check(near.hp==10000 and ship.siege_state=="deploying","defender transform takes 2.9 seconds %d" % team)
+		sim.step()
+		check(ship.siege_state=="deployed" and near.hp==9840,"deployed liberator hits ground target in zone for 160 %d" % team)
+		check(outside.hp==10000,"ground target outside zone is ignored %d" % team)
+		check(ship.pos==Vector2(600,200) and ship.defender_center==center,"defender mode is stationary with fixed zone %d" % team)
+		near.pos = center + Vector2(0,141)
+		ship.cooldown = 0
+		sim.step()
+		check(near.hp==9840 and ship.locked_target_id==0,"target leaving zone releases lock %d" % team)
+	var air = Sim.new()
+	var hunter = air.spawn_unit(0,"liberator",Vector2(500,200))
+	var prey = air.spawn_unit(1,"liberator",Vector2(620,200))
+	var wing = air.spawn_unit(1,"liberator",Vector2(620,240))
+	air.step()
+	check(hunter.siege_state=="mobile" and prey.hp==160 and wing.hp==160,"mobile liberator splashes air targets")
+	var rifle_sim = Sim.new()
+	var rifle = rifle_sim.spawn_unit(0,"rifle",Vector2(500,200))
+	var flyer = rifle_sim.spawn_unit(1,"liberator",Vector2(620,200))
+	rifle_sim._build_buckets()
+	check(rifle_sim._target(rifle).get("id",0)==flyer.id,"anti-air rifle targets liberator")
+	var siege = Sim.new()
+	var raider = siege.spawn_unit(0,"liberator",Vector2(1100,200))
+	ticks(siege,200)
+	check(siege.bases[1]==3000 and raider.siege_state=="mobile","liberator never attacks base")

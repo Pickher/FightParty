@@ -207,7 +207,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.1.8  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.1.9  /  无击杀收入  /  残兵最多保留 90 秒",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -222,10 +222,10 @@ func _draw() -> void:
 	if help_open:
 		_draw_help()
 
-## 把 1200×400 的逻辑战场坐标转换成屏幕战场区域坐标。
+## 把逻辑战场坐标（rules.world_width × world_height）转换成 1300×352 的屏幕战场区域坐标。
 ## 未来改 3D 时，这种位置映射应交给独立的 3D 战场表现层。
 func _world(pos: Vector2) -> Vector2:
-	return Vector2(70,157) + pos * Vector2(1300.0/1200.0,0.88)
+	return Vector2(70,157) + pos * Vector2(1300.0/float(sim.rules.world_width),352.0/float(sim.rules.world_height))
 
 ## 绘制地面网格、基地、血条、攻击线和场上单位；所有位置来自模拟器。
 func _draw_battle() -> void:
@@ -243,7 +243,7 @@ func _draw_battle() -> void:
 	_bar(Rect2(1100,116,230,10),float(sim.bases[1])/float(sim.rules.base_hp),CORAL)
 	_text(Vector2(1340,130),"%d" % sim.bases[1],16)
 	for team in range(2):
-		var p := _world(Vector2(30 if team == 0 else 1170,200))
+		var p := _world(sim.base_pos(team))
 		var color: Color = MINT if team == 0 else CORAL
 		draw_circle(p,40,Color(color,0.07))
 		draw_arc(p,34,0,TAU,32,Color(color,0.5),2)

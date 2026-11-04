@@ -65,12 +65,13 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				OnHitSlow.queue_hit(sim,victim,wave.on_hit_slow,pending_slows)
-		# 基地按半径 20 计算首次接触，同样等待前沿到达，且每波只命中一次。
+		# 基地按 layout.base_radius 计算首次接触，同样等待前沿到达，且每波只命中一次。
 		var enemy: int = 1 - int(wave.team)
-		var base_offset: Vector2 = Vector2(1170.0 if enemy == 1 else 30.0,200.0) - wave.origin
+		var radius: float = float(sim.rules.layout.base_radius)
+		var base_offset: Vector2 = sim.base_pos(enemy) - wave.origin
 		var side: float = wave.direction.cross(base_offset)
-		if wave.get("attacks_base",true) and not wave.base_hit and absf(side) <= 20.0:
-			var contact := maxf(0.0,base_offset.dot(wave.direction) - sqrt(400.0 - side * side))
+		if wave.get("attacks_base",true) and not wave.base_hit and absf(side) <= radius:
+			var contact := maxf(0.0,base_offset.dot(wave.direction) - sqrt(radius * radius - side * side))
 			if base_offset.dot(wave.direction) >= 0.0 and contact >= float(wave.distance) and contact <= next_distance:
 				base_hits[enemy] += float(wave.damage)
 				wave.base_hit = true
