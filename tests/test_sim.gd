@@ -57,6 +57,7 @@ func _initialize() -> void:
 	_armor_and_shields()
 	_roster_data()
 	_races()
+	_battlecruisers()
 	_economy()
 	_final_phase()
 	var sim = bare()
@@ -1265,3 +1266,81 @@ func _races() -> void:
 	var quiet = bare(2)
 	ticks(quiet,200)
 	check(not quiet.revealed,"no fighting keeps races hidden")
+
+## 大和舰：激光连射按目标层换武器；大和炮引导 2 秒不动、不开火，锁定目标后必中，目标先死则不耗冷却。
+func _battlecruisers() -> void:
+	var stats: Dictionary = Catalog.units().battlecruiser
+	check(stats.status=="ready" and stats.race=="terran" and stats.layer=="air" and stats.armor_type=="special" and int(stats.armor)==9,"battlecruiser is a ready terran special-armor air unit")
+	var shop = bare()
+	check(stats.requires==["liberator"] and shop.buy(0,"battlecruiser",0)=="","prerequisite recorded but not enforced")
+	check(AI.new(1,"terran").pool.has("battlecruiser") and Catalog.race_units(Catalog.units(),"terran").has("battlecruiser"),"battlecruiser is in terran shop and AI pool")
+	# 激光：关闭大和炮单测普通武器。对地 24/发、对空 15/发，0.16 秒间隔在 20 Hz 下量化为每 4 步一发。
+	var lasers = bare()
+	lasers.catalog.battlecruiser.skills.yamato.min_target_hp = 1000000
+	var ship = lasers.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var walker = lasers.spawn_unit(1,"dummy",Vector2(620,200))
+	walker.hp = 10000
+	ticks(lasers,9)
+	check(ship.get("weapon_index",0)==0 and is_equal_approx(walker.hp,10000-24*3),"ground laser fires every 4 ticks for 24")
+	var air = bare()
+	air.catalog.battlecruiser.skills.yamato.min_target_hp = 1000000
+	var hunter = air.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var viking = air.spawn_unit(1,"viking",Vector2(620,200))
+	viking.hp = 10000
+	ticks(air,1)
+	check(hunter.weapon_index==1 and is_equal_approx(viking.hp,10000-15),"air laser hits air for 15 without heavy bonus")
+	check(is_equal_approx(hunter.hp,1485) or is_equal_approx(hunter.hp,1485-51),"viking bonus does not apply to special armor (60 - 9)")
+	# 大和炮：250 距离（激光射程外）第 1 步开始引导，之后 40 步（2 秒）原地不动、无普通攻击，第 41 步命中 720。
+	var cannon = bare()
+	var bc = cannon.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var big = cannon.spawn_unit(1,"dummy",Vector2(750,200))
+	big.hp = 10000
+	var charged := false
+	var fired := 0
+	var attacks := 0
+	for i in range(41):
+		for event in cannon.step():
+			charged = charged or event.type=="yamato_charge"
+			fired += 1 if event.type=="yamato" else 0
+			attacks += 1 if event.type=="attack" and event.team==0 else 0
+		if i < 40:
+			check(bc.pos==Vector2(500,200) and fired==0,"battlecruiser holds still while channeling %d" % i)
+	check(charged and fired==1 and attacks==0 and is_equal_approx(big.hp,10000-720),"yamato fires once after 2 s for 720")
+	check(int(bc.yamato_ready_tick)==cannon.tick+1420 and not bc.has("yamato_target"),"yamato cooldown 71 s starts on firing")
+	ticks(cannon,200)
+	check(big.hp < 10000-720 and bc.pos!=Vector2(500,200) and not bc.has("yamato_target"),"lasers and movement resume during cooldown")
+	# 护盾：720 先打护盾 270，溢出 450 再减护甲 3。
+	var shielded = bare()
+	shielded.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var immortal = shielded.spawn_unit(1,"immortal",Vector2(750,200))
+	ticks(shielded,41)
+	check(is_equal_approx(immortal.shield,0) and is_equal_approx(immortal.hp,540-447),"yamato drains shields then hits hp minus armor")
+	# 目标在引导中死亡：取消，不耗冷却。
+	var cancel = bare()
+	var caster = cancel.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var doomed = cancel.spawn_unit(1,"dummy",Vector2(750,200))
+	ticks(cancel,5)
+	check(caster.has("yamato_target"),"channel started")
+	cancel.units.erase(doomed)
+	ticks(cancel,1)
+	check(not caster.has("yamato_target") and int(caster.get("yamato_ready_tick",0))==0,"target death cancels channel without cooldown")
+	# 低血目标不值得开炮：跳虫 95 生命低于 300，直接用激光。
+	var small = bare(42,{"races":["terran","zerg"]})
+	var picky = small.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	small.spawn_unit(1,"zergling",Vector2(600,200))
+	ticks(small,2)
+	check(not picky.has("yamato_target"),"yamato ignores targets below min_target_hp")
+	# 选目标：优先单位而不是结构体，单位间取生命+护盾最高者。
+	var choice = Sim.new(1)
+	var picker = choice.spawn_unit(0,"battlecruiser",Vector2(900,200))
+	var weak = choice.spawn_unit(1,"dummy",Vector2(1000,170))
+	var strong = choice.spawn_unit(1,"dummy",Vector2(1000,230))
+	strong.hp = 900
+	ticks(choice,1)
+	check(int(picker.get("yamato_target",0))==strong.id and weak.id!=strong.id,"yamato prefers the toughest unit over structures")
+	# 镜像对称。
+	var mirror = bare()
+	mirror.spawn_unit(0,"battlecruiser",Vector2(430,200))
+	mirror.spawn_unit(1,"battlecruiser",Vector2(770,200))
+	ticks(mirror,600)
+	check(mirror.units.size()==2 and is_equal_approx(mirror.units[0].hp,mirror.units[1].hp),"battlecruiser duel is symmetric")

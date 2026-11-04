@@ -12,6 +12,7 @@
 | `healing` | 跟随后排、躲避敌军、治疗友军 | `heal`：单次治疗；`follow_distance`：前排后方距离；`danger_distance`：敌军后方安全距离；使用兵种 range/interval 作为治疗距离/间隔 |
 | `weapon_switch` | 多把武器，按目标自动切换（0.3.0） | `switch_seconds`：换武器耗时，期间不能开火；`weapons`：武器数组，每把可覆盖 `damage`、`bonus`、`interval`、`range`、`splash`、`target_layers`、`attacks_base`，并带 `id`、`label` |
 | `regen` | 脱战后自动回血（0.3.0） | `delay`：最后一次受伤后多少秒开始；`per_second`：每秒回复生命 |
+| `yamato` | 引导后的单体重炮（0.3.2） | `damage`：伤害；`range`：射程；`channel_seconds`：引导秒数；`cooldown_seconds`：冷却秒数；`min_target_hp`：目标生命+护盾至少多少才开炮 |
 
 必填参数按表完整填写；仅 `line_attack.length`、`multi_attack.count` 有默认值。正向直线从自身向目标方向走满 length；横向直线以开火瞬间目标位置为中心，垂直于攻击方向。横向多击从两端交替起始，每条都走完全长。
 
@@ -105,6 +106,14 @@
 新增兵种复用上述能力只需挂载配置，并补充价格/数值、UI 外观与 AI 选择。新增突进、隐身或变形等能力时，需要实现独立技能模块，并在生成单位、移动/索敌或攻击阶段接入相应调用，补充行为测试。任意填写一个新技能名不会自动获得功能，当前没有通用触发器或插件注册系统。
 
 0.1.5 的顶层 `deploy_seconds` 等字段已迁至 `skills.deployment`，治疗字段迁至 `skills.healing`，`spike_speed`/`spike_half_width` 改为 `skills.line_attack.speed`/`half_width`。自定义旧兵种配置需一并迁移；规则版本 0.1.6 会拒绝旧版本战报重放。
+
+## 大和炮（0.3.2）
+
+`yamato.gd` 在每步普通行动之前调用。冷却就绪时，在 `range` 内找生命+护盾不低于 `min_target_hp` 的敌方单位（先非结构体，再按生命+护盾从高到低，同分 ID 小者），记下 `yamato_target` 与开炮 tick，发出 `yamato_charge` 事件。引导期间及开炮那一步，该单位不移动、不走普通攻击流程（普通冷却仍照常恢复）。到时若目标仍在场，按普通命中排队 `damage` 原始伤害（不吃护甲类型加成，经护盾与护甲值结算），发出 `attack_hit` 与 `yamato` 事件，并设置 `yamato_ready_tick`；目标已死亡则取消、不消耗冷却。锁定后不再检查射程。可与 `weapon_switch` 组合，大和舰就是这样配置的：
+
+```json
+"yamato": { "damage": 720, "range": 280, "channel_seconds": 2.0, "cooldown_seconds": 71.0, "min_target_hp": 300 }
+```
 
 ## 防卫区域与武器模式
 

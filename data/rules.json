@@ -1,5 +1,5 @@
 {
-  "version": "0.3.1", "tick_rate": 20, "wave_seconds": 30,
+  "version": "0.3.2", "tick_rate": 20, "wave_seconds": 30,
   "races": ["terran", "terran"],
   "min_damage": 0.5, "shield_regen_delay": 7.0, "shield_regen_per_second": 7.5,
   "start_minerals": 600, "wave_income": 300,

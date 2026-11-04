@@ -15,6 +15,7 @@ const DefenderZone = preload("res://scripts/skills/defender_zone.gd")
 const Shield = preload("res://scripts/skills/shield.gd")
 const Regen = preload("res://scripts/skills/regen.gd")
 const WeaponSwitch = preload("res://scripts/skills/weapon_switch.gd")
+const Yamato = preload("res://scripts/skills/yamato.gd")
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
 # 双方种族，整局固定（开局设置的 races 覆盖 rules 默认值）；只能购买本方种族的已实装兵种。
@@ -574,6 +575,10 @@ func step() -> Array:
 		if skills.has("healing"):
 			unit.cooldown = maxf(0.0, float(unit.cooldown) - dt)
 			Healing.step(self, unit, dt, heals, moves)
+			continue
+		# 大和炮引导期间（含开炮那一步）原地不动、不用普通武器；普通冷却照常恢复。
+		if skills.has("yamato") and Yamato.step(self, unit, hits):
+			unit.cooldown = maxf(0.0, float(unit.cooldown) - dt)
 			continue
 		var mode_allowed := true
 		if skills.has("defender_zone"):

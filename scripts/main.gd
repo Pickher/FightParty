@@ -8,6 +8,7 @@ extends Control
 const Sim = preload("res://scripts/battle_sim.gd")
 const AI = preload("res://scripts/commander_ai.gd")
 const Catalog = preload("res://scripts/catalog.gd")
+const Yamato = preload("res://scripts/skills/yamato.gd")
 # 界面颜色常量。修改这里可以调整主题；不会改变兵种伤害或阵营规则。
 const INK := Color("e4edf8")
 const MUTED := Color("8e9fb5")
@@ -203,8 +204,8 @@ func _process(delta: float) -> void:
 ## AI 只拿到玩家刚刚出兵的公开阵容，不拿到玩家正在修改的下一波。
 func advance_tick() -> void:
 	for event in sim.step():
-		if event.type == "attack" or event.type == "heal" or event.type == "line_attack":
-			event.ttl = 0.24 if event.type == "line_attack" else 0.16
+		if event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato":
+			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
 		elif event.type == "wave":
 			_note("第 %d 波出兵 · 我方 %d / 敌方 %d" % [sim.wave,sim.last_formations[0].size(),sim.last_formations[1].size()])
@@ -299,7 +300,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.3.1  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.3.2  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -380,6 +381,13 @@ func _draw_battle() -> void:
 					var point: Vector2 = start.lerp(finish,fraction)
 					draw_colored_polygon(PackedVector2Array([point+normal*6,point-normal*6,point+direction*9]),attack_color)
 			continue
+		if effect.type == "yamato":
+			# 大和炮：粗光束加命中闪光，持续 0.5 秒逐渐消退。
+			var fade: float = clampf(effect.ttl/0.5,0,1)
+			draw_line(_world(effect.from),_world(effect.to),Color(Color("ffb347"),fade),7)
+			draw_line(_world(effect.from),_world(effect.to),Color(INK,fade),2)
+			draw_circle(_world(effect.to),16*fade+4,Color(Color("ffb347"),0.5*fade))
+			continue
 		var color := Color(MINT if effect.team == 0 else CORAL,clampf(effect.ttl/0.16,0,1))
 		if effect.type == "heal":
 			color = Color(Color("85efd9"), clampf(effect.ttl/0.16,0,1))
@@ -402,6 +410,14 @@ func _draw_battle() -> void:
 			draw_arc(p,14,0,TAU,16,color,1.8)
 			continue
 		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
+		var charge: float = Yamato.charge(sim,unit) if sim.catalog[unit.kind].get("skills",{}).has("yamato") else -1.0
+		if charge >= 0.0:
+			# 大和炮引导：橙色光圈随进度变大，细线指向锁定目标。
+			draw_circle(p,6+10*charge,Color(Color("ffb347"),0.25+0.4*charge))
+			draw_arc(p,20,-PI*0.5,-PI*0.5+TAU*charge,24,Color("ffb347"),2)
+			var locked = sim.by_id.get(int(unit.yamato_target))
+			if locked != null:
+				draw_line(p,_world(locked.pos),Color(Color("ffb347"),0.35),1)
 		if sim.tick < int(unit.get("stim_until_tick",0)):
 			draw_arc(p,18,0,TAU,20,Color("ffbe65"),2)
 		if sim.tick < int(unit.get("slow_until_tick",0)):
@@ -566,6 +582,12 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 		"void_ray":
 			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.3),p+Vector2(radius*1.1,0),p+Vector2(0,radius*1.3),p+Vector2(-radius*1.1,0)]),color)
 			draw_circle(p,radius*0.4,INK)
+		"battlecruiser":
+			# 长舰体、前伸双叉与舰桥；空中旗舰。
+			draw_colored_polygon(PackedVector2Array([p+Vector2(-radius*1.5,-radius*0.6),p+Vector2(radius*0.9,-radius*0.6),p+Vector2(radius*1.6,-radius*0.25),p+Vector2(radius*1.6,radius*0.25),p+Vector2(radius*0.9,radius*0.6),p+Vector2(-radius*1.5,radius*0.6),p+Vector2(-radius*1.2,0)]),color)
+			draw_line(p+Vector2(radius*0.9,-radius*0.6),p+Vector2(radius*1.8,-radius*0.75),color,2)
+			draw_line(p+Vector2(radius*0.9,radius*0.6),p+Vector2(radius*1.8,radius*0.75),color,2)
+			draw_rect(Rect2(p+Vector2(-radius*0.5,-radius*0.3),Vector2(radius*0.6,radius*0.6)),Color("223751"))
 		"rifle":
 			draw_circle(p,radius*0.8,color)
 			draw_rect(Rect2(p+Vector2(radius*0.3,-radius*0.2),Vector2(radius*0.9,radius*0.4)),color)
