@@ -2,7 +2,7 @@ extends RefCounted
 const MultiAttack = preload("res://scripts/skills/multi_attack.gd")
 const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
 # 单位一步的最大位移（约 5）加余量，用于缩小波前扫过区域的候选范围。
-const MOVE_MARGIN := 12.0
+const MOVE_MARGIN := 1.0
 
 ## 一个普通攻击周期生成 count 条独立传播轨迹；每条有自己的命中记录。
 ## forward 从自身出发；transverse 以目标位置为中心，垂直于开火方向扫过。

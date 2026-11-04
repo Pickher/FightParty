@@ -1,51 +1,54 @@
 extends RefCounted
 const Deployment = preload("res://scripts/skills/deployment.gd")
 
-## 复用部署扫描/收放计时，展开时固定圆形警戒区；单位自身仍是飞行单位。
-## 展开后的武器 = 兵种数据合并防卫武器；按兵种缓存在 sim.mode_weapons，避免每次深拷贝。
+## 自身为顶点、朝敌方固定展开的扇形；两种模式始终属于空中单位。
 static func weapon(sim, unit: Dictionary) -> Dictionary:
 	var base: Dictionary = sim.catalog[unit.kind]
-	if unit.get("siege_state","mobile") == "mobile":
-		return base
+	if unit.get("siege_state","mobile") == "mobile":return base
 	if not sim.mode_weapons.has(unit.kind):
 		var result: Dictionary = base.duplicate(true)
 		result.merge(base.skills.defender_zone.weapon,true)
-		sim.mode_weapons[unit.kind] = result
+		sim.mode_weapons[unit.kind]=result
 	return sim.mode_weapons[unit.kind]
 
-static func contains(sim, unit: Dictionary, point: Vector2) -> bool:
-	if unit.get("siege_state","mobile") == "mobile":
-		return true
-	return unit.has("defender_center") and point.distance_squared_to(unit.defender_center) <= pow(float(sim.catalog[unit.kind].skills.defender_zone.radius),2)
+static func in_sector(unit: Dictionary, point: Vector2, reach: float, angle: float) -> bool:
+	var offset: Vector2 = point-unit.pos
+	if offset.length_squared()>reach*reach:return false
+	if offset.length_squared()<0.000001:return true
+	var forward := Vector2.RIGHT if unit.team==0 else Vector2.LEFT
+	return forward.dot(offset.normalized())>=cos(deg_to_rad(angle*0.5))
 
-## 优先处理发现范围内的空军；没有空军时，接近地面目标并按部署规则圈地。
-## 返回是否可继续普通移动/攻击；转换中或等待空圈时保持原地。
+static func contains(sim, unit: Dictionary, point: Vector2) -> bool:
+	if unit.get("siege_state","mobile")=="mobile":return true
+	var config: Dictionary = sim.catalog[unit.kind].skills.defender_zone
+	return in_sector(unit,point,float(config.weapon.range),float(config.angle_degrees))
+
 static func prepare(sim, unit: Dictionary, motion: Dictionary) -> bool:
 	var config: Dictionary = sim.catalog[unit.kind].skills.defender_zone
+	var reach: float = float(config.weapon.range)
 	unit.erase("defender_goal")
-	if unit.siege_state == "mobile":
-		unit.erase("defender_center")
-		var air_target: Dictionary = sim._target(unit)
-		if not air_target.is_empty():
-			unit.siege_scan_ids = []
-			unit.siege_scan_tick = 0
+	unit.erase("defender_center")
+	var context := {"config":config,"range":reach,"center":unit.pos,"target_layers":["ground"],"sector_angle_degrees":config.angle_degrees}
+	if unit.siege_state=="mobile":
+		if not sim._target(unit).is_empty():
+			unit.siege_scan_ids=[]
+			unit.siege_scan_tick=0
 			return true
-		var reach: float = float(config.weapon.range)
 		var nearest: Dictionary = sim.nearest_ground_enemy(unit,reach*1.5)
-		var distance: float = INF if nearest.is_empty() else unit.pos.distance_to(nearest.pos)
 		if not nearest.is_empty():
-			unit.defender_goal = nearest.pos
-		var allowed: bool = Deployment.can_act(sim,unit,distance<=reach,false,motion,
-			{"config":config,"range":reach,"target_layers":["ground"]})
-		if unit.siege_state == "deploying":
-			# 最远圈边不超过对地射程；圈中心不跟随敌人移动。
-			unit.defender_center = unit.pos + (nearest.pos-unit.pos).limit_length(maxf(0.0,reach-float(config.radius)))
-			unit.locked_target_id = 0
-		return allowed
+			unit.defender_goal=nearest.pos
+			if not in_sector(unit,nearest.pos,reach*1.5,float(config.angle_degrees)):
+				# 横向对齐目标，但保持机体在目标后方；不把扇形转到己方方向。
+				var forward: float = 1.0 if unit.team==0 else -1.0
+				unit.defender_goal=sim.clamp_to_field(Vector2(float(nearest.pos.x)-forward*reach*0.8,nearest.pos.y))
+				unit.siege_scan_ids=[]
+				unit.siege_scan_tick=0
+				return true
+		var in_range: bool = not nearest.is_empty() and in_sector(unit,nearest.pos,reach,float(config.angle_degrees))
+		return Deployment.can_act(sim,unit,in_range,false,motion,context)
 	var occupied := false
-	for other in sim.nearby_team(unit.defender_center,float(config.radius),1-int(unit.team)):
-		if other.hp > 0 and sim.catalog[other.kind].get("layer","ground") == "ground" and not sim.is_structure(other):
-			occupied = true
+	for enemy in sim.nearby_team(unit.pos,reach,1-int(unit.team)):
+		if enemy.hp>0 and sim.catalog[enemy.kind].get("layer","ground")=="ground" and not sim.is_structure(enemy) and in_sector(unit,enemy.pos,reach,float(config.angle_degrees)):
+			occupied=true
 			break
-	return Deployment.can_act(sim,unit,occupied,false,motion,
-		{"config":config,"range":config.radius,"center":unit.defender_center,"target_layers":["ground"]})
+	return Deployment.can_act(sim,unit,occupied,false,motion,context)

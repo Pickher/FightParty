@@ -1,54 +1,1794 @@
 {
- "version": "0.3.1",
+ "version": "0.4.0",
  "units": {
-  "rifle": {"name":"步枪兵","symbol":"R","race":"terran","status":"ready","sc2":"陆战队员 Marine","cost":75,"hp":120,"armor_type":"light","armor":0,"damage":18,"interval":0.61,"range":140,"speed":36,"splash":0,"color":"75e0ac","role":"中排主力 · 对空对地","counter":"数量多、能对空；怕溅射与反轻甲","layer":"ground","target_layers":["ground","air"]},
-  "hellbat": {"name":"恶火","symbol":"F","race":"terran","status":"ready","sc2":"恶蝠 Hellbat","cost":100,"hp":365,"armor_type":"light","armor":0,"damage":54,"bonus":{"light":36},"interval":1.43,"range":56,"speed":36,"splash":0,"color":"ff9f5a","role":"前排喷火 · 克轻甲","counter":"短程直线喷火，克密集轻甲；怕远程与重甲","skills":{"line_attack":{"pattern":"forward","length":70,"speed":420,"half_width":24,"effect":"flame"}},"layer":"ground","target_layers":["ground"]},
-  "marauder": {"name":"劫掠者","symbol":"L","race":"terran","status":"ready","sc2":"掠夺者 Marauder","cost":140,"hp":340,"armor_type":"heavy","armor":3,"damage":30,"bonus":{"heavy":30},"interval":1.07,"range":168,"speed":36,"splash":0,"color":"c39be8","role":"强化突击 · 命中减速","counter":"克重甲；强化剂消耗生命；怕轻甲海","skills":{"stimulant":{"health_cost_ratio":0.15,"duration":20,"attack_multiplier":1.3,"speed_multiplier":1.5},"on_hit_slow":{"speed_multiplier":0.5,"duration":2}},"layer":"ground","target_layers":["ground"]},
-  "medic": {"name":"医疗兵","symbol":"H","race":"terran","status":"ready","sc2":"医疗兵 Medic（母巢之战）","cost":125,"hp":160,"armor_type":"light","armor":3,"damage":0,"interval":0.5,"range":160,"speed":36,"splash":0,"color":"85efd9","role":"后排治疗 · 跟随友军","counter":"治疗受伤友军（不回护盾）；无攻击能力，怕突袭","skills":{"healing":{"heal":12,"follow_distance":90,"danger_distance":100}},"layer":"ground","target_layers":["ground"]},
-  "agent": {"name":"特工","symbol":"A","race":"terran","status":"ready","sc2":"幽灵 Ghost + 旋风 Cyclone","cost":150,"hp":270,"armor_type":"light","armor":0,"damage":30,"bonus":{"heavy":60},"interval":1.5,"range":224,"speed":36,"splash":0,"color":"a8b5ff","role":"远程狙击 · 按护甲换弹","counter":"穿甲弹打重甲、狙击弹打轻甲；换弹 1.5 秒不能开火","skills":{"weapon_switch":{"switch_seconds":1.5,"weapons":[{"id":"armor_piercing","label":"穿甲弹","damage":30,"bonus":{"heavy":60},"interval":1.5},{"id":"precision","label":"狙击弹","damage":30,"bonus":{"light":30},"interval":1.07}]}},"layer":"ground","target_layers":["ground","air"]},
-  "widow_mine": {"name":"寡妇雷","symbol":"X","race":"terran","status":"ready","sc2":"寡妇雷 Widow Mine","cost":75,"hp":245,"armor_type":"light","armor":3,"damage":375,"interval":29,"range":140,"speed":45,"splash":49,"color":"e8e27a","role":"埋地伏击 · 一发大范围","counter":"埋地后单发重伤一片；冷却很长，怕分散与先手清除","skills":{"deployment":{"deploy_seconds":0.71,"pack_seconds":0.71,"deploy_enemy_threshold":1,"scan_seconds":0.5,"hold_range_multiplier":1.2,"mode":"burrow"}},"layer":"ground","target_layers":["ground","air"]},
-  "mortar": {"name":"迫击炮","symbol":"M","race":"terran","status":"ready","sc2":"攻城坦克 Siege Tank（攻城模式）","cost":150,"hp":475,"armor_type":"heavy","armor":3,"damage":120,"bonus":{"heavy":90},"interval":2.14,"range":300,"speed":36,"splash":70,"color":"ff8378","role":"架设炮击 · 远程范围","counter":"架设后重火力，克重甲；收放时无法攻击，怕近身","skills":{"deployment":{"deploy_seconds":1.5,"pack_seconds":1.0,"deploy_enemy_threshold":2,"scan_seconds":0.5,"hold_range_multiplier":1.2,"mode":"siege"}},"layer":"ground","target_layers":["ground"]},
-  "viking": {"name":"维京","symbol":"K","race":"terran","status":"ready","sc2":"维京战机 Viking（战斗机模式）","cost":150,"hp":365,"armor_type":"heavy","armor":0,"layer":"air","target_layers":["air"],"attacks_base":false,"damage":60,"bonus":{"heavy":24},"interval":1.43,"range":252,"speed":44,"splash":0,"color":"9cc4ff","role":"远程对空 · 专打重甲空军","counter":"射程最远的对空；不能对地、不能打基地"},
-  "liberator": {"name":"解放者","symbol":"V","race":"terran","status":"ready","sc2":"解放者 Liberator","cost":300,"hp":485,"armor_type":"heavy","armor":0,"layer":"air","target_layers":["air"],"attacks_base":false,"damage":30,"interval":1.29,"range":140,"speed":54.08,"splash":42,"color":"f2dc79","role":"空中战舰 · 划区防卫","counter":"飞行对空溅射；防卫圈对地重击，不能攻击基地","skills":{"defender_zone":{"deploy_seconds":2.9,"pack_seconds":1.5,"deploy_enemy_threshold":2,"scan_seconds":0.5,"hold_range_multiplier":1.2,"radius":140,"mode":"defender","weapon":{"target_layers":["ground"],"attacks_base":false,"damage":225,"interval":1.14,"range":476,"splash":0}}}},
-  "thor": {"name":"雷神","symbol":"T","race":"terran","status":"ready","sc2":"雷神 Thor","cost":400,"hp":1080,"armor_type":"special","armor":3,"damage":180,"interval":0.91,"range":280,"speed":30,"splash":0,"color":"d9c3a0","role":"重装前排 · 地空两套武器","counter":"对地重炮、对空溅射；特殊甲不吃克制加成，造价高","skills":{"weapon_switch":{"switch_seconds":0,"weapons":[{"id":"hammer","label":"雷霆重炮","target_layers":["ground"],"damage":180,"interval":0.91,"range":196},{"id":"javelin","label":"标枪导弹","target_layers":["air"],"attacks_base":false,"damage":72,"bonus":{"light":72},"interval":2.14,"range":280,"splash":14}]}},"layer":"ground","target_layers":["ground","air"]},
-
-  "zergling": {"name":"跳虫","symbol":"Z","race":"zerg","status":"ready","sc2":"跳虫 Zergling","cost":50,"hp":95,"armor_type":"light","armor":0,"damage":15,"interval":0.5,"range":22,"speed":47,"splash":0,"color":"e39bd0","role":"高速近战 · 数量包围","counter":"便宜快速，包围后排；怕溅射与喷火","layer":"ground","target_layers":["ground"]},
-  "baneling": {"name":"毒爆虫","symbol":"B","race":"zerg","status":"stub","pending":["suicide"],"requires":["zergling"],"sc2":"毒爆虫 Baneling","cost":75,"hp":80,"armor_type":"light","armor":0,"damage":48,"bonus":{"light":57},"interval":1,"range":22,"speed":40,"splash":62,"color":"a6e86b","role":"自爆冲锋 · 克轻甲","counter":"冲入敌群自爆；怕远程先手","layer":"ground","target_layers":["ground"]},
-  "roach": {"name":"蟑螂","symbol":"O","race":"zerg","status":"ready","sc2":"蟑螂 Roach","cost":100,"hp":390,"armor_type":"heavy","armor":3,"damage":48,"interval":1.43,"range":112,"speed":36,"splash":0,"color":"c98a5e","role":"耐打前排 · 脱战回血","counter":"脱战 3 秒后快速回血；怕反重甲","skills":{"regen":{"delay":3,"per_second":20}},"layer":"ground","target_layers":["ground"]},
-  "hydralisk": {"name":"刺蛇","symbol":"Y","race":"zerg","status":"ready","sc2":"刺蛇 Hydralisk","cost":150,"hp":245,"armor_type":"light","armor":0,"damage":36,"interval":0.59,"range":168,"speed":36,"splash":0,"color":"d87ec4","role":"中排高输出 · 对空对地","counter":"高 DPS、能对空；身板脆，怕溅射","layer":"ground","target_layers":["ground","air"]},
-  "ravager": {"name":"破坏者","symbol":"J","race":"zerg","status":"stub","pending":["delayed_area"],"requires":["roach"],"sc2":"破坏者 Ravager","cost":150,"hp":325,"armor_type":"light","armor":3,"damage":48,"interval":1.14,"range":168,"speed":44,"splash":0,"color":"f07a5a","role":"腐蚀胆汁 · 延迟范围","counter":"胆汁能打建筑与静止单位；可被躲开","skills":{"delayed_area":{"damage":180,"delay":2.5,"radius":28,"cooldown":7,"range":252}},"layer":"ground","target_layers":["ground"]},
-  "piercer": {"name":"穿刺者","symbol":"P","race":"zerg","status":"ready","requires":["hydralisk"],"sc2":"潜伏者 Lurker","cost":175,"hp":515,"armor_type":"heavy","armor":3,"damage":60,"bonus":{"heavy":30},"interval":1.43,"range":224,"speed":47,"splash":0,"color":"d6a1f4","role":"埋地穿刺 · 直线伤害","counter":"克制纵列敌军；怕分散与远程炮击","skills":{"deployment":{"deploy_seconds":1.0,"pack_seconds":0.75,"deploy_enemy_threshold":2,"scan_seconds":0.5,"hold_range_multiplier":1.2,"mode":"burrow"},"line_attack":{"pattern":"forward","speed":260,"half_width":14,"effect":"spike"}},"layer":"ground","target_layers":["ground"]},
-  "tunneler": {"name":"钻地兽","symbol":"U","race":"zerg","status":"stub","pending":["dive"],"requires":["roach"],"sc2":"埋地移动的蟑螂（概念）","cost":150,"hp":390,"armor_type":"heavy","armor":3,"damage":48,"interval":1.43,"range":112,"speed":36,"splash":0,"color":"b07850","role":"钻地突入 · 打后排","counter":"潜行穿过前排，优先攻击射程最远的敌人","layer":"ground","target_layers":["ground"]},
-  "mutalisk": {"name":"飞龙","symbol":"N","race":"zerg","status":"stub","pending":["chain_attack","dive"],"requires":["hydralisk"],"sc2":"飞龙 Mutalisk","cost":175,"hp":325,"armor_type":"light","armor":0,"layer":"air","target_layers":["ground","air"],"damage":27,"interval":1.09,"range":84,"speed":64,"splash":0,"color":"c7a0ff","role":"高速飞越 · 弹射攻击","counter":"飞越前排骚扰后排，攻击弹射 3 个目标","skills":{"chain_attack":{"bounces":2,"falloff":0.33,"radius":50}}},
-  "infestor": {"name":"感染虫","symbol":"I","race":"zerg","status":"stub","pending":["delayed_area"],"requires":["hydralisk"],"sc2":"感染虫 Infestor","cost":200,"hp":245,"armor_type":"heavy","armor":0,"damage":0,"interval":1,"range":252,"speed":36,"splash":0,"color":"9fd07a","role":"真菌增生 · 区域定身","counter":"定身一片地空单位并造成伤害；本体无攻击","skills":{"delayed_area":{"damage":90,"delay":0,"radius":63,"cooldown":10,"root_seconds":2.85}},"layer":"ground","target_layers":["ground","air"]},
-  "ultralisk": {"name":"雷兽","symbol":"W","race":"zerg","status":"ready","requires":["roach"],"sc2":"雷兽 Ultralisk","cost":350,"hp":1350,"armor_type":"special","armor":6,"damage":105,"interval":0.61,"range":30,"speed":47,"splash":40,"color":"e0b8a0","role":"巨型前排 · 顺劈","counter":"高护甲、近战溅射；怕风筝与空军","layer":"ground","target_layers":["ground"]},
-  "brood_lord": {"name":"巢虫领主","symbol":"Q","race":"zerg","status":"stub","pending":["summon"],"requires":["mutalisk"],"sc2":"巢虫领主 Brood Lord","cost":350,"hp":610,"armor_type":"heavy","armor":3,"layer":"air","target_layers":["ground"],"damage":60,"interval":1.79,"range":280,"speed":22,"splash":0,"color":"a080d0","role":"远程空投 · 召唤巢虫","counter":"每次命中生成临时巢虫；怕对空","skills":{"summon":{"kind":"broodling","on":"hit","count":1,"lifetime":5.7}}},
-
-  "vanguard": {"name":"先锋","symbol":"G","race":"protoss","status":"ready","pending":["charge"],"sc2":"狂热者 Zealot","cost":100,"hp":270,"shield":135,"armor_type":"light","armor":3,"damage":48,"interval":0.86,"range":22,"speed":36,"splash":0,"color":"7ed8ed","role":"护盾近战 · 前排冲锋","counter":"护盾先吸收伤害，脱战回盾；怕风筝与喷火","layer":"ground","target_layers":["ground"]},
-  "stalker": {"name":"追猎者","symbol":"S","race":"protoss","status":"ready","pending":["blink"],"sc2":"追猎者 Stalker","cost":150,"hp":215,"shield":215,"armor_type":"heavy","armor":3,"damage":39,"bonus":{"heavy":15},"interval":1.34,"range":168,"speed":47,"splash":0,"color":"8fb8ff","role":"中排机动 · 对空对地","counter":"地空皆可，略克重甲；单发低，怕轻甲海","layer":"ground","target_layers":["ground","air"]},
-  "sentry": {"name":"哨兵","symbol":"E","race":"protoss","status":"stub","pending":["aura"],"requires":["stalker"],"sc2":"哨兵 Sentry（守护盾）","cost":125,"hp":110,"shield":110,"armor_type":"light","armor":3,"damage":18,"interval":0.71,"range":140,"speed":36,"splash":0,"color":"a0f0f0","role":"守护光环 · 远程减伤","counter":"附近友军受远程伤害降低","skills":{"aura":{"radius":126,"ranged_damage_reduction":6}},"layer":"ground","target_layers":["ground","air"]},
-  "immortal": {"name":"不朽者","symbol":"M","race":"protoss","status":"ready","pending":["barrier"],"requires":["stalker"],"sc2":"不朽者 Immortal","cost":250,"hp":540,"shield":270,"armor_type":"heavy","armor":3,"damage":60,"bonus":{"heavy":90},"interval":1.04,"range":168,"speed":36,"splash":0,"color":"f0d070","role":"反重甲 · 坚固前排","counter":"重击重甲单位；怕轻甲海与空军","layer":"ground","target_layers":["ground"]},
-  "high_templar": {"name":"高阶圣堂武士","symbol":"H","race":"protoss","status":"stub","pending":["delayed_area"],"requires":["sentry"],"sc2":"高阶圣堂武士 High Templar","cost":200,"hp":110,"shield":110,"armor_type":"light","armor":0,"damage":0,"interval":1,"range":252,"speed":30,"splash":0,"color":"c0a0ff","role":"灵能风暴 · 区域持续伤害","counter":"风暴持续伤害一片；自身极脆","skills":{"delayed_area":{"damage":240,"delay":0,"duration":2.85,"radius":42,"cooldown":10}},"layer":"ground","target_layers":["ground","air"]},
-  "archon": {"name":"执政官","symbol":"R","race":"protoss","status":"ready","requires":["high_templar"],"sc2":"执政官 Archon","cost":350,"hp":30,"shield":945,"armor_type":"special","armor":0,"damage":75,"interval":1.25,"range":84,"speed":45,"splash":28,"color":"b0d8ff","role":"能量巨像 · 短程溅射","counter":"几乎全是护盾，地空溅射；特殊甲不吃克制加成","layer":"ground","target_layers":["ground","air"]},
-  "colossus": {"name":"巨像","symbol":"C","race":"protoss","status":"ready","requires":["immortal"],"sc2":"巨像 Colossus","cost":250,"hp":540,"shield":405,"armor_type":"heavy","armor":3,"damage":30,"bonus":{"light":15},"interval":1.07,"range":252,"speed":36,"splash":0,"color":"ffd580","role":"双束扫射 · 横向伤害","counter":"克制横排轻甲；怕反重甲与对空武器","skills":{"line_attack":{"pattern":"transverse","length":180,"speed":180,"half_width":14,"effect":"beam"},"multi_attack":{"count":2}},"layer":"ground","target_layers":["ground"]},
-  "disruptor": {"name":"干扰者","symbol":"D","race":"protoss","status":"stub","pending":["delayed_area"],"requires":["immortal"],"sc2":"干扰者 Disruptor","cost":300,"hp":270,"shield":270,"armor_type":"heavy","armor":3,"damage":0,"interval":1,"range":364,"speed":36,"splash":0,"color":"e0e0ff","role":"净化新星 · 延迟巨量范围","counter":"延迟后巨量范围伤害，长冷却；可被躲开","skills":{"delayed_area":{"damage":435,"delay":2.1,"radius":42,"cooldown":21}},"layer":"ground","target_layers":["ground"]},
-  "void_ray": {"name":"虚空辉光舰","symbol":"V","race":"protoss","status":"ready","pending":["ramp_damage"],"requires":["stalker"],"sc2":"虚空辉光舰 Void Ray","cost":250,"hp":405,"shield":270,"armor_type":"heavy","armor":0,"layer":"air","target_layers":["ground","air"],"damage":18,"bonus":{"heavy":12},"interval":0.36,"range":168,"speed":44,"splash":0,"color":"c8b0ff","role":"持续光束 · 克重甲","counter":"高频照射重甲；怕专职对空","skills":{"ramp_damage":{"per_second":0.2,"max_multiplier":2.0}}},
-  "carrier": {"name":"航母","symbol":"A","race":"protoss","status":"stub","pending":["summon"],"requires":["void_ray"],"sc2":"航母 Carrier","cost":450,"hp":810,"shield":405,"armor_type":"special","armor":6,"layer":"air","target_layers":["ground","air"],"damage":0,"interval":1,"range":224,"speed":30,"splash":0,"color":"f0e0b0","role":"母舰 · 放出拦截机","counter":"拦截机替它作战；本体无攻击","skills":{"summon":{"kind":"interceptor","on":"timer","count":8,"interval":1.0}}},
-
-  "swarm": {"name":"蜂群兵","symbol":"W","race":"blight","status":"ready","sc2":"跳虫 Zergling（高速）","cost":50,"hp":90,"armor_type":"light","armor":0,"damage":15,"interval":0.55,"range":22,"speed":65,"splash":0,"color":"dc9af2","role":"快速近战 · 数量包围","counter":"克制孤立后排；怕溅射与喷火","layer":"ground","target_layers":["ground"]},
-  "rotling": {"name":"腐仆","symbol":"r","race":"blight","status":"stub","pending":["spawn_count"],"sc2":"巢虫 Broodling","cost":50,"hp":55,"armor_type":"none","armor":0,"damage":12,"interval":0.46,"range":22,"speed":40,"splash":0,"color":"9ccf6a","role":"廉价尸潮 · 一格多只","counter":"一格出多只；单只极弱","layer":"ground","target_layers":["ground"]},
-  "splitter": {"name":"分裂尸","symbol":"s","race":"blight","status":"stub","pending":["on_death"],"requires":["rotling"],"sc2":"原创","cost":75,"hp":200,"armor_type":"light","armor":0,"damage":18,"interval":0.8,"range":22,"speed":34,"splash":0,"color":"b4d878","role":"死亡分裂 · 消耗","counter":"死亡时分裂成 2 只腐仆","skills":{"on_death":{"summon":"rotling","count":2}},"layer":"ground","target_layers":["ground"]},
-  "bloater": {"name":"膨胀者","symbol":"b","race":"blight","status":"stub","pending":["on_death","dot"],"requires":["rotling"],"sc2":"感染人族 / 毒爆虫","cost":75,"hp":270,"armor_type":"light","armor":0,"damage":15,"interval":1,"range":22,"speed":26,"splash":0,"color":"8fbf50","role":"慢速肉盾 · 死后毒云","counter":"死亡留下腐毒云，持续伤害","skills":{"on_death":{"area":{"radius":50,"dot":{"per_second":15,"duration":4}}}},"layer":"ground","target_layers":["ground"]},
-  "spitter": {"name":"喷吐者","symbol":"p","race":"blight","status":"ready","pending":["dot"],"requires":["rotling"],"sc2":"弱化刺蛇","cost":75,"hp":150,"armor_type":"light","armor":0,"damage":21,"bonus":{"heavy":9},"interval":0.8,"range":140,"speed":34,"splash":0,"color":"c0e070","role":"中排酸液 · 对空对地","counter":"酸液略克重甲，地空皆可；身板脆","skills":{"dot":{"per_second":6,"duration":3,"max_stacks":3}},"layer":"ground","target_layers":["ground","air"]},
-  "fly_swarm": {"name":"腐蝇群","symbol":"f","race":"blight","status":"ready","pending":["spawn_count"],"requires":["spitter"],"sc2":"蝗虫 Locust（飞行）","cost":75,"hp":135,"armor_type":"light","armor":0,"layer":"air","target_layers":["ground","air"],"damage":15,"interval":0.6,"range":56,"speed":50,"splash":0,"color":"d0e890","role":"飞行骚扰 · 地空皆可","counter":"便宜的空中骚扰；怕对空溅射"},
-  "spore_drifter": {"name":"孢子漂浮体","symbol":"o","race":"blight","status":"ready","pending":["on_death"],"requires":["fly_swarm"],"sc2":"孢子爬虫 Spore Crawler","cost":100,"hp":300,"armor_type":"light","armor":0,"layer":"air","target_layers":["air"],"attacks_base":false,"damage":30,"interval":0.86,"range":196,"splash":30,"speed":26,"color":"e0f0a0","role":"对空溅射 · 漂浮炮台","counter":"专职对空溅射；不能对地","skills":{"on_death":{"area":{"radius":40,"dot":{"per_second":10,"duration":3}}}}},
-  "abomination": {"name":"缝合巨尸","symbol":"a","race":"blight","status":"ready","requires":["splitter"],"sc2":"低配雷兽","cost":175,"hp":900,"armor_type":"heavy","armor":3,"damage":45,"interval":1.0,"range":26,"speed":28,"splash":30,"color":"a8c070","role":"高血肉盾 · 顺劈再生","counter":"慢速高血、近战溅射、脱战再生；怕反重甲与风筝","skills":{"regen":{"delay":5,"per_second":8}},"layer":"ground","target_layers":["ground"]},
-  "plague_herald": {"name":"瘟疫使者","symbol":"h","race":"blight","status":"stub","pending":["aura","dot"],"requires":["bloater"],"sc2":"原创","cost":125,"hp":200,"armor_type":"light","armor":0,"damage":0,"interval":1,"range":140,"speed":30,"splash":0,"color":"7fa040","role":"瘟疫光环 · 持续掉血","counter":"周围敌人持续掉血，友军攻速提高","skills":{"aura":{"radius":120,"enemy_dot_per_second":6,"ally_attack_rate":1.2}},"layer":"ground","target_layers":["ground"]},
-  "gravedigger": {"name":"掘墓人","symbol":"g","race":"blight","status":"stub","pending":["corpse_raise"],"requires":["plague_herald"],"sc2":"原创","cost":125,"hp":200,"armor_type":"light","armor":0,"damage":0,"interval":1,"range":140,"speed":30,"splash":0,"color":"90a870","role":"尸体复生 · 临时腐仆","counter":"附近单位死亡时有几率复生为临时腐仆","skills":{"corpse_raise":{"radius":140,"chance":0.35,"summon":"rotling","lifetime":15}},"layer":"ground","target_layers":["ground"]},
-  "brood_mother": {"name":"腐化之母","symbol":"m","race":"blight","status":"stub","pending":["summon"],"requires":["abomination"],"sc2":"虫群宿主 Swarm Host","cost":250,"hp":430,"armor_type":"heavy","armor":3,"damage":0,"interval":1,"range":0,"speed":30,"splash":0,"color":"b0d060","role":"周期召唤 · 腐仆冲锋","counter":"周期生成一批临时腐仆","skills":{"summon":{"kind":"rotling","on":"timer","count":3,"interval":15,"lifetime":10}},"layer":"ground","target_layers":["ground"]},
-
-  "gate_tower": {"name":"门口防御塔","symbol":"G","race":"neutral","cost":0,"structure":true,"hp":2500,"armor_type":"heavy","armor":3,"target_layers":["ground","air"],"attacks_base":false,"damage":45,"interval":1.0,"range":220,"speed":0,"splash":0,"color":"9fd8ff","role":"基地门口 · 强力单体","counter":"被摧毁后基地再无还手能力"},
-  "treasury": {"name":"宝库","symbol":"T","race":"neutral","cost":0,"structure":true,"hp":800,"armor_type":"heavy","armor":3,"target_layers":["ground","air"],"attacks_base":false,"damage":10,"interval":1.0,"range":120,"speed":0,"splash":0,"color":"f5c542","role":"战场宝库 · 反击很弱","counter":"被摧毁时攻击方获得矿物奖励"},
-  "tower": {"name":"防御塔","symbol":"D","race":"neutral","cost":500,"structure":true,"hp":1500,"armor_type":"heavy","armor":3,"target_layers":["ground","air"],"attacks_base":false,"damage":70,"interval":1.2,"range":240,"speed":0,"splash":0,"color":"b8a1ff","role":"玩家建造 · 前期火力强","counter":"单体攻击，敌军数量多时作用下降；被摧毁不给奖励"}
+  "rifle": {
+   "name": "步枪兵",
+   "symbol": "R",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "陆战队员 Marine",
+   "cost": 75,
+   "hp": 120,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 18,
+   "interval": 0.61,
+   "range": 5,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "75e0ac",
+   "role": "中排主力 · 对空对地",
+   "counter": "数量多、能对空；怕溅射与反轻甲",
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    0.8,
+    0.8
+   ],
+   "spawn_count": 4
+  },
+  "hellbat": {
+   "name": "恶火",
+   "symbol": "F",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "恶蝠 Hellbat",
+   "cost": 100,
+   "hp": 365,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 54,
+   "bonus": {
+    "light": 36
+   },
+   "interval": 1.43,
+   "range": 2.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "ff9f5a",
+   "role": "前排喷火 · 克轻甲",
+   "counter": "短程直线喷火，克密集轻甲；怕远程与重甲",
+   "skills": {
+    "line_attack": {
+     "pattern": "forward",
+     "length": 2.5,
+     "speed": 15.0,
+     "half_width": 0.8571,
+     "effect": "flame"
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1.2,
+    1.2
+   ],
+   "spawn_count": 1
+  },
+  "marauder": {
+   "name": "劫掠者",
+   "symbol": "L",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "掠夺者 Marauder",
+   "cost": 140,
+   "hp": 340,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 30,
+   "bonus": {
+    "heavy": 30
+   },
+   "interval": 1.07,
+   "range": 6.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "c39be8",
+   "role": "强化突击 · 命中减速",
+   "counter": "克重甲；强化剂消耗生命；怕轻甲海",
+   "skills": {
+    "stimulant": {
+     "health_cost_ratio": 0.15,
+     "duration": 20,
+     "attack_multiplier": 1.3,
+     "speed_multiplier": 1.5
+    },
+    "on_hit_slow": {
+     "speed_multiplier": 0.5,
+     "duration": 2
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1.2,
+    1.2
+   ],
+   "spawn_count": 1
+  },
+  "medic": {
+   "name": "医疗兵",
+   "symbol": "H",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "医疗兵 Medic（母巢之战）",
+   "cost": 125,
+   "hp": 160,
+   "armor_type": "light",
+   "armor": 3,
+   "damage": 0,
+   "interval": 0.5,
+   "range": 5.7143,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "85efd9",
+   "role": "后排治疗 · 跟随友军",
+   "counter": "治疗受伤友军（不回护盾）；无攻击能力，怕突袭",
+   "skills": {
+    "healing": {
+     "heal": 12,
+     "follow_distance": 3.2143,
+     "danger_distance": 3.5714
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "agent": {
+   "name": "特工",
+   "symbol": "A",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "幽灵 Ghost + 旋风 Cyclone",
+   "cost": 150,
+   "hp": 270,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 30,
+   "bonus": {
+    "heavy": 60
+   },
+   "interval": 1.5,
+   "range": 8.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "a8b5ff",
+   "role": "远程狙击 · 按护甲换弹",
+   "counter": "穿甲弹打重甲、狙击弹打轻甲；换弹 1.5 秒不能开火",
+   "skills": {
+    "weapon_switch": {
+     "switch_seconds": 1.5,
+     "weapons": [
+      {
+       "id": "armor_piercing",
+       "label": "穿甲弹",
+       "damage": 30,
+       "bonus": {
+        "heavy": 60
+       },
+       "interval": 1.5
+      },
+      {
+       "id": "precision",
+       "label": "狙击弹",
+       "damage": 30,
+       "bonus": {
+        "light": 30
+       },
+       "interval": 1.07
+      }
+     ]
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "widow_mine": {
+   "name": "寡妇雷",
+   "symbol": "X",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "寡妇雷 Widow Mine",
+   "cost": 75,
+   "hp": 245,
+   "armor_type": "light",
+   "armor": 3,
+   "damage": 375,
+   "interval": 29,
+   "range": 5.0,
+   "speed": 2.8125,
+   "splash": 1.75,
+   "color": "e8e27a",
+   "role": "埋地伏击 · 一发大范围",
+   "counter": "埋地后单发重伤一片；冷却很长，怕分散与先手清除",
+   "skills": {
+    "deployment": {
+     "deploy_seconds": 0.71,
+     "pack_seconds": 0.71,
+     "deploy_enemy_threshold": 1,
+     "scan_seconds": 0.5,
+     "hold_range_multiplier": 1.2,
+     "mode": "burrow"
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "mortar": {
+   "name": "攻城坦克",
+   "symbol": "M",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "攻城坦克 Siege Tank（攻城模式）",
+   "cost": 150,
+   "hp": 475,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 120,
+   "bonus": {
+    "heavy": 90
+   },
+   "interval": 2.14,
+   "range": 11,
+   "speed": 2.25,
+   "splash": 2.5,
+   "color": "ff8378",
+   "role": "架设重炮 · 远程溅射",
+   "counter": "坦克架设后射程 11；收放时无法开火",
+   "skills": {
+    "deployment": {
+     "deploy_seconds": 1.5,
+     "pack_seconds": 1.0,
+     "deploy_enemy_threshold": 2,
+     "scan_seconds": 0.5,
+     "hold_range_multiplier": 1.2,
+     "mode": "siege"
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    2,
+    2
+   ],
+   "spawn_count": 1
+  },
+  "viking": {
+   "name": "维京",
+   "symbol": "K",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "维京战机 Viking（战斗机模式）",
+   "cost": 150,
+   "hp": 365,
+   "armor_type": "heavy",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 60,
+   "bonus": {
+    "heavy": 24
+   },
+   "interval": 1.43,
+   "range": 9.0,
+   "speed": 2.75,
+   "splash": 0.0,
+   "color": "9cc4ff",
+   "role": "远程对空 · 专打重甲空军",
+   "counter": "射程最远的对空；不能对地、不能打基地",
+   "size": [
+    1.5,
+    1.5
+   ],
+   "spawn_count": 1
+  },
+  "liberator": {
+   "name": "解放者",
+   "symbol": "V",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "解放者 Liberator",
+   "cost": 300,
+   "hp": 485,
+   "armor_type": "heavy",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 30,
+   "interval": 1.29,
+   "range": 5.0,
+   "speed": 3.38,
+   "splash": 1.5,
+   "color": "f2dc79",
+   "role": "扇形防卫 · 对地重击",
+   "counter": "架设后朝敌方展开 40° 扇形，半径 8；不能攻击建筑",
+   "skills": {
+    "defender_zone": {
+     "deploy_seconds": 2.9,
+     "pack_seconds": 1.5,
+     "deploy_enemy_threshold": 2,
+     "scan_seconds": 0.5,
+     "hold_range_multiplier": 1.2,
+     "mode": "defender",
+     "weapon": {
+      "target_layers": [
+       "ground"
+      ],
+      "attacks_base": false,
+      "damage": 225,
+      "interval": 1.14,
+      "range": 8,
+      "splash": 0.0
+     },
+     "shape": "sector",
+     "angle_degrees": 40
+    }
+   },
+   "size": [
+    2,
+    2
+   ],
+   "spawn_count": 1
+  },
+  "thor": {
+   "name": "雷神",
+   "symbol": "T",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "雷神 Thor",
+   "cost": 400,
+   "hp": 1080,
+   "armor_type": "special",
+   "armor": 3,
+   "damage": 180,
+   "interval": 0.91,
+   "range": 11,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "d9c3a0",
+   "role": "远程防空 · 重甲杀手",
+   "counter": "优先对空；重甲用单体高爆，轻甲空军成群时切溅射",
+   "skills": {
+    "weapon_switch": {
+     "switch_seconds": 0.5,
+     "policy": "air_superiority",
+     "preferred_layer": "air",
+     "light_air_threshold": 3,
+     "cluster_radius": 2.5,
+     "default_index": 0,
+     "weapons": [
+      {
+       "id": "high_impact",
+       "label": "高爆对空炮",
+       "target_layers": [
+        "air"
+       ],
+       "attacks_base": false,
+       "damage": 72,
+       "bonus": {
+        "heavy": 72
+       },
+       "interval": 1.43,
+       "range": 11,
+       "splash": 0
+      },
+      {
+       "id": "javelin",
+       "label": "轻甲溅射导弹",
+       "target_layers": [
+        "air"
+       ],
+       "attacks_base": false,
+       "damage": 72,
+       "bonus": {
+        "light": 72
+       },
+       "interval": 2.14,
+       "range": 10,
+       "splash": 2
+      },
+      {
+       "id": "hammer",
+       "label": "雷霆重炮",
+       "target_layers": [
+        "ground"
+       ],
+       "attacks_base": true,
+       "damage": 180,
+       "interval": 0.91,
+       "range": 7,
+       "splash": 0
+      }
+     ]
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    2.5,
+    2.5
+   ],
+   "spawn_count": 1
+  },
+  "zergling": {
+   "name": "跳虫",
+   "symbol": "Z",
+   "race": "zerg",
+   "status": "ready",
+   "sc2": "跳虫 Zergling",
+   "cost": 50,
+   "hp": 95,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 15,
+   "interval": 0.5,
+   "range": 0.7857,
+   "speed": 2.9375,
+   "splash": 0.0,
+   "color": "e39bd0",
+   "role": "高速近战 · 数量包围",
+   "counter": "便宜快速，包围后排；怕溅射与喷火",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "baneling": {
+   "name": "毒爆虫",
+   "symbol": "B",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "suicide"
+   ],
+   "requires": [
+    "zergling"
+   ],
+   "sc2": "毒爆虫 Baneling",
+   "cost": 75,
+   "hp": 80,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 48,
+   "bonus": {
+    "light": 57
+   },
+   "interval": 1,
+   "range": 0.7857,
+   "speed": 2.5,
+   "splash": 2.2143,
+   "color": "a6e86b",
+   "role": "自爆冲锋 · 克轻甲",
+   "counter": "冲入敌群自爆；怕远程先手",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "roach": {
+   "name": "蟑螂",
+   "symbol": "O",
+   "race": "zerg",
+   "status": "ready",
+   "sc2": "蟑螂 Roach",
+   "cost": 100,
+   "hp": 390,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 48,
+   "interval": 1.43,
+   "range": 4.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "c98a5e",
+   "role": "耐打前排 · 脱战回血",
+   "counter": "脱战 3 秒后快速回血；怕反重甲",
+   "skills": {
+    "regen": {
+     "delay": 3,
+     "per_second": 20
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "hydralisk": {
+   "name": "刺蛇",
+   "symbol": "Y",
+   "race": "zerg",
+   "status": "ready",
+   "sc2": "刺蛇 Hydralisk",
+   "cost": 150,
+   "hp": 245,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 36,
+   "interval": 0.59,
+   "range": 6.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "d87ec4",
+   "role": "中排高输出 · 对空对地",
+   "counter": "高 DPS、能对空；身板脆，怕溅射",
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "ravager": {
+   "name": "破坏者",
+   "symbol": "J",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "delayed_area"
+   ],
+   "requires": [
+    "roach"
+   ],
+   "sc2": "破坏者 Ravager",
+   "cost": 150,
+   "hp": 325,
+   "armor_type": "light",
+   "armor": 3,
+   "damage": 48,
+   "interval": 1.14,
+   "range": 6.0,
+   "speed": 2.75,
+   "splash": 0.0,
+   "color": "f07a5a",
+   "role": "腐蚀胆汁 · 延迟范围",
+   "counter": "胆汁能打建筑与静止单位；可被躲开",
+   "skills": {
+    "delayed_area": {
+     "damage": 180,
+     "delay": 2.5,
+     "radius": 1.0,
+     "cooldown": 7,
+     "range": 9.0
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "piercer": {
+   "name": "穿刺者",
+   "symbol": "P",
+   "race": "zerg",
+   "status": "ready",
+   "requires": [
+    "hydralisk"
+   ],
+   "sc2": "潜伏者 Lurker",
+   "cost": 175,
+   "hp": 515,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 60,
+   "bonus": {
+    "heavy": 30
+   },
+   "interval": 1.43,
+   "range": 8.0,
+   "speed": 2.9375,
+   "splash": 0.0,
+   "color": "d6a1f4",
+   "role": "埋地穿刺 · 直线伤害",
+   "counter": "克制纵列敌军；怕分散与远程炮击",
+   "skills": {
+    "deployment": {
+     "deploy_seconds": 1.0,
+     "pack_seconds": 0.75,
+     "deploy_enemy_threshold": 2,
+     "scan_seconds": 0.5,
+     "hold_range_multiplier": 1.2,
+     "mode": "burrow"
+    },
+    "line_attack": {
+     "pattern": "forward",
+     "speed": 9.2857,
+     "half_width": 0.5,
+     "effect": "spike"
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "tunneler": {
+   "name": "钻地兽",
+   "symbol": "U",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "dive"
+   ],
+   "requires": [
+    "roach"
+   ],
+   "sc2": "埋地移动的蟑螂（概念）",
+   "cost": 150,
+   "hp": 390,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 48,
+   "interval": 1.43,
+   "range": 4.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "b07850",
+   "role": "钻地突入 · 打后排",
+   "counter": "潜行穿过前排，优先攻击射程最远的敌人",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "mutalisk": {
+   "name": "飞龙",
+   "symbol": "N",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "chain_attack",
+    "dive"
+   ],
+   "requires": [
+    "hydralisk"
+   ],
+   "sc2": "飞龙 Mutalisk",
+   "cost": 175,
+   "hp": 325,
+   "armor_type": "light",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "damage": 27,
+   "interval": 1.09,
+   "range": 3.0,
+   "speed": 4.0,
+   "splash": 0.0,
+   "color": "c7a0ff",
+   "role": "高速飞越 · 弹射攻击",
+   "counter": "飞越前排骚扰后排，攻击弹射 3 个目标",
+   "skills": {
+    "chain_attack": {
+     "bounces": 2,
+     "falloff": 0.33,
+     "radius": 1.7857
+    }
+   },
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "infestor": {
+   "name": "感染虫",
+   "symbol": "I",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "delayed_area"
+   ],
+   "requires": [
+    "hydralisk"
+   ],
+   "sc2": "感染虫 Infestor",
+   "cost": 200,
+   "hp": 245,
+   "armor_type": "heavy",
+   "armor": 0,
+   "damage": 0,
+   "interval": 1,
+   "range": 9.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "9fd07a",
+   "role": "真菌增生 · 区域定身",
+   "counter": "定身一片地空单位并造成伤害；本体无攻击",
+   "skills": {
+    "delayed_area": {
+     "damage": 90,
+     "delay": 0,
+     "radius": 2.25,
+     "cooldown": 10,
+     "root_seconds": 2.85
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "ultralisk": {
+   "name": "雷兽",
+   "symbol": "W",
+   "race": "zerg",
+   "status": "ready",
+   "requires": [
+    "roach"
+   ],
+   "sc2": "雷兽 Ultralisk",
+   "cost": 350,
+   "hp": 1350,
+   "armor_type": "special",
+   "armor": 6,
+   "damage": 105,
+   "interval": 0.61,
+   "range": 1.0714,
+   "speed": 2.9375,
+   "splash": 1.4286,
+   "color": "e0b8a0",
+   "role": "巨型前排 · 顺劈",
+   "counter": "高护甲、近战溅射；怕风筝与空军",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    2.5,
+    2.5
+   ],
+   "spawn_count": 1
+  },
+  "brood_lord": {
+   "name": "巢虫领主",
+   "symbol": "Q",
+   "race": "zerg",
+   "status": "stub",
+   "pending": [
+    "summon"
+   ],
+   "requires": [
+    "mutalisk"
+   ],
+   "sc2": "巢虫领主 Brood Lord",
+   "cost": 350,
+   "hp": 610,
+   "armor_type": "heavy",
+   "armor": 3,
+   "layer": "air",
+   "target_layers": [
+    "ground"
+   ],
+   "damage": 60,
+   "interval": 1.79,
+   "range": 10.0,
+   "speed": 1.375,
+   "splash": 0.0,
+   "color": "a080d0",
+   "role": "远程空投 · 召唤巢虫",
+   "counter": "每次命中生成临时巢虫；怕对空",
+   "skills": {
+    "summon": {
+     "kind": "broodling",
+     "on": "hit",
+     "count": 1,
+     "lifetime": 5.7
+    }
+   },
+   "size": [
+    2.5,
+    2.5
+   ],
+   "spawn_count": 1
+  },
+  "vanguard": {
+   "name": "先锋",
+   "symbol": "G",
+   "race": "protoss",
+   "status": "ready",
+   "pending": [
+    "charge"
+   ],
+   "sc2": "狂热者 Zealot",
+   "cost": 100,
+   "hp": 270,
+   "shield": 135,
+   "armor_type": "light",
+   "armor": 3,
+   "damage": 48,
+   "interval": 0.86,
+   "range": 0.7857,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "7ed8ed",
+   "role": "护盾近战 · 前排冲锋",
+   "counter": "护盾先吸收伤害，脱战回盾；怕风筝与喷火",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "stalker": {
+   "name": "追猎者",
+   "symbol": "S",
+   "race": "protoss",
+   "status": "ready",
+   "pending": [
+    "blink"
+   ],
+   "sc2": "追猎者 Stalker",
+   "cost": 150,
+   "hp": 215,
+   "shield": 215,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 39,
+   "bonus": {
+    "heavy": 15
+   },
+   "interval": 1.34,
+   "range": 6.0,
+   "speed": 2.9375,
+   "splash": 0.0,
+   "color": "8fb8ff",
+   "role": "中排机动 · 对空对地",
+   "counter": "地空皆可，略克重甲；单发低，怕轻甲海",
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "sentry": {
+   "name": "哨兵",
+   "symbol": "E",
+   "race": "protoss",
+   "status": "stub",
+   "pending": [
+    "aura"
+   ],
+   "requires": [
+    "stalker"
+   ],
+   "sc2": "哨兵 Sentry（守护盾）",
+   "cost": 125,
+   "hp": 110,
+   "shield": 110,
+   "armor_type": "light",
+   "armor": 3,
+   "damage": 18,
+   "interval": 0.71,
+   "range": 5.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "a0f0f0",
+   "role": "守护光环 · 远程减伤",
+   "counter": "附近友军受远程伤害降低",
+   "skills": {
+    "aura": {
+     "radius": 4.5,
+     "ranged_damage_reduction": 6
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "immortal": {
+   "name": "不朽者",
+   "symbol": "M",
+   "race": "protoss",
+   "status": "ready",
+   "pending": [
+    "barrier"
+   ],
+   "requires": [
+    "stalker"
+   ],
+   "sc2": "不朽者 Immortal",
+   "cost": 250,
+   "hp": 540,
+   "shield": 270,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 60,
+   "bonus": {
+    "heavy": 90
+   },
+   "interval": 1.04,
+   "range": 6.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "f0d070",
+   "role": "反重甲 · 坚固前排",
+   "counter": "重击重甲单位；怕轻甲海与空军",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1.8,
+    1.8
+   ],
+   "spawn_count": 1
+  },
+  "high_templar": {
+   "name": "高阶圣堂武士",
+   "symbol": "H",
+   "race": "protoss",
+   "status": "stub",
+   "pending": [
+    "delayed_area"
+   ],
+   "requires": [
+    "sentry"
+   ],
+   "sc2": "高阶圣堂武士 High Templar",
+   "cost": 200,
+   "hp": 110,
+   "shield": 110,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 0,
+   "interval": 1,
+   "range": 9.0,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "c0a0ff",
+   "role": "灵能风暴 · 区域持续伤害",
+   "counter": "风暴持续伤害一片；自身极脆",
+   "skills": {
+    "delayed_area": {
+     "damage": 240,
+     "delay": 0,
+     "duration": 2.85,
+     "radius": 1.5,
+     "cooldown": 10
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "archon": {
+   "name": "执政官",
+   "symbol": "R",
+   "race": "protoss",
+   "status": "ready",
+   "requires": [
+    "high_templar"
+   ],
+   "sc2": "执政官 Archon",
+   "cost": 350,
+   "hp": 30,
+   "shield": 945,
+   "armor_type": "special",
+   "armor": 0,
+   "damage": 75,
+   "interval": 1.25,
+   "range": 3.0,
+   "speed": 2.8125,
+   "splash": 1.0,
+   "color": "b0d8ff",
+   "role": "能量巨像 · 短程溅射",
+   "counter": "几乎全是护盾，地空溅射；特殊甲不吃克制加成",
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1.6,
+    1.6
+   ],
+   "spawn_count": 1
+  },
+  "colossus": {
+   "name": "巨像",
+   "symbol": "C",
+   "race": "protoss",
+   "status": "ready",
+   "requires": [
+    "immortal"
+   ],
+   "sc2": "巨像 Colossus",
+   "cost": 250,
+   "hp": 540,
+   "shield": 405,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 30,
+   "bonus": {
+    "light": 15
+   },
+   "interval": 1.07,
+   "range": 9.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "ffd580",
+   "role": "双束扫射 · 横向伤害",
+   "counter": "克制横排轻甲；怕反重甲与对空武器",
+   "skills": {
+    "line_attack": {
+     "pattern": "transverse",
+     "length": 6.4286,
+     "speed": 6.4286,
+     "half_width": 0.5,
+     "effect": "beam"
+    },
+    "multi_attack": {
+     "count": 2
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    2.5,
+    2.5
+   ],
+   "spawn_count": 1
+  },
+  "disruptor": {
+   "name": "干扰者",
+   "symbol": "D",
+   "race": "protoss",
+   "status": "stub",
+   "pending": [
+    "delayed_area"
+   ],
+   "requires": [
+    "immortal"
+   ],
+   "sc2": "干扰者 Disruptor",
+   "cost": 300,
+   "hp": 270,
+   "shield": 270,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 0,
+   "interval": 1,
+   "range": 13.0,
+   "speed": 2.25,
+   "splash": 0.0,
+   "color": "e0e0ff",
+   "role": "净化新星 · 延迟巨量范围",
+   "counter": "延迟后巨量范围伤害，长冷却；可被躲开",
+   "skills": {
+    "delayed_area": {
+     "damage": 435,
+     "delay": 2.1,
+     "radius": 1.5,
+     "cooldown": 21
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "void_ray": {
+   "name": "虚空辉光舰",
+   "symbol": "V",
+   "race": "protoss",
+   "status": "ready",
+   "pending": [
+    "ramp_damage"
+   ],
+   "requires": [
+    "stalker"
+   ],
+   "sc2": "虚空辉光舰 Void Ray",
+   "cost": 250,
+   "hp": 405,
+   "shield": 270,
+   "armor_type": "heavy",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "damage": 18,
+   "bonus": {
+    "heavy": 12
+   },
+   "interval": 0.36,
+   "range": 6.0,
+   "speed": 2.75,
+   "splash": 0.0,
+   "color": "c8b0ff",
+   "role": "持续光束 · 克重甲",
+   "counter": "高频照射重甲；怕专职对空",
+   "skills": {
+    "ramp_damage": {
+     "per_second": 0.2,
+     "max_multiplier": 2.0
+    }
+   },
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "carrier": {
+   "name": "航母",
+   "symbol": "A",
+   "race": "protoss",
+   "status": "stub",
+   "pending": [
+    "summon"
+   ],
+   "requires": [
+    "void_ray"
+   ],
+   "sc2": "航母 Carrier",
+   "cost": 450,
+   "hp": 810,
+   "shield": 405,
+   "armor_type": "special",
+   "armor": 6,
+   "layer": "air",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "damage": 0,
+   "interval": 1,
+   "range": 8.0,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "f0e0b0",
+   "role": "母舰 · 放出拦截机",
+   "counter": "拦截机替它作战；本体无攻击",
+   "skills": {
+    "summon": {
+     "kind": "interceptor",
+     "on": "timer",
+     "count": 8,
+     "interval": 1.0
+    }
+   },
+   "size": [
+    3,
+    3
+   ],
+   "spawn_count": 1
+  },
+  "swarm": {
+   "name": "蜂群兵",
+   "symbol": "W",
+   "race": "blight",
+   "status": "ready",
+   "sc2": "跳虫 Zergling（高速）",
+   "cost": 50,
+   "hp": 90,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 15,
+   "interval": 0.55,
+   "range": 0.7857,
+   "speed": 3,
+   "splash": 0.0,
+   "color": "dc9af2",
+   "role": "快速近战 · 数量包围",
+   "counter": "克制孤立后排；怕溅射与喷火",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    0.5,
+    0.5
+   ],
+   "spawn_count": 5
+  },
+  "rotling": {
+   "name": "腐仆",
+   "symbol": "r",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "spawn_count"
+   ],
+   "sc2": "巢虫 Broodling",
+   "cost": 50,
+   "hp": 55,
+   "armor_type": "none",
+   "armor": 0,
+   "damage": 12,
+   "interval": 0.46,
+   "range": 0.7857,
+   "speed": 2.5,
+   "splash": 0.0,
+   "color": "9ccf6a",
+   "role": "廉价尸潮 · 一格多只",
+   "counter": "一格出多只；单只极弱",
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "splitter": {
+   "name": "分裂尸",
+   "symbol": "s",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "on_death"
+   ],
+   "requires": [
+    "rotling"
+   ],
+   "sc2": "原创",
+   "cost": 75,
+   "hp": 200,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 18,
+   "interval": 0.8,
+   "range": 0.7857,
+   "speed": 2.125,
+   "splash": 0.0,
+   "color": "b4d878",
+   "role": "死亡分裂 · 消耗",
+   "counter": "死亡时分裂成 2 只腐仆",
+   "skills": {
+    "on_death": {
+     "summon": "rotling",
+     "count": 2
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "bloater": {
+   "name": "膨胀者",
+   "symbol": "b",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "on_death",
+    "dot"
+   ],
+   "requires": [
+    "rotling"
+   ],
+   "sc2": "感染人族 / 毒爆虫",
+   "cost": 75,
+   "hp": 270,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 15,
+   "interval": 1,
+   "range": 0.7857,
+   "speed": 1.625,
+   "splash": 0.0,
+   "color": "8fbf50",
+   "role": "慢速肉盾 · 死后毒云",
+   "counter": "死亡留下腐毒云，持续伤害",
+   "skills": {
+    "on_death": {
+     "area": {
+      "radius": 1.7857,
+      "dot": {
+       "per_second": 15,
+       "duration": 4
+      }
+     }
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "spitter": {
+   "name": "喷吐者",
+   "symbol": "p",
+   "race": "blight",
+   "status": "ready",
+   "pending": [
+    "dot"
+   ],
+   "requires": [
+    "rotling"
+   ],
+   "sc2": "弱化刺蛇",
+   "cost": 75,
+   "hp": 150,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 21,
+   "bonus": {
+    "heavy": 9
+   },
+   "interval": 0.8,
+   "range": 5.0,
+   "speed": 2.125,
+   "splash": 0.0,
+   "color": "c0e070",
+   "role": "中排酸液 · 对空对地",
+   "counter": "酸液略克重甲，地空皆可；身板脆",
+   "skills": {
+    "dot": {
+     "per_second": 6,
+     "duration": 3,
+     "max_stacks": 3
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "fly_swarm": {
+   "name": "腐蝇群",
+   "symbol": "f",
+   "race": "blight",
+   "status": "ready",
+   "pending": [
+    "spawn_count"
+   ],
+   "requires": [
+    "spitter"
+   ],
+   "sc2": "蝗虫 Locust（飞行）",
+   "cost": 75,
+   "hp": 135,
+   "armor_type": "light",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "damage": 15,
+   "interval": 0.6,
+   "range": 2.0,
+   "speed": 3.125,
+   "splash": 0.0,
+   "color": "d0e890",
+   "role": "飞行骚扰 · 地空皆可",
+   "counter": "便宜的空中骚扰；怕对空溅射",
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "spore_drifter": {
+   "name": "孢子漂浮体",
+   "symbol": "o",
+   "race": "blight",
+   "status": "ready",
+   "pending": [
+    "on_death"
+   ],
+   "requires": [
+    "fly_swarm"
+   ],
+   "sc2": "孢子爬虫 Spore Crawler",
+   "cost": 100,
+   "hp": 300,
+   "armor_type": "light",
+   "armor": 0,
+   "layer": "air",
+   "target_layers": [
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 30,
+   "interval": 0.86,
+   "range": 7.0,
+   "splash": 1.0714,
+   "speed": 1.625,
+   "color": "e0f0a0",
+   "role": "对空溅射 · 漂浮炮台",
+   "counter": "专职对空溅射；不能对地",
+   "skills": {
+    "on_death": {
+     "area": {
+      "radius": 1.4286,
+      "dot": {
+       "per_second": 10,
+       "duration": 3
+      }
+     }
+    }
+   },
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "abomination": {
+   "name": "缝合巨尸",
+   "symbol": "a",
+   "race": "blight",
+   "status": "ready",
+   "requires": [
+    "splitter"
+   ],
+   "sc2": "低配雷兽",
+   "cost": 175,
+   "hp": 900,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 45,
+   "interval": 1.0,
+   "range": 0.9286,
+   "speed": 1.75,
+   "splash": 1.0714,
+   "color": "a8c070",
+   "role": "高血肉盾 · 顺劈再生",
+   "counter": "慢速高血、近战溅射、脱战再生；怕反重甲与风筝",
+   "skills": {
+    "regen": {
+     "delay": 5,
+     "per_second": 8
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    2,
+    2
+   ],
+   "spawn_count": 1
+  },
+  "plague_herald": {
+   "name": "瘟疫使者",
+   "symbol": "h",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "aura",
+    "dot"
+   ],
+   "requires": [
+    "bloater"
+   ],
+   "sc2": "原创",
+   "cost": 125,
+   "hp": 200,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 0,
+   "interval": 1,
+   "range": 5.0,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "7fa040",
+   "role": "瘟疫光环 · 持续掉血",
+   "counter": "周围敌人持续掉血，友军攻速提高",
+   "skills": {
+    "aura": {
+     "radius": 4.2857,
+     "enemy_dot_per_second": 6,
+     "ally_attack_rate": 1.2
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "gravedigger": {
+   "name": "掘墓人",
+   "symbol": "g",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "corpse_raise"
+   ],
+   "requires": [
+    "plague_herald"
+   ],
+   "sc2": "原创",
+   "cost": 125,
+   "hp": 200,
+   "armor_type": "light",
+   "armor": 0,
+   "damage": 0,
+   "interval": 1,
+   "range": 5.0,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "90a870",
+   "role": "尸体复生 · 临时腐仆",
+   "counter": "附近单位死亡时有几率复生为临时腐仆",
+   "skills": {
+    "corpse_raise": {
+     "radius": 5.0,
+     "chance": 0.35,
+     "summon": "rotling",
+     "lifetime": 15
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "brood_mother": {
+   "name": "腐化之母",
+   "symbol": "m",
+   "race": "blight",
+   "status": "stub",
+   "pending": [
+    "summon"
+   ],
+   "requires": [
+    "abomination"
+   ],
+   "sc2": "虫群宿主 Swarm Host",
+   "cost": 250,
+   "hp": 430,
+   "armor_type": "heavy",
+   "armor": 3,
+   "damage": 0,
+   "interval": 1,
+   "range": 0.0,
+   "speed": 1.875,
+   "splash": 0.0,
+   "color": "b0d060",
+   "role": "周期召唤 · 腐仆冲锋",
+   "counter": "周期生成一批临时腐仆",
+   "skills": {
+    "summon": {
+     "kind": "rotling",
+     "on": "timer",
+     "count": 3,
+     "interval": 15,
+     "lifetime": 10
+    }
+   },
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "size": [
+    1,
+    1
+   ],
+   "spawn_count": 1
+  },
+  "gate_tower": {
+   "name": "门口防御塔",
+   "symbol": "G",
+   "race": "neutral",
+   "cost": 0,
+   "structure": true,
+   "hp": 2500,
+   "armor_type": "heavy",
+   "armor": 3,
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 45,
+   "interval": 1.0,
+   "range": 7.8571,
+   "speed": 0.0,
+   "splash": 0.0,
+   "color": "9fd8ff",
+   "role": "基地门口 · 强力单体",
+   "counter": "被摧毁后基地再无还手能力",
+   "size": [
+    3,
+    3
+   ],
+   "spawn_count": 1
+  },
+  "treasury": {
+   "name": "宝库",
+   "symbol": "T",
+   "race": "neutral",
+   "cost": 0,
+   "structure": true,
+   "hp": 800,
+   "armor_type": "heavy",
+   "armor": 3,
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 10,
+   "interval": 1.0,
+   "range": 4.2857,
+   "speed": 0.0,
+   "splash": 0.0,
+   "color": "f5c542",
+   "role": "战场宝库 · 反击很弱",
+   "counter": "被摧毁时攻击方获得矿物奖励",
+   "size": [
+    3,
+    3
+   ],
+   "spawn_count": 1
+  },
+  "tower": {
+   "name": "防御塔",
+   "symbol": "D",
+   "race": "neutral",
+   "cost": 500,
+   "structure": true,
+   "hp": 1500,
+   "armor_type": "heavy",
+   "armor": 3,
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 70,
+   "interval": 1.2,
+   "range": 8.5714,
+   "speed": 0.0,
+   "splash": 0.0,
+   "color": "b8a1ff",
+   "role": "玩家建造 · 前期火力强",
+   "counter": "单体攻击，敌军数量多时作用下降；被摧毁不给奖励",
+   "size": [
+    3,
+    3
+   ],
+   "spawn_count": 1
+  }
  }
 }

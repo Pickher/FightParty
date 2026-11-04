@@ -87,3 +87,5 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 产物在已忽略的 build 目录，不提交到源码仓库。安装只需要 APK，不需要旁边的 idsig 文件。此包保持 Mobile/Vulkan，最低 Android API 24 不等同于所有 Android 7.0 手机都能运行，仍需要实际设备验证。
 
 以上命令用于重新构建当前源码；本轮未执行 0.3.1 导出，已有下载页仍为 0.1.4。
+
+当前源码 0.4.0 / Android versionCode 17。本轮未导出 APK，旧战报与旧测试尺度不兼容；验证前先阅读 docs/WORLD_UNITS.md。

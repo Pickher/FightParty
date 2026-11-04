@@ -24,6 +24,11 @@ static func can_act(sim, unit: Dictionary, in_range: bool, base_in_range: bool, 
 			continue
 		if not layers.has(sim.catalog[other.kind].get("layer","ground")):
 			continue
+		if context.has("sector_angle_degrees"):
+			var offset: Vector2 = other.pos-center
+			var direction := Vector2.RIGHT if unit.team==0 else Vector2.LEFT
+			if offset.length_squared()>0.000001 and direction.dot(offset.normalized())<cos(deg_to_rad(float(context.sector_angle_degrees)*0.5)):
+				continue
 		if center.distance_squared_to(other.pos) <= reach * reach:
 			ids.append(other.id)
 		var displacement: Vector2 = motion.get(other.id, Vector2.ZERO)

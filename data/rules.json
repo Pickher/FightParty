@@ -1,22 +1,106 @@
 {
-  "version": "0.3.1", "tick_rate": 20, "wave_seconds": 30,
-  "races": ["terran", "terran"],
-  "min_damage": 0.5, "shield_regen_delay": 7.0, "shield_regen_per_second": 7.5,
-  "start_minerals": 600, "wave_income": 300,
-  "wave_limit": 64, "final_phase_max_seconds": 600,
-  "base_hp": 3000, "unit_lifetime": 0,
-  "structures": true, "treasury_reward": 400, "tower_max_builds": 1,
-  "columns": 18, "rows": 8, "world_width": 1200, "world_height": 400,
+  "version": "0.4.0",
+  "tick_rate": 20,
+  "wave_seconds": 30,
+  "races": [
+    "terran",
+    "terran"
+  ],
+  "min_damage": 0.5,
+  "shield_regen_delay": 7.0,
+  "shield_regen_per_second": 7.5,
+  "start_minerals": 600,
+  "wave_income": 300,
+  "wave_limit": 64,
+  "final_phase_max_seconds": 600,
+  "base_hp": 3000,
+  "unit_lifetime": 0,
+  "structures": true,
+  "treasury_reward": 400,
+  "tower_max_builds": 1,
+  "columns": 18,
+  "rows": 8,
+  "world_width": 800,
+  "world_height": 120,
   "setup_options": {
-    "start_minerals": {"label": "开局资金", "unit": "矿", "choices": [0, 600, 1000], "recommended": 600, "step": 100, "min": 0, "max": 5000},
-    "wave_income": {"label": "每轮收入（每次出兵后）", "unit": "矿", "choices": [100, 300, 500], "recommended": 300, "step": 50, "min": 0, "max": 2000},
-    "wave_seconds": {"label": "出兵间隔", "unit": "秒", "choices": [20, 30, 45], "recommended": 30, "step": 5, "min": 10, "max": 120}
+    "start_minerals": {
+      "label": "开局资金",
+      "unit": "矿",
+      "choices": [
+        0,
+        600,
+        1000
+      ],
+      "recommended": 600,
+      "step": 100,
+      "min": 0,
+      "max": 5000
+    },
+    "wave_income": {
+      "label": "每轮收入（每次出兵后）",
+      "unit": "矿",
+      "choices": [
+        100,
+        300,
+        500
+      ],
+      "recommended": 300,
+      "step": 50,
+      "min": 0,
+      "max": 2000
+    },
+    "wave_seconds": {
+      "label": "出兵间隔",
+      "unit": "秒",
+      "choices": [
+        20,
+        30,
+        45
+      ],
+      "recommended": 30,
+      "step": 5,
+      "min": 10,
+      "max": 120
+    }
   },
-  "race_setup": {"labels": ["我方种族", "电脑种族"], "recommended": ["terran", "random"]},
+  "race_setup": {
+    "labels": [
+      "我方种族",
+      "电脑种族"
+    ],
+    "recommended": [
+      "terran",
+      "random"
+    ]
+  },
   "layout": {
-    "base_x": 30, "base_y": 200, "base_radius": 20,
-    "spawn_x": 140, "spawn_dx": 13, "spawn_y": 32, "spawn_dy": 48,
-    "gate_x": 100, "gate_y": 200, "treasury_x": 420, "treasury_y": 110, "tower_x": 420, "tower_y": 290,
-    "bounds": {"left": 30, "top": 20, "right": 1170, "bottom": 380}
-  }
+    "base_x": 20,
+    "base_y": 60,
+    "base_radius": 4,
+    "gate_x": 26,
+    "gate_y": 60,
+    "treasury_x": 286,
+    "treasury_y": 60,
+    "tower_x": 324,
+    "tower_y": 60,
+    "spawn_x": 240,
+    "spawn_dx": 3.5,
+    "spawn_y": 48.8,
+    "spawn_dy": 3.2,
+    "landmark_ratios": [
+      35,
+      5,
+      20,
+      5,
+      35
+    ],
+    "bounds": {
+      "left": 4,
+      "top": 2,
+      "right": 796,
+      "bottom": 118
+    }
+  },
+  "world_unit": "格",
+  "distance_schema": 2
 }

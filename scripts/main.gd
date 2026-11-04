@@ -4,6 +4,8 @@
 # 当前 UI 是代码直接绘制的，编辑器里不会出现每张卡片的独立 Button 节点。
 # 将来升级 3D 时可替换战场表现，继续使用 sim 计算出的状态和事件。
 extends Control
+const UnitArt = preload("res://scripts/unit_art.gd")
+const BattleView = preload("res://scripts/battle_view.gd")
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
 const Sim = preload("res://scripts/battle_sim.gd")
 const AI = preload("res://scripts/commander_ai.gd")
@@ -53,7 +55,21 @@ var race_rng := RandomNumberGenerator.new()
 var race_info: Dictionary = Catalog.races()
 
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
+var battle_viewport: SubViewport
+var camera_zoom := 1.0
+var camera_center := Vector2(400,60)
+var battle_dragging := false
+const BATTLE_RECT := Rect2(70,157,1300,352)
+
 func _ready() -> void:
+	battle_viewport=SubViewport.new()
+	battle_viewport.size=Vector2i(1300,352)
+	battle_viewport.disable_3d=true
+	battle_viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS
+	add_child(battle_viewport)
+	var renderer=BattleView.new()
+	renderer.game=self
+	battle_viewport.add_child(renderer)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(speaker)
 	race_rng.randomize()
@@ -83,6 +99,8 @@ func _new_match() -> void:
 	var overrides: Dictionary = match_settings.duplicate()
 	overrides["races"] = [_resolve_race(race_choices[0]), _resolve_race(race_choices[1])]
 	sim = Sim.new(42, overrides)
+	camera_zoom=1.0
+	camera_center=Vector2(float(sim.rules.world_width)*0.5,float(sim.rules.world_height)*0.5)
 	ai = AI.new(42, sim.races[1])
 	var prior: Array = Catalog.starter(sim.races[0])
 	var config := ConfigFile.new()
@@ -299,7 +317,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.3.1  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.4.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -320,125 +338,38 @@ func _draw() -> void:
 
 ## 把逻辑战场坐标（rules.world_width × world_height）转换成 1300×352 的屏幕战场区域坐标。
 ## 未来改 3D 时，这种位置映射应交给独立的 3D 战场表现层。
-func _world(pos: Vector2) -> Vector2:
-	return Vector2(70,157) + pos * Vector2(1300.0/float(sim.rules.world_width),352.0/float(sim.rules.world_height))
+func _camera_rect() -> Rect2:
+	var width: float = float(sim.rules.world_width)/camera_zoom
+	var span := Vector2(width,width*BATTLE_RECT.size.y/BATTLE_RECT.size.x)
+	var center := camera_center
+	for axis in range(2):
+		var extent: float = float(sim.rules.world_width) if axis==0 else float(sim.rules.world_height)
+		center[axis]=extent*0.5 if span[axis]>=extent else clampf(center[axis],span[axis]*0.5,extent-span[axis]*0.5)
+	return Rect2(center-span*.5,span)
 
-## 绘制地面网格、基地、血条、攻击线和场上单位；所有位置来自模拟器。
+func _world(pos: Vector2) -> Vector2:
+	var view := _camera_rect()
+	return BATTLE_RECT.position+(pos-view.position)*BATTLE_RECT.size/view.size
+
 func _draw_battle() -> void:
 	_panel(Rect2(32,98,1376,458),Color("0d1c2b"))
-	for i in range(25):
-		var x: float = 70+i*54.1667
-		draw_line(Vector2(x,155),Vector2(x,509),Color("172a3a"))
-	for i in range(9):
-		draw_line(Vector2(70,157+i*44),Vector2(1370,157+i*44),Color("172a3a"))
-	draw_line(Vector2(720,154),Vector2(720,510),Color("3c4d60"),2)
-	_text(Vector2(56,130),"我方基地",18,MINT)
-	_bar(Rect2(160,116,250,10),float(sim.bases[0])/float(sim.rules.base_hp),MINT)
-	_text(Vector2(420,130),"%d" % sim.bases[0],18)
-	_text(Vector2(1000,130),"敌方基地",18,CORAL)
-	_bar(Rect2(1100,116,230,10),float(sim.bases[1])/float(sim.rules.base_hp),CORAL)
-	_text(Vector2(1340,130),"%d" % sim.bases[1],16)
-	_text(Vector2(470,130),_race_name(str(sim.races[0])),16,_race_color(str(sim.races[0])))
-	var enemy_race: String = sim.visible_race(0, 1)
-	_text(Vector2(900,130),_race_name(enemy_race) if enemy_race != "" else "种族未知",16,_race_color(enemy_race) if enemy_race != "" else MUTED)
 	for team in range(2):
-		var p := _world(sim.base_pos(team))
-		var color: Color = MINT if team == 0 else CORAL
-		draw_circle(p,40,Color(color,0.07))
-		draw_arc(p,34,0,TAU,32,Color(color,0.5),2)
-		draw_rect(Rect2(p-Vector2(17,26),Vector2(34,52)),Color(color,0.2))
-		draw_rect(Rect2(p-Vector2(17,26),Vector2(34,52)),color,false,2)
-		_text(p+Vector2(-7,7),"F" if team == 0 else "P",22,color)
-	# 防卫圈是真正的攻击许可区域；按战场缩放绘制椭圆，不能误画成爆炸范围。
-	for unit in sim.units:
-		if unit.has("defender_center") and unit.get("siege_state","mobile") != "mobile":
-			var zone_points := PackedVector2Array()
-			var zone_radius: float = sim.catalog[unit.kind].skills.defender_zone.radius
-			for segment in range(64):
-				var angle: float = TAU * segment / 64.0
-				zone_points.append(_world(unit.defender_center+Vector2(cos(angle),sin(angle))*zone_radius))
-			var zone_color: Color = MINT if unit.team == 0 else CORAL
-			draw_colored_polygon(zone_points,Color(zone_color,0.07))
-			zone_points.append(zone_points[0])
-			draw_polyline(zone_points,Color(zone_color,0.7),2)
-	for effect in effects:
-		if effect.type == "line_attack":
-			var start := _world(effect.from)
-			var finish := _world(effect.to)
-			var direction := (finish-start).normalized()
-			var normal := Vector2(-direction.y,direction.x)
-			var base_color: Color = CORAL if _hidden_team(int(effect.team)) else Color(sim.catalog[effect.kind].color)
-			var attack_color := Color(base_color,clampf(effect.ttl/0.24,0,1))
-			if effect.effect == "beam":
-				# 双束光束分别连接各自推进到的落点，不提前命中整条横线。
-				draw_line(_world(effect.source),finish,Color(attack_color,attack_color.a*0.35),1.5)
-				draw_line(start,finish,attack_color,5)
-				draw_circle(finish,3,Color(INK,attack_color.a))
-			else:
-				draw_line(start,finish,attack_color,3)
-				for fraction in [0.3,0.8]:
-					var point: Vector2 = start.lerp(finish,fraction)
-					draw_colored_polygon(PackedVector2Array([point+normal*6,point-normal*6,point+direction*9]),attack_color)
-			continue
-		var color := Color(MINT if effect.team == 0 else CORAL,clampf(effect.ttl/0.16,0,1))
-		if effect.type == "heal":
-			color = Color(Color("85efd9"), clampf(effect.ttl/0.16,0,1))
-			draw_arc(_world(effect.to),18,0,TAU,20,color,2)
-		draw_line(_world(effect.from),_world(effect.to),color,2)
-		if effect.kind == "mortar":
-			draw_arc(_world(effect.to),38,0,TAU,24,color,2)
-	# 在上一模拟位置 prev 与当前位置 pos 之间插值，让 20 Hz 的计算看起来更平滑。
-	var alpha := clampf(accumulator/0.05,0,1)
-	for unit in sim.units:
-		var p := _world(unit.prev.lerp(unit.pos,alpha))
-		var color: Color = MINT if unit.team == 0 else CORAL
-		if sim.is_structure(unit):
-			_draw_structure(unit,p,color)
-			continue
-		if _hidden_team(int(unit.team)):
-			# 首次交战前只看到有敌军在移动，看不出兵种与种族。
-			draw_circle(p,9,Color("4a5a6c"))
-			_text(p+Vector2(-4,5),"?",13,INK)
-			draw_arc(p,14,0,TAU,16,color,1.8)
-			continue
-		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
-		if sim.tick < int(unit.get("stim_until_tick",0)):
-			draw_arc(p,18,0,TAU,20,Color("ffbe65"),2)
-		if sim.tick < int(unit.get("slow_until_tick",0)):
-			draw_line(p+Vector2(-10,17),p+Vector2(0,22),Color("77cfff"),2)
-			draw_line(p+Vector2(0,22),p+Vector2(10,17),Color("77cfff"),2)
-		if unit.has("siege_state"):
-			var state: String = unit.siege_state
-			var unit_skills: Dictionary = sim.catalog[unit.kind].skills
-			var defending: bool = unit_skills.has("defender_zone")
-			var deployment: Dictionary = unit_skills.defender_zone if defending else unit_skills.deployment
-			var burrowing: bool = deployment.mode == "burrow"
-			if burrowing and state == "deployed":
-				draw_circle(p,12,Color("3d294b"))
-				draw_arc(p,13,0,PI,10,Color(sim.catalog[unit.kind].color),3)
-			if not burrowing and not defending and state != "mobile":
-				# 展开支架与状态进度条，区分架设/收起和可开火状态。
-				for side in [-1,1]:
-					draw_line(p+Vector2(side*8,6),p+Vector2(side*19,16),color,3)
-			if state == "deploying" or state == "packing":
-				var duration: float = deployment.deploy_seconds if state == "deploying" else deployment.pack_seconds
-				var progress: float = 1.0 - float(unit.siege_until_tick-sim.tick)/(duration*float(sim.rules.tick_rate))
-				_bar(Rect2(p+Vector2(-16,21),Vector2(32,3)),progress,Color("f5b66e"))
-				var deploying_text: String = "防卫展开" if defending else ("埋地" if burrowing else "架设")
-				var packing_text: String = "恢复飞行" if defending else ("出土" if burrowing else "收起")
-				_text(p+Vector2(-18,38),deploying_text if state == "deploying" else packing_text,12,color)
-			elif state == "deployed":
-				_text(p+Vector2(-18,32),"防卫对地" if defending else ("已埋地" if burrowing else "炮击"),12,color)
-		draw_arc(p,14,0,TAU,16,color,1.8)
-		_bar(Rect2(p+Vector2(-13,-22),Vector2(26,3)),float(unit.hp)/float(sim.catalog[unit.kind].hp),color)
-		var max_shield: float = float(sim.catalog[unit.kind].get("shield",0))
-		if max_shield > 0:
-			# 护盾条画在血条上方；有盾时外圈再加一道蓝色弧线。
-			_bar(Rect2(p+Vector2(-13,-26),Vector2(26,2)),float(unit.shield)/max_shield,SHIELD)
-			if float(unit.shield) > 0:
-				draw_arc(p,16,0,TAU,20,Color(SHIELD,0.6),1.5)
-	_text(Vector2(56,539),"自动交战区域  /  不能手动移动或施法",16,MUTED)
-	_text(Vector2(1050,539),"绿色：我方    橙色：敌方",16,MUTED)
+		var color: Color = MINT if team==0 else CORAL
+		var x: float = 56 if team==0 else 1000
+		_text(Vector2(x,130),"我方基地" if team==0 else "敌方基地",18,color)
+		_bar(Rect2(x+104,116,230,10),float(sim.bases[team])/float(sim.rules.base_hp),color)
+		_text(Vector2(x+344,130),str(int(sim.bases[team])),16,color)
+	if battle_viewport!=null:
+		draw_texture_rect(battle_viewport.get_texture(),BATTLE_RECT,false)
+	_text(Vector2(56,539),"800 × 120 格 · 拖动战场平移 · 滚轮缩放",15,MUTED)
+	_button(Rect2(590,517,70,30),"全图","camera_all")
+	_button(Rect2(668,517,70,30),"近景","camera_close")
+	_button(Rect2(746,517,70,30),"己方","camera_home")
+	_button(Rect2(824,517,70,30),"中线","camera_middle")
+	_button(Rect2(902,517,70,30),"敌方","camera_enemy")
+	_button(Rect2(982,517,40,30),"−","camera_out")
+	_button(Rect2(1030,517,40,30),"+","camera_in")
+	_text(Vector2(1085,539),"缩放 %.1f 倍" % camera_zoom,15,MUTED)
 
 ## 对方种族尚未公开时，界面不能画出对方的兵种外形。
 func _hidden_team(team: int) -> bool:
@@ -448,180 +379,12 @@ func _race_color(race: String) -> Color:
 	return Color(str(race_info[race].color)) if race_info.has(race) else MUTED
 
 ## 结构体：淡色射程圈（按战场缩放）、按种族区分的外形（数值相同）、阵营圈与较宽血条。
-func _draw_structure(unit: Dictionary, p: Vector2, color: Color) -> void:
-	var stats: Dictionary = sim.catalog[unit.kind]
-	var ring := PackedVector2Array()
-	for segment in range(49):
-		var angle: float = TAU * segment / 48.0
-		var point: Vector2 = unit.pos+Vector2(cos(angle),sin(angle))*float(stats.range)
-		ring.append(_world(point.clamp(Vector2.ZERO,Vector2(float(sim.rules.world_width),float(sim.rules.world_height)))))
-	draw_polyline(ring,Color(color,0.18),1.5)
-	_draw_structure_shape(p,unit.kind,sim.visible_race(0,int(unit.team)),15)
-	draw_arc(p,22,0,TAU,24,color,2)
-	_bar(Rect2(p+Vector2(-22,-32),Vector2(44,4)),float(unit.hp)/float(stats.hp),color)
-
-## 结构体外形按种族区分：人族方正砖石、虫族有机肉瘤、神族晶体、腐族破烂尖刺；种族未知时画灰色八边形。
 func _draw_structure_shape(p: Vector2, kind: String, race: String, radius: float) -> void:
-	var tint: Color = _race_color(race)
-	var dark := Color("162334")
-	match race:
-		"terran":
-			_draw_unit(p,kind,Color(sim.catalog[kind].color),radius)
-		"zerg":
-			draw_circle(p,radius*0.95,tint)
-			var spikes: int = 3 if kind == "treasury" else 5
-			for i in range(spikes):
-				var angle: float = -PI*0.5 + TAU*i/spikes
-				var dir := Vector2(cos(angle),sin(angle))
-				var side := Vector2(-dir.y,dir.x)
-				draw_colored_polygon(PackedVector2Array([p+dir*radius*0.7+side*radius*0.25,p+dir*radius*1.45,p+dir*radius*0.7-side*radius*0.25]),tint)
-			draw_circle(p,radius*0.4,dark)
-			if kind == "tower":
-				draw_circle(p,radius*0.2,tint)
-		"protoss":
-			if kind == "treasury":
-				var hexagon := PackedVector2Array()
-				for i in range(6):
-					hexagon.append(p+Vector2(cos(TAU*i/6.0),sin(TAU*i/6.0))*radius)
-				draw_colored_polygon(hexagon,tint)
-			else:
-				draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.35),p+Vector2(radius*0.7,0),p+Vector2(0,radius*1.1),p+Vector2(-radius*0.7,0)]),tint)
-			draw_arc(p,radius*0.55,0,TAU,20,INK,2)
-			if kind != "treasury":
-				draw_circle(p,radius*0.25,INK)
-		"blight":
-			var blob := PackedVector2Array()
-			for i in range(10):
-				var length: float = radius*(1.25 if i % 2 == 0 else 0.75)
-				blob.append(p+Vector2(cos(TAU*i/10.0),sin(TAU*i/10.0))*length)
-			draw_colored_polygon(blob,tint)
-			draw_circle(p,radius*0.45,dark)
-			for x in [-0.35,0.15]:
-				draw_line(p+Vector2(x*radius,radius*0.6),p+Vector2(x*radius,radius*1.3),tint,2)
-		_:
-			var octagon := PackedVector2Array()
-			for i in range(8):
-				octagon.append(p+Vector2(cos(TAU*(i+0.5)/8.0),sin(TAU*(i+0.5)/8.0))*radius)
-			draw_colored_polygon(octagon,Color("4a5a6c"))
-			_text(p+Vector2(-5,6),"?",16,INK)
+	UnitArt.structure(self,p,kind,race,radius,_race_color(race))
 
-## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
-	match kind:
-		"gate_tower":
-			draw_rect(Rect2(p-Vector2(radius*0.9,radius*0.6),Vector2(radius*1.8,radius*1.5)),color)
-			for x in [-0.9,-0.15,0.6]:
-				draw_rect(Rect2(p+Vector2(x*radius,-radius),Vector2(radius*0.3,radius*0.4)),color)
-			draw_rect(Rect2(p+Vector2(-radius*0.25,radius*0.2),Vector2(radius*0.5,radius*0.7)),Color("162334"))
-		"treasury":
-			draw_circle(p,radius,color)
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.6),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),Color("6b4f10"))
-		"tower":
-			draw_rect(Rect2(p-Vector2(radius*0.8,radius*0.3),Vector2(radius*1.6,radius*1.1)),color)
-			draw_circle(p+Vector2(0,-radius*0.3),radius*0.55,color)
-			draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),INK,3)
-		"liberator":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.4),p+Vector2(radius*1.5,radius*0.8),p+Vector2(0,radius*0.35),p+Vector2(-radius*1.5,radius*0.8)]),color)
-			for side in [-1,1]:
-				draw_circle(p+Vector2(side*radius*0.8,radius*0.4),radius*0.3,Color("223751"))
-			draw_line(p+Vector2(0,-radius*0.65),p+Vector2(0,radius*0.25),INK,2)
-		"marauder":
-			# 重装躯干和双侧榴弹发射器；外观不改变单次攻击次数。
-			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.8),Vector2(radius*1.3,radius*1.6)),color)
-			for side in [-1,1]:
-				draw_rect(Rect2(p+Vector2(side*radius-radius*0.3,-radius*0.55),Vector2(radius*0.6,radius*1.1)),color)
-			draw_line(p+Vector2(-radius*0.35,-radius*0.3),p+Vector2(radius*0.35,-radius*0.3),INK,2)
-		"colossus":
-			for side in [-1,1]:
-				for vertical in [-1,1]:
-					draw_line(p+Vector2(side*radius*0.4,vertical*radius*0.4),p+Vector2(side*radius*1.3,vertical*radius*1.2),color,2)
-				draw_circle(p+Vector2(side*radius*0.9,0),radius*0.25,INK)
-			draw_rect(Rect2(p-Vector2(radius*0.55,radius*0.75),Vector2(radius*1.1,radius*1.5)),color)
-		"piercer":
-			for side in [-1,1]:
-				for offset in [-0.6,0.6]:
-					draw_line(p+Vector2(side*radius*0.4,offset*radius),p+Vector2(side*radius*1.3,offset*radius*1.3),color,2)
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius*0.7,0),p+Vector2(0,radius),p-Vector2(radius*0.7,0)]),color)
-		"medic":
-			draw_circle(p,radius,color)
-			draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.2),Vector2(radius*1.3,radius*0.4)),Color("162334"))
-			draw_rect(Rect2(p-Vector2(radius*0.2,radius*0.65),Vector2(radius*0.4,radius*1.3)),Color("162334"))
-		"vanguard":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(-radius,-radius),p+Vector2(radius,-radius),p+Vector2(radius,radius*0.4),p+Vector2(0,radius*1.3),p+Vector2(-radius,radius*0.4)]),color)
-		"swarm":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius,radius),p+Vector2(-radius,radius)]),color)
-		"mortar":
-			draw_rect(Rect2(p-Vector2.ONE*radius,Vector2.ONE*radius*2),color)
-			draw_circle(p,radius*0.5,Color("162334"))
-		"agent":
-			# 十字准星叠菱形：远程狙击与穿甲两种弹药。
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.7),p+Vector2(radius*0.7,0),p+Vector2(0,radius*0.7),p+Vector2(-radius*0.7,0)]),color)
-			draw_line(p-Vector2(radius*1.2,0),p+Vector2(radius*1.2,0),color,2)
-			draw_line(p-Vector2(0,radius*1.2),p+Vector2(0,radius*1.2),color,2)
-		"zergling", "hellbat":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0),p+Vector2(-radius*0.8,-radius),p+Vector2(-radius*0.3,0),p+Vector2(-radius*0.8,radius)]),color)
-		"viking", "fly_swarm", "spore_drifter":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.2),p+Vector2(radius*1.3,radius*0.7),p+Vector2(-radius*1.3,radius*0.7)]),color)
-			draw_circle(p,radius*0.3,Color("223751"))
-		"void_ray":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.3),p+Vector2(radius*1.1,0),p+Vector2(0,radius*1.3),p+Vector2(-radius*1.1,0)]),color)
-			draw_circle(p,radius*0.4,INK)
-		"rifle":
-			draw_circle(p,radius*0.8,color)
-			draw_rect(Rect2(p+Vector2(radius*0.3,-radius*0.2),Vector2(radius*0.9,radius*0.4)),color)
-		"widow_mine":
-			for angle in [PI*0.25,PI*0.75,PI*1.25,PI*1.75]:
-				draw_line(p,p+Vector2(cos(angle),sin(angle))*radius*1.2,color,2)
-			draw_circle(p,radius*0.55,color)
-			draw_circle(p,radius*0.2,Color("ff6f5e"))
-		"thor":
-			draw_rect(Rect2(p-Vector2(radius*0.75,radius*0.6),Vector2(radius*1.5,radius*1.5)),color)
-			for side in [-1,1]:
-				draw_circle(p+Vector2(side*radius*0.95,-radius*0.55),radius*0.45,color)
-			draw_rect(Rect2(p+Vector2(-radius*0.3,-radius*0.25),Vector2(radius*0.6,radius*0.3)),Color("162334"))
-		"roach":
-			var shell := PackedVector2Array()
-			for i in range(12):
-				shell.append(p+Vector2(cos(TAU*i/12.0)*radius*1.1,sin(TAU*i/12.0)*radius*0.75))
-			draw_colored_polygon(shell,color)
-			draw_line(p+Vector2(-radius*0.7,0),p+Vector2(radius*0.7,0),Color("162334"),2)
-		"hydralisk":
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.2),p+Vector2(radius*0.45,radius),p+Vector2(-radius*0.45,radius)]),color)
-			for side in [-1,1]:
-				draw_colored_polygon(PackedVector2Array([p+Vector2(side*radius*0.2,-radius*0.7),p+Vector2(side*radius*1.1,-radius*0.2),p+Vector2(side*radius*0.3,0)]),color)
-		"ultralisk":
-			draw_circle(p,radius,color)
-			for side in [-1,1]:
-				draw_line(p+Vector2(radius*0.6,side*radius*0.4),p+Vector2(radius*1.4,side*radius*0.9),INK,2)
-		"stalker":
-			for side in [-1,1]:
-				for vertical in [-1,1]:
-					draw_line(p,p+Vector2(side*radius*1.2,vertical*radius*1.1),color,2)
-			draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.8),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),color)
-			draw_circle(p+Vector2(0,-radius*0.1),radius*0.2,INK)
-		"immortal":
-			var hull := PackedVector2Array()
-			for i in range(6):
-				hull.append(p+Vector2(cos(TAU*i/6.0+PI/6.0),sin(TAU*i/6.0+PI/6.0))*radius)
-			draw_colored_polygon(hull,color)
-			draw_rect(Rect2(p-Vector2(radius*0.35,radius*0.35),Vector2(radius*0.7,radius*0.7)),Color("162334"))
-		"archon":
-			draw_circle(p,radius*0.75,color)
-			draw_arc(p,radius*1.15,0,TAU,20,Color(color,0.6),2)
-			draw_circle(p,radius*0.3,INK)
-		"spitter":
-			draw_circle(p,radius*0.85,color)
-			draw_circle(p+Vector2(radius*0.45,0),radius*0.3,Color("162334"))
-		"abomination":
-			for offset in [Vector2(-0.45,-0.25),Vector2(0.4,-0.3),Vector2(0,0.4)]:
-				draw_circle(p+offset*radius,radius*0.7,color)
-			draw_line(p+Vector2(-radius*0.5,0),p+Vector2(radius*0.5,radius*0.1),Color("162334"),2)
-		_:
-			# 尚无专属外形的兵种：圆形加兵种字母。
-			draw_circle(p,radius,color)
-			_text(p+Vector2(-radius*0.45,radius*0.5),str(sim.catalog[kind].get("symbol","?")),int(maxf(radius*1.2,8)),Color("162334"))
+	UnitArt.draw(self,p,kind,color,radius,str(sim.catalog[kind].get("symbol","?")))
 
-## 按 rules 的列数×行数绘制兵营格子、兵种卡片、矿物与敌情；敌情只使用上一波公开阵容。
 func _draw_editor() -> void:
 	var columns: int = int(sim.rules.columns)
 	var rows: int = int(sim.rules.rows)
@@ -680,19 +443,21 @@ func _draw_editor() -> void:
 		_draw_unit(rect.position+Vector2(20,20),kind,Color(stats.color),9)
 		_text(rect.position+Vector2(37,25),stats.name,19 if stats.name.length() <= 3 else (15 if stats.name.length() == 4 else 12))
 		_text(rect.position+Vector2(102,24),str(int(stats.cost)),16,MINT)
-		_text(rect.position+Vector2(10,44),str(stats.role),12,MUTED)
+		_text(rect.position+Vector2(10,44),"%d/组 · %s" % [int(stats.get("spawn_count",1)),str(stats.role)],11,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
 		i += 1
 	if sim.catalog.has(selected):
 		_text(Vector2(764,806),sim.catalog[selected].counter,17,Color("e6c28e"))
-		_text(Vector2(764,834),"点空格购买  ·  本轮新买的单位取消可全额退回",15,MUTED)
+		var stats: Dictionary = sim.catalog[selected]
+		var body: Array = stats.get("size",[1,1])
+		_text(Vector2(764,834),"%d/组  尺寸 %s×%s  射程 %s  移速 %s" % [int(stats.get("spawn_count",1)),str(body[0]),str(body[1]),str(stats.range),str(stats.speed)],14,MUTED)
 	else:
 		_text(Vector2(764,806),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",17,MINT)
 	_panel(Rect2(1212,573,196,287))
 	_text(Vector2(1226,604),"敌情 / 上一波",20,CORAL)
 	var counts: Dictionary = {}
 	for slot in sim.visible_enemy_formation(0):
-		counts[slot.kind] = int(counts.get(slot.kind,0))+1
+		counts[slot.kind] = int(counts.get(slot.kind,0))+int(sim.catalog[slot.kind].get("spawn_count",1))
 	if not sim.revealed:
 		_text(Vector2(1226,636),"尚未交战",16,MUTED)
 		_text(Vector2(1226,658),"种族与阵容未知",14,MUTED)
@@ -838,13 +603,27 @@ func _draw_confirm() -> void:
 
 ## 处理左键/模拟鼠标的触摸点击：先还原设计坐标，再寻找命中的按钮矩形。
 func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
-		var p: Vector2 = event.position * Vector2(1440,900) / size
-		for button in buttons:
-			if button.rect.has_point(p):
-				handle_action(button.action)
+	if event is InputEventMouseButton:
+		var p: Vector2 = event.position*Vector2(1440,900)/size
+		if event.button_index==MOUSE_BUTTON_LEFT and not event.pressed:
+			battle_dragging=false
+		if event.pressed:
+			for button in buttons:
+				if button.rect.has_point(p):
+					handle_action(button.action)
+					accept_event()
+					return
+			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and pending_message=="":
+				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,20)
+				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,20)
+				elif event.button_index==MOUSE_BUTTON_LEFT:battle_dragging=true
+				queue_redraw()
 				accept_event()
-				break
+	elif event is InputEventMouseMotion and battle_dragging and not setup_open and not help_open and pending_message=="":
+		var motion: Vector2 = event.relative*Vector2(1440,900)/size
+		camera_center=_camera_rect().get_center()-motion*_camera_rect().size/BATTLE_RECT.size
+		queue_redraw()
+		accept_event()
 
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -862,7 +641,19 @@ func handle_action(action: String) -> void:
 			_handle_setup(action)
 		queue_redraw()
 		return
-	if action == "help":
+	if action.begins_with("camera_"):
+		if action=="camera_all":camera_zoom=1.0
+		elif action=="camera_close":camera_zoom=8.0
+		elif action=="camera_in":camera_zoom=clampf(camera_zoom*1.5,1,20)
+		elif action=="camera_out":camera_zoom=clampf(camera_zoom/1.5,1,20)
+		elif action=="camera_home":
+			camera_center=Vector2(float(sim.rules.layout.tower_x),float(sim.rules.layout.base_y))
+			camera_zoom=8.0
+		elif action=="camera_enemy":
+			camera_center=Vector2(sim.mirror_x(1,float(sim.rules.layout.tower_x)),float(sim.rules.layout.base_y))
+			camera_zoom=8.0
+		elif action=="camera_middle":camera_center=Vector2(float(sim.rules.world_width)*.5,float(sim.rules.world_height)*.5)
+	elif action == "help":
 		help_open = not help_open
 	elif action == "volume":
 		volume = 0.0 if volume >= 0.99 else minf(1.0, volume + 0.2)

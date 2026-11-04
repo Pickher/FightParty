@@ -1,4 +1,4 @@
-# 可复用技能配置（0.3.0）
+# 可复用技能配置（0.4.0）
 
 每个 `data/units.json` 兵种可添加 `skills` 字典。未配置技能时使用普通移动、索敌和攻击。技能实现位于 `scripts/skills/`；状态与计算属于模拟层，外观由 `main.gd` 绘制。
 
@@ -142,3 +142,11 @@
 ```
 
 对空能力是配置属性（`target_layers`），新增兵种无需在索敌逻辑中添加 ID 分支。0.3.0 的完整对空名单见 [DESIGN.md](DESIGN.md) 兵种表的“层 → 目标”列；每个种族都有可用的对空单位。
+
+## 0.4.0 格数与防卫扇形
+
+旧示例的像素式距离已迁移为“格”。当前 defender_zone 使用 shape=sector、angle_degrees=40、weapon.range=8，不再读取 radius 或存储 defender_center。技能扫描与开火同属前向扇形，外围保持范围为 8×1.2=9.6 格。
+
+weapon_switch.policy=air_superiority 用于雷神，preferred_layer=air 控制未锁定时优先对空，light_air_threshold=3 与 cluster_radius=2.5 控制成群轻甲模式。weapons 顺序为高爆单体对空、轻甲溅射对空、后备对地。数值与边界见 [WORLD_UNITS.md](WORLD_UNITS.md)。
+
+spawn_count 与 size 是单位基础字段，而不是需要单独调度的技能；各个个体仍独立使用自己的技能和状态。
