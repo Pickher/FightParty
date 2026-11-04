@@ -176,12 +176,12 @@ func _text(pos: Vector2, message: String, font_size: int = 20, color: Color = IN
 	draw_string(FONT, pos, message, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, color)
 
 ## 绘制圆角面板；StyleBoxFlat 指定背景、边框和圆角。
-func _panel(rect: Rect2, color: Color = PANEL, border: Color = Color("26384e")) -> void:
+func _panel(rect: Rect2, color: Color = PANEL, border: Color = Color("26384e"), radius: int = 12) -> void:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
 	style.border_color = border
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(12)
+	style.set_corner_radius_all(radius)
 	draw_style_box(style, rect)
 
 ## 绘制按钮，同时将点击矩形和动作名加入 buttons，稍后由 _gui_input 判定点击。
@@ -223,7 +223,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.2.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.2.1  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
@@ -387,69 +387,84 @@ func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 		_:
 			draw_circle(p,radius,color)
 
-## 绘制 6×4 布阵格子、兵种卡片、预算与敌情；敌情只使用上一波公开阵容。
+## 按 rules 的列数×行数绘制兵营格子、兵种卡片、矿物与敌情；敌情只使用上一波公开阵容。
 func _draw_editor() -> void:
-	_panel(Rect2(32,573,406,277))
-	_text(Vector2(52,606),"兵营布阵",23)
-	_text(Vector2(235,604),"后排  →  前线",18,MINT)
-	# 把阵容转为“格子编号 → 兵种”的字典，方便逐格绘制。
+	var columns: int = int(sim.rules.columns)
+	var rows: int = int(sim.rules.rows)
+	_panel(Rect2(32,573,700,287))
+	_text(Vector2(52,604),"兵营布阵",23)
+	_text(Vector2(200,602),"%d×%d · 每波全部出场" % [columns,rows],16,MUTED)
+	_text(Vector2(590,602),"后排  →  前线",18,MINT)
+	# 把兵营转为“格子编号 → 兵营格”的字典，方便逐格绘制。
 	var occupied := {}
 	for slot in sim.formations[0]:
-		occupied[int(slot.cell)] = slot.kind
-	for cell in range(24):
-		var rect := Rect2(52+(cell%6)*61,623+(cell/6)*43,55,37)
-		_panel(rect,Color("1c3445") if occupied.has(cell) else Color("102335"),MINT if cell == move_source else Color("30475a"))
+		occupied[int(slot.cell)] = slot
+	# 网格区域固定 646×189，按列数与行数等分；金色边框表示本轮新买、取消可全额退回。
+	var pitch := Vector2(646.0 / columns, 189.0 / rows)
+	for cell in range(columns * rows):
+		var rect := Rect2(Vector2(52,616) + Vector2(cell % columns, cell / columns) * pitch, pitch - Vector2(3,3))
+		var border: Color = Color("30475a")
+		if cell == move_source:
+			border = MINT
+		elif occupied.has(cell) and not bool(occupied[cell].deployed):
+			border = Color("e6c28e")
+		_panel(rect,Color("1c3445") if occupied.has(cell) else Color("102335"),border,4)
 		if occupied.has(cell):
-			_draw_unit(rect.get_center(),occupied[cell],Color(sim.catalog[occupied[cell]].color),11)
+			_draw_unit(rect.get_center(),occupied[cell].kind,Color(sim.catalog[occupied[cell].kind].color),minf(rect.size.y*0.4,11))
 		buttons.append({"rect":rect,"action":"cell:%d" % cell})
-	_button(Rect2(52,805,110,32),"移除单位","erase",selected=="erase")
-	_button(Rect2(174,805,110,32),"移动位置","move",selected=="move")
-	_button(Rect2(296,805,122,32),"清空兵营","clear")
-	_panel(Rect2(453,573,644,277))
-	_text(Vector2(475,605),"选择兵种",23)
-	var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
+	_button(Rect2(52,816,110,32),"移除单位","erase",selected=="erase")
+	_button(Rect2(174,816,110,32),"移动位置","move",selected=="move")
+	_button(Rect2(296,816,122,32),"清空兵营","clear")
+	_text(Vector2(440,838),"金框：本轮新买，取消全额退回",15,Color("e6c28e"))
+	_panel(Rect2(746,573,452,287))
+	_text(Vector2(764,604),"选择兵种",23)
+	var kinds: Array = _shop_kinds()
+	var page_count := ceili(float(kinds.size()) / UNITS_PER_PAGE)
 	if page_count > 1:
-		_button(Rect2(577,579,30,32),"<","units_prev")
-		_text(Vector2(611,602),"%d/%d" % [unit_page+1,page_count],15,MUTED)
-		_button(Rect2(644,579,30,32),">","units_next")
+		_button(Rect2(860,579,30,32),"<","units_prev")
+		_text(Vector2(894,602),"%d/%d" % [unit_page+1,page_count],15,MUTED)
+		_button(Rect2(927,579,30,32),">","units_next")
 	var cost: int = sim.formation_cost(sim.formations[0])
-	_text(Vector2(690,605),"兵营总价 %d   ·   可用 %d" % [cost,int(sim.minerals[0])],20,MINT)
+	_text(Vector2(968,603),"兵营 %d · 可用 %d" % [cost,int(sim.minerals[0])],17,MINT)
 	var i := 0
-	var kinds: Array = sim.catalog.keys()
 	for kind in kinds.slice(unit_page*UNITS_PER_PAGE,(unit_page+1)*UNITS_PER_PAGE):
 		var stats: Dictionary = sim.catalog[kind]
-		var rect := Rect2(475+(i%3)*203,619+(i/3)*55,191,50)
+		var rect := Rect2(762+(i%3)*146,616+(i/3)*55,140,50)
 		_panel(rect,Color("233e41") if selected==kind else Color("17293c"),MINT if selected==kind else Color("304358"))
-		_draw_unit(rect.position+Vector2(22,20),kind,Color(stats.color),10)
-		_text(rect.position+Vector2(43,25),stats.name,21)
-		_text(rect.position+Vector2(135,24),str(int(stats.cost)),18,MINT)
-		_text(rect.position+Vector2(12,44),str(stats.role),13,MUTED)
+		_draw_unit(rect.position+Vector2(20,20),kind,Color(stats.color),9)
+		_text(rect.position+Vector2(37,25),stats.name,19)
+		_text(rect.position+Vector2(102,24),str(int(stats.cost)),16,MINT)
+		_text(rect.position+Vector2(10,44),str(stats.role),12,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
 		i += 1
 	if sim.catalog.has(selected):
-		_text(Vector2(475,809),sim.catalog[selected].counter,18,Color("e6c28e"))
-		_text(Vector2(475,836),"点空格购买  ·  本轮新买的单位取消可全额退回",16,MUTED)
+		_text(Vector2(764,806),sim.catalog[selected].counter,17,Color("e6c28e"))
+		_text(Vector2(764,834),"点空格购买  ·  本轮新买的单位取消可全额退回",15,MUTED)
 	else:
-		_text(Vector2(475,809),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",18,MINT)
-	_panel(Rect2(1112,573,296,277))
-	_text(Vector2(1132,605),"敌情 / 上一波",22,CORAL)
+		_text(Vector2(764,806),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",17,MINT)
+	_panel(Rect2(1212,573,196,287))
+	_text(Vector2(1226,604),"敌情 / 上一波",20,CORAL)
 	var counts: Dictionary = {}
 	for slot in sim.last_formations[1]:
 		counts[slot.kind] = int(counts.get(slot.kind,0))+1
 	if counts.is_empty():
-		_text(Vector2(1132,640),"尚未出兵",18,MUTED)
+		_text(Vector2(1226,636),"尚未出兵",16,MUTED)
 	else:
 		var n := 0
 		for kind in counts:
-			_text(Vector2(1132+(n%2)*130,631+(n/2)*16),"%s ×%d" % [sim.catalog[kind].name,counts[kind]],16)
+			_text(Vector2(1226+(n%2)*92,630+(n/2)*17),"%s×%d" % [sim.catalog[kind].name,counts[kind]],14)
 			n+=1
-	_text(Vector2(1132,732),"下一波敌方配置保密",16,MUTED)
-	_text(Vector2(1132,765),"击破 %d   /   损失 %d" % [sim.kills[0],sim.kills[1]],18,MINT)
-	_text(Vector2(1132,795),"最新战报",16,MUTED)
+	_text(Vector2(1226,742),"下一波敌方配置保密",14,MUTED)
+	_text(Vector2(1226,770),"击破 %d / 损失 %d" % [sim.kills[0],sim.kills[1]],16,MINT)
+	_text(Vector2(1226,798),"最新战报",14,MUTED)
 	var message: String = messages[0]
-	_text(Vector2(1132,824),message.left(16),16,Color("e6c28e"))
-	if message.length()>16:
-		_text(Vector2(1132,844),message.substr(16,16),16,Color("e6c28e"))
+	_text(Vector2(1226,822),message.left(12),14,Color("e6c28e"))
+	if message.length()>12:
+		_text(Vector2(1226,842),message.substr(12,12),14,Color("e6c28e"))
+
+## 可购买的兵种卡片（排除结构体），顺序与 units.json 一致。
+func _shop_kinds() -> Array:
+	return sim.catalog.keys().filter(func(kind): return not bool(sim.catalog[kind].get("structure", false)))
 
 ## 绘制说明弹层，并清空底层点击区域，防止点说明时误操作后面的配兵格。
 func _draw_help() -> void:
@@ -536,11 +551,11 @@ func handle_action(action: String) -> void:
 			_commit(formation, true)
 	elif not sim.finished:
 		if action == "units_prev" or action == "units_next":
-			var page_count := ceili(float(sim.catalog.size()) / UNITS_PER_PAGE)
+			var page_count := ceili(float(_shop_kinds().size()) / UNITS_PER_PAGE)
 			unit_page = posmod(unit_page + (1 if action == "units_next" else -1),page_count)
 		elif action.begins_with("select:"):
 			selected = action.get_slice(":",1)
-			var index: int = sim.catalog.keys().find(selected)
+			var index: int = _shop_kinds().find(selected)
 			if index >= 0:
 				unit_page = index / UNITS_PER_PAGE
 			move_source = -1

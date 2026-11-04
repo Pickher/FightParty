@@ -288,7 +288,10 @@ func _nearby(pos: Vector2, radius: float) -> Array:
 	var found: Array = []
 	for x in range(floori((pos.x - radius) / BUCKET), floori((pos.x + radius) / BUCKET) + 1):
 		for y in range(floori((pos.y - radius) / BUCKET), floori((pos.y + radius) / BUCKET) + 1):
-			for unit in buckets.get(Vector2i(x,y), []):
+			var bucket = buckets.get(Vector2i(x,y))
+			if bucket == null:
+				continue
+			for unit in bucket:
 				if pos.distance_squared_to(unit.pos) <= radius * radius:
 					found.append(unit)
 	return found
@@ -300,7 +303,10 @@ func _neighbors(pos: Vector2) -> Array:
 	var fy := floori(pos.y / FINE)
 	for x in range(fx - 1, fx + 2):
 		for y in range(fy - 1, fy + 2):
-			for unit in fine_buckets.get(Vector2i(x, y), []):
+			var bucket = fine_buckets.get(Vector2i(x, y))
+			if bucket == null:
+				continue
+			for unit in bucket:
 				if pos.distance_squared_to(unit.pos) <= FINE * FINE:
 					found.append(unit)
 	return found
@@ -308,10 +314,16 @@ func _neighbors(pos: Vector2) -> Array:
 func _weapon_stats(unit: Dictionary) -> Dictionary:
 	return DefenderZone.weapon(self,unit) if catalog[unit.kind].get("skills",{}).has("defender_zone") else catalog[unit.kind]
 
+## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
 func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
-	if not weapon.get("target_layers",["ground"]).has(catalog[other.kind].get("layer","ground")):
+	var layers = weapon.get("target_layers")
+	var layer = catalog[other.kind].get("layer")
+	if layer == null:
+		layer = "ground"
+	if (layer != "ground") if layers == null else not layers.has(layer):
 		return false
-	return not catalog[unit.kind].get("skills",{}).has("defender_zone") or DefenderZone.contains(self,unit,other.pos)
+	var skills = catalog[unit.kind].get("skills")
+	return skills == null or not skills.has("defender_zone") or DefenderZone.contains(self,unit,other.pos)
 
 ## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
 ## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。
@@ -336,7 +348,10 @@ func _target(unit: Dictionary) -> Dictionary:
 		if not sniper and best_score < float(ring - 1) * BUCKET:
 			break
 		for key in _ring_cells(area, ring):
-			for other in enemies.get(key, []):
+			var bucket = enemies.get(key)
+			if bucket == null or (not sniper and _cell_distance(unit.pos, key) > minf(best_score, radius)):
+				continue
+			for other in bucket:
 				if other.hp <= 0:
 					continue
 				var distance: float = unit.pos.distance_to(other.pos)
@@ -360,7 +375,10 @@ func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 		if best_distance < float(ring - 1) * BUCKET:
 			break
 		for key in _ring_cells(area, ring):
-			for other in enemies.get(key, []):
+			var bucket = enemies.get(key)
+			if bucket == null or _cell_distance(unit.pos, key) > minf(best_distance, radius):
+				continue
+			for other in bucket:
 				if other.hp <= 0 or catalog[other.kind].get("layer","ground") != "ground":
 					continue
 				var distance: float = unit.pos.distance_to(other.pos)
@@ -370,6 +388,12 @@ func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 					best = other
 					best_distance = distance
 	return best
+
+## 点到某个空间桶矩形的最短距离；大于当前最佳距离的桶不可能有更近目标。
+func _cell_distance(pos: Vector2, key: Vector2i) -> float:
+	var dx: float = maxf(maxf(float(key.x) * BUCKET - pos.x, pos.x - float(key.x + 1) * BUCKET), 0.0)
+	var dy: float = maxf(maxf(float(key.y) * BUCKET - pos.y, pos.y - float(key.y + 1) * BUCKET), 0.0)
+	return sqrt(dx * dx + dy * dy)
 
 ## 搜索圆的包围盒（按空间桶编号）与需要搜索的环数。
 func _search_area(pos: Vector2, radius: float) -> Dictionary:
@@ -404,7 +428,10 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 	var side: Dictionary = team_buckets[team]
 	for x in range(floori((pos.x - radius) / BUCKET), floori((pos.x + radius) / BUCKET) + 1):
 		for y in range(floori((pos.y - radius) / BUCKET), floori((pos.y + radius) / BUCKET) + 1):
-			for unit in side.get(Vector2i(x,y), []):
+			var bucket = side.get(Vector2i(x,y))
+			if bucket == null:
+				continue
+			for unit in bucket:
 				if pos.distance_squared_to(unit.pos) <= radius * radius:
 					found.append(unit)
 	return found
