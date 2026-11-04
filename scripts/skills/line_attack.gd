@@ -1,6 +1,8 @@
 extends RefCounted
 const MultiAttack = preload("res://scripts/skills/multi_attack.gd")
 const OnHitSlow = preload("res://scripts/skills/on_hit_slow.gd")
+# 单位一步的最大位移（约 5）加余量，用于缩小波前扫过区域的候选范围。
+const MOVE_MARGIN := 12.0
 
 ## 一个普通攻击周期生成 count 条独立传播轨迹；每条有自己的命中记录。
 ## forward 从自身出发；transverse 以目标位置为中心，垂直于开火方向扫过。
@@ -51,10 +53,14 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			continue
 		var next_distance := minf(float(wave.length), float(wave.distance) + float(wave.speed) * dt)
 		var duration_fraction: float = (next_distance - float(wave.distance)) / (float(wave.speed) * dt)
-		for victim in sim.units:
-			if victim.team == wave.team or wave.hit_ids.has(victim.id):
+		# 只检查前沿本步扫过区域附近的敌人；单位一步最多移动约 5，留 MOVE_MARGIN 余量。
+		var layers: Array = wave.get("target_layers",["ground"])
+		var middle: float = (float(wave.distance) + next_distance) * 0.5
+		var sweep_radius: float = Vector2((next_distance - float(wave.distance)) * 0.5, float(wave.half_width)).length() + MOVE_MARGIN
+		for victim in sim.nearby_team(wave.origin + wave.direction * middle, sweep_radius, 1 - int(wave.team)):
+			if wave.hit_ids.has(victim.id):
 				continue
-			if not wave.get("target_layers",["ground"]).has(sim.catalog[victim.kind].get("layer","ground")):
+			if not layers.has(sim.catalog[victim.kind].get("layer","ground")):
 				continue
 			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),duration_fraction)
 			if crosses(wave, victim.pos, finish, next_distance):

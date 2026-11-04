@@ -39,6 +39,7 @@ func _initialize() -> void:
 	_marauders()
 	_stimulant_and_slow()
 	_liberators()
+	_spatial_equivalence()
 	_economy()
 	_final_phase()
 	var sim = Sim.new()
@@ -899,7 +900,7 @@ func _economy() -> void:
 	var shop = Sim.new()
 	var buyer = AI.new(11)
 	var ok := true
-	for round_number in range(24):
+	for round_number in range(120):
 		var plan: Array = buyer.buy_list(Catalog.starter(),shop.formations[1],shop.minerals[1])
 		ok = ok and shop.formation_cost(plan) <= shop.minerals[1]
 		for slot in plan:
@@ -940,3 +941,62 @@ func _final_phase() -> void:
 	var empty = Sim.new()
 	ticks(empty,64*600)
 	check(empty.finished and empty.winner==-1 and empty.wave==64,"default match runs 64 waves")
+
+## 加速后的索敌必须与逐个比较的暴力搜索结果完全一致（含狙击手评分、空地层、防卫圈与同距 ID）。
+func _spatial_equivalence() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 99
+	var kinds: Array = Catalog.units().keys()
+	var mismatches := 0
+	var compared := 0
+	for trial in range(6):
+		var sim = Sim.new()
+		for i in range(160):
+			var unit = sim.spawn_unit(i % 2, kinds[rng.randi_range(0, kinds.size()-1)], Vector2(rng.randf_range(30,1170), rng.randf_range(20,380)))
+			if unit.has("siege_state") and rng.randf() < 0.5:
+				unit.siege_state = "deployed"
+				unit.defender_center = unit.pos + Vector2(rng.randf_range(-300,300), rng.randf_range(-100,100))
+		# 制造同距并列：复制位置，让 ID 决定先后。
+		sim.units[3].pos = sim.units[5].pos
+		sim._build_buckets()
+		for unit in sim.units:
+			unit.locked_target_id = 0
+			var expected := _brute_target(sim, unit)
+			var actual: Dictionary = sim._target(unit)
+			compared += 1
+			if actual.get("id", 0) != expected.get("id", 0):
+				mismatches += 1
+			var ground := _brute_ground(sim, unit, 300.0)
+			if sim.nearest_ground_enemy(unit, 300.0).get("id", 0) != ground.get("id", 0):
+				mismatches += 1
+	check(mismatches == 0 and compared == 960, "spatial target search matches brute force (%d mismatches)" % mismatches)
+
+func _brute_target(sim, unit: Dictionary) -> Dictionary:
+	var weapon: Dictionary = sim._weapon_stats(unit)
+	var radius: float = float(weapon.range) * 1.5
+	var best: Dictionary = {}
+	var best_score := INF
+	for other in sim.units:
+		if other.team == unit.team or other.hp <= 0 or unit.pos.distance_to(other.pos) > radius or not sim._can_hit_unit(unit, other, weapon):
+			continue
+		var score: float = unit.pos.distance_to(other.pos)
+		if unit.kind == "sniper":
+			score = score * 0.1 + float(sim.catalog[other.kind].hp) * 0.2
+		if score < best_score or (is_equal_approx(score, best_score) and int(other.id) < int(best.get("id", 2147483647))):
+			best = other
+			best_score = score
+	return best
+
+func _brute_ground(sim, unit: Dictionary, radius: float) -> Dictionary:
+	var best: Dictionary = {}
+	var best_distance := INF
+	for other in sim.units:
+		if other.team == unit.team or other.hp <= 0 or sim.catalog[other.kind].get("layer","ground") != "ground":
+			continue
+		var distance: float = unit.pos.distance_to(other.pos)
+		if distance > radius:
+			continue
+		if distance < best_distance or (is_equal_approx(distance, best_distance) and int(other.id) < int(best.get("id", 2147483647))):
+			best = other
+			best_distance = distance
+	return best

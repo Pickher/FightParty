@@ -18,8 +18,8 @@ static func can_act(sim, unit: Dictionary, in_range: bool, base_in_range: bool, 
 	var reach: float = float(context.get("range",stats.range))
 	var center: Vector2 = context.get("center",unit.pos)
 	var layers: Array = context.get("target_layers",stats.get("target_layers",["ground"]))
-	for other in sim._nearby(center, reach * float(config.hold_range_multiplier)):
-		if other.team == unit.team or other.hp <= 0:
+	for other in sim.nearby_team(center, reach * float(config.hold_range_multiplier), 1 - int(unit.team)):
+		if other.hp <= 0:
 			continue
 		if not layers.has(sim.catalog[other.kind].get("layer","ground")):
 			continue

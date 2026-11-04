@@ -12,9 +12,9 @@ static func units() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json"))["units"]
 
 ## 首次进入或保存的阵容超出首波预算时使用的默认军队，总费用 600。
-## kind 为兵种内部 ID，cell 为格子编号：第 0 行是 0～5，第 1 行是 6～11，以此类推。
+## kind 为兵种内部 ID，cell 为格子编号：18 列时第 0 行是 0～17，第 1 行是 18～35，以此类推。
 ## 同一行越靠右越接近前线。若修改兵种价格或起始预算，也要检查此阵容是否合法。
 static func starter() -> Array:
-	return [{"kind":"guard","cell":5},{"kind":"guard","cell":23},
-		{"kind":"rifle","cell":9},{"kind":"rifle","cell":15},
-		{"kind":"breaker","cell":3},{"kind":"swarm","cell":11},{"kind":"rifle","cell":21}]
+	return [{"kind":"guard","cell":53},{"kind":"guard","cell":107},
+		{"kind":"rifle","cell":69},{"kind":"rifle","cell":87},
+		{"kind":"breaker","cell":51},{"kind":"swarm","cell":71},{"kind":"rifle","cell":105}]
