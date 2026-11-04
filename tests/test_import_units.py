@@ -28,6 +28,7 @@ class ImportTests(unittest.TestCase):
         self.original = (ROOT / 'data/units.json').read_bytes()
         self.destination.write_bytes(self.original)
         self.current = json.loads(self.original.decode('utf-8-sig'))
+        self.extra_row = str(6 + len(self.current['units']))
 
     def workbook(self, changes=None, extra=False, delete=False):
         """从真实交付模板复制出测试输入，不依赖安装 Excel。"""
@@ -40,12 +41,12 @@ class ImportTests(unittest.TestCase):
                     rows = tree.find(TAG + 'sheetData')
                     if extra:
                         for existing in list(rows):
-                            if existing.get('r') == '12':
+                            if existing.get('r') == self.extra_row:
                                 rows.remove(existing)
                         row = copy.deepcopy(next(r for r in rows if r.get('r') == '6'))
-                        row.set('r', '12')
+                        row.set('r', self.extra_row)
                         for c in row:
-                            c.set('r', c.get('r').replace('6', '12'))
+                            c.set('r', c.get('r')[:-1] + self.extra_row)
                         rows.append(row)
                     if delete:
                         rows.remove(next(r for r in rows if r.get('r') == '6'))
@@ -75,22 +76,23 @@ class ImportTests(unittest.TestCase):
         self.assertFalse((self.folder / 'backups').exists())
 
     def test_change_backup_and_unknown_fields(self):
-        self.current['units']['guard']['future_field'] = 17
+        self.current['units']['rifle']['future_field'] = 17
         self.current['extra_metadata'] = 'preserve'
         before = json.dumps(self.current).encode()
         self.destination.write_bytes(before)
         backup = importer.import_units(self.workbook({'E6': 555, 'N6': '001122'}), self.destination)
         result = json.loads(self.destination.read_text(encoding='utf-8'))
-        self.assertEqual(result['units']['guard']['hp'], 555)
-        self.assertEqual(result['units']['guard']['color'], '001122')
-        self.assertEqual(result['units']['guard']['future_field'], 17)
+        self.assertEqual(result['units']['rifle']['hp'], 555)
+        self.assertEqual(result['units']['rifle']['color'], '001122')
+        self.assertEqual(result['units']['rifle']['future_field'], 17)
+        self.assertEqual(result['units']['marauder']['skills'], self.current['units']['marauder']['skills'])
         self.assertEqual(result['extra_metadata'], 'preserve')
         self.assertEqual(backup.read_bytes(), before)
 
     def test_new_unit(self):
-        path = self.workbook({'A12': 'assassin', 'B12': '刺客'}, extra=True)
+        path = self.workbook({'A'+self.extra_row: 'assassin', 'B'+self.extra_row: '刺客'}, extra=True)
         units = importer.parse_units(path, self.current)
-        self.assertEqual(len(units), 7)
+        self.assertEqual(len(units), len(self.current['units'])+1)
         self.assertEqual(units['assassin']['name'], '刺客')
 
     def test_dry_run(self):
@@ -101,7 +103,7 @@ class ImportTests(unittest.TestCase):
     def test_invalid_input_never_writes(self):
         for changes in [{'H6': 0}, {'D6': 1.5}, {'E6': -1}, {'H6': 'NaN'},
                         {'G6': 'inf'}, {'F6': 'medium'}, {'N6': 'zzz'},
-                        {'A7': 'guard'}, {'A6': 'changed_id'}, {'A6': 'move'},
+                        {'A7': 'rifle'}, {'A6': 'changed_id'}, {'A6': 'move'},
                         {'G6': '=2*8'}, {'E6': ''}, {'D5': 'hp'}]:
             with self.subTest(changes=changes):
                 with self.assertRaises(ValueError):

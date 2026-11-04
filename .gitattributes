@@ -3,3 +3,5 @@
 *.png binary
 *.zip binary
 *.apk binary
+*.cmd text eol=crlf
+*.xlsx binary

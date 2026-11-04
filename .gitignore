@@ -8,3 +8,4 @@ export_credentials.cfg
 data/backups/
 ~$*.xlsx
 __pycache__/
+work/

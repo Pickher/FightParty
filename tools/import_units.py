@@ -20,11 +20,17 @@ import xml.etree.ElementTree as ET
 from zipfile import ZipFile, BadZipFile
 
 ROOT = Path(__file__).resolve().parents[1]
-FIELDS = ['id', 'name', 'symbol', 'cost', 'hp', 'armor', 'damage', 'interval',
-          'range', 'speed', 'splash', 'light_multiplier', 'heavy_multiplier',
-          'color', 'role', 'counter']
+FIELDS = ['id', 'name', 'symbol', 'cost', 'hp', 'armor_type', 'damage', 'interval',
+          'range', 'speed', 'splash', 'armor', 'shield', 'color', 'role', 'counter',
+          'race', 'status', 'layer', 'target_layers', 'structure', 'bonus', 'skills',
+          'pending', 'requires', 'sc2', 'attacks_base']
 NUMBERS = {'cost', 'hp', 'damage', 'interval', 'range', 'speed', 'splash',
-           'light_multiplier', 'heavy_multiplier'}
+           'armor', 'shield'}
+DEFAULTS = {'armor': 0, 'shield': 0, 'race': 'neutral', 'status': 'ready',
+            'layer': 'ground', 'target_layers': ['ground'], 'structure': False,
+            'bonus': {}, 'skills': {}, 'pending': [], 'requires': [], 'sc2': '',
+            'attacks_base': True}
+JSON_FIELDS = {'target_layers': list, 'bonus': dict, 'skills': dict, 'pending': list, 'requires': list}
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 
 
@@ -92,7 +98,21 @@ def parse_units(path, current):
             if isinstance(raw, tuple):
                 raise ValueError(where + '：不支持公式、错误值、日期或布尔值，请填普通文字/数字。')
             raw = str(raw).strip()
-            if not raw:
+            if field in JSON_FIELDS:
+                try:
+                    value = json.loads(raw, parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
+                except ValueError:
+                    raise ValueError(where + '：必须是合法 JSON，字符串用英文双引号。')
+                if not isinstance(value, JSON_FIELDS[field]):
+                    raise ValueError(where + '：JSON 类型错误。')
+                unit[field] = value
+                continue
+            if field in ('structure', 'attacks_base'):
+                if raw.lower() not in ('true', 'false'):
+                    raise ValueError(where + '：只能填写 true 或 false。')
+                unit[field] = raw.lower() == 'true'
+                continue
+            if not raw and field != 'sc2':
                 raise ValueError(where + '：不能为空（无范围伤害请填 0）。')
             if field in NUMBERS:
                 try:
@@ -101,7 +121,7 @@ def parse_units(path, current):
                     raise ValueError(where + '：必须填写数字。')
                 if not math.isfinite(value) or value < 0:
                     raise ValueError(where + '：必须是有限的非负数。')
-                if field in ('cost', 'hp', 'interval') and value <= 0:
+                if field in ('hp', 'interval') and value <= 0:
                     raise ValueError(where + '：必须大于 0。')
                 if field == 'cost' and not value.is_integer():
                     raise ValueError(where + '：价格必须是正整数。')
@@ -113,14 +133,26 @@ def parse_units(path, current):
             raise ValueError('第 %d 行：ID 使用小写英文字母、数字、下划线，以字母开头；不能用 erase/move。' % row_number)
         if key in units:
             raise ValueError('第 %d 行：重复 ID %s。' % (row_number, key))
-        if unit['armor'] not in ('light', 'heavy'):
-            raise ValueError('第 %d 行：armor 只能是 light 或 heavy。' % row_number)
+        if unit['armor_type'] not in ('none', 'light', 'heavy', 'special'):
+            raise ValueError('第 %d 行：armor_type 只能是 none / light / heavy / special。' % row_number)
+        if unit['race'] not in ('terran', 'zerg', 'protoss', 'blight', 'neutral') or unit['status'] not in ('ready', 'stub'):
+            raise ValueError('第 %d 行：种族或实装状态无效。' % row_number)
+        if unit['layer'] not in ('ground', 'air') or not unit['target_layers'] or any(x not in ('ground', 'air') for x in unit['target_layers']):
+            raise ValueError('第 %d 行：层级只能使用 ground / air。' % row_number)
+        if unit['cost'] == 0 and not unit['structure']:
+            raise ValueError('第 %d 行：只有建筑价格可以为 0。' % row_number)
+        if any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v < 0 for v in unit['bonus'].values()):
+            raise ValueError('第 %d 行：bonus 加成必须为非负有限数。' % row_number)
         if not re.fullmatch(r'[0-9a-fA-F]{6}', unit['color']):
             raise ValueError('第 %d 行：color 必须是 6 位十六进制文本，例如 7ed8ed，不含 #。' % row_number)
         if len(unit['symbol']) != 1:
             raise ValueError('第 %d 行：symbol 必须是单个字符。' % row_number)
         # 未来代码增加的其他字段不会被旧版表格悄悄删除。
         preserved = copy.deepcopy(current['units'].get(key, {}))
+        # 可选字段在表格里展示默认值，但不强行写回原来未配置的字段。
+        for field, default in DEFAULTS.items():
+            if field not in preserved and unit.get(field) == default:
+                unit.pop(field, None)
         preserved.update(unit)
         units[key] = preserved
     if not units:

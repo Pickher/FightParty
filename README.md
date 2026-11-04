@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。目前为 Windows + Android 离线人机原型 v0.1.0，使用 Godot 4.7.2 标准版和 GDScript。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.3.1，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -28,7 +28,7 @@ C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_
 
 ## 二、游戏打开后怎么玩
 
-1. 看下方兵种卡片的价格、定位与克制提示。
+1. 看下方兵种卡片的价格、定位与克制提示。超过九种时，点“选择兵种”右侧的 < / > 翻页。
 2. 点兵种卡片，再点左下方网格，放置或替换单位。右边是前排，左边是后排。
 3. “移除单位”：先点工具，再点要移除的单位。
 4. “移动位置”：先点来源格，再点目标格；目标已占用时交换位置。
@@ -37,7 +37,7 @@ C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_
 7. 战斗时仍可配置下一波；不能直接指挥已经在场的部队。
 8. 根据右下角敌方上一波阵容调整组合；AI 也只能参考你上一波的公开配置。
 
-双方首波预算都是 600，每波加 100，上限 1200；剩余不结转，击杀不加钱，调整待出兵阵容不收额外费用。残兵继续推进，出生 90 秒后撤离。摧毁基地获胜；8 分钟后比较基地剩余生命，相同为平局。
+每局开始前弹出“开局设置”：开局资金 0 / 600★ / 1000 / 自定义，每轮收入 100 / 300★ / 500 / 自定义，出兵间隔 20 / 30★ / 45 秒 / 自定义（★ 为推荐，自定义用 −/+ 调整）；双方使用同一份设置，重开时再次弹出并记住上次选择。买下的单位永久留在兵营，每波整份出场。按推荐设置，双方开局 600 矿物，每次出兵后各得 300；矿物可以结转，击杀不加钱。本轮新买、还没出场的单位取消可全额退回；出场过的单位也能取消，但不退款，界面会二次确认。移动兵营单位免费。部队一直战斗到阵亡。摧毁基地获胜；第 64 波后不再出兵，先失去全部可攻击部队（医疗兵不算）的一方失败，双方同时失去为平局；若 64 波后 600 秒仍未分出胜负，比较基地剩余生命。
 
 空格键开始/暂停/继续；Esc 打开或关闭玩法说明。查看说明时计时暂停。结算后点击“调整阵容，再来一局”。
 
@@ -88,9 +88,9 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 以下路径都相对于 D:\MyCode\FightParty：
 
 1. data/units.json：兵种价格、血量、伤害、射程，最适合第一次修改。
-2. data/rules.json：出兵间隔、预算、基地血量与对局时限。
-3. scripts/catalog.gd：读取配置，以及定义默认开局阵容。
-4. scripts/commander_ai.gd：电脑怎样根据上一波选择反制兵种。
+2. data/rules.json：出兵间隔、开局矿物与每轮收入、基地血量与波数上限。
+3. data/races.json：四个种族、默认开局阵容与电脑配兵参数。scripts/catalog.gd 负责读取这些配置。
+4. scripts/commander_ai.gd：电脑怎样根据上一波按护甲公式现算反制兵种。
 5. scripts/battle_sim.gd：配兵校验、生成单位、自动寻敌、移动、扣血和胜负。
 6. scripts/main.gd：入口、界面、按钮操作、每帧调度和存档。
 7. scenes/main.tscn：绑定 main.gd 的主场景，是 F5 启动的画面。
@@ -101,57 +101,86 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 ## 七、units.json：兵种字段解释
 
-打开 data/units.json，找到 units 下的对象。内部 ID 分别是 guard（盾卫）、rifle（步枪兵）、breaker（破甲手）、swarm（蜂群兵）、mortar（迫击炮）、sniper（狙击手）。
+打开 data/units.json，找到 units 下的对象。0.3.0 起共有四个种族（人族、虫族、神族、腐族）约 40 个兵种，完整清单与 SC2 参考见 docs/DESIGN.md 的“种族、护甲与护盾”一节。旧 ID guard（盾卫）、breaker（破甲手）、sniper（狙击手）已经删除：盾卫改名“先锋” vanguard 归神族，破甲手与狙击手合并为人族“特工” agent。
 
 - name：界面显示的中文名称。
-- symbol：预留的字母标识；当前单位形状主要由 main.gd 绘制代码决定。
-- cost：单位占用的配兵预算。
-- hp：单位出生生命值。
-- armor：护甲标签，light 为轻甲，heavy 为重甲。
+- symbol：字母标识；还没有专属外形的兵种画成圆形加这个字母。
+- race：所属种族 terran / zerg / protoss / blight；结构体为 neutral。每局只能买本方种族的兵种。
+- status：ready 表示已实装、可购买；stub 表示只是预留数据（缺少技能），卡片显示灰色“尚未实装”，电脑也不会选。
+- pending：stub（或部分 ready 兵种）还缺的技能模块名单，方便以后实现。
+- requires：以后要做的“解锁前置”（兵营里有前置兵种才能买），目前只记录、不生效。
+- sc2：参考的《星际争霸 II》单位，只借定位与数值比例，不使用素材。
+- cost：购买一名永久单位花费的矿物。
+- hp：单位出生生命值。shield：神族护盾值，见下文。
+- armor_type：护甲类型 none（无甲）/ light（轻甲）/ heavy（重甲）/ special（特殊甲）。
+- armor：护甲点数，每次受击先减去这么多伤害（护盾吸收的部分不减）。无甲单位的护甲点数必须为 0。
+- layer：自身所属层，ground 地面或 air 空中；变换武器模式不改变所属层。
+- target_layers：武器可攻击的层列表；attacks_base 表示是否可以攻击基地。
 - damage：基础单次伤害。
+- bonus：穿甲加成，例如 {"heavy":30} 表示打重甲时每发多 30。
 - interval：攻击间隔，单位秒，越小攻击越快。
 - range：攻击距离，按逻辑战场坐标计算，不等于屏幕像素。
 - speed：每秒移动的逻辑距离。
+- skills：可复用技能配置，省略时使用普通移动/攻击。详细字段及组合示例见 [docs/SKILLS.md](docs/SKILLS.md)。
+- skills.healing：`heal` 为单次治疗量；`follow_distance`、`danger_distance` 控制后排跟随与避敌。医疗兵当前每 0.5 秒治疗 12，范围 160。
+- skills.deployment：`deploy_seconds`、`pack_seconds` 为展开/收起耗时；`deploy_enemy_threshold`、`scan_seconds` 控制人数阈值与扫描确认；`hold_range_multiplier` 控制外围保持范围。`mode` 用 siege 显示架设，用 burrow 显示埋地，埋地暂不隐身。
+- skills.line_attack：`pattern` 为 forward（从自身沿目标方向传播）或 transverse（以目标位置为中心横向扫射）；`speed` 为传播速度，`half_width` 为半宽，`length` 为固定长度，省略时使用 range；`effect` 选择 spike/beam 外观。
+- skills.defender_zone：划定固定防卫圈并切换武器，复用展开/收起时序。解放者普通模式对空，防卫模式仅对圈内地面单位。
+- skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
+- skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
+- skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击都按护甲规则结算，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
+- skills.weapon_switch：多武器。特工有穿甲弹与狙击弹，按目标护甲自动换弹，换弹 1.5 秒不能开火；雷神对地、对空各一把武器，换武器没有延迟。
+- skills.regen：脱战再生，`delay` 秒没受伤后每秒回 `per_second` 生命（蟑螂、缝合巨尸）。
 - splash：范围伤害半径，0 表示单体攻击。
-- light_multiplier：攻击轻甲的伤害倍率。
-- heavy_multiplier：攻击重甲的伤害倍率。
 - color：单位的十六进制颜色。
 - role、counter：定位和克制提示；改数值不会自动重写这些文字。
 - 顶层 version：配置版本标记，规则变化时应考虑版本和旧战报兼容性。
 
-例如基础伤害 20、轻甲倍率 1.5，对轻甲的单次理论伤害是 30。攻击基地只使用基础伤害，范围攻击不伤友军。
+护甲规则（0.3.0）：每发伤害 = damage + 对应护甲类型的 bonus − 目标 armor，最少 0.5。无甲和特殊甲不吃任何 bonus。例如劫掠者 damage 30、bonus heavy 30，打重甲、护甲 3 的蟑螂是 30 + 30 − 3 = 57；打轻甲、护甲 0 的步枪兵是 30。神族先扣护盾：护盾按 damage + bonus 扣，不减护甲点数；打穿护盾的剩余部分再减护甲。连续 7 秒没受伤后每秒回 7.5 护盾；医疗兵只回生命。攻击基地只使用基础伤害，范围攻击不伤友军。
 
-不要随意改内部 ID：AI 字典、默认阵容、绘制和测试都可能引用它。新增兵种也要同时考虑这些位置。
+解放者价格为 300（0.1.9 起，原为 1200），开局矿物即可购买；它在两个模式下都不能攻击基地。防卫圈是允许选取地面目标的范围，圈内仍逐个攻击。
+
+不要随意改内部 ID：data/races.json 的默认阵容和电脑配兵参数、绘制和测试都可能引用它。新增兵种也要同时考虑这些位置。
+
+data/races.json 是种族表：每个种族的中文名、主题色、一句风格描述（只是介绍，不带任何种族克制机制）、开局默认阵容 starter，以及电脑参数 ai（front 为保证数量的前排兵种、front_min 为数量；support 为辅助兵种，兵营总价加矿物达到 support_value 时买一个）。
 
 ## 八、rules.json：对局规则字段解释
 
 - wave_seconds：同时出兵间隔，默认 30 秒。
-- start_budget：首波预算，默认 600。
-- budget_growth：每波预算增量，默认 100。
-- max_budget：预算上限，默认 1200。
-- base_hp：双方基地初始生命，默认 3000。
-- match_seconds：最长对局时间，默认 480 秒。
-- unit_lifetime：单位最多存活时间，默认 90 秒。
+- start_minerals：双方开局矿物，默认 600。
+- wave_income：每次出兵后双方各得的矿物，默认 300。
+- wave_limit：最后一波的编号，默认 64；之后不再出兵也不再发收入。
+- final_phase_max_seconds：最后一波后的安全时限，默认 600 秒；到时比较基地剩余生命，防止双方互相打不到时对局卡死。
+- base_hp：双方基地初始生命，默认 3000。基地本身不攻击。
+- structures：是否放置门口防御塔和宝库，默认 true；测试用 false 隔离单位行为。
+- treasury_reward：摧毁对方宝库时攻击方获得的矿物，默认 400。
+- tower_max_builds：每方每局可建造防御塔的次数，默认 1；被摧毁不归还次数。防御塔价格取 units.json 中 tower 的 cost（默认 500）。
+- unit_lifetime：单位最多存活秒数，默认 0 表示不撤离（0.1.8 为 90）。
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
-- columns、rows：布阵列数和行数，当前 6×4。UI、AI、出生位置也有相应布局，不能只改这两个数字。
-- world_width、world_height：当前尺寸标记为 1200×400；出生点、边界、画面映射仍有固定数值，只改这两个配置不会完成战场尺寸改造。
+- columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
+- world_width、world_height：逻辑战场尺寸，当前 1200×400；敌方坐标按 world_width 镜像，画面映射也按这两个值缩放。
+- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius 是基地中心与判定半径；gate_x/gate_y、treasury_x/treasury_y、tower_x/tower_y 是门口防御塔、宝库与防御塔建造位；spawn_x/spawn_dx/spawn_y/spawn_dy 是出生区第 0 格位置与列/行间距；bounds 是单位可移动的边界。医疗兵无掩护时退向 spawn_x。
+- races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。未知种族按 terran 处理。
+- race_setup：开局弹窗两行种族选择的标题 labels 与推荐值 recommended（默认我方 terran、电脑 random）。random 在建局时随机成具体种族，写入战报的是随机后的结果，所以重放不会再随机。
+- min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。
+- setup_options：开局设置弹窗的选项。每个字段（start_minerals、wave_income、wave_seconds）有 label、unit、choices 三个预设、recommended 推荐值（应等于同名默认值）、自定义的 step/min/max。
 - version：战报采用的规则版本；规则改变后应同步考虑版本，避免混用旧战报。
 
 更改出兵间隔、最长时间和残兵寿命时，界面里的固定说明也要同步修改。更快出兵或更长寿命会增加同屏单位，需要重新检查性能。
 
-## 九、第一次练习：让盾卫更耐打
+## 九、第一次练习：让恶火更耐打
 
 1. 关闭正在运行的游戏。
 2. 打开 D:\MyCode\FightParty\data\units.json。
-3. 找到 "guard" 对象中的 "hp":480，只把 480 改为 800。
+3. 找到 "hellbat" 对象中的 "hp":365，只把 365 改为 600。
 4. 保存，保留原来的逗号、引号、花括号和 .json 文件后缀。
 5. 按 F5，或双击桌面“FightParty开始游戏”，开始新的一局。
-6. 放置盾卫，观察它能否坚持更久。双方共用配置，因此敌方盾卫也变成 800 血。
-7. 想恢复，把 800 改回 480，再保存并重启。
+6. 放置恶火，观察它能否坚持更久。双方共用配置，因此敌方恶火也变成 600 血。
+7. 想恢复，把 600 改回 365，再保存并重启。
 
 一次只改一项，更容易看出结果。之后可以练习改价格、攻击间隔和出兵间隔。
 
-修改价格或起始预算后，要检查 scripts/catalog.gd 中的 starter 默认阵容是否仍买得起。平衡调整可能让原来的克制测试失败，需要判断是否属于预期变化，而不是直接删除失败测试。
+修改价格或开局矿物后，要检查 data/races.json 中各种族的 starter 默认阵容是否仍买得起（买不起时开局兵营为空）。平衡调整可能让原来的克制测试失败，需要判断是否属于预期变化，而不是直接删除失败测试。
 
 以前导出的 FightParty.exe 是导出当时的快照，不会读取源码的后续修改。测试最新代码用 F5 或桌面源码快捷方式；要把修改后的游戏发给别人，则需要重新导出。
 
@@ -178,7 +207,7 @@ $godotExe = 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v
 
 测试出现 RESULT ... 0 failures 表示该轮没有失败。规则测试还包含 200 单位模拟耗时检查。
 
-tests/ui_smoke.gd 会覆盖本机最近阵容和战报，不要用它来正常开始游戏。tests/render_perf.gd 是渲染压力测试，tests/replay.gd 用来复现已完成战报。
+tests/ui_smoke.gd 会覆盖本机最近阵容和战报，不要用它来正常开始游戏。tests/render_perf.gd 是渲染压力测试，tests/crowd_perf.gd 是满兵营大规模模拟基准，tests/replay.gd 用来复现已完成战报。
 
 只构建 Windows（需要已安装导出模板）：
 
@@ -201,23 +230,24 @@ git -C 'D:\MyCode\FightParty' diff
 
 - D:\MyCode\FightParty\docs\DESIGN.md：玩法与兵种初始数值。
 - D:\MyCode\FightParty\docs\ARCHITECTURE.md：分层、接口、数据流和联机边界。
+- [docs/SKILLS.md](docs/SKILLS.md)：技能配置、组合方式与扩展入口。
 - D:\MyCode\FightParty\docs\DEVELOPMENT.md：测试、打包、字体维护。
 - D:\MyCode\FightParty\docs\TEST_REPORT.md：实际验证结果与安卓未验证项。
 
-首版没有真人联机、账号、复杂地形、空军、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
+首版没有真人联机、账号、复杂地形、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
 
 ## 十三、用 Excel 调整或新增兵种
 
 最方便的方式：打开 `D:\MyCode\FightParty\data\兵种配置.xlsx`，修改并保存，然后双击项目根目录的 `导入兵种.cmd`。看到“已写入”或“数据相同”后，完全关闭游戏并重新打开（桌面开始游戏快捷方式也可以）。
 
-表中包含当前全部 6 个兵种和 16 列：ID、名称、标记、价格、生命、护甲、伤害、攻击间隔、射程、移速、溅射半径、对轻甲倍率、对重甲倍率、颜色、定位说明和克制说明。“填写说明”页逐项解释字段和单位。
+表中已同步规则 0.3.1 的全部 45 条单位与建筑配置，共 27 列。包含四族兵种及未实装的预留单位，`status=ready` 才可购买，`stub` 表示预留。护甲类型 `armor_type` 与数值护甲 `armor` 分开，额外伤害用 `bonus`，不再使用旧版轻重甲倍率。“填写说明”页逐项解释字段和单位。新增的技能、种族、层级、前置等配置也已同步。
 
 操作规则：
 
 1. 在“兵种”页第 6 行开始修改数据，保留第 5 行英文列名。允许整行排序、整列移动；不要单独排序某一列。
-2. 新增兵种时，复制一条完整数据行到下方，填写唯一的新 ID 和全部字段。新增单位使用默认圆形图形，兵种卡片每页 6 张，超过后可翻页。
+2. 新增兵种时，复制一条完整数据行到下方，填写唯一的新 ID、race 种族和全部字段。卡片按本方种族显示，每页 9 张，可用 < / > 翻页。新增 ID 的专属外形需要修改画面代码。
 3. 已有 ID 不可删除或改名，因为 AI 和存档可能引用；显示名称 `name` 可以改。ID 只能用小写英文字母、数字和下划线，以字母开头，不能是 `move` 或 `erase`。
-4. 价格必须为正整数；生命和攻击间隔必须大于 0；其他数值不可为负。护甲只支持 `light`（轻甲）和 `heavy`（重甲），颜色是 6 位十六进制文本，不带 `#`。
+4. 普通兵价格为正整数，建筑允许为 0；生命和攻击间隔必须大于 0。护甲类型支持 `none`、`light`、`heavy`、`special`；护甲值与护盾值填非负数字。颜色是 6 位十六进制文本，不带 `#`。
 5. 直接填写数字和文字。公式不会导入，避免读取到未重算的旧缓存；如在表中计算过，导入前先粘贴为值。
 
 导入工具只需要 Python 3.8+，不需要安装 pip 包，也不要求电脑安装 Excel（编辑表格可用 Excel 或 WPS）。本机已安装 Python。Windows 双击脚本优先使用 `py -3`，其次使用 `python`；其他电脑需安装 Python 并加入 PATH。
@@ -234,7 +264,7 @@ python tools/import_units.py "其他位置的兵种配置.xlsx"
 
 恢复时，关闭游戏，把需要的备份复制覆盖 `data/units.json`，再同步 Excel 中相应数值。**这是 Excel 到 JSON 的单向导入**：手动修改 JSON 不会自动反映到 Excel；提交代码时应同时保存表格和导入后的 JSON。备份和 Excel 临时锁文件不进入 Git。
 
-新增兵种会进入 AI 的普通选择池；专属克制映射仍在 `scripts/commander_ai.gd`。改变价格后 AI 会按实际最低价寻找保底单位，默认阵容超预算时会保留其中买得起的单位。`role` 和 `counter` 只是说明文字，改成“刺客”不会自动获得侧翼切入行为；仇恨系统尚未实现。
+AI 依据本方种族与已实装兵种选择阵容；策略在 `scripts/commander_ai.gd` 和 `data/races.json`。JSON 列使用英文双引号：无技能填 `{}`，无前置填 `[]`；长 JSON 可选中单元格后在公式栏查看。`skills` 仅启用游戏已经实现的能力，任意填写新技能名不会自动实现效果。`role` 和 `counter` 仍只是说明文字。
 
 导入影响从源码运行的游戏，已经导出的 Windows EXE / Android APK 需要重新打包。改数值也可能改变原有平衡测试的结果，需检查预期是否还合理。
 

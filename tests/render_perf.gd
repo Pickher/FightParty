@@ -15,7 +15,7 @@ func run() -> void:
 	game.sim.formations=[[],[]]
 	for team in range(2):
 		for i in range(100):
-			var unit: Dictionary=game.sim.spawn_unit(team,"guard",Vector2(400+team*400+(i%10)*4,30+(i/10)*34))
+			var unit: Dictionary=game.sim.spawn_unit(team,"marauder",Vector2(400+team*400+(i%10)*4,30+(i/10)*34))
 			unit.hp=1000000.0
 	var begin:=Time.get_ticks_usec()
 	var frames:=0
