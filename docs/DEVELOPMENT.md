@@ -95,3 +95,5 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。
 
 当前导出版本 0.5.0 / Android versionCode 18，未生成 APK。
+
+当前源码与导出预设为 0.6.0 / Android versionCode 19。技能组件化未执行运行验证，测试夹具中的状态写入须改用实例 state。见 docs/SKILL_COMPONENTS.md。

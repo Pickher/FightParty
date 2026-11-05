@@ -1,47 +1,12 @@
 extends RefCounted
-const Status = preload("res://scripts/skills/status_effects.gd")
-
-## 自动选择范围内敌军最密的位置。落点在施法时固定，延迟期间可被躲开。
-static func cast(sim, unit: Dictionary) -> bool:
-	var stats: Dictionary = sim.catalog[unit.kind]
-	var config: Dictionary = stats.get("skills",{}).get("delayed_area",{})
-	if config.is_empty() or sim.tick<int(unit.get("area_ready_tick",0)):return false
-	var reach: float = float(config.get("range",stats.range))
-	var radius: float = float(config.radius)
-	var chosen: Dictionary = {}
-	var count := -1
-	var distance := INF
-	for enemy in sim.nearby_team(unit.pos,reach,1-int(unit.team)):
-		if enemy.hp<=0 or not eligible(sim,stats,config,enemy):continue
-		var neighbors := 0
-		for other in sim.nearby_team(enemy.pos,radius,1-int(unit.team)):
-			if other.hp>0 and eligible(sim,stats,config,other):neighbors+=1
-		var d: float = unit.pos.distance_to(enemy.pos)
-		if neighbors>count or (neighbors==count and (d<distance or (is_equal_approx(d,distance) and int(enemy.id)<int(chosen.get("id",2147483647))))):
-			chosen=enemy
-			count=neighbors
-			distance=d
-	if chosen.is_empty():
-		if not bool(config.get("attacks_base",false)):return false
-		var base: Vector2 = sim.base_pos(1-int(unit.team))
-		var offset: Vector2 = base-unit.pos
-		if offset.length()>reach+float(sim.rules.layout.base_radius):return false
-		var spot: Vector2 = base-offset.normalized()*float(sim.rules.layout.base_radius)
-		launch(sim,unit,spot,config)
-	else:
-		launch(sim,unit,chosen.pos,config)
-	unit.area_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
-	return true
-
+const Status = preload("res://scripts/skills/services/status_service.gd")
 static func eligible(sim, stats: Dictionary, config: Dictionary, victim: Dictionary) -> bool:
 	return config.get("target_layers",stats.get("target_layers",["ground"])).has(sim.catalog[victim.kind].get("layer","ground")) and (bool(config.get("attacks_structures",false)) or not sim.is_structure(victim))
-
 static func launch(sim, source: Dictionary, location: Vector2, config: Dictionary) -> void:
 	var delay_ticks := maxi(1,ceili(float(config.get("delay",0))*float(sim.rules.tick_rate)))
 	var area := {"source_id":source.id,"team":source.team,"kind":source.kind,"origin":source.pos,"pos":location,"born":sim.tick,"ready_tick":sim.tick+delay_ticks,"config":config.duplicate(true),"rooted":{},"pulse":0}
 	sim.skill_areas.append(area)
 	sim.events.append({"type":"area_cast","from":source.pos,"to":location,"team":source.team,"kind":source.kind,"radius":config.radius})
-
 static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hits: Array) -> void:
 	var active: Array = []
 	var periodic: Dictionary = {}

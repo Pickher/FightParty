@@ -318,7 +318,7 @@ func _draw() -> void:
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.5.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"离线原型 v0.6.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)

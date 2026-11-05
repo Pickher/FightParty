@@ -1,11 +1,7 @@
-extends RefCounted
+extends "res://scripts/skills/skill.gd"
 
-## 医疗兵以己方最前方战斗单位为掩护；全队只剩辅助时退向己方基地。
-## 每步按剩余生命比例选择治疗范围内最危急的友军（不治疗自身、基地或结构体）。
-## 追赶伤员也不能越过安全线；附近敌军逼近时优先后撤，可边移动边治疗。
-static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary) -> void:
+func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary) -> void:
 	var stats: Dictionary = sim.catalog[unit.kind]
-	var config: Dictionary = stats.skills.healing
 	var forward: float = 1.0 if unit.team == 0 else -1.0
 	var front: Dictionary = {}
 	for ally in sim.units:
@@ -51,3 +47,8 @@ static func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dic
 	goal = sim.clamp_to_field(goal)
 	moves[unit.id] = unit.pos.move_toward(goal, sim._movement_speed(unit) * dt)
 
+func _init() -> void: priority=0
+func before_target(ctx: Dictionary) -> bool:
+	ctx.sim._tick_attack_clock(owner,ctx.dt)
+	step(ctx.sim,owner,ctx.dt,ctx.heals,ctx.moves)
+	return true

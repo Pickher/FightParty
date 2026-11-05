@@ -1,23 +1,14 @@
-extends RefCounted
+extends "res://scripts/skills/skill.gd"
 
-## 大和炮：引导 channel_seconds 秒后对锁定目标打出一发 damage 的单体重炮，冷却 cooldown_seconds 秒。
-## 只在冷却好、yamato 射程内有生命+护盾不低于 min_target_hp 的敌方单位时开始引导；
-## 优先非结构体，按生命+护盾从高到低，同分取 ID 小的；没有合格单位时才考虑结构体。基地不是目标。
-## 引导期间不能移动、不能用普通武器开火——这是它的破绽。目标一经锁定，走出射程也照样命中；
-## 目标在引导中死亡则取消，不消耗冷却。出生时冷却就绪。
-## 伤害不吃护甲类型加成，经护盾与护甲点数正常结算（与普通命中同一套 queue_hit）。
-
-## 每步在普通行动之前调用。返回 true 表示本步在引导（或刚开炮），单位不再移动、不再普通攻击。
-static func step(sim, unit: Dictionary, hits: Dictionary) -> bool:
-	var config: Dictionary = sim.catalog[unit.kind].skills.yamato
+func step(sim, unit: Dictionary, hits: Dictionary) -> bool:
 	var rate: float = float(sim.rules.tick_rate)
-	if unit.has("yamato_target"):
-		var target = sim.by_id.get(int(unit.yamato_target))
+	if state.has("yamato_target"):
+		var target = sim.by_id.get(int(state.yamato_target))
 		if target == null:
-			unit.erase("yamato_target")
-			unit.erase("yamato_fire_tick")
+			state.erase("yamato_target")
+			state.erase("yamato_fire_tick")
 			return false
-		if sim.tick < int(unit.yamato_fire_tick):
+		if sim.tick < int(state.yamato_fire_tick):
 			return true
 		var raw: float = float(config.damage)
 		var weapon := {"damage": raw}
@@ -26,21 +17,20 @@ static func step(sim, unit: Dictionary, hits: Dictionary) -> bool:
 		sim.damage_done[int(unit.team)] += amount
 		sim.events.append({"type":"attack_hit","id":target.id,"kind":unit.kind,"team":unit.team,"strike":0,"amount":amount})
 		sim.events.append({"type":"yamato","from":unit.pos,"to":target.pos,"kind":unit.kind,"team":unit.team})
-		unit.erase("yamato_target")
-		unit.erase("yamato_fire_tick")
-		unit.yamato_ready_tick = sim.tick + ceili(float(config.cooldown_seconds) * rate)
+		state.erase("yamato_target")
+		state.erase("yamato_fire_tick")
+		state.yamato_ready_tick = sim.tick + ceili(float(config.cooldown_seconds) * rate)
 		return true
-	if sim.tick < int(unit.get("yamato_ready_tick", 0)):
+	if sim.tick < int(state.get("yamato_ready_tick", 0)):
 		return false
-	var target := _pick(sim, unit, config)
+	var target := _pick(sim, unit)
 	if target.is_empty():
 		return false
-	unit.yamato_target = target.id
-	unit.yamato_fire_tick = sim.tick + ceili(float(config.channel_seconds) * rate)
+	state.yamato_target = target.id
+	state.yamato_fire_tick = sim.tick + ceili(float(config.channel_seconds) * rate)
 	sim.events.append({"type":"yamato_charge","id":unit.id,"target":target.id,"team":unit.team})
 	return true
-
-static func _pick(sim, unit: Dictionary, config: Dictionary) -> Dictionary:
+func _pick(sim, unit: Dictionary) -> Dictionary:
 	var reach: float = float(config.range)
 	var weapon := {"target_layers": ["ground", "air"], "attacks_structures": true}
 	var best: Dictionary = {}
@@ -63,6 +53,15 @@ static func _pick(sim, unit: Dictionary, config: Dictionary) -> Dictionary:
 	return best
 
 ## 引导进度 0～1；不在引导时为 -1。供界面画蓄能光圈。
+
+func _init() -> void:
+	priority=10
+	view_fields=["yamato_target","yamato_fire_tick","yamato_ready_tick"]
+func before_target(ctx: Dictionary) -> bool:
+	if not step(ctx.sim,owner,ctx.hits):return false
+	ctx.sim._tick_attack_clock(owner,ctx.dt)
+	return true
+
 static func charge(sim, unit: Dictionary) -> float:
 	if not unit.has("yamato_target"):
 		return -1.0

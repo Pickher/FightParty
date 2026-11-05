@@ -6,7 +6,7 @@ const Sim = preload("res://scripts/battle_sim.gd")
 const LineAttack = preload("res://scripts/skills/line_attack.gd")
 const AI = preload("res://scripts/commander_ai.gd")
 const Catalog = preload("res://scripts/catalog.gd")
-const Shield = preload("res://scripts/skills/shield.gd")
+const Shield = preload("res://scripts/skills/services/shield_service.gd")
 var failures := 0
 var checks := 0
 

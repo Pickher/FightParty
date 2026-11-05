@@ -1,24 +1,8 @@
-extends RefCounted
+extends "res://scripts/skills/skill.gd"
 
-## 多武器单位（特工、雷神）：按当前目标选择每秒伤害最高的武器。
-## 换到另一把武器需要 switch_seconds，期间不能开火——这是特工的弱点窗口；雷神为 0。
-## 索敌用兵种本身的 range / target_layers（各武器的并集），开火距离用当前武器的 range。
-## 当前武器合并后的数据按“兵种:序号”缓存在 sim.mode_weapons，避免每次深拷贝。
-static func weapon(sim, unit: Dictionary) -> Dictionary:
-	var key := "%s:%d" % [unit.kind, int(unit.get("weapon_index", 0))]
-	if not sim.mode_weapons.has(key):
-		var base: Dictionary = sim.catalog[unit.kind]
-		var result: Dictionary = base.duplicate(true)
-		result.erase("bonus")
-		result.merge(base.skills.weapon_switch.weapons[int(unit.get("weapon_index", 0))], true)
-		sim.mode_weapons[key] = result
-	return sim.mode_weapons[key]
-
-## 选择对目标最有效的武器；同分保留当前武器。没有目标（攻击基地）时用第一把能打基地的武器。
-static func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
-	var config: Dictionary = sim.catalog[unit.kind].skills.weapon_switch
+func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
 	var weapons: Array = config.weapons
-	var current: int = int(unit.get("weapon_index", 0))
+	var current: int = int(state.get("weapon_index", 0))
 	if config.get("policy","") == "air_superiority":
 		if target.is_empty() or sim.catalog[target.kind].get("layer","ground") != "air":
 			return 2
@@ -59,11 +43,28 @@ static func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
 	return best
 
 ## 每步在开火前调用：需要换武器时开始计时并发出事件。返回本步能否开火。
-static func prepare(sim, unit: Dictionary, target: Dictionary) -> bool:
-	var config: Dictionary = sim.catalog[unit.kind].skills.weapon_switch
+func prepare(sim, unit: Dictionary, target: Dictionary) -> bool:
 	var wanted := best_index(sim, unit, target)
-	if wanted != int(unit.get("weapon_index", 0)):
-		unit.weapon_index = wanted
-		unit.switch_until_tick = sim.tick + ceili(float(config.switch_seconds) * float(sim.rules.tick_rate))
+	if wanted != int(state.get("weapon_index", 0)):
+		state.weapon_index = wanted
+		state.switch_until_tick = sim.tick + ceili(float(config.switch_seconds) * float(sim.rules.tick_rate))
 		sim.events.append({"type":"weapon_switch","id":unit.id,"weapon":str(config.weapons[wanted].id)})
-	return sim.tick >= int(unit.get("switch_until_tick", 0))
+	return sim.tick >= int(state.get("switch_until_tick", 0))
+
+var weapon_cache: Dictionary = {}
+func _init() -> void:
+	priority=40
+	view_fields=["weapon_index","switch_until_tick"]
+func on_target(ctx: Dictionary) -> void: ctx.armed=prepare(ctx.sim,owner,ctx.target)
+func modify_weapon(_sim, weapon: Dictionary) -> Dictionary:
+	var index: int = int(state.get("weapon_index",0))
+	if not weapon_cache.has(index):
+		var current: Dictionary = weapon.duplicate(true)
+		current.erase("bonus")
+		current.merge(config.weapons[index].duplicate(true),true)
+		weapon_cache[index]=current
+	return weapon_cache[index]
+func modify_search(sim, _weapon: Dictionary) -> Dictionary: return sim.catalog[owner.kind]
+func has_target_priority() -> bool: return config.has("preferred_layer")
+func target_priority(sim, victim: Dictionary) -> int:
+	return 1 if config.has("preferred_layer") and sim.catalog[victim.kind].get("layer","ground")==config.preferred_layer else 0
