@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "frame_size": [
     64,
     64
@@ -37,14 +37,14 @@
     },
     "fire": {
       "texture": "fire.png",
-      "frames": 4,
-      "fps": 16,
-      "loop": false
+      "frames": 8,
+      "fps": 24,
+      "loop": true
     },
     "death": {
       "texture": "death.png",
-      "frames": 8,
-      "fps": 10,
+      "frames": 16,
+      "fps": 16,
       "loop": false
     }
   }

@@ -197,7 +197,7 @@ func _process(delta: float) -> void:
 		while accumulator >= 0.05:
 			accumulator -= 0.05
 			advance_tick()
-	if not paused and not backgrounded and not help_open and not sim.finished:
+	if not paused and not backgrounded and not help_open:
 		rifle_visual.update(delta)
 	for effect in effects:
 		effect.ttl -= delta
@@ -404,7 +404,7 @@ func _draw_battle() -> void:
 	# 在上一模拟位置 prev 与当前位置 pos 之间插值，让 20 Hz 的计算看起来更平滑。
 	var alpha := clampf(accumulator/0.05,0,1)
 	for corpse in rifle_visual.corpses:
-		rifle_visual.draw_frame(self,_world(corpse.pos),"death",corpse.direction,rifle_visual.clock-float(corpse.at))
+		rifle_visual.draw_corpse(self,_world(corpse.pos),corpse)
 	for unit in sim.units:
 		var p := _world(unit.prev.lerp(unit.pos,alpha))
 		var color: Color = MINT if unit.team == 0 else CORAL
