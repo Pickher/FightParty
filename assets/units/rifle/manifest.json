@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "frame_size": [
+    64,
+    64
+  ],
+  "anchor": [
+    32,
+    32
+  ],
+  "display_size": [
+    36,
+    36
+  ],
+  "directions": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE"
+  ],
+  "animations": {
+    "idle": {
+      "texture": "idle.png",
+      "frames": 6,
+      "fps": 6,
+      "loop": true
+    },
+    "move": {
+      "texture": "move.png",
+      "frames": 8,
+      "fps": 12,
+      "loop": true
+    },
+    "fire": {
+      "texture": "fire.png",
+      "frames": 4,
+      "fps": 16,
+      "loop": false
+    },
+    "death": {
+      "texture": "death.png",
+      "frames": 8,
+      "fps": 10,
+      "loop": false
+    }
+  }
+}

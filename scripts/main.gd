@@ -6,6 +6,8 @@
 extends Control
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
 const Sim = preload("res://scripts/battle_sim.gd")
+const RifleVisual = preload("res://scripts/rifle_visual.gd")
+var rifle_visual = RifleVisual.new()
 const AI = preload("res://scripts/commander_ai.gd")
 const Catalog = preload("res://scripts/catalog.gd")
 # 界面颜色常量。修改这里可以调整主题；不会改变兵种伤害或阵营规则。
@@ -100,6 +102,7 @@ func _new_match() -> void:
 	paused = false
 	accumulator = 0.0
 	effects.clear()
+	rifle_visual.reset()
 	messages = ["兵营永久保留，每波全部出场；每轮收入 +%d。" % int(sim.rules.wave_income)]
 	pending_formation = []
 	move_source = -1
@@ -194,6 +197,8 @@ func _process(delta: float) -> void:
 		while accumulator >= 0.05:
 			accumulator -= 0.05
 			advance_tick()
+	if not paused and not backgrounded and not help_open and not sim.finished:
+		rifle_visual.update(delta)
 	for effect in effects:
 		effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
@@ -202,7 +207,14 @@ func _process(delta: float) -> void:
 ## 推进战斗一步并消费事件；显示攻击、更新波次战报，以及让 AI 计划下一波。
 ## AI 只拿到玩家刚刚出兵的公开阵容，不拿到玩家正在修改的下一波。
 func advance_tick() -> void:
-	for event in sim.step():
+	var rifle_before: Dictionary = {}
+	for unit in sim.units:
+		if unit.kind == "rifle":
+			rifle_before[unit.id] = unit.duplicate()
+	rifle_visual.observe(sim.units)
+	var tick_events: Array = sim.step()
+	for event in tick_events:
+		rifle_visual.event(event,rifle_before,sim.units,sim.revealed)
 		if event.type == "attack" or event.type == "heal" or event.type == "line_attack":
 			event.ttl = 0.24 if event.type == "line_attack" else 0.16
 			effects.append(event)
@@ -228,6 +240,8 @@ func advance_tick() -> void:
 		elif event.type == "ended":
 			_save_journal()
 			speaker.play()
+
+	rifle_visual.observe(sim.units)
 
 ## 电脑在开局和每次出兵后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
 ## 落后时先建防御塔，买不起就本轮攒矿不买兵。
@@ -389,6 +403,8 @@ func _draw_battle() -> void:
 			draw_arc(_world(effect.to),38,0,TAU,24,color,2)
 	# 在上一模拟位置 prev 与当前位置 pos 之间插值，让 20 Hz 的计算看起来更平滑。
 	var alpha := clampf(accumulator/0.05,0,1)
+	for corpse in rifle_visual.corpses:
+		rifle_visual.draw_frame(self,_world(corpse.pos),"death",corpse.direction,rifle_visual.clock-float(corpse.at))
 	for unit in sim.units:
 		var p := _world(unit.prev.lerp(unit.pos,alpha))
 		var color: Color = MINT if unit.team == 0 else CORAL
@@ -401,7 +417,10 @@ func _draw_battle() -> void:
 			_text(p+Vector2(-4,5),"?",13,INK)
 			draw_arc(p,14,0,TAU,16,color,1.8)
 			continue
-		_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
+		if unit.kind == "rifle":
+			rifle_visual.draw_unit(self,p,unit)
+		else:
+			_draw_unit(p,unit.kind,Color(sim.catalog[unit.kind].color),11)
 		if sim.tick < int(unit.get("stim_until_tick",0)):
 			draw_arc(p,18,0,TAU,20,Color("ffbe65"),2)
 		if sim.tick < int(unit.get("slow_until_tick",0)):
@@ -507,6 +526,9 @@ func _draw_structure_shape(p: Vector2, kind: String, race: String, radius: float
 
 ## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
+	if kind == "rifle":
+		rifle_visual.draw_frame(self,p,"idle",0,rifle_visual.clock,radius*36.0/11.0)
+		return
 	match kind:
 		"gate_tower":
 			draw_rect(Rect2(p-Vector2(radius*0.9,radius*0.6),Vector2(radius*1.8,radius*1.5)),color)
