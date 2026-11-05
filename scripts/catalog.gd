@@ -2,6 +2,7 @@
 # RefCounted 是不需要挂在画面上的逻辑对象；引用不用后由 Godot 管理释放。
 # res:// 指 project.godot 所在的项目目录；static 函数不用先创建对象即可调用。
 extends RefCounted
+const UnitDefinition = preload("res://scripts/units/unit_definition.gd")
 
 const RACES := ["terran","zerg","protoss","blight"]
 ## 仅供测试脚本注入额外兵种（例如训练假人）；游戏运行时始终为空。
@@ -15,6 +16,13 @@ static func rules() -> Dictionary:
 static func units() -> Dictionary:
 	var result: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json"))["units"]
 	result.merge(extra_units.duplicate(true), true)
+	return result
+
+## 模板与 JSON/商店视图分离。每局创建模板；运行时不要改写共享模板。
+static func definitions(source: Dictionary, game_rules: Dictionary) -> Dictionary:
+	var result: Dictionary = {}
+	for kind in source:
+		result[kind] = UnitDefinition.new(str(kind), source[kind], game_rules)
 	return result
 
 ## 读取 data/races.json 的种族表：中文名、主题色、开局阵容与电脑配兵参数。

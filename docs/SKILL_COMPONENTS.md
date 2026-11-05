@@ -2,6 +2,8 @@
 
 每一种挂载技能都有独立的组件类，继承 `scripts/skills/skill.gd`。`skill_system.gd` 维护配置键到类的注册表，按单位 ID 创建、调度和移除实例。兵种继续使用原有 JSON，已有技能键和参数不用改名。
 
+0.7.0 起兵种基础属性与当前资源由公共单位模型管理，详见 [UNIT_MODEL.md](UNIT_MODEL.md)。组件 owner 指向 Unit.state 的同一字典引用；可通过 sim.unit_model(owner) 取得实例。主动技能可用 can_pay_energy/pay_energy 共用能量池，自然回血优先配置 health_regen；regen 组件仍可作为额外恢复。
+
 ## 参数与状态如何独立
 
 每个组件包含 `id`、`owner`、`config`、`state`。config 在挂载时深拷贝，state 为该实例自己的字典；两个单位即使挂同一个技能类，也不共享冷却、目标、扫描记录或武器缓存。组件只保存单位数据引用，不保存 sim 或每步 ctx，避免引用环。

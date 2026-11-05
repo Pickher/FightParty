@@ -1,5 +1,5 @@
 {
- "version": "0.6.0",
+ "version": "0.7.0",
  "units": {
   "rifle": {
    "name": "步枪兵",
@@ -28,7 +28,24 @@
     0.8,
     0.8
    ],
-   "spawn_count": 4
+   "spawn_count": 4,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "hellbat": {
    "name": "恶火",
@@ -68,7 +85,24 @@
     1.2,
     1.2
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "marauder": {
    "name": "劫掠者",
@@ -111,7 +145,24 @@
     1.2,
     1.2
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "medic": {
    "name": "医疗兵",
@@ -146,7 +197,25 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "agent": {
    "name": "特工",
@@ -203,7 +272,26 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "psionic",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "widow_mine": {
    "name": "寡妇雷",
@@ -242,7 +330,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "mortar": {
    "name": "攻城坦克",
@@ -283,7 +388,24 @@
     2,
     2
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "viking": {
    "name": "维京",
@@ -315,7 +437,24 @@
     1.5,
     1.5
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "liberator": {
    "name": "解放者",
@@ -366,7 +505,24 @@
     2,
     2
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "thor": {
    "name": "雷神",
@@ -449,7 +605,25 @@
     2.5,
     2.5
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "battlecruiser": {
    "name": "大和舰",
@@ -514,7 +688,25 @@
     3,
     3
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "zergling": {
    "name": "跳虫",
@@ -542,7 +734,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "baneling": {
    "name": "毒爆虫",
@@ -579,7 +788,24 @@
    "spawn_count": 1,
    "skills": {
     "suicide": {}
-   }
+   },
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "roach": {
    "name": "蟑螂",
@@ -599,12 +825,7 @@
    "color": "c98a5e",
    "role": "耐打前排 · 脱战回血",
    "counter": "脱战 3 秒后快速回血；怕反重甲",
-   "skills": {
-    "regen": {
-     "delay": 3,
-     "per_second": 20
-    }
-   },
+   "skills": {},
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -613,7 +834,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 20,
+   "health_regen_delay": 3,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "hydralisk": {
    "name": "刺蛇",
@@ -642,7 +880,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "ravager": {
    "name": "破坏者",
@@ -689,7 +944,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "piercer": {
    "name": "穿刺者",
@@ -739,7 +1011,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "tunneler": {
    "name": "钻地兽",
@@ -776,7 +1065,24 @@
      "range": 8,
      "cooldown": 12
     }
-   }
+   },
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "mutalisk": {
    "name": "飞龙",
@@ -815,7 +1121,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "infestor": {
    "name": "感染虫",
@@ -865,7 +1188,26 @@
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false
+   "attacks_base": false,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "psionic",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "ultralisk": {
    "name": "雷兽",
@@ -896,7 +1238,25 @@
     2.5,
     2.5
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "brood_lord": {
    "name": "巢虫领主",
@@ -937,7 +1297,25 @@
     2.5,
     2.5
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "vanguard": {
    "name": "先锋",
@@ -974,7 +1352,24 @@
      "cooldown": 7,
      "speed_multiplier": 3.0
     }
-   }
+   },
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "psionic"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "stalker": {
    "name": "追猎者",
@@ -1014,7 +1409,23 @@
      "cooldown": 7,
      "shield_ratio": 0.25
     }
-   }
+   },
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "sentry": {
    "name": "哨兵",
@@ -1056,7 +1467,25 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "psionic",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "immortal": {
    "name": "不朽者",
@@ -1098,7 +1527,23 @@
      "duration": 2,
      "cooldown": 32
     }
-   }
+   },
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "high_templar": {
    "name": "高阶圣堂武士",
@@ -1149,7 +1594,25 @@
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false
+   "attacks_base": false,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "psionic",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "archon": {
    "name": "执政官",
@@ -1182,7 +1645,24 @@
     1.6,
     1.6
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "psionic",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "colossus": {
    "name": "巨像",
@@ -1233,7 +1713,24 @@
    "targetable_layers": [
     "ground",
     "air"
-   ]
+   ],
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "disruptor": {
    "name": "干扰者",
@@ -1284,7 +1781,23 @@
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false
+   "attacks_base": false,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "void_ray": {
    "name": "虚空辉光舰",
@@ -1326,7 +1839,23 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "carrier": {
    "name": "航母",
@@ -1374,7 +1903,24 @@
    ],
    "spawn_count": 1,
    "attacks_base": true,
-   "attacks_structures": true
+   "attacks_structures": true,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "swarm": {
    "name": "蜂群兵",
@@ -1402,7 +1948,24 @@
     0.5,
     0.5
    ],
-   "spawn_count": 5
+   "spawn_count": 5,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "rotling": {
    "name": "腐仆",
@@ -1430,7 +1993,24 @@
     1,
     1
    ],
-   "spawn_count": 4
+   "spawn_count": 4,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "splitter": {
    "name": "分裂尸",
@@ -1467,7 +2047,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "bloater": {
    "name": "膨胀者",
@@ -1509,7 +2106,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "spitter": {
    "name": "喷吐者",
@@ -1551,7 +2165,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "fly_swarm": {
    "name": "腐蝇群",
@@ -1583,7 +2214,24 @@
     1,
     1
    ],
-   "spawn_count": 3
+   "spawn_count": 3,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "spore_drifter": {
    "name": "孢子漂浮体",
@@ -1626,7 +2274,24 @@
     1,
     1
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "abomination": {
    "name": "缝合巨尸",
@@ -1649,12 +2314,7 @@
    "color": "a8c070",
    "role": "高血肉盾 · 顺劈再生",
    "counter": "慢速高血、近战溅射、脱战再生；怕反重甲与风筝",
-   "skills": {
-    "regen": {
-     "delay": 5,
-     "per_second": 8
-    }
-   },
+   "skills": {},
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -1663,7 +2323,25 @@
     2,
     2
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 8,
+   "health_regen_delay": 5,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "massive"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "plague_herald": {
    "name": "瘟疫使者",
@@ -1702,7 +2380,25 @@
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false
+   "attacks_base": false,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "gravedigger": {
    "name": "掘墓人",
@@ -1743,7 +2439,25 @@
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false
+   "attacks_base": false,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "brood_mother": {
    "name": "腐化之母",
@@ -1788,7 +2502,25 @@
    ],
    "spawn_count": 1,
    "attacks_base": true,
-   "attacks_structures": true
+   "attacks_structures": true,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "caster"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "gate_tower": {
    "name": "门口防御塔",
@@ -1816,7 +2548,22 @@
     3,
     3
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "treasury": {
    "name": "宝库",
@@ -1844,7 +2591,22 @@
     3,
     3
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "tower": {
    "name": "防御塔",
@@ -1872,7 +2634,22 @@
     3,
     3
    ],
-   "spawn_count": 1
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "broodling": {
    "cost": 0,
@@ -1900,7 +2677,24 @@
    "layer": "ground",
    "target_layers": [
     "ground"
-   ]
+   ],
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "summon",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   },
   "interceptor": {
    "cost": 0,
@@ -1935,7 +2729,23 @@
     "multi_attack": {
      "count": 2
     }
-   }
+   },
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 7.5,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "summon",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0
   }
  }
 }

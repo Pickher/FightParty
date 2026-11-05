@@ -5,6 +5,7 @@ func _init() -> void:
 	view_fields=["aura_until_tick","aura_ready_tick"]
 func on_frame(ctx: Dictionary) -> void:
 	prepare(ctx.sim,owner)
+	if bool(config.get("requires_combat", false)) and ctx.sim.tick >= int(state.get("aura_until_tick", 0)): return
 	if float(config.get("enemy_dot_per_second",0))<=0:return
 	for enemy in ctx.sim.nearby_team(owner.pos,float(config.radius),1-int(owner.team)):
 		if ctx.sim.is_structure(enemy):continue
@@ -20,6 +21,7 @@ func prepare(sim, unit: Dictionary) -> void:
 					threat=true
 					break
 			if not threat:return
+			if not pay_energy(sim): return
 			state.aura_until_tick=sim.tick+ceili(float(config.duration)*float(sim.rules.tick_rate))
 			state.aura_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
 	for ally in sim.nearby_team(unit.pos,float(config.radius),int(unit.team)):

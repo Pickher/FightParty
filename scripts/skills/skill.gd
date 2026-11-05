@@ -53,3 +53,13 @@ func publish() -> void:
 
 func snapshot() -> Dictionary:
 	return state.duplicate(true)
+
+## 主动技能在确认可施放后、创建效果前调用；默认费用为 0，保持旧配置有效。
+## 扣费落在 Unit 的公共能量池，多个技能不会各自持有一份能量。
+func can_pay_energy(sim) -> bool:
+	var cost := maxf(0.0, float(config.get("energy_cost", 0)))
+	return cost == 0.0 or sim.can_spend_energy(owner, cost)
+
+func pay_energy(sim) -> bool:
+	var cost := maxf(0.0, float(config.get("energy_cost", 0)))
+	return cost == 0.0 or sim.spend_energy(owner, cost)

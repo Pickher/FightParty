@@ -13,6 +13,7 @@ func step(sim, unit: Dictionary, target: Dictionary, dt: float, moves: Dictionar
 				back=enemy
 				score=value
 		if not back.is_empty():
+			if not pay_energy(sim): return false
 			var behind: float = 1.0 if unit.team==0 else -1.0
 			moves[unit.id]=sim.clamp_to_field(back.pos+Vector2(behind*0.7,0))
 			sim.teleports[unit.id]=true

@@ -1,8 +1,8 @@
 extends RefCounted
 
-## SC2 式护盾：独立于生命的一层。伤害先扣护盾，护盾不吃护甲点数（穿甲加成照常计算）；
-## 打穿护盾的剩余伤害再按生命护甲减免。连续 rules.shield_regen_delay 秒未受伤后按
-## rules.shield_regen_per_second 回盾。治疗只回生命，不回护盾。
+## 护盾独立于生命：伤害先减 shield_armor（默认 0）再扣护盾，溢出减生命护甲。
+## 自然回盾由 Unit.restore 按兵种参数处理；recharge 保留为旧调用的兼容入口。
+## 治疗只回生命，不回护盾；忽略护甲的伤害同时跳过两种护甲。
 static func initialize(sim, unit: Dictionary) -> void:
 	unit["shield"] = float(sim.catalog[unit.kind].get("shield", 0))
 	unit["last_hit_tick"] = -1000000
@@ -17,7 +17,8 @@ static func absorb(sim, unit: Dictionary, raw: float, ignore_armor: bool = false
 	var armor: float = 0.0 if ignore_armor else float(stats.get("armor", 0))
 	if float(unit.get("shield", 0.0)) <= 0.0:
 		return maxf(raw - armor, minimum)
-	var to_shield: float = maxf(raw, minimum)
+	var shield_armor: float = 0.0 if ignore_armor else float(stats.get("shield_armor", 0))
+	var to_shield: float = maxf(raw - shield_armor, minimum)
 	if to_shield <= float(unit.shield):
 		unit.shield = float(unit.shield) - to_shield
 		return 0.0
@@ -30,5 +31,6 @@ static func recharge(sim, unit: Dictionary, dt: float) -> void:
 	var maximum: float = float(sim.catalog[unit.kind].get("shield", 0))
 	if maximum <= 0.0 or float(unit.shield) >= maximum:
 		return
-	if sim.tick - int(unit.last_hit_tick) >= int(float(sim.rules.shield_regen_delay) * float(sim.rules.tick_rate)):
-		unit.shield = minf(maximum, float(unit.shield) + float(sim.rules.shield_regen_per_second) * dt)
+	var stats: Dictionary = sim.catalog[unit.kind]
+	if float(sim.tick - int(unit.last_hit_tick)) / float(sim.rules.tick_rate) >= float(stats.get("shield_regen_delay", sim.rules.shield_regen_delay)):
+		unit.shield = minf(maximum, float(unit.shield) + float(stats.get("shield_regen", sim.rules.shield_regen_per_second)) * dt)

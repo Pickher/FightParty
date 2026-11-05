@@ -32,12 +32,15 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if duration>0:
 				# 同类持续区域不叠加，避免多个风暴在同一步重复扣血。
 				var key := "%s:%d:%d" % [str(config.get("effect",area.kind)),int(area.team),int(victim.id)]
-				var old: Dictionary = periodic.get(key,{"amount":0.0,"victim":victim,"team":area.team})
-				old.amount=maxf(float(old.amount),amount)
-				periodic[key]=old
+				var raw: float = sim.raw_damage(config,victim.kind) / ticks_total
+				if not periodic.has(key) or raw > float(periodic[key].amount):
+					periodic[key]={"amount":raw,"victim":victim,"team":area.team,"config":config}
 			else:
 				var raw: float = sim.raw_damage(config,victim.kind)
-				sim.queue_hit(hits,victim,raw,false,bool(config.get("ignore_armor",true)))
+				if config.has("damage_type"):
+					sim.queue_weapon_hit(hits,victim,config,raw)
+				else:
+					sim.queue_hit(hits,victim,raw,false,bool(config.get("ignore_armor",true)))
 				sim.damage_done[int(area.team)]+=raw
 		if bool(config.get("attacks_base",false)):
 			for team in range(2):
@@ -47,6 +50,9 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 		if int(area.pulse)<ticks_total:active.append(area)
 		else:sim.events.append({"type":"area_impact","from":area.pos,"to":area.pos,"team":area.team,"kind":area.kind,"radius":config.radius})
 	for value in periodic.values():
-		sim.queue_hit(hits,value.victim,float(value.amount),false,true)
+		if value.config.has("damage_type"):
+			sim.queue_weapon_hit(hits,value.victim,value.config,float(value.amount))
+		else:
+			sim.queue_hit(hits,value.victim,float(value.amount),false,bool(value.config.get("ignore_armor",true)))
 		sim.damage_done[int(value.team)]+=float(value.amount)
 	sim.skill_areas=active

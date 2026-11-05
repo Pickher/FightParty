@@ -9,7 +9,7 @@ func suicide(sim, unit: Dictionary, target: Dictionary, hits: Dictionary, base_h
 	for victim in sim.nearby_team(unit.pos,float(stats.splash),1-int(unit.team)):
 		if not sim._can_hit_unit(unit,victim,stats):continue
 		var raw: float = sim.raw_damage(stats,victim.kind)
-		sim.queue_hit(hits,victim,raw)
+		sim.queue_weapon_hit(hits,victim,stats,raw)
 		sim.damage_done[int(unit.team)]+=sim.expected_damage(stats,victim)
 	if unit.pos.distance_to(sim.base_pos(1-int(unit.team)))<=float(stats.splash)+float(sim.rules.layout.base_radius):
 		base_hits[1-int(unit.team)]+=float(stats.damage)
@@ -23,4 +23,4 @@ func before_action(ctx: Dictionary) -> void:
 func on_death(ctx: Dictionary) -> void:
 	if ctx.sim.self_destruct.has(owner.id):return
 	var stats: Dictionary = ctx.sim.catalog[owner.kind]
-	Areas.launch(ctx.sim,owner,owner.pos,{"damage":stats.damage,"bonus":stats.get("bonus",{}),"radius":stats.splash,"target_layers":["ground"],"attacks_structures":true,"attacks_base":true,"ignore_armor":false})
+	Areas.launch(ctx.sim,owner,owner.pos,{"damage":stats.damage,"damage_type":stats.damage_type,"bonus":stats.get("bonus",{}),"bonus_tags":stats.get("bonus_tags",{}),"radius":stats.splash,"target_layers":["ground"],"attacks_structures":true,"attacks_base":true,"ignore_armor":false})

@@ -36,7 +36,7 @@ func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary
 			best_ratio = ratio
 	if not patient.is_empty():
 		goal = unit.pos
-		if float(unit.cooldown) <= 0.00001:
+		if float(unit.cooldown) <= 0.00001 and pay_energy(sim):
 			unit.cooldown = float(stats.interval)
 			heals[patient.id] = float(heals.get(patient.id,0.0)) + float(config.heal)
 			sim.events.append({"type":"heal","from":unit.pos,"to":patient.pos,"kind":unit.kind,"team":unit.team})

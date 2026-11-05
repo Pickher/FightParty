@@ -9,7 +9,9 @@ func step(sim, unit: Dictionary, target: Dictionary) -> void:
 		if (target.is_empty() and not bool(config.get("allow_base",false))) or unit.pos.distance_to(destination)>reach:return
 	var location: Vector2 = unit.pos if target.is_empty() else target.pos
 	if bool(config.get("dependent",false)):location=unit.pos
-	Summons.queue(sim,unit,str(config.kind),int(config.count),location,config)
+	if not can_pay_energy(sim): return
+	if Summons.queue(sim,unit,str(config.kind),int(config.count),location,config) > 0:
+		pay_energy(sim)
 	state.summon_ready_tick=sim.tick+ceili(float(config.interval)*float(sim.rules.tick_rate))
 
 func _init() -> void:

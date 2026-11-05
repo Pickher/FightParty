@@ -24,9 +24,11 @@ func cast(sim, unit: Dictionary) -> bool:
 		var base: Vector2 = sim.base_pos(1-int(unit.team))
 		var offset: Vector2 = base-unit.pos
 		if offset.length()>reach+float(sim.rules.layout.base_radius):return false
+		if not pay_energy(sim): return false
 		var spot: Vector2 = base-offset.normalized()*float(sim.rules.layout.base_radius)
 		Areas.launch(sim,unit,spot,config)
 	else:
+		if not pay_energy(sim): return false
 		Areas.launch(sim,unit,chosen.pos,config)
 	state.area_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
 	return true

@@ -5,6 +5,8 @@
 extends RefCounted
 ## 独立的固定步战斗模拟：不依赖场景节点或渲染器。
 const Catalog = preload("res://scripts/catalog.gd")
+const Unit = preload("res://scripts/units/unit.gd")
+const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
 const SkillSystem = preload("res://scripts/skills/skill_system.gd")
 const Shield = preload("res://scripts/skills/services/shield_service.gd")
 const StatusService = preload("res://scripts/skills/services/status_service.gd")
@@ -22,6 +24,9 @@ var self_destruct: Dictionary = {}
 
 var rules: Dictionary = Catalog.rules()
 var catalog: Dictionary = Catalog.units()
+var definitions: Dictionary = {}
+# id → Unit 实例。units/by_id/技能持有 Unit.state 的同一引用，只有一份可变状态。
+var unit_instances: Dictionary = {}
 # 双方种族，整局固定（开局设置的 races 覆盖 rules 默认值）；只能购买本方种族的已实装兵种。
 var races: Array = ["terran", "terran"]
 # 第一次交战（任何单位、结构体或基地首次受到敌方伤害）之后才公开双方种族与上一波阵容。
@@ -66,6 +71,9 @@ var max_body_radius := 0.5
 ## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	rules.merge(overrides, true)
+	definitions = Catalog.definitions(catalog, rules)
+	for kind in definitions:
+		catalog[kind] = definitions[kind].to_data()
 	races = rules.races.duplicate()
 	for team in range(2):
 		if not Catalog.RACES.has(races[team]):
@@ -290,13 +298,37 @@ func combat_units(team: int) -> int:
 ## 创建一个在战场上活动的单位：id 是唯一编号，pos 是位置，prev 用于画面插值。
 ## hp 是当前生命，cooldown 是距离下次攻击还要等几秒，born 是出生时的 tick。
 func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
-	var unit := {"id":next_id,"team":team,"kind":kind,"pos":pos,"prev":pos,
-		"hp":float(catalog[kind].hp),"cooldown":0.0,"born":tick,"locked_target_id":0}
-	Shield.initialize(self, unit)
+	# 也支持调试工具在开局后注入新兵种。
+	if not definitions.has(kind):
+		definitions[kind] = Catalog.UnitDefinition.new(kind, catalog[kind], rules)
+		catalog[kind] = definitions[kind].to_data()
+	var instance = Unit.new(definitions[kind], next_id, team, pos, tick)
+	var unit: Dictionary = instance.state
+	unit_instances[next_id] = instance
 	skill_system.attach(self,unit)
 	next_id += 1
 	units.append(unit)
 	return unit
+
+func unit_model(unit: Dictionary) -> Unit:
+	return unit_instances.get(int(unit.id))
+
+func has_tag(unit: Dictionary, tag: String) -> bool:
+	return definitions[unit.kind].has_tag(tag)
+
+func can_spend_energy(unit: Dictionary, amount: float) -> bool:
+	var instance = unit_model(unit)
+	return instance != null and instance.can_spend_energy(amount)
+
+func spend_energy(unit: Dictionary, amount: float) -> bool:
+	var instance = unit_model(unit)
+	return instance != null and instance.spend_energy(amount, tick)
+
+func _prune_unit_instances() -> void:
+	var living: Dictionary = {}
+	for unit in units: living[unit.id] = true
+	for id in unit_instances.keys():
+		if not living.has(id): unit_instances.erase(id)
 
 ## 双方整份兵营同时出场，标记为已部署，再发放每轮收入；不清空已有的残兵。
 ## 此处没有随机偏置，双方出生点按水平方向镜像。
@@ -413,6 +445,9 @@ func raw_damage(weapon: Dictionary, victim_kind: String) -> float:
 		var bonus = weapon.get("bonus")
 		if bonus != null:
 			raw += float(bonus.get(armor_type, 0))
+	for tag in weapon.get("bonus_tags", {}):
+		if definitions[victim_kind].has_tag(str(tag)):
+			raw += float(weapon.bonus_tags[tag])
 	return raw
 
 ## 不考虑护盾剩余量的单发预估伤害：有护盾时按原始伤害，否则减去护甲点数，至少 min_damage。
@@ -421,8 +456,9 @@ func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
 	var raw := raw_damage(weapon, victim.kind)
 	if raw <= 0.0:
 		return 0.0
+	if WeaponDefinition.ignores_armor(weapon): return raw
 	if float(victim.get("shield", 0.0)) > 0.0:
-		return maxf(raw, float(rules.min_damage))
+		return maxf(raw - float(catalog[victim.kind].get("shield_armor", 0)), float(rules.min_damage))
 	return maxf(raw - float(catalog[victim.kind].get("armor", 0)), float(rules.min_damage))
 
 ## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
@@ -579,13 +615,18 @@ func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = 
 		hits[victim.id] = []
 	hits[victim.id].append({"raw":raw,"ignore_armor":true} if ignore_armor else raw)
 
+## 普通、传播、弹射武器共用伤害属性。true 额外跳过远程光环减伤。
+func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false) -> void:
+	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon))
+
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
 	if tick<int(unit.get("root_until_tick",0)):return 0.0
-	return float(catalog[unit.kind].speed) * skill_system.movement_multiplier(self,unit) * SlowService.speed_multiplier(unit,tick)
+	if unit_model(unit).blocks_movement(): return 0.0
+	return definitions[unit.kind].speed * skill_system.movement_multiplier(self,unit) * SlowService.speed_multiplier(unit,tick)
 
 func _tick_attack_clock(unit: Dictionary, dt: float) -> void:
-	unit.cooldown=maxf(0.0,float(unit.cooldown)-dt*skill_system.attack_rate(self,unit))
+	unit_model(unit).tick_attack(dt, skill_system.attack_rate(self,unit))
 
 ## 固定步：撤离/出兵 → 同时决定行动 → 统一应用代价、伤害和状态 → 胜负。
 func step() -> Array:
@@ -610,6 +651,7 @@ func step() -> Array:
 			alive.append(unit)
 	units = alive
 	skill_system.prune(self,units)
+	_prune_unit_instances()
 	if wave < int(rules.wave_limit) and tick % wave_ticks() == 0:
 		_spawn_wave()
 	_build_buckets()
@@ -631,7 +673,9 @@ func step() -> Array:
 		ctx.armed=true
 		ctx.handled=false
 		ctx.target={}
-		if skill_system.before_target(ctx):continue
+		if skill_system.before_target(ctx):
+			unit_model(unit).cancel_attack()
+			continue
 		ctx.target=_target(unit)
 		skill_system.on_target(ctx)
 		var target: Dictionary = ctx.target
@@ -656,12 +700,17 @@ func step() -> Array:
 		ctx.reach=reach
 		skill_system.before_action(ctx)
 		_tick_attack_clock(unit,dt)
-		if not ctx.can_act or ctx.handled:continue
+		if not ctx.can_act or ctx.handled:
+			unit_model(unit).cancel_attack()
+			continue
+		var eligible: bool = ctx.armed and float(stats.damage) > 0.0 and distance <= reach and (not target.is_empty() or (attacking_base and bool(stats.get("attacks_base", true))))
+		# 基地用负编号，敌军用稳定正编号，未开火时不设置 locked_target_id。
+		var target_id: int = int(target.id) if not target.is_empty() else -enemy - 1
+		var fire: bool = unit_model(unit).ready_to_fire(stats, target_id, eligible)
 		if distance <= reach:
 			if target.is_empty() and (not attacking_base or not bool(stats.get("attacks_base",true))):
 				continue
-			if ctx.armed and float(stats.damage)>0 and float(unit.cooldown) <= 0.00001:
-				unit.cooldown = float(stats.interval)
+			if fire:
 				if not target.is_empty():unit.locked_target_id=target.id
 				ctx.damage_multiplier=skill_system.damage_multiplier(ctx) if not target.is_empty() else 1.0
 				if skill_system.attack(ctx):
@@ -679,8 +728,8 @@ func step() -> Array:
 								if victim.team != unit.team and _can_hit_unit(unit,victim,stats):
 									# 按受击单位的护甲类型加上穿甲加成；护盾与护甲点数在统一结算时扣除。
 									var raw: float = raw_damage(stats,victim.kind)*float(ctx.damage_multiplier)
-									var amount: float = expected_damage({"damage":raw},victim)
-									queue_hit(hits, victim, raw,float(stats.range)>1.5)
+									var amount: float = expected_damage({"damage":raw,"damage_type":stats.damage_type},victim)
+									queue_weapon_hit(hits, victim, stats, raw, float(stats.range)>1.5)
 									damage_done[int(unit.team)] += amount
 									events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
 									skill_system.hit(self,unit,victim,hits,pending_slows)
@@ -693,7 +742,7 @@ func step() -> Array:
 			for other in _neighbors(unit.pos,body_radius(unit)+max_body_radius):
 				if other.id == unit.id:
 					continue
-				if catalog[other.kind].get("layer","ground") != stats.get("layer","ground"):
+				if catalog[other.kind].get("layer","ground") != catalog[unit.kind].get("layer","ground"):
 					continue
 				var offset: Vector2 = unit.pos - other.pos
 				var contact: float = body_radius(unit)+body_radius(other)
@@ -732,7 +781,7 @@ func step() -> Array:
 		if self_destruct.has(unit.id):unit.hp=0.0
 		if unit.hp<=0:deaths.append(unit)
 		if unit.hp > 0:
-			Shield.recharge(self, unit, dt)
+			unit_model(unit).restore(dt, tick, float(rules.tick_rate))
 			skill_system.survived({"sim":self,"unit":unit,"dt":dt})
 			alive.append(unit)
 		elif is_structure(unit):
@@ -747,6 +796,7 @@ func step() -> Array:
 	units = alive
 	SummonService.flush(self)
 	skill_system.prune(self,units)
+	_prune_unit_instances()
 	skill_system.end_frame(units)
 	for team in range(2):
 		bases[team] = maxf(0.0, float(bases[team]) - float(base_hits[team]))
@@ -793,6 +843,6 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
-		"units":units.duplicate(true),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
+		"units":units.map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
 		"races":[visible_race(viewer, 0), visible_race(viewer, 1)],"revealed":revealed,
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}

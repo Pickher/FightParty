@@ -9,6 +9,8 @@ static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, mul
 	stats.damage=float(stats.damage)*multiplier
 	if stats.has("bonus"):
 		for key in stats.bonus:stats.bonus[key]=float(stats.bonus[key])*multiplier
+	if stats.has("bonus_tags"):
+		for key in stats.bonus_tags:stats.bonus_tags[key]=float(stats.bonus_tags[key])*multiplier
 	var forward: Vector2 = (goal - unit.pos).normalized()
 	if forward == Vector2.ZERO:
 		forward = Vector2.RIGHT if unit.team == 0 else Vector2.LEFT
@@ -25,6 +27,8 @@ static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, mul
 			"distance":0.0,"length":length,"speed":float(config.speed),
 			"half_width":float(config.half_width),"damage":float(stats.damage),
 			"bonus":stats.get("bonus",{}).duplicate(),
+			"bonus_tags":stats.get("bonus_tags",{}).duplicate(),"damage_type":stats.get("damage_type","physical"),
+			"attacks_structures":stats.get("attacks_structures",stats.get("attacks_base",true)),
 			"source_id":unit.id,"impact_skills":sim.skill_system.impact_configs(unit),
 			"target_layers":stats.get("target_layers",["ground"]).duplicate(),"attacks_base":stats.get("attacks_base",true),
 			"born":sim.tick,"hit_ids":{},"base_hit":false})
@@ -72,7 +76,7 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if crosses(wave, start, finish, next_distance):
 				wave.hit_ids[victim.id] = true
 				var amount: float = sim.expected_damage(wave, victim)
-				sim.queue_hit(hits, victim, sim.raw_damage(wave, victim.kind),true)
+				sim.queue_weapon_hit(hits, victim, wave, sim.raw_damage(wave, victim.kind),true)
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				sim.skill_system.wave_hit(sim,wave,victim,hits,pending_slows)

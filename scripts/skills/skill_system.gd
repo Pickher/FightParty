@@ -129,7 +129,7 @@ func absorb(sim, unit: Dictionary, value: float) -> float:
 	return value
 
 func weapon(sim, unit: Dictionary) -> Dictionary:
-	var value: Dictionary = sim.catalog[unit.kind]
+	var value: Dictionary = sim.definitions[unit.kind].primary_weapon_data
 	for component in components(unit):value=component.modify_weapon(sim,value)
 	return value
 func search(sim, unit: Dictionary) -> Dictionary:

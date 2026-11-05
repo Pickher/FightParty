@@ -26,6 +26,7 @@ func step(sim, unit: Dictionary, hits: Dictionary) -> bool:
 	var target := _pick(sim, unit)
 	if target.is_empty():
 		return false
+	if not pay_energy(sim): return false
 	state.yamato_target = target.id
 	state.yamato_fire_tick = sim.tick + ceili(float(config.channel_seconds) * rate)
 	sim.events.append({"type":"yamato_charge","id":unit.id,"target":target.id,"team":unit.team})

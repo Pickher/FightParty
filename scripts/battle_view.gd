@@ -134,6 +134,9 @@ func _draw() -> void:
 		bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5-5),dimensions.x,float(unit.hp)/float(stats.hp),color)
 		if float(stats.get("shield",0))>0:
 			bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5-9),dimensions.x,float(unit.shield)/float(stats.shield),game.SHIELD)
+		if float(stats.get("energy",0))>0:
+			var energy_y: float = -13.0 if float(stats.shield)>0 else -9.0
+			bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5+energy_y),dimensions.x,float(unit.energy)/float(stats.energy),Color("ad86ef"))
 		if sim.tick<int(unit.get("stim_until_tick",0)):
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color("ffbe65"),false,1.5)
 		if sim.tick<int(unit.get("slow_until_tick",0)):

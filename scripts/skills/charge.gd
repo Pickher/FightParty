@@ -9,6 +9,7 @@ func step(sim, unit: Dictionary, target: Dictionary, dt: float, moves: Dictionar
 		state.charge_until_tick=0
 		return false
 	if sim.tick>=int(state.get("charge_ready_tick",0)) and distance<=float(config.range):
+		if not pay_energy(sim): return false
 		state.charge_until_tick=sim.tick+ceili(float(config.duration)*float(sim.rules.tick_rate))
 		state.charge_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
 	if sim.tick<int(state.get("charge_until_tick",0)):

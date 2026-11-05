@@ -4,7 +4,7 @@ func barrier_absorb(sim, unit: Dictionary, raw: float) -> float:
 	if config.is_empty() or raw<=0:return raw
 	if sim.tick>=int(state.get("barrier_until_tick",0)):
 		state.barrier_hp=0.0
-		if sim.tick>=int(state.get("barrier_ready_tick",0)):
+		if sim.tick>=int(state.get("barrier_ready_tick",0)) and pay_energy(sim):
 			state.barrier_hp=float(config.amount)
 			state.barrier_until_tick=sim.tick+ceili(float(config.duration)*float(sim.rules.tick_rate))
 			state.barrier_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))

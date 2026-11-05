@@ -13,6 +13,7 @@ func activate(sim, unit: Dictionary, costs: Dictionary) -> void:
 	var cost: float = float(stats.hp) * float(config.health_cost_ratio)
 	if float(unit.hp) <= cost:
 		return
+	if not pay_energy(sim): return
 	costs[unit.id] = cost
 	state.stim_until_tick = sim.tick + ceili(float(config.duration) * float(sim.rules.tick_rate))
 	state.stim_attack_multiplier = float(config.attack_multiplier)
