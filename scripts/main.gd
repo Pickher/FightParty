@@ -527,7 +527,7 @@ func _draw_structure_shape(p: Vector2, kind: String, race: String, radius: float
 ## 用不同几何形状区分各个兵种。这里只画外形，不包含移动或攻击逻辑。
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	if kind == "rifle":
-		rifle_visual.draw_frame(self,p,"idle",0,rifle_visual.clock,radius*36.0/11.0)
+		rifle_visual.draw_frame(self,p,"idle",0,rifle_visual.clock,radius*66.0/11.0)
 		return
 	match kind:
 		"gate_tower":

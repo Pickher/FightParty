@@ -71,13 +71,13 @@ func event(event_data: Dictionary, before: Dictionary, units: Array, revealed: b
 				pose.state = "fire"
 				break
 
-func draw_frame(canvas: CanvasItem, point: Vector2, state: String, facing: int, age: float, size := 36.0) -> void:
+func draw_frame(canvas: CanvasItem, point: Vector2, state: String, facing: int, age: float, size := 66.0) -> void:
 	var frame := int(maxf(0,age) * float(FPS[state]))
 	if state == "idle" or state == "move" or state == "fire":
 		frame = frame % int(COUNTS[state])
 	else:
 		frame = mini(frame,int(COUNTS[state])-1)
-	canvas.draw_texture_rect_region(TEXTURES[state],Rect2(point-Vector2.ONE*size*0.5,Vector2.ONE*size),Rect2(frame*64,facing*64,64,64))
+	canvas.draw_texture_rect_region(TEXTURES[state],Rect2(point-Vector2(96,114.5)*size/192.0,Vector2.ONE*size),Rect2(frame*192,facing*192,192,192))
 
 func draw_unit(canvas: CanvasItem, point: Vector2, unit: Dictionary) -> void:
 	var pose: Dictionary = poses.get(unit.id,{"state":"idle","direction":0 if unit.team == 0 else 4,"since":clock})
