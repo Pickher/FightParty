@@ -1,0 +1,52 @@
+{
+  "version": 4,
+  "frame_size": [
+    192,
+    192
+  ],
+  "anchor": [
+    96,
+    114.5
+  ],
+  "display_size": [
+    66,
+    66
+  ],
+  "source": "source/special_ops.blend",
+  "directions": [
+    "E",
+    "SE",
+    "S",
+    "SW",
+    "W",
+    "NW",
+    "N",
+    "NE"
+  ],
+  "animations": {
+    "idle": {
+      "texture": "idle.png",
+      "frames": 6,
+      "fps": 6,
+      "loop": true
+    },
+    "move": {
+      "texture": "move.png",
+      "frames": 8,
+      "fps": 12,
+      "loop": true
+    },
+    "fire": {
+      "texture": "fire.png",
+      "frames": 8,
+      "fps": 24,
+      "loop": true
+    },
+    "death": {
+      "texture": "death.png",
+      "frames": 16,
+      "fps": 16,
+      "loop": false
+    }
+  }
+}

@@ -14,6 +14,8 @@ FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗
 
 0.7.0 新增公共兵种模板、单位实例、武器模板，统一资源与自然恢复、标签、伤害属性及攻击前后摇，见 [公共单位模型](docs/UNIT_MODEL.md)。默认能量/技能费用及前后摇仍为 0，可逐兵种配置；本轮未运行验证或打包。
 
+特战队员已接入八方向等待、移动、开火和死亡图集，随当前战场相机缩放，详见 [动画接入说明](docs/special-ops-integration.md)。本次框架整合未运行验证或打包。
+
 ## 一、双击桌面快捷方式开始游戏
 
 双击桌面的“FightParty开始游戏”快捷方式即可启动。
@@ -245,7 +247,58 @@ git -C 'D:\MyCode\FightParty' diff
 
 首版没有真人联机、账号、复杂地形、成品美术或商店发布。今后可以保留平面战斗逻辑，加入 3D 模型、倾斜镜头、动画和特效，形成 2D 玩法、3D 画面；Godot 和 GDScript 可以继续使用。画面层需要改造，手机性能需要重新验证。
 
-## 十三、项目与第三方声明
+## 十三、用 Excel 调整或新增兵种
+
+注意：本次合并带入的 Excel 是 main 分支的 0.3.1 历史表格，尚未同步 0.7.0 兵种及名称；请先同步表格，再按下述历史流程导入。当前游戏以 data/units.json 为准。
+
+最方便的方式：打开 `D:\MyCode\FightParty\data\兵种配置.xlsx`，修改并保存，然后双击项目根目录的 `导入兵种.cmd`。看到“已写入”或“数据相同”后，完全关闭游戏并重新打开（桌面开始游戏快捷方式也可以）。
+
+表中已同步规则 0.3.1 的全部 45 条单位与建筑配置，共 27 列。包含四族兵种及未实装的预留单位，`status=ready` 才可购买，`stub` 表示预留。护甲类型 `armor_type` 与数值护甲 `armor` 分开，额外伤害用 `bonus`，不再使用旧版轻重甲倍率。“填写说明”页逐项解释字段和单位。新增的技能、种族、层级、前置等配置也已同步。
+
+操作规则：
+
+1. 在“兵种”页第 6 行开始修改数据，保留第 5 行英文列名。允许整行排序、整列移动；不要单独排序某一列。
+2. 新增兵种时，复制一条完整数据行到下方，填写唯一的新 ID、race 种族和全部字段。卡片按本方种族显示，每页 9 张，可用 < / > 翻页。新增 ID 的专属外形需要修改画面代码。
+3. 已有 ID 不可删除或改名，因为 AI 和存档可能引用；显示名称 `name` 可以改。ID 只能用小写英文字母、数字和下划线，以字母开头，不能是 `move` 或 `erase`。
+4. 普通兵价格为正整数，建筑允许为 0；生命和攻击间隔必须大于 0。护甲类型支持 `none`、`light`、`heavy`、`special`；护甲值与护盾值填非负数字。颜色是 6 位十六进制文本，不带 `#`。
+5. 直接填写数字和文字。公式不会导入，避免读取到未重算的旧缓存；如在表中计算过，导入前先粘贴为值。
+
+导入工具只需要 Python 3.8+，不需要安装 pip 包，也不要求电脑安装 Excel（编辑表格可用 Excel 或 WPS）。本机已安装 Python。Windows 双击脚本优先使用 `py -3`，其次使用 `python`；其他电脑需安装 Python 并加入 PATH。
+
+也可以在仓库根目录运行（云端一般使用 `python3`）：
+
+```powershell
+python tools/import_units.py --check
+python tools/import_units.py
+python tools/import_units.py "其他位置的兵种配置.xlsx"
+```
+
+`--check` 只校验不写入。默认读取 `data/兵种配置.xlsx`，写入 `data/units.json`。英文键决定字段对应关系，行号与列名会出现在错误提示里。所有行校验通过后才写入；存在改动时先把原 JSON 备份到 `data/backups/units-时间戳.json`，再原子替换目标文件。重复导入相同数据不写入、不新增备份；原有版本号、额外元数据和表中未覆盖的未来字段会保留。
+
+恢复时，关闭游戏，把需要的备份复制覆盖 `data/units.json`，再同步 Excel 中相应数值。**这是 Excel 到 JSON 的单向导入**：手动修改 JSON 不会自动反映到 Excel；提交代码时应同时保存表格和导入后的 JSON。备份和 Excel 临时锁文件不进入 Git。
+
+AI 依据本方种族与已实装兵种选择阵容；策略在 `scripts/commander_ai.gd` 和 `data/races.json`。JSON 列使用英文双引号：无技能填 `{}`，无前置填 `[]`；长 JSON 可选中单元格后在公式栏查看。`skills` 仅启用游戏已经实现的能力，任意填写新技能名不会自动实现效果。`role` 和 `counter` 仍只是说明文字。
+
+导入影响从源码运行的游戏，已经导出的 Windows EXE / Android APK 需要重新打包。改数值也可能改变原有平衡测试的结果，需检查预期是否还合理。
+
+工具测试（只在临时目录或内存修改数据，不覆盖玩家存档）：
+
+```powershell
+python -m unittest discover -s tests -p test_import_units.py
+godot --headless --path . --script res://tests/test_unit_editor.gd
+```
+
+## 十四、发给朋友的 Windows 调试包
+
+朋友无需 GitHub 账号或代码编辑器。包内附带 Godot，解压后双击“开始游戏.cmd”即可试玩；只有编辑、导入兵种表时需要 Excel/WPS 和 Python。
+
+- 朋友操作说明：[运行与兵种调试](docs/朋友调试说明.txt)。
+- 打包脚本模板与制作步骤：[tools/friend_package](tools/friend_package/README.md)。
+- 已交付包验证记录：[朋友调试包验证记录](docs/朋友调试包验证记录.txt)。
+
+调试包 ZIP 和引擎不提交到源码仓库；表格、导入工具、游戏源码、启动脚本模板及说明文件纳入版本管理。
+
+## 十五、项目与第三方声明
 
 完整项目仓库：https://github.com/Pickher/FightParty
 
