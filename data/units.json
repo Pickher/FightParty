@@ -2,7 +2,7 @@
  "version": "0.7.0",
  "units": {
   "rifle": {
-   "name": "步枪兵",
+   "name": "特战队员",
    "symbol": "R",
    "race": "terran",
    "status": "ready",

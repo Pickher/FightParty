@@ -634,7 +634,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		elif event.keycode == KEY_ESCAPE:
 			handle_action("help")
 
-## 把动作字符串分发到具体操作；例如 select:rifle 选择步枪兵，cell:5 编辑第 5 格。
+## 把动作字符串分发到具体操作；例如 select:rifle 选择特战队员，cell:5 编辑第 5 格。
 ## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
 func handle_action(action: String) -> void:
 	if setup_open:

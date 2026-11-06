@@ -12,7 +12,7 @@ static var extra_units: Dictionary = {}
 static func rules() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string("res://data/rules.json"))
 
-## 读取兵种配置里的 units 字典；例如返回值["rifle"]["hp"] 是步枪兵生命值。
+## 读取兵种配置里的 units 字典；例如返回值["rifle"]["hp"] 是特战队员生命值。
 static func units() -> Dictionary:
 	var result: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json"))["units"]
 	result.merge(extra_units.duplicate(true), true)
