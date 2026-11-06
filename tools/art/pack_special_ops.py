@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 from PIL import Image,ImageDraw
-ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'assets/units/rifle';CACHE=Path('/workspace/scratch/rifle3d')
+ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'assets/units/rifle';CACHE=Path('/workspace/scratch/rifle3d-refined-final')
 STATES={'idle':(6,6,True),'move':(8,12,True),'fire':(8,24,True),'death':(16,16,False)}
 settings=json.loads((OUT/'source/render-settings.json').read_text());size=192
 def frame(state,d,f):
@@ -18,7 +18,7 @@ for state,(n,fps,loop) in STATES.items():
    b=im.getbbox();assert b and min(b[:2])>0 and max(b[2:])<size,(state,d,f,b)
    atlas.alpha_composite(im,(f*size,d*size))
  atlas.save(OUT/f'{state}.png')
-m={'version':3,'frame_size':[size,size],'anchor':[96,114.5],'display_size':[66,66],'source':'source/special_ops.blend','directions':['E','SE','S','SW','W','NW','N','NE'],'animations':{k:{'texture':k+'.png','frames':v[0],'fps':v[1],'loop':v[2]} for k,v in STATES.items()}}
+m={'version':4,'frame_size':[size,size],'anchor':[96,114.5],'display_size':[66,66],'source':'source/special_ops.blend','directions':['E','SE','S','SW','W','NW','N','NE'],'animations':{k:{'texture':k+'.png','frames':v[0],'fps':v[1],'loop':v[2]} for k,v in STATES.items()}}
 (OUT/'manifest.json').write_text(json.dumps(m,indent=2)+'\n')
 review=Image.new('RGB',(8*160,4*180),'#182633');draw=ImageDraw.Draw(review)
 for row,(state,(n,_,_)) in enumerate(STATES.items()):

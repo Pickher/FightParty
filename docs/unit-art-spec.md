@@ -1,4 +1,4 @@
-# 特战队员美术规范 v3：三维建模、斜俯视预渲染
+# 特战队员美术规范 v4：三维建模、斜俯视预渲染
 
 模型参考用户提供的五张陆战队员图片，采用厚重肩甲、封闭琥珀面罩、双背部动力组件和双手前托步枪的轮廓。重新设计青蓝装甲、胸前标识、肩甲边缘和枪械结构，没有使用原游戏模型或贴图。
 
@@ -8,7 +8,8 @@
 源文件时间轴包含 idle（1 起）、move（31 起）、fire（61 起）、death（91 起）的可编辑变换关键帧，24 FPS。
 采用真正的立体网格、分件关节、金属/陶瓷材质和固定世界光照。
 相机为约 49° 斜俯视正交投影，八方向通过旋转模型分别渲染，能看见前后遮挡及不同侧面的体积。
-模型仍属于风格化样板，未采用高模雕刻或手绘磨损贴图。
+胸甲、髋甲、背包、腿甲和靴子使用收口、渐变截面与细分曲面，消除立方体外形。新增圆形凹入排气口、涡轮叶片、肘部软连接、腰部管线、装甲分缝、鞋面活动片与枪械散热槽。
+金属涂层采用较高粗糙度与细微铸造表面，降低塑料高光；保留青蓝配色和原有比例。模型仍属于风格化样板，未采用高模雕刻或手绘磨损贴图。
 
 ## 实际显示与图集
 
@@ -35,8 +36,8 @@
 
 1. `blender -b -t 4 -P tools/art/build_special_ops_3d.py -- render`
 2. `python tools/art/pack_special_ops.py`
-3. `blender -b -t 4 -P tools/art/build_special_ops_3d.py -- preview` 可渲染模型大图。
+3. `blender -b -t 4 -P tools/art/build_special_ops_3d.py -- preview` 可渲染正面、背面与另一侧的模型大图（model-preview.png、model-back.png、model-side.png）。
 
-渲染缓存为 `/workspace/scratch/rifle3d`，会跳过已有帧；调整造型后应先移走缓存再重建。旧 `build_rifle.py` 属于 v2 平面样板，不用于本版。
+渲染缓存为 `/workspace/scratch/rifle3d-refined-final`，会跳过已有帧；调整造型后应先移走缓存再重建。旧 `build_rifle.py` 属于 v2 平面样板，不用于本版。
 `source/.gdignore` 防止 Godot 把 Blender 源文件作为运行时三维场景导入。
 打包程序验证 304 帧尺寸、透明边界并生成方向图与动画 GIF。只运行资源导入和脚本解析检查，不运行模拟测试或对局。
