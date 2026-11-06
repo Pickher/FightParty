@@ -5,3 +5,7 @@ build/
 export_credentials.cfg
 .DS_Store
 *.tmp
+data/backups/
+~$*.xlsx
+__pycache__/
+work/

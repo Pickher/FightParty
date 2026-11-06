@@ -94,11 +94,17 @@ func _draw() -> void:
 			if float(effect.get("splash",0))>0:
 				ring(effect.to,float(effect.splash),Color(color,color.a*0.5))
 	var alpha: float = clampf(float(game.accumulator)*float(sim.rules.tick_rate),0,1)
+	var rifle_body: Array = sim.catalog["rifle"].get("size",[0.8,0.8])
+	# 图集含透明留白，整帧约为主体三倍；跟随世界尺寸和相机缩放。
+	var rifle_frame_world: float = maxf(float(rifle_body[0]),float(rifle_body[1]))*3.0
+	for corpse in game.rifle_visual.corpses:
+		if view.grow(rifle_frame_world*2.0).has_point(corpse.pos):
+			game.rifle_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(rifle_frame_world))
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
 		var body: Array = stats.get("size",[1.0,1.0])
-		if not view.grow(maxf(float(body[0]),float(body[1]))).has_point(position):continue
+		if not view.grow(maxf(float(body[0]),float(body[1]))*(3.0 if unit.kind=="rifle" else 1.0)).has_point(position):continue
 		var p := point(position)
 		var dimensions := Vector2(pixels(float(body[0])),pixels(float(body[1])))
 		var color: Color = game.MINT if unit.team==0 else game.CORAL
@@ -113,6 +119,9 @@ func _draw() -> void:
 		else:
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color(tint,0.14))
 			if hidden:draw_rect(Rect2(p-dimensions*.5,dimensions),tint)
+			elif unit.kind == "rifle":
+				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
+				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/(3.6 if unit.kind=="battlecruiser" else 3.0),str(stats.get("symbol","?")))
 
 		if game.camera_zoom<3:continue
