@@ -105,12 +105,6 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"void_ray":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.3),p+Vector2(radius*1.1,0),p+Vector2(0,radius*1.3),p+Vector2(-radius*1.1,0)]),color)
 			canvas.draw_circle(p,radius*0.4,INK)
-		"battlecruiser":
-			# 长舰体、前伸双叉与舰桥；空中旗舰。
-			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(-radius*1.5,-radius*0.6),p+Vector2(radius*0.9,-radius*0.6),p+Vector2(radius*1.6,-radius*0.25),p+Vector2(radius*1.6,radius*0.25),p+Vector2(radius*0.9,radius*0.6),p+Vector2(-radius*1.5,radius*0.6),p+Vector2(-radius*1.2,0)]),color)
-			canvas.draw_line(p+Vector2(radius*0.9,-radius*0.6),p+Vector2(radius*1.8,-radius*0.75),color,2)
-			canvas.draw_line(p+Vector2(radius*0.9,radius*0.6),p+Vector2(radius*1.8,radius*0.75),color,2)
-			canvas.draw_rect(Rect2(p+Vector2(-radius*0.5,-radius*0.3),Vector2(radius*0.6,radius*0.6)),Color("223751"))
 		"rifle":
 			canvas.draw_circle(p,radius*0.8,color)
 			canvas.draw_rect(Rect2(p+Vector2(radius*0.3,-radius*0.2),Vector2(radius*0.9,radius*0.4)),color)

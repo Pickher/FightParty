@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "frame_size": [
+    320,
+    180
+  ],
+  "anchor": [
+    173.5,
+    80.5
+  ],
+  "pixels_per_cell": 80,
+  "source": "source/*.png（v4 侧视原画，1280×720，朝右）",
+  "view": "side",
+  "directions": [
+    "E"
+  ],
+  "mirror_for_west": true,
+  "muzzles": {
+    "wing_barrel": [
+      176.75,
+      132.0
+    ],
+    "prow_low": [
+      290.0,
+      131.0
+    ],
+    "prow_high": [
+      295.5,
+      123.0
+    ],
+    "round_muzzle": [
+      261.25,
+      93.0
+    ]
+  },
+  "animations": {
+    "idle": {
+      "texture": "idle.png",
+      "frames": 8,
+      "fps": 3.3333333333333335,
+      "loop": true
+    },
+    "move": {
+      "texture": "move.png",
+      "frames": 2,
+      "fps": 4,
+      "loop": true
+    },
+    "fire": {
+      "texture": "fire.png",
+      "frames": 2,
+      "fps": 10,
+      "loop": true
+    },
+    "yamato": {
+      "texture": "yamato.png",
+      "frames": 4,
+      "starts": [
+        0.0,
+        1.2,
+        2.0,
+        2.45
+      ],
+      "end": 3.2,
+      "loop": false
+    },
+    "death": {
+      "texture": "death.png",
+      "frames": 4,
+      "starts": [
+        0.0,
+        0.25,
+        0.56,
+        0.9
+      ],
+      "end": 1.4,
+      "loop": false
+    }
+  }
+}
