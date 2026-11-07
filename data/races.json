@@ -2,7 +2,7 @@
  "version": "0.6.0",
  "races": {
   "terran": {"name":"人族","color":"7fb8ff","flavor":"正面军团：兵种扎实，火力持续",
-   "starter":[{"kind":"hellbat","cell":53},{"kind":"hellbat","cell":107},{"kind":"hellbat","cell":71},{"kind":"rifle","cell":69},{"kind":"rifle","cell":87},{"kind":"rifle","cell":51},{"kind":"rifle","cell":105}],
+   "starter":[{"kind":"hellbat","cell":53},{"kind":"hellbat","cell":107},{"kind":"rifle","cell":69}],
    "ai":{"front":"hellbat","front_min":2,"support":"medic","support_value":700}},
   "zerg": {"name":"虫族","color":"e39bd0","flavor":"适应性：兵种多样，善于突入",
    "starter":[{"kind":"zergling","cell":53},{"kind":"zergling","cell":107},{"kind":"zergling","cell":71},{"kind":"zergling","cell":89},{"kind":"roach","cell":69},{"kind":"hydralisk","cell":87},{"kind":"hydralisk","cell":51}],
