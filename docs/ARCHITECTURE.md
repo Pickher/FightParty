@@ -20,6 +20,8 @@
 
 单位状态包括稳定 ID、team、kind、当前位置/上一步位置、hp、cooldown、born tick，以及首次开火后记录的 locked_target_id（0 表示未锁定）。表现层以模拟余量在 prev 与 pos 之间插值，绘制的形状、颜色、血条和弹道不参与命中判定。
 
+精灵动画（目前只有大和舰，`scripts/battlecruiser_visual.gd`）是只读的表现对象，接口与 cloud/test 上特战队员的 `rifle_visual.gd` 相同：`reset()`、`update(delta)`、`observe(units, prune_missing)`、`event(event, before, units, revealed)`、`draw_unit()`、`draw_corpse()`、`draw_frame()`。`main.gd` 每步先快照大和舰并观察，再 `step()`，再观察并逐个传入事件，最后再观察一次；攻击/大和炮事件没有攻击者 ID，按同队同兵种、发射位置匹配，匹配后在事件里写入 `muzzle` / `left`，特效据此从炮口画起。它不改单位、不改事件结算。
+
 ## 每步顺序与公平
 
 1. 增加 tick；若 `unit_lifetime` 大于 0 则撤离到期单位（默认 0 不撤离），保存上一位置。到达出兵时刻且未超过 `wave_limit` 时，整份兵营出场、标记为已部署，再给双方发 `wave_income`。
