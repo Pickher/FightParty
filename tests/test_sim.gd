@@ -1344,3 +1344,63 @@ func _battlecruisers() -> void:
 	mirror.spawn_unit(1,"battlecruiser",Vector2(770,200))
 	ticks(mirror,600)
 	check(mirror.units.size()==2 and is_equal_approx(mirror.units[0].hp,mirror.units[1].hp),"battlecruiser duel is symmetric")
+	_battlecruiser_visual()
+
+## 按 main.gd 的顺序驱动大和舰精灵动画：步前快照/观察 → step → 观察 → 事件 → 观察；画面时钟每步 0.05 秒。
+func _visual_ticks(sim, visual, count: int) -> Array:
+	var seen: Array = []
+	for i in range(count):
+		var before: Dictionary = {}
+		for unit in sim.units:
+			if unit.kind == "battlecruiser":
+				before[unit.id] = unit.duplicate()
+		visual.observe(sim.units)
+		var events: Array = sim.step()
+		visual.observe(sim.units, false)
+		for event in events:
+			visual.event(event, before, sim.units, true)
+			seen.append(event)
+		visual.observe(sim.units)
+		visual.update(0.05)
+	return seen
+
+func _battlecruiser_visual() -> void:
+	var Visual = load("res://scripts/battlecruiser_visual.gd")
+	var visual = Visual.new()
+	var sim = bare()
+	var ship = sim.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	var target = sim.spawn_unit(1,"dummy",Vector2(750,200))
+	target.hp = 10000
+	_visual_ticks(sim,visual,2)
+	var pose: Dictionary = visual.poses[ship.id]
+	check(pose.state=="yamato" and visual.frame_index("yamato",visual.clock-float(pose.since))==0 and not pose.left,"visual: channel shows yamato charge frame, facing right")
+	_visual_ticks(sim,visual,28)
+	check(visual.frame_index("yamato",visual.clock-float(pose.since))==1,"visual: after 1.2 s the muzzle shows the lock frame")
+	var events: Array = _visual_ticks(sim,visual,11)
+	var cannon: Array = events.filter(func(e): return e.type=="yamato")
+	check(cannon.size()==1 and cannon[0].muzzle=="round_muzzle" and visual.frame_index("yamato",visual.clock-float(pose.since))==2,"visual: yamato beam leaves the round muzzle on the fire frame")
+	_visual_ticks(sim,visual,10)
+	check(pose.state=="yamato" and visual.frame_index("yamato",visual.clock-float(pose.since))==3,"visual: recover frame after the beam")
+	var lasers: Array = _visual_ticks(sim,visual,60).filter(func(e): return e.type=="attack" and e.team==0)
+	var muzzles: Dictionary = {}
+	for shot in lasers:
+		muzzles[shot.muzzle] = true
+	check(lasers.size() > 2 and muzzles.has("wing_barrel") and muzzles.has("prow_low") and not muzzles.has("round_muzzle"),"visual: ground lasers alternate wing barrel and lower prow gun")
+	check(pose.state=="fire","visual: firing lasers uses the move-fire sheet")
+	var offset: Vector2 = visual.muzzle_offset("round_muzzle",false,80.0)
+	check(offset.x > 0 and visual.muzzle_offset("round_muzzle",true,80.0)==Vector2(-offset.x,offset.y),"visual: muzzle offsets mirror for left-facing ships")
+	var enemy = sim.spawn_unit(1,"battlecruiser",Vector2(900,200))
+	_visual_ticks(sim,visual,1)
+	check(visual.poses[enemy.id].left,"visual: right-side ship faces left")
+	ship.hp = 0
+	_visual_ticks(sim,visual,1)
+	check(visual.corpses.size()==1 and not visual.poses.has(ship.id) and not visual.corpses[0].left,"visual: death leaves a wreck with the last facing")
+	_visual_ticks(sim,visual,29)
+	check(visual.corpses.is_empty(),"visual: wreck disappears after 1.4 s")
+	visual.reset()
+	var air = bare()
+	air.catalog.battlecruiser.skills.yamato.min_target_hp = 1000000
+	var hunter = air.spawn_unit(0,"battlecruiser",Vector2(500,200))
+	air.spawn_unit(1,"viking",Vector2(620,200)).hp = 10000
+	var air_shots: Array = _visual_ticks(air,visual,20).filter(func(e): return e.type=="attack" and e.team==0)
+	check(hunter.weapon_index==1 and air_shots.size() > 0 and air_shots.all(func(e): return e.muzzle=="prow_high"),"visual: air lasers leave the upper prow gun")

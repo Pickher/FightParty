@@ -10,6 +10,8 @@ const BattleView = preload("res://scripts/battle_view.gd")
 const Sim = preload("res://scripts/battle_sim.gd")
 const RifleVisual = preload("res://scripts/rifle_visual.gd")
 var rifle_visual = RifleVisual.new()
+const BattlecruiserVisual = preload("res://scripts/battlecruiser_visual.gd")
+var bc_visual = BattlecruiserVisual.new()
 const AI = preload("res://scripts/commander_ai.gd")
 const Catalog = preload("res://scripts/catalog.gd")
 const Yamato = preload("res://scripts/skills/yamato.gd")
@@ -124,6 +126,7 @@ func _new_match() -> void:
 	accumulator = 0.0
 	effects.clear()
 	rifle_visual.reset()
+	bc_visual.reset()
 	messages = ["兵营永久保留，每波全部出场；每轮收入 +%d。" % int(sim.rules.wave_income)]
 	pending_formation = []
 	move_source = -1
@@ -220,6 +223,7 @@ func _process(delta: float) -> void:
 			advance_tick()
 	if not paused and not backgrounded and not help_open:
 		rifle_visual.update(delta)
+		bc_visual.update(delta)
 	for effect in effects:
 		effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
@@ -233,16 +237,24 @@ func advance_tick() -> void:
 		if unit.kind == "rifle":
 			rifle_before[unit.id] = unit.duplicate()
 			rifle_before[unit.id]["body_radius"] = sim.body_radius(unit)
+	# rifle_visual 会把快照里死亡的单位都当成特战队员残骸，大和舰另存一份。
+	var bc_before: Dictionary = {}
+	for unit in sim.units:
+		if unit.kind == "battlecruiser":
+			bc_before[unit.id] = unit.duplicate()
 	rifle_visual.observe(sim.units)
+	bc_visual.observe(sim.units)
 	var tick_events: Array = sim.step()
 	# 新出场单位也可接收本步动画事件，同时保留刚死亡单位的姿态供死亡动画使用。
 	rifle_visual.observe(sim.units, false)
+	bc_visual.observe(sim.units, false)
 	for unit in sim.units:
 		if unit.kind == "rifle" and not rifle_before.has(unit.id):
 			rifle_before[unit.id] = unit.duplicate()
 			rifle_before[unit.id]["body_radius"] = sim.body_radius(unit)
 	for event in tick_events:
 		rifle_visual.event(event, rifle_before, sim.units, sim.revealed)
+		bc_visual.event(event, bc_before, sim.units, sim.revealed)
 		if event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
@@ -269,6 +281,7 @@ func advance_tick() -> void:
 			_save_journal()
 			speaker.play()
 	rifle_visual.observe(sim.units)
+	bc_visual.observe(sim.units)
 
 ## 电脑在开局和每次出兵后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
 ## 落后时先建防御塔，买不起就本轮攒矿不买兵。
@@ -408,6 +421,10 @@ func _draw_structure_shape(p: Vector2, kind: String, race: String, radius: float
 func _draw_unit(p: Vector2, kind: String, color: Color, radius: float) -> void:
 	if kind == "rifle":
 		rifle_visual.draw_frame(self,p,"idle",0,rifle_visual.clock,radius*6.0)
+		return
+	if kind == "battlecruiser":
+		# 卡片/格子图标用精灵 idle 首帧；舰长约 2 倍 radius。
+		bc_visual.draw_frame(self,p,"idle",false,0.0,radius*0.65,Color(1,1,1,color.a))
 		return
 	UnitArt.draw(self,p,kind,color,radius,str(sim.catalog[kind].get("symbol","?")))
 

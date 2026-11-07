@@ -79,6 +79,9 @@ func _draw() -> void:
 	for effect in game.effects:
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
 		var a := point(effect.from)
+		if effect.has("muzzle"):
+			# 大和舰：激光从炮管、大和炮从圆形炮口画起（精灵上的位置）。
+			a += game.bc_visual.muzzle_offset(str(effect.muzzle),bool(effect.left),pixels(1.0))
 		var b := point(effect.to)
 		if effect.type=="area_impact":
 			ring(effect.to,float(effect.radius),Color(color,clampf(float(effect.ttl)/0.16,0,1)))
@@ -95,6 +98,7 @@ func _draw() -> void:
 			draw_line(a,b,color,maxf(1,pixels(0.15)))
 		else:
 			color.a=clampf(float(effect.ttl)/0.16,0,1)
+			if effect.has("muzzle"):color=Color(Color("ffb347"),color.a)
 			draw_line(a,b,color,1.5)
 			if float(effect.get("splash",0))>0:
 				ring(effect.to,float(effect.splash),Color(color,color.a*0.5))
@@ -105,6 +109,9 @@ func _draw() -> void:
 	for corpse in game.rifle_visual.corpses:
 		if view.grow(rifle_frame_world*2.0).has_point(corpse.pos):
 			game.rifle_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(rifle_frame_world))
+	for corpse in game.bc_visual.corpses:
+		if view.grow(4.0).has_point(corpse.pos):
+			game.bc_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(1.0))
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
@@ -127,7 +134,11 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/(3.6 if unit.kind=="battlecruiser" else 3.0),str(stats.get("symbol","?")))
+			elif unit.kind == "battlecruiser":
+				# 精灵 80 像素/格（与特战队员同密度），舰长约 3.1 格，对应 3×3 占地。
+				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,24,Color(color,0.8),1)
+				game.bc_visual.draw_unit(self,p,unit,pixels(1.0))
+			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
 		if game.camera_zoom<3:continue
 		if hidden:
