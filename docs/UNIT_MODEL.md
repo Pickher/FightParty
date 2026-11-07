@@ -33,14 +33,14 @@ unit.hp -= 5.0   # model.hp 也立即可读
 | --- | --- | --- |
 | 资源 | hp、shield、energy、initial_energy | 最大生命/护盾/能量，出生能量；无护盾/能量设 0 |
 | 防御 | armor_type、armor、shield_armor | 护甲类型、生命护甲和护盾护甲 |
-| 移动/体积 | speed、size | 格/秒、宽×高 |
+| 移动/体积 | speed、size、collision_radius、separate_when_stopped | 格/秒、模型宽×高、圆形避让半径、停步时是否整理队形 |
 | 分类 | race、layer、unit_type、tags | 种族、ground/air、unit/summon/structure、多标签 |
 | 回血 | health_regen、health_regen_delay | 每秒恢复量、最后一次受击后的等待秒数 |
 | 回盾 | shield_regen、shield_regen_delay | 每秒恢复量、最后一次受击后的等待秒数 |
 | 回能量 | energy_regen、energy_regen_delay | 每秒恢复量、最后一次实际扣能量后的等待秒数 |
 | 武器 | damage、damage_type、bonus、bonus_tags | 基础伤害、类型、护甲类型加成、标签加成 |
 | 攻击时间 | interval、windup、backswing | 周期间隔、前摇、后摇，单位秒 |
-| 命中范围 | range、splash、target_layers | 射程、圆形溅射半径、可攻击空地层 |
+| 命中范围 | range、splash、splash_multiplier、target_layers | 射程、圆形溅射半径、次要目标伤害比例（默认 1）、可攻击空地层 |
 | 建筑目标 | attacks_base、attacks_structures | 是否能攻击基地/其他建筑 |
 
 所有存活单位每步统一恢复，资源不超过上限；死亡单位不恢复。蟑螂的 20/秒（受击后 3 秒）、缝合巨尸的 8/秒（受击后 5 秒）从原 `regen` 技能迁入基础属性，避免重复恢复。独立 `regen` 技能仍可用作额外被动恢复，与基础恢复相加。
@@ -94,3 +94,6 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 通常新增兵种只添加一份 JSON 模板和技能组合；新武器可使用顶层旧字段或 weapon 子对象（后者优先）。特殊能力继续作为技能组件注册，不需要复制单位生命周期。
 
 本轮按用户要求未运行 Godot 导入、模拟、UI、重放、性能检查或打包，也未新增自动测试。此前版本的测试通过记录不适用于 0.7.0。后续用户要求验证时，应重点覆盖资源上限/恢复延迟/共用能量、前摇取消与锁定、后摇与移动、攻速倍率、多武器切换、传播伤害属性及召唤/死亡的实例清理。修改模板的测试夹具应在创建 BattleSim 前配置 Catalog.extra_units，不能依赖运行中改写 catalog 来变更已有实例模板。
+
+
+0.7.2：碰撞半径与模型尺寸分离，未填写 collision_radius 时仍取最大模型边长的一半。特战队员配置为 0.5 格并启用停步避让，其他单位不自动启用。直接攻击的圆形溅射按选定目标 ID 区分主/次目标，splash_multiplier 只缩放次要目标的护甲前伤害；坦克为 0.5，默认 1.0。传播波、范围法术和弹射技能继续使用自身的命中/衰减规则。

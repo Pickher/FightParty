@@ -365,13 +365,15 @@ func _spawn_wave() -> void:
 			var pack_columns := ceili(sqrt(float(count)))
 			var pack_rows := ceili(float(count)/pack_columns)
 			var body: Array = stats.get("size",[1.0,1.0])
+			var diameter: float = float(stats.collision_radius)*2.0
+			var spacing := Vector2(maxf(float(body[0]),diameter),maxf(float(body[1]),diameter))
 			for member in range(count):
-				var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(float(body[0])+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(float(body[1])+0.1))
+				var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(spacing.x+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(spacing.y+0.1))
 				var point := Vector2(x,y)+offset
 				# 出生时按体积留边；大型单位和小组边缘不被裁在地图外。
 				var bounds: Dictionary = layout.bounds
-				point.x=clampf(point.x,float(bounds.left)+float(body[0])*0.5,float(bounds.right)-float(body[0])*0.5)
-				point.y=clampf(point.y,float(bounds.top)+float(body[1])*0.5,float(bounds.bottom)-float(body[1])*0.5)
+				point.x=clampf(point.x,float(bounds.left)+spacing.x*0.5,float(bounds.right)-spacing.x*0.5)
+				point.y=clampf(point.y,float(bounds.top)+spacing.y*0.5,float(bounds.bottom)-spacing.y*0.5)
 				spawn_unit(team,slot.kind,Vector2(mirror_x(team,point.x),point.y))
 		minerals[team] += int(rules.wave_income)
 	events.append({"type":"wave","wave":wave})
@@ -426,8 +428,22 @@ func _nearby(pos: Vector2, radius: float) -> Array:
 
 ## 按两者体积之和检查局部分离，仅在接触距离内产生避让。
 func body_radius(unit: Dictionary) -> float:
-	var body: Array = catalog[unit.kind].get("size",[1.0,1.0])
-	return maxf(float(body[0]),float(body[1]))*0.5
+	return definitions[unit.kind].collision_radius
+
+## 行军与停步整理队形共用局部分离；只观察步初位置，避免处理顺序影响结果。
+func _separation(unit: Dictionary) -> Vector2:
+	var separation := Vector2.ZERO
+	for other in _neighbors(unit.pos,body_radius(unit)+max_body_radius):
+		if other.id == unit.id or catalog[other.kind].get("layer","ground") != catalog[unit.kind].get("layer","ground"):
+			continue
+		var offset: Vector2 = unit.pos-other.pos
+		var contact: float = body_radius(unit)+body_radius(other)
+		var distance: float = offset.length()
+		if distance >= contact:continue
+		# 完全重叠也能分开；用稳定 ID 决定上下方向，左右镜像局仍保持对称。
+		var direction := Vector2(0,1 if int(unit.id)>int(other.id) else -1) if distance<0.00001 else offset/distance
+		separation += direction*(contact-distance)/contact
+	return separation
 
 func _neighbors(pos: Vector2, radius: float = FINE) -> Array:
 	var found: Array = []
@@ -743,6 +759,9 @@ func step() -> Array:
 								if victim.team != unit.team and _can_hit_unit(unit,victim,stats):
 									# 按受击单位的护甲类型加上穿甲加成；护盾与护甲点数在统一结算时扣除。
 									var raw: float = raw_damage(stats,victim.kind)*float(ctx.damage_multiplier)
+									if victim.id != target.id:
+										raw *= float(stats.splash_multiplier)
+									if raw <= 0.0:continue
 									var amount: float = expected_damage({"damage":raw,"damage_type":stats.damage_type},victim)
 									queue_weapon_hit(hits, victim, stats, raw, float(stats.range)>1.5)
 									damage_done[int(unit.team)] += amount
@@ -750,19 +769,14 @@ func step() -> Array:
 									skill_system.hit(self,unit,victim,hits,pending_slows)
 						skill_system.after_attack(ctx)
 						events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team,"splash":float(stats.splash)})
+			# 配置允许的机动单位在攻击冷却期间也可松开队形；前摇、后摇和开火当步不移动。
+			if not fire and definitions[unit.kind].separate_when_stopped and unit.attack_phase=="idle" and str(unit.get("siege_state","mobile"))=="mobile":
+				var drift: Vector2 = (_separation(unit)*0.65).limit_length(1.0)*_movement_speed(unit)
+				moves[unit.id]=clamp_to_field(unit.pos+drift*dt)
 		else:
 			var direction: Vector2 = (goal - unit.pos).normalized()
 			# 局部分离：离其他单位太近时轻微避让，降低拥挤；这里不是复杂障碍物寻路。
-			var separation := Vector2.ZERO
-			for other in _neighbors(unit.pos,body_radius(unit)+max_body_radius):
-				if other.id == unit.id:
-					continue
-				if catalog[other.kind].get("layer","ground") != catalog[unit.kind].get("layer","ground"):
-					continue
-				var offset: Vector2 = unit.pos - other.pos
-				var contact: float = body_radius(unit)+body_radius(other)
-				if offset.length_squared() > 0.000001 and offset.length() < contact:
-					separation += offset.normalized() * (contact-offset.length()) / contact
+			var separation := _separation(unit)
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)

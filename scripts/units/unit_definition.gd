@@ -15,6 +15,8 @@ var layer: String
 var unit_type: String
 var tags: Array = []
 var size: Vector2
+var collision_radius: float
+var separate_when_stopped: bool
 var health_regen: float
 var health_regen_delay: float
 var shield_regen: float
@@ -46,6 +48,8 @@ func _init(unit_kind: String, parameters: Dictionary, rules: Dictionary = {}) ->
 		if not tags.has(tag): tags.append(tag)
 	var dimensions: Array = parameters.get("size", [1.0, 1.0])
 	size = Vector2(maxf(0.01, float(dimensions[0])), maxf(0.01, float(dimensions[1])))
+	collision_radius = maxf(0.01,float(parameters.get("collision_radius",maxf(size.x,size.y)*0.5)))
+	separate_when_stopped = bool(parameters.get("separate_when_stopped",false))
 	health_regen = maxf(0.0, float(parameters.get("health_regen", 0)))
 	health_regen_delay = maxf(0.0, float(parameters.get("health_regen_delay", 0)))
 	shield_regen = maxf(0.0, float(parameters.get("shield_regen", rules.get("shield_regen_per_second", 7.5))))
@@ -93,6 +97,7 @@ func to_data() -> Dictionary:
 		"shield_armor":shield_armor, "armor_type":armor_type, "race":race,
 		"layer":layer, "unit_type":unit_type, "structure":unit_type == "structure",
 		"tags":tags.duplicate(), "size":[size.x, size.y],
+		"collision_radius":collision_radius, "separate_when_stopped":separate_when_stopped,
 		"health_regen":health_regen, "health_regen_delay":health_regen_delay,
 		"shield_regen":shield_regen, "shield_regen_delay":shield_regen_delay,
 		"energy_regen":energy_regen, "energy_regen_delay":energy_regen_delay,

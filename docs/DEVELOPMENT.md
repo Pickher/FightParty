@@ -102,3 +102,6 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 
 
 当前地图改版为 0.7.1 / Android versionCode 21，未打包或运行验证。出生参数与参考距离见 WORLD_UNITS.md，新增地图参数集中在 data/rules.json，不要再改旧像素比例或旧 spawn_dx/spawn_dy。
+
+
+当前源码为 0.7.2 / Android versionCode 22。坦克与特战队员参数变更见 WORLD_UNITS.md，未运行验证或打包。

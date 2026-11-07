@@ -1,5 +1,5 @@
 {
- "version": "0.7.1",
+ "version": "0.7.2",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -45,7 +45,9 @@
    ],
    "damage_type": "physical",
    "windup": 0,
-   "backswing": 0
+   "backswing": 0,
+   "collision_radius": 0.5,
+   "separate_when_stopped": true
   },
   "hellbat": {
    "name": "恶火",
@@ -350,7 +352,7 @@
    "backswing": 0
   },
   "mortar": {
-   "name": "攻城坦克",
+   "name": "坦克",
    "symbol": "M",
    "race": "terran",
    "status": "ready",
@@ -364,12 +366,12 @@
     "heavy": 90
    },
    "interval": 2.14,
-   "range": 11,
+   "range": 5.5,
    "speed": 2.25,
    "splash": 2.5,
    "color": "ff8378",
-   "role": "架设重炮 · 远程溅射",
-   "counter": "坦克架设后射程 11；收放时无法开火",
+   "role": "架设重炮 · 主目标全伤",
+   "counter": "架设后射程 5.5；主目标全额、周围 50% 溅射；收放时无法开火",
    "skills": {
     "deployment": {
      "deploy_seconds": 1.5,
@@ -405,7 +407,8 @@
    ],
    "damage_type": "physical",
    "windup": 0,
-   "backswing": 0
+   "backswing": 0,
+   "splash_multiplier": 0.5
   },
   "viking": {
    "name": "维京",

@@ -10,6 +10,7 @@ var interval: float = 1.0
 var windup: float = 0.0
 var backswing: float = 0.0
 var splash: float = 0.0
+var splash_multiplier: float = 1.0
 var target_layers: Array = ["ground"]
 var attacks_base: bool = true
 var attacks_structures: bool = true
@@ -32,6 +33,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	backswing = maxf(0.0, float(parameters.get("backswing", 0)))
 	interval = maxf(maxf(0.001, float(parameters.get("interval", 1))), windup + backswing)
 	splash = maxf(0.0, float(parameters.get("splash", 0)))
+	splash_multiplier = clampf(float(parameters.get("splash_multiplier",1.0)),0.0,1.0)
 	target_layers = parameters.get("target_layers", ["ground"]).duplicate()
 	attacks_base = bool(parameters.get("attacks_base", true))
 	attacks_structures = bool(parameters.get("attacks_structures", attacks_base))
@@ -40,7 +42,7 @@ func to_data() -> Dictionary:
 	var result := _data.duplicate(true)
 	result.merge({"id":id, "damage":damage, "damage_type":damage_type,
 		"bonus":bonus.duplicate(true), "bonus_tags":bonus_tags.duplicate(true), "range":range, "interval":interval,
-		"windup":windup, "backswing":backswing, "splash":splash,
+		"windup":windup, "backswing":backswing, "splash":splash, "splash_multiplier":splash_multiplier,
 		"target_layers":target_layers.duplicate(), "attacks_base":attacks_base,
 		"attacks_structures":attacks_structures}, true)
 	return result
