@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.7.1",
   "tick_rate": 20,
   "wave_seconds": 30,
   "races": [
@@ -20,8 +20,8 @@
   "tower_max_builds": 1,
   "columns": 18,
   "rows": 8,
-  "world_width": 800,
-  "world_height": 120,
+  "world_width": 90,
+  "world_height": 18,
   "setup_options": {
     "start_minerals": {
       "label": "开局资金",
@@ -74,33 +74,37 @@
     ]
   },
   "layout": {
-    "base_x": 20,
-    "base_y": 60,
-    "base_radius": 4,
-    "gate_x": 26,
-    "gate_y": 60,
-    "treasury_x": 286,
-    "treasury_y": 60,
-    "tower_x": 324,
-    "tower_y": 60,
-    "spawn_x": 240,
-    "spawn_dx": 3.5,
-    "spawn_y": 48.8,
-    "spawn_dy": 3.2,
-    "landmark_ratios": [
-      35,
-      5,
-      20,
-      5,
-      35
-    ],
+    "base_x": 5.625,
+    "base_y": 9,
+    "base_radius": 1.75,
+    "gate_x": 5.625,
+    "gate_y": 12.375,
+    "treasury_x": 37.125,
+    "treasury_y": 9,
+    "tower_x": 39.375,
+    "tower_y": 9,
+    "spawn_x": 10.125,
+    "spawn_y": 9,
+    "spawn_width": 4.5,
+    "spawn_height": 12.25,
+    "spawn_column_spacing": 2.0,
     "bounds": {
-      "left": 4,
-      "top": 2,
-      "right": 796,
-      "bottom": 118
+      "left": 0.5,
+      "top": 0.5,
+      "right": 89.5,
+      "bottom": 17.5
     }
   },
   "world_unit": "格",
-  "distance_schema": 2
+  "distance_schema": 3,
+  "map_reference": {
+    "unit_kind": "rifle",
+    "speed": 2.25,
+    "width_seconds": 40,
+    "height_seconds": 8,
+    "base_to_spawn_seconds": 2,
+    "spawn_to_treasury_seconds": 12,
+    "treasury_to_tower_seconds": 1,
+    "tower_to_midline_seconds": 2.5
+  }
 }

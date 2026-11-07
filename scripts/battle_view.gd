@@ -30,7 +30,7 @@ func _draw() -> void:
 	var sim = game.sim
 	var view: Rect2 = game._camera_rect()
 	draw_rect(Rect2(Vector2.ZERO,AREA),Color("0d1c2b"))
-	var spacing: float = 1.0 if game.camera_zoom>=5.0 else 10.0
+	var spacing: float = 1.0 if pixels(1.0)>=12.0 else 5.0
 	for x in range(floori(view.position.x/spacing),ceili(view.end.x/spacing)+1):
 		var px: float = point(Vector2(x*spacing,0)).x
 		draw_line(Vector2(px,0),Vector2(px,AREA.y),Color("172a3a"))
@@ -49,6 +49,11 @@ func _draw() -> void:
 			draw_circle(p,r,Color(color,0.15))
 			draw_arc(p,r,0,TAU,32,color,2)
 			label(p+Vector2(-14,-r-4),"基地",color)
+		var spawn_point := Vector2(sim.mirror_x(team,float(sim.rules.layout.spawn_x)),float(sim.rules.layout.spawn_y))
+		if view.grow(1.0).has_point(spawn_point):
+			var spawn_screen := point(spawn_point)
+			draw_arc(spawn_screen,pixels(0.4),0,TAU,16,Color(color,0.55),1)
+			label(spawn_screen+Vector2(-14,pixels(0.4)+12),"出兵",Color(color,0.7),10)
 	for area in sim.skill_areas:
 		var config: Dictionary = area.config
 		var tint: Color = game.CORAL if game._hidden_team(int(area.team)) else Color(sim.catalog[area.kind].color)

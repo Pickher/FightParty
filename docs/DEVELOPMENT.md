@@ -99,3 +99,6 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 当前源码与导出预设为 0.6.0 / Android versionCode 19。技能组件化未执行运行验证，测试夹具中的状态写入须改用实例 state。见 docs/SKILL_COMPONENTS.md。
 
 当前源码与导出预设更新为 0.7.0 / Android versionCode 20，未打包。新兵种优先配置公共属性与技能组合，参考 [UNIT_MODEL.md](UNIT_MODEL.md)。实例通过 sim.unit_model(unit) 取得，模板构造后只读使用；spawn_unit() 返回实例共享状态的兼容字典。按用户要求没有运行导入或测试。
+
+
+当前地图改版为 0.7.1 / Android versionCode 21，未打包或运行验证。出生参数与参考距离见 WORLD_UNITS.md，新增地图参数集中在 data/rules.json，不要再改旧像素比例或旧 spawn_dx/spawn_dy。

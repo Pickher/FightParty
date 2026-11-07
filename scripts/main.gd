@@ -60,7 +60,9 @@ var race_info: Dictionary = Catalog.races()
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
 var battle_viewport: SubViewport
 var camera_zoom := 1.0
-var camera_center := Vector2(400,60)
+var camera_center := Vector2.ZERO
+const CLOSE_ZOOM := 2.5
+const MAX_ZOOM := 8.0
 var battle_dragging := false
 const BATTLE_RECT := Rect2(70,157,1300,352)
 
@@ -382,7 +384,7 @@ func _draw_battle() -> void:
 		_text(Vector2(x+344,130),str(int(sim.bases[team])),16,color)
 	if battle_viewport!=null:
 		draw_texture_rect(battle_viewport.get_texture(),BATTLE_RECT,false)
-	_text(Vector2(56,539),"800 × 120 格 · 拖动战场平移 · 滚轮缩放",15,MUTED)
+	_text(Vector2(56,539),"%s × %s 格 · 拖动战场平移 · 滚轮缩放" % [sim.rules.world_width,sim.rules.world_height],15,MUTED)
 	_button(Rect2(590,517,70,30),"全图","camera_all")
 	_button(Rect2(668,517,70,30),"近景","camera_close")
 	_button(Rect2(746,517,70,30),"己方","camera_home")
@@ -638,8 +640,8 @@ func _gui_input(event: InputEvent) -> void:
 					accept_event()
 					return
 			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and pending_message=="":
-				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,20)
-				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,20)
+				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,MAX_ZOOM)
+				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,MAX_ZOOM)
 				elif event.button_index==MOUSE_BUTTON_LEFT:battle_dragging=true
 				queue_redraw()
 				accept_event()
@@ -667,15 +669,15 @@ func handle_action(action: String) -> void:
 		return
 	if action.begins_with("camera_"):
 		if action=="camera_all":camera_zoom=1.0
-		elif action=="camera_close":camera_zoom=8.0
-		elif action=="camera_in":camera_zoom=clampf(camera_zoom*1.5,1,20)
-		elif action=="camera_out":camera_zoom=clampf(camera_zoom/1.5,1,20)
+		elif action=="camera_close":camera_zoom=CLOSE_ZOOM
+		elif action=="camera_in":camera_zoom=clampf(camera_zoom*1.5,1,MAX_ZOOM)
+		elif action=="camera_out":camera_zoom=clampf(camera_zoom/1.5,1,MAX_ZOOM)
 		elif action=="camera_home":
 			camera_center=Vector2(float(sim.rules.layout.tower_x),float(sim.rules.layout.base_y))
-			camera_zoom=8.0
+			camera_zoom=CLOSE_ZOOM
 		elif action=="camera_enemy":
 			camera_center=Vector2(sim.mirror_x(1,float(sim.rules.layout.tower_x)),float(sim.rules.layout.base_y))
-			camera_zoom=8.0
+			camera_zoom=CLOSE_ZOOM
 		elif action=="camera_middle":camera_center=Vector2(float(sim.rules.world_width)*.5,float(sim.rules.world_height)*.5)
 	elif action == "help":
 		help_open = not help_open

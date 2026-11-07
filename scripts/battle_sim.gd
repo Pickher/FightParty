@@ -343,12 +343,23 @@ func _spawn_wave() -> void:
 			last_formations[team].append({"kind":slot.kind,"cell":slot.cell})
 	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true)})
 	for team in range(2):
+		var layout: Dictionary = rules.layout
+		# 出兵点是队形中心。按已占用列保留前后顺序，稀疏阵容无需挤在相邻小格里。
+		var first_col: int = int(rules.columns) - 1
+		var last_col := 0
 		for slot in last_formations[team]:
-			# 取余 % 得到列，整数除法 / 得到行。出生区坐标来自 rules.layout。
+			var column: int = int(slot.cell) % int(rules.columns)
+			first_col = mini(first_col,column)
+			last_col = maxi(last_col,column)
+		var center_col: float = float(first_col+last_col)*0.5
+		var column_spacing: float = minf(float(layout.spawn_column_spacing),float(layout.spawn_width)/maxi(1,last_col-first_col))
+		var row_spacing: float = float(layout.spawn_height)/maxi(1,int(rules.rows)-1)
+		for slot in last_formations[team]:
+			# 18×8 仍是兵营组槽位；世界出生区不再由旧版格距向前铺开几十格。
 			var col: int = int(slot.cell) % int(rules.columns)
 			var row: int = int(slot.cell) / int(rules.columns)
-			var layout: Dictionary = rules.layout
-			var x: float = float(layout.spawn_x) + col * float(layout.spawn_dx)
+			var x: float = float(layout.spawn_x) + (float(col)-center_col)*column_spacing
+			var y: float = float(layout.spawn_y) + (float(row)-float(int(rules.rows)-1)*0.5)*row_spacing
 			var stats: Dictionary = catalog[slot.kind]
 			var count := maxi(1,int(stats.get("spawn_count",1)))
 			var pack_columns := ceili(sqrt(float(count)))
@@ -356,8 +367,12 @@ func _spawn_wave() -> void:
 			var body: Array = stats.get("size",[1.0,1.0])
 			for member in range(count):
 				var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(float(body[0])+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(float(body[1])+0.1))
-				var point := Vector2(x,float(layout.spawn_y)+row*float(layout.spawn_dy))+offset
-				spawn_unit(team,slot.kind,clamp_to_field(Vector2(mirror_x(team,point.x),point.y)))
+				var point := Vector2(x,y)+offset
+				# 出生时按体积留边；大型单位和小组边缘不被裁在地图外。
+				var bounds: Dictionary = layout.bounds
+				point.x=clampf(point.x,float(bounds.left)+float(body[0])*0.5,float(bounds.right)-float(body[0])*0.5)
+				point.y=clampf(point.y,float(bounds.top)+float(body[1])*0.5,float(bounds.bottom)-float(body[1])*0.5)
+				spawn_unit(team,slot.kind,Vector2(mirror_x(team,point.x),point.y))
 		minerals[team] += int(rules.wave_income)
 	events.append({"type":"wave","wave":wave})
 

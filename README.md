@@ -4,9 +4,9 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.7.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.7.1，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
-当前世界尺度为 **长 800 × 宽 120 格**。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮已改名攻城坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
+当前世界尺度为 **长 90 × 宽 18 格**，相当于特战队员行走 40 秒 × 8 秒的距离。基地→出兵点→宝库→防御塔→中线的间隔依次为行走 2、12、1、2.5 秒的距离。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮已改名攻城坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
 
 0.5.0 已接入神族、虫族及腐族预留技能；机制、自动施法与原型取舍见 [兵种技能实现说明](docs/ROSTER_SKILLS.md)。本轮按要求未运行验证。
 
@@ -170,7 +170,7 @@ data/races.json 是种族表：每个种族的中文名、主题色、一句风�
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
 - columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
 - world_width、world_height：逻辑战场尺寸，当前 1200×400；敌方坐标按 world_width 镜像，画面映射也按这两个值缩放。
-- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius 是基地中心与判定半径；gate_x/gate_y、treasury_x/treasury_y、tower_x/tower_y 是门口防御塔、宝库与防御塔建造位；spawn_x/spawn_dx/spawn_y/spawn_dy 是出生区第 0 格位置与列/行间距；bounds 是单位可移动的边界。医疗兵无掩护时退向 spawn_x。
+- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius 是基地中心与判定半径；gate_x/gate_y、treasury_x/treasury_y、tower_x/tower_y 是门口防御塔、宝库与防御塔建造位；spawn_x/spawn_y 是出兵中心，spawn_width/spawn_height 是组中心展开跨度，spawn_column_spacing 是最大列距；bounds 是单位可移动的边界。医疗兵无掩护时退向 spawn_x。
 - races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。未知种族按 terran 处理。
 - race_setup：开局弹窗两行种族选择的标题 labels 与推荐值 recommended（默认我方 terran、电脑 random）。random 在建局时随机成具体种族，写入战报的是随机后的结果，所以重放不会再随机。
 - min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。
