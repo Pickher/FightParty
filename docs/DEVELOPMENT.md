@@ -73,17 +73,17 @@ python tools/subset_font.py C:/Temp/NotoSansSC-original.ttf
 
 本机生成的开发测试签名保存在项目外的 Godot keystores 目录，不能提交到仓库。后续生成同包名更新包应继续使用同一签名；云端环境重建前需妥善保存签名才能保留升级兼容性。
 
-新增 `Android Cloud Test` 预设，包名 `org.pickher.fightparty.cloudtest`、显示名称 `FightParty Test`、当前预设 versionCode 16 / versionName 0.3.1，可以与原包并存。原 Android 预设仍保留原包名。两者存档独立。
+新增 `Android Cloud Test` 预设，包名 `org.pickher.fightparty.cloudtest`、显示名称 `FightParty Test`、当前预设 versionCode 17 / versionName 0.3.2，可以与原包并存。原 Android 预设仍保留原包名。两者存档独立。
 
 ```bash
 mkdir -p build
 godot --headless --path . --editor --import --quit
 godot --headless --path . --script res://tests/test_sim.gd
-godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0.3.1-cloud-test.apk
-/home/agent/android-sdk/build-tools/36.0.0/apksigner verify --verbose build/FightParty-0.3.1-cloud-test.apk
-/home/agent/android-sdk/build-tools/36.0.0/zipalign -c -P 16 4 build/FightParty-0.3.1-cloud-test.apk
+godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0.3.2-cloud-test.apk
+/home/agent/android-sdk/build-tools/36.0.0/apksigner verify --verbose build/FightParty-0.3.2-cloud-test.apk
+/home/agent/android-sdk/build-tools/36.0.0/zipalign -c -P 16 4 build/FightParty-0.3.2-cloud-test.apk
 ```
 
 产物在已忽略的 build 目录，不提交到源码仓库。安装只需要 APK，不需要旁边的 idsig 文件。此包保持 Mobile/Vulkan，最低 Android API 24 不等同于所有 Android 7.0 手机都能运行，仍需要实际设备验证。
 
-以上命令用于重新构建当前源码；本轮未执行 0.3.1 导出，已有下载页仍为 0.1.4。
+以上命令用于重新构建当前源码；本轮未执行 0.3.2 导出，已有下载页仍为 0.1.4。

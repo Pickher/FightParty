@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.3.1，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.3.2，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。已有下载页的 APK 仍为 0.1.4。
 
 ## 一、双击桌面快捷方式开始游戏
 
@@ -129,7 +129,8 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
 - skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
 - skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击都按护甲规则结算，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
-- skills.weapon_switch：多武器。特工有穿甲弹与狙击弹，按目标护甲自动换弹，换弹 1.5 秒不能开火；雷神对地、对空各一把武器，换武器没有延迟。
+- skills.weapon_switch：多武器。特工有穿甲弹与狙击弹，按目标护甲自动换弹，换弹 1.5 秒不能开火；雷神对地、对空各一把武器，换武器没有延迟；大和舰的对地/对空激光炮组同理。
+- skills.yamato：大和炮。damage 伤害、range 射程、channel_seconds 引导秒数（期间不能移动和开火）、cooldown_seconds 冷却、min_target_hp 目标生命+护盾下限。大和舰为 720、280、2、71、300。
 - skills.regen：脱战再生，`delay` 秒没受伤后每秒回 `per_second` 生命（蟑螂、缝合巨尸）。
 - splash：范围伤害半径，0 表示单体攻击。
 - color：单位的十六进制颜色。
