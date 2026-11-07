@@ -105,3 +105,6 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 
 
 当前源码为 0.7.2 / Android versionCode 22。坦克与特战队员参数变更见 WORLD_UNITS.md，未运行验证或打包。
+
+
+当前源码为 0.7.3 / Android versionCode 23，坦克双模式武器参数见 WORLD_UNITS.md，复用接口见 SKILL_COMPONENTS.md；未运行验证或打包。

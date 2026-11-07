@@ -1,5 +1,5 @@
 {
- "version": "0.7.2",
+ "version": "0.7.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -361,17 +361,17 @@
    "hp": 475,
    "armor_type": "heavy",
    "armor": 3,
-   "damage": 120,
+   "damage": 21,
    "bonus": {
-    "heavy": 90
+    "heavy": 14
    },
-   "interval": 2.14,
-   "range": 5.5,
+   "interval": 1.04,
+   "range": 7,
    "speed": 2.25,
-   "splash": 2.5,
+   "splash": 0.0,
    "color": "ff8378",
-   "role": "架设重炮 · 主目标全伤",
-   "counter": "架设后射程 5.5；主目标全额、周围 50% 溅射；收放时无法开火",
+   "role": "移动单体 · 架设溅射",
+   "counter": "移动单体射程7；架设射程13，周围半伤",
    "skills": {
     "deployment": {
      "deploy_seconds": 1.5,
@@ -379,7 +379,23 @@
      "deploy_enemy_threshold": 2,
      "scan_seconds": 0.5,
      "hold_range_multiplier": 1.2,
-     "mode": "siege"
+     "mode": "siege",
+     "mobile_can_attack": true,
+     "weapon": {
+      "damage": 52,
+      "bonus": {
+       "heavy": 33
+      },
+      "interval": 3.0,
+      "range": 13,
+      "splash": 2.5,
+      "splash_multiplier": 0.5,
+      "target_layers": [
+       "ground"
+      ],
+      "attacks_base": true,
+      "attacks_structures": true
+     }
     }
    },
    "layer": "ground",
@@ -408,7 +424,7 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "splash_multiplier": 0.5
+   "splash_multiplier": 1.0
   },
   "viking": {
    "name": "维京",

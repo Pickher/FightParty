@@ -18,7 +18,7 @@ static func can_act(sim, unit: Dictionary, state: Dictionary, in_range: bool, ba
 	var reach: float = float(context.get("range",stats.range))
 	var center: Vector2 = context.get("center",unit.pos)
 	var layers: Array = context.get("target_layers",stats.get("target_layers",["ground"]))
-	var hits_structures: bool = bool(stats.get("attacks_structures", stats.get("attacks_base", true)))
+	var hits_structures: bool = bool(context.get("attacks_structures",stats.get("attacks_structures", stats.get("attacks_base", true))))
 	for other in sim.nearby_team(center, reach * float(config.hold_range_multiplier), 1 - int(unit.team)):
 		if other.hp <= 0 or (not hits_structures and sim.is_structure(other)):
 			continue
@@ -46,8 +46,8 @@ static func can_act(sim, unit: Dictionary, state: Dictionary, in_range: bool, ba
 				state.siege_scan_ids = ids
 				state.siege_scan_tick = sim.tick + maxi(1, ceili(float(config.scan_seconds) * float(sim.rules.tick_rate)))
 			if not confirmed:
-				# 已进入射程时停下来观察，不能在等待确认时绕过架设直接开炮。
-				return not in_range
+				# 有独立移动武器的单位可继续移动/单体开火；穿刺者等仍须先部署。
+				return bool(config.get("mobile_can_attack",false)) or not in_range
 			state.siege_state = "deploying"
 			state.siege_until_tick = sim.tick + ceili(float(config.deploy_seconds) * float(sim.rules.tick_rate))
 			return false

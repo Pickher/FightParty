@@ -77,13 +77,17 @@ func _init(unit_kind: String, parameters: Dictionary, rules: Dictionary = {}) ->
 			var definition = WeaponDefinition.new(mode, "mode_%d" % i)
 			weapons[definition.id] = definition
 			modes[i] = definition.to_data()
-	if skills.has("defender_zone"):
-		var defense: Dictionary = primary_weapon.to_data()
-		defense.merge(skills.defender_zone.weapon, true)
-		defense.id = "defense"
-		var definition = WeaponDefinition.new(defense, "defense")
-		weapons["defense"] = definition
-		skills.defender_zone.weapon = definition.to_data()
+	for skill_id in ["deployment","defender_zone"]:
+		if not skills.has(skill_id) or not skills[skill_id].has("weapon"):continue
+		var configured: Dictionary = skills[skill_id].weapon
+		var deployed: Dictionary = primary_weapon.to_data()
+		deployed.merge(configured, true)
+		deployed.id = "deployed" if skill_id=="deployment" else "defense"
+		if not configured.has("attacks_structures"):
+			deployed.attacks_structures=bool(deployed.get("attacks_base",true))
+		var definition = WeaponDefinition.new(deployed,str(deployed.id))
+		weapons[definition.id] = definition
+		skills[skill_id].weapon = definition.to_data()
 
 func has_tag(tag: String) -> bool:
 	return tags.has(tag)
