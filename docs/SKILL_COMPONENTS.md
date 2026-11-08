@@ -111,3 +111,6 @@ services 下放的是所有组件可以复用的世界机制：
 `deployment` 支持 `weapon`（架设武器参数）和 `mobile_can_attack`（未架设时可用普通武器，默认 false）。存在 weapon 时，UnitDefinition 将它规范化为独立 WeaponDefinition，按移动炮默认值合并覆盖。组件在 before_target 阶段推进架设状态，随后 modify_weapon 根据最终状态选择武器；本步刚完成架设时即可读取正确的伤害/射程/间隔。modify_search 使用架设武器的发现范围，架设扫描/保持也使用该武器的目标层与建筑规则。移动炮与架设炮共享单位冷却。
 
 没有配置 weapon 的原有部署兵种继续沿用 before_action 流程，不能因为本次坦克改动而在移动模式攻击。收放和已架设状态移动倍率为 0；切换不修改组件外的兵种模板。当前坦克参数见 WORLD_UNITS.md。
+
+
+2026-11-08 0.7.4：多段攻击使用当前武器的 hit_count 作为基础，再经 multi_attack 组件乘算；普通攻击和 line_service 都通过 SkillSystem.attack_count(sim, unit, active_weapon) 读取。巨像/截击机已迁移到 hit_count=2，保留组件以兼容旧配置。伤害、溅射、弹射及命中效果逐段运行，冷却每轮一次。

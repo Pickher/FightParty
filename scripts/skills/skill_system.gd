@@ -159,8 +159,10 @@ func attack_rate(sim, unit: Dictionary) -> float:
 	var value: float = float(sim.aura_modifiers.get(unit.id,{}).get("attack_rate",1))
 	for component in components(unit):value*=component.attack_rate(sim)
 	return value
-func attack_count(sim, unit: Dictionary) -> int:
-	var value := 1
+## 武器按模式配置段数；旧 multi_attack 组件仍可额外乘算。
+func attack_count(sim, unit: Dictionary, active_weapon: Dictionary = {}) -> int:
+	var stats: Dictionary = weapon(sim,unit) if active_weapon.is_empty() else active_weapon
+	var value := maxi(1,int(stats.get("hit_count",1)))
 	for component in components(unit):value=component.attack_count(sim,value)
 	return value
 func damage_multiplier(ctx: Dictionary) -> float:

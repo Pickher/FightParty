@@ -15,7 +15,7 @@ static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, mul
 	if forward == Vector2.ZERO:
 		forward = Vector2.RIGHT if unit.team == 0 else Vector2.LEFT
 	var length: float = float(config.get("length",stats.range))
-	for strike in range(sim.skill_system.attack_count(sim,unit)):
+	for strike in range(sim.skill_system.attack_count(sim,unit,stats)):
 		var origin: Vector2 = unit.pos
 		var direction: Vector2 = forward
 		if config.pattern == "transverse":

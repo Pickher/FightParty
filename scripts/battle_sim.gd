@@ -747,7 +747,7 @@ func step() -> Array:
 				if skill_system.attack(ctx):
 					pass
 				else:
-					for strike in range(skill_system.attack_count(self,unit)):
+					for strike in range(skill_system.attack_count(self,unit,stats)):
 						if target.is_empty():
 							base_hits[enemy] += float(stats.damage)
 						else:

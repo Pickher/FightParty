@@ -100,3 +100,6 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 
 
 0.7.3：UnitDefinition 也会将 skills.deployment.weapon 规范化为名为 deployed 的武器，供架设组件切换；顶层武器保持移动模式属性。它与解放者的 defender_zone.weapon 一样是可复用的配置入口，不需要给坦克写独立模拟分支。
+
+
+2026-11-08 0.7.4：WeaponDefinition 新增 hit_count（至少1，默认1），to_data 随武器模式输出；damage/bonus 为每段值。攻击冷却/前后摇仍按整轮触发，直接命中和传播轨迹按段调用统一扣甲结算。

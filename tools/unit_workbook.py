@@ -11,7 +11,12 @@ DEFAULT_WORKBOOK = ROOT / 'data' / 'units' / '兵种配置.xlsx'
 LABELS = dict(zip(
     'id name race cost spawn_count hp shield shield_armor energy initial_energy armor_type armor damage interval range speed splash splash_multiplier size collision_radius separate_when_stopped bonus target_layers targetable_layers layer tags unit_type damage_type windup backswing health_regen health_regen_delay shield_regen shield_regen_delay energy_regen energy_regen_delay attacks_base attacks_structures structure status symbol color role counter requires sc2'.split(),
     '内部ID 显示名称 种族 每组价格 每组数量 生命上限 护盾上限 护盾护甲 能量上限 初始能量 护甲类型 护甲值 基础伤害 攻击间隔秒 射程格 移速格每秒 溅射半径 次目标伤害倍率 模型尺寸宽高 碰撞半径 停步分散 对甲额外伤害 攻击目标层 可被攻击层 自身层级 单位标签 单位类型 伤害类型 前摇秒 后摇秒 每秒回血 回血延迟秒 每秒回盾 回盾延迟秒 每秒回能 回能延迟秒 可攻击基地 可攻击建筑 是否建筑 实装状态 符号 颜色 定位 特点 前置兵种 星际原型'.split()))
+# 伤害类型仍供内部减甲规则使用，编辑表改展示每轮命中次数。
+LABELS.pop('damage_type', None)
+LABELS['hit_count']='每轮命中次数'
+LABELS['damage']='每段基础伤害'
 PARAM_LABELS = {
+    'hit_count':'每轮命中次数',
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
     'range':'射程（格）', 'interval':'攻击间隔（秒）', 'splash':'溅射半径（格）',
     'splash_multiplier':'次目标伤害倍率', 'length':'传播长度（格）', 'speed':'传播速度（格/秒）',
@@ -92,7 +97,8 @@ def validate(units):
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or value < 0): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
             if key in ('interval','speed','scan_seconds','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
-            if key in ('count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
+            if key in ('hit_count','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
+            if key=='hit_count' and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
             if key in ('splash_multiplier','health_cost_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
         for key in ('size',):
             val = unit.get(key,[1,1])
@@ -139,7 +145,7 @@ def parse_workbook(path, current, read_rows):
         uid=str(next((cells.get(c,'') for c,k in headers.items() if k=='id'),''))
         if uid not in base or uid in seen: raise ValueError('未知或重复兵种 ID：'+uid+'；新增兵种请先由开发者接入。')
         seen.add(uid)
-        expected=set(base[uid])-{'skills'}
+        expected=set(base[uid])-{'skills','damage_type'}
         if not expected.issubset(set(headers.values())): raise ValueError(uid+'：属性列被删除。')
         for col,key in headers.items():
             if key=='id': continue
@@ -195,12 +201,17 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['生效范围','导入写入 data/units.json 并自动备份；重启源码游戏生效，已有APK/EXE需要重新打包。'],
         ['刷新表格','python tools/unit_workbook.py --output 新文件.xlsx；生成需安装 openpyxl，导入仅需 Python 标准库。请先保存并导入已有编辑。'],
         ['当前待确认：恶火','基础射程5，技能传播长度2.5，可能在远处空打。此表保留源码原值。'],
-        ['当前待确认：雷神/特工','基础攻击参数与武器模式不同；请在武器模式页分别填写，尚未推断你的设计意图。'],
-        ['当前待确认：解放者/大和','对空溅射0；架设炮225/1.14秒；大和720且目标门槛300。'],
+        ['当前待确认：特工','基础攻击40，弹药模式仍是30；该差异保留，请在武器模式页分别填写。'],
+        ['解放者 / 大和','解放者架设65+30重甲/1.14秒；大和720且目标门槛300。'],
+        ['多段攻击','每轮命中次数×每段伤害；每段单独扣甲/护盾并触发命中效果，可以叠加溅射；一轮只消耗一次攻击冷却。伤害类型由内部保留。'],
+        ['雷神','对地2×(27+12重甲)，7格/1.28秒；对空2×(26+22重甲)，10格/3秒；溅射对空4×(9+9轻甲)，10格/3秒/半径1.2。'],
         ['技能能力','填参数仅能调整已实现机制；填写文字不会自动产生新的技能效果。']]
     for row in notes: guide.append(row)
     fields=['id']+[k for k in LABELS if k!='id' and any(k in u for u in units.values())]
-    fields += sorted({k for u in units.values() for k in u}-set(fields)-{'skills'})
+    if 'hit_count' in fields:
+        fields.remove('hit_count')
+        fields.insert(fields.index('damage')+1,'hit_count')
+    fields += sorted({k for u in units.values() for k in u}-set(fields)-{'skills','damage_type'})
     basic=wb.create_sheet('兵种属性')
     basic.append([LABELS.get(k,k) for k in fields]);basic.append(fields)
     for uid,u in units.items():
