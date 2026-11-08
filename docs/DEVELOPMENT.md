@@ -108,3 +108,5 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 
 
 当前源码为 0.7.3 / Android versionCode 23，坦克双模式武器参数见 WORLD_UNITS.md，复用接口见 SKILL_COMPONENTS.md；未运行验证或打包。
+
+2026-11-08：新增当前兵种工作簿 data/units/兵种配置.xlsx（48 个单位），分为兵种属性、独立武器模式、技能参数。tools/unit_workbook.py 负责生成，新版 tools/import_units.py 默认导入此表，仍兼容历史格式。导入以隐藏的导出快照识别编辑，保留未编辑字段的远程变更并拒绝同字段冲突。没有更改游戏数值；按用户约定未运行导入校验、测试、模拟、Godot 导入或打包。

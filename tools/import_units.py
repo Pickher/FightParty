@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """将兵种 Excel 导入 JSON。只使用 Python 3.8+ 标准库，无需安装 Excel 或 pip 包。
 
-XLSX 本质是 ZIP 中的一组 XML。这里只读取“兵种”页的普通单元格，
+XLSX 本质是 ZIP 中的一组 XML。兼容旧版“兵种”页及新版分表格式，
 不执行宏、不依赖公式缓存。先完整校验，再备份，最后原子替换 JSON。
 """
 import argparse
@@ -34,7 +34,7 @@ JSON_FIELDS = {'target_layers': list, 'bonus': dict, 'skills': dict, 'pending': 
 NS = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
 
 
-def read_rows(path):
+def read_rows(path, sheet_name="兵种"):
     """按工作表关系定位文件，兼容 Excel/WPS 的共享字符串和内联字符串。"""
     with ZipFile(path) as archive:
         # 防止误选超大文件；正常的配置表通常只有几十 KB。
@@ -46,9 +46,9 @@ def read_rows(path):
                        ET.fromstring(archive.read('xl/sharedStrings.xml'))]
         book = ET.fromstring(archive.read('xl/workbook.xml'))
         sheet = next((s for s in book.findall('s:sheets/s:sheet', NS)
-                      if s.get('name') == '兵种'), None)
+                      if s.get('name') == sheet_name), None)
         if sheet is None:
-            raise ValueError('找不到“兵种”工作表，请勿更改页签名称。')
+            raise ValueError('找不到“%s”工作表，请勿更改页签名称。' % sheet_name)
         relation_id = sheet.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
         relations = ET.fromstring(archive.read('xl/_rels/workbook.xml.rels'))
         target = next(r.get('Target') for r in relations if r.get('Id') == relation_id)
@@ -79,6 +79,11 @@ def read_rows(path):
 
 def parse_units(path, current):
     """通过第 5 行的英文键匹配列，因此可以整列移动，但不能删字段。"""
+    with ZipFile(path) as archive:
+        book = ET.fromstring(archive.read('xl/workbook.xml'))
+        if any(s.get('name') == '源数据' for s in book.findall('s:sheets/s:sheet', NS)):
+            from unit_workbook import parse_workbook
+            return parse_workbook(path, current, read_rows)
     rows = read_rows(path)
     headers = rows.get(5, {})
     if len(headers.values()) != len(set(str(v) for v in headers.values())):
@@ -198,13 +203,13 @@ def import_units(excel, destination, check_only=False):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('excel', nargs='?', type=Path, default=ROOT / 'data' / '兵种配置.xlsx')
+    parser.add_argument('excel', nargs='?', type=Path, default=ROOT / 'data' / 'units' / '兵种配置.xlsx')
     parser.add_argument('--output', type=Path, default=ROOT / 'data' / 'units.json')
     parser.add_argument('--check', action='store_true', help='只校验，不写 JSON')
     args = parser.parse_args()
     try:
         import_units(args.excel.resolve(), args.output.resolve(), args.check)
-    except (ValueError, OSError, BadZipFile, ET.ParseError, KeyError, StopIteration, IndexError) as error:
+    except (ValueError, OSError, BadZipFile, ET.ParseError, KeyError, StopIteration, IndexError, TypeError) as error:
         print('导入失败：%s\n原 units.json 未被替换。' % error, file=sys.stderr)
         return 1
     return 0
