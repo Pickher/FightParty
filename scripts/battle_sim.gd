@@ -94,12 +94,16 @@ func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
 func is_structure(unit: Dictionary) -> bool:
 	return bool(catalog[unit.kind].get("structure", false))
 
+## 人族建造驻军地堡，其余种族沿用各族外观的普通防御塔。
+func tower_kind(team: int) -> String:
+	return "terran_bunker" if races[team]=="terran" else "tower"
+
 ## 防御塔还能否建造：未达到 tower_max_builds，且矿物足够。返回空字符串表示可以。
 func tower_error(team: int) -> String:
 	var error := _editable(team)
 	if error.is_empty() and int(tower_builds[team]) >= int(rules.tower_max_builds):
 		error = "防御塔已达建造上限"
-	if error.is_empty() and int(minerals[team]) < int(catalog.tower.cost):
+	if error.is_empty() and int(minerals[team]) < int(catalog[tower_kind(team)].cost):
 		error = "矿物不足"
 	return error
 
@@ -107,9 +111,9 @@ func tower_error(team: int) -> String:
 func build_tower(team: int) -> String:
 	var error := tower_error(team)
 	if error.is_empty():
-		minerals[team] -= int(catalog.tower.cost)
+		minerals[team] -= int(catalog[tower_kind(team)].cost)
 		tower_builds[team] += 1
-		_place_structure(team, "tower", "tower")
+		_place_structure(team, tower_kind(team), "tower")
 		events.append({"type":"tower_built","team":team})
 		_log(team, {"type":"build_tower"})
 	return error
@@ -650,6 +654,21 @@ func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = 
 func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false) -> void:
 	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon))
 
+## 普通武器的一段命中；独立炮位也经过相同的溅射、护甲、护盾和命中技能结算。
+func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary, strike: int) -> void:
+	var unit: Dictionary = ctx.unit
+	var victims: Array = [target] if float(weapon.splash)==0 else _nearby(target.pos,float(weapon.splash))
+	for victim in victims:
+		if victim.team==unit.team or not _can_hit_unit(unit,victim,weapon):continue
+		var raw: float = raw_damage(weapon,victim.kind)*float(ctx.get("damage_multiplier",1.0))
+		if victim.id!=target.id:raw*=float(weapon.splash_multiplier)
+		if raw<=0:continue
+		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type},victim)
+		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5)
+		damage_done[int(unit.team)]+=amount
+		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
+		skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
+
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
 	if tick<int(unit.get("root_until_tick",0)):return 0.0
@@ -753,20 +772,7 @@ func step() -> Array:
 						else:
 							# 只有实际开火才锁定；追击和等待首次攻击冷却时仍可重新选敌。
 							unit.locked_target_id = target.id
-							# splash=0 时只命中一个目标；大于 0 时以目标位置为圆心搜集范围内单位。
-							var victims: Array = [target] if float(stats.splash) == 0 else _nearby(target.pos, float(stats.splash))
-							for victim in victims:
-								if victim.team != unit.team and _can_hit_unit(unit,victim,stats):
-									# 按受击单位的护甲类型加上穿甲加成；护盾与护甲点数在统一结算时扣除。
-									var raw: float = raw_damage(stats,victim.kind)*float(ctx.damage_multiplier)
-									if victim.id != target.id:
-										raw *= float(stats.splash_multiplier)
-									if raw <= 0.0:continue
-									var amount: float = expected_damage({"damage":raw,"damage_type":stats.damage_type},victim)
-									queue_weapon_hit(hits, victim, stats, raw, float(stats.range)>1.5)
-									damage_done[int(unit.team)] += amount
-									events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
-									skill_system.hit(self,unit,victim,hits,pending_slows)
+							queue_direct_strike(ctx,stats,target,strike)
 						skill_system.after_attack(ctx)
 						events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team,"splash":float(stats.splash)})
 			# 配置允许的机动单位在攻击冷却期间也可松开队形；前摇、后摇和开火当步不移动。

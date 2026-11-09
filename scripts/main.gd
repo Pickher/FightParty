@@ -455,7 +455,7 @@ func _draw_editor() -> void:
 	_button(Rect2(52,816,110,32),"移除单位","erase",selected=="erase")
 	_button(Rect2(174,816,110,32),"移动位置","move",selected=="move")
 	_button(Rect2(296,816,122,32),"清空兵营","clear")
-	var tower_cost: int = int(sim.catalog.tower.cost)
+	var tower_cost: int = int(sim.catalog[sim.tower_kind(0)].cost)
 	if int(sim.tower_builds[0]) >= int(sim.rules.tower_max_builds):
 		_panel(Rect2(440,816,180,32),Color("142233"),Color("2b3b50"))
 		_text(Vector2(454,839),"防御塔已建造",17,MUTED)
@@ -538,7 +538,7 @@ func _draw_help() -> void:
 		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
 		"   门口塔守护基地，塔倒后基地无还手；摧毁敌方宝库奖励 %d 矿。" % int(sim.rules.treasury_reward),
-		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog.tower.cost),
+		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
 		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",

@@ -1,5 +1,5 @@
 {
- "version": "0.7.4",
+ "version": "0.7.5",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -65,7 +65,7 @@
     "light": 19
    },
    "interval": 2.5,
-   "range": 5,
+   "range": 4.5,
    "speed": 4.25,
    "splash": 0.0,
    "color": "ff9f5a",
@@ -74,7 +74,7 @@
    "skills": {
     "line_attack": {
      "pattern": "forward",
-     "length": 2.5,
+     "length": 5,
      "speed": 15.0,
      "half_width": 0.8571,
      "effect": "flame"
@@ -2827,6 +2827,97 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 2
+  },
+  "terran_bunker": {
+   "name": "防御塔",
+   "symbol": "D",
+   "race": "terran",
+   "cost": 500,
+   "structure": true,
+   "hp": 1200,
+   "armor_type": "heavy",
+   "armor": 3,
+   "target_layers": [
+    "ground",
+    "air"
+   ],
+   "attacks_base": false,
+   "damage": 0,
+   "interval": 1,
+   "range": 7,
+   "speed": 0,
+   "splash": 0.0,
+   "color": "b8a1ff",
+   "role": "驻军火力 · 独立索敌",
+   "counter": "8名特战队员对空对地，2名劫掠者只对地；各自锁定与冷却",
+   "size": [
+    2,
+    2
+   ],
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [
+    "mechanical"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0,
+   "hit_count": 1,
+   "skills": {
+    "independent_weapons": {
+     "weapons": [
+      {
+       "id": "garrison_rifle",
+       "label": "驻军特战队员",
+       "count": 8,
+       "weapon": {
+        "damage": 15,
+        "bonus": {},
+        "range": 6,
+        "interval": 0.43,
+        "hit_count": 1,
+        "splash": 0,
+        "target_layers": [
+         "ground",
+         "air"
+        ],
+        "attacks_base": false,
+        "attacks_structures": true
+       }
+      },
+      {
+       "id": "garrison_marauder",
+       "label": "驻军劫掠者",
+       "count": 2,
+       "weapon": {
+        "damage": 20,
+        "bonus": {
+         "heavy": 20
+        },
+        "range": 7,
+        "interval": 0.75,
+        "hit_count": 1,
+        "splash": 0,
+        "target_layers": [
+         "ground"
+        ],
+        "attacks_base": false,
+        "attacks_structures": true
+       }
+      }
+     ]
+    }
+   }
   }
  }
 }

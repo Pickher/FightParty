@@ -103,3 +103,8 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 
 
 2026-11-08 0.7.4：WeaponDefinition 新增 hit_count（至少1，默认1），to_data 随武器模式输出；damage/bonus 为每段值。攻击冷却/前后摇仍按整轮触发，直接命中和传播轨迹按段调用统一扣甲结算。
+
+
+## 2026-11-09 0.7.5
+
+攻击周期抽到AttackCycle（纯字典状态）；Unit原有tick_attack/cancel_attack/blocks_movement/ready_to_fire接口委托给它，独立炮位共用相同时间/前后摇规则。UnitDefinition支持skills.independent_weapons.weapons的分组武器模板。terran_bunker为独立建筑模板，避免同局不同种族防御塔共用被修改的属性。

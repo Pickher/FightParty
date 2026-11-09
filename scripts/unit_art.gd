@@ -55,7 +55,7 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"treasury":
 			canvas.draw_circle(p,radius,color)
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.6),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),Color("6b4f10"))
-		"tower":
+		"tower", "terran_bunker":
 			canvas.draw_rect(Rect2(p-Vector2(radius*0.8,radius*0.3),Vector2(radius*1.6,radius*1.1)),color)
 			canvas.draw_circle(p+Vector2(0,-radius*0.3),radius*0.55,color)
 			canvas.draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),INK,3)

@@ -114,3 +114,10 @@ services 下放的是所有组件可以复用的世界机制：
 
 
 2026-11-08 0.7.4：多段攻击使用当前武器的 hit_count 作为基础，再经 multi_attack 组件乘算；普通攻击和 line_service 都通过 SkillSystem.attack_count(sim, unit, active_weapon) 读取。巨像/截击机已迁移到 hit_count=2，保留组件以兼容旧配置。伤害、溅射、弹射及命中效果逐段运行，冷却每轮一次。
+
+
+## 2026-11-09 0.7.5
+
+新增 independent_weapons 独立组件。配置 weapons 为数组，每组含 id/label/count/weapon，UnitDefinition 将每组 weapon 规范化为 WeaponDefinition。组件在 before_target 消费普通攻击行动，挂载单位的基础武器不再额外开火。state.mounts 只保存组号和 AttackCycle 纯数据状态，可快照，不生成隐藏单位。不同炮位独立锁定/冷却，闲置炮位先分散、再按最近距离选敌；锁定不被重新分配。
+
+普通Unit和独立炮位共用units/attack_cycle.gd，普通单段命中共用BattleSim.queue_direct_strike，保留hit_count、溅射倍率、护盾/护甲、命中/攻击后效果的结算入口。当前人族防御塔使用8+2组数，未来可直接配置其他武器/数量；这里不实现治疗、传播攻击或变形等武器专用技能的自动组合。

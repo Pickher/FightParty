@@ -89,6 +89,19 @@ func _init(unit_kind: String, parameters: Dictionary, rules: Dictionary = {}) ->
 		weapons[definition.id] = definition
 		skills[skill_id].weapon = definition.to_data()
 
+	if skills.has("independent_weapons"):
+		for group in skills.independent_weapons.weapons:
+			var data: Dictionary = primary_weapon.to_data()
+			data.bonus={}
+			data.bonus_tags={}
+			data.merge(group.weapon,true)
+			data.id=str(group.id)
+			if not group.weapon.has("attacks_structures"):
+				data.attacks_structures=bool(data.get("attacks_base",true))
+			var definition = WeaponDefinition.new(data,str(group.id))
+			weapons[definition.id]=definition
+			group.weapon=definition.to_data()
+
 func has_tag(tag: String) -> bool:
 	return tags.has(tag)
 

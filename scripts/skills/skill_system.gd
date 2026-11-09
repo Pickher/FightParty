@@ -1,6 +1,7 @@
 extends RefCounted
 ## 配置键 → 独立组件类。新增技能只注册一次，兵种只需挂参数。
 const TYPES := {
+	"independent_weapons":preload("res://scripts/skills/independent_weapons.gd"),
 	"deployment":preload("res://scripts/skills/deployment.gd"),
 	"defender_zone":preload("res://scripts/skills/defender_zone.gd"),
 	"healing":preload("res://scripts/skills/healing.gd"),
