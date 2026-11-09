@@ -28,6 +28,9 @@ func ring(center: Vector2, reach: float, color: Color) -> void:
 func _draw() -> void:
 	if game==null:return
 	var sim = game.sim
+	# 大和舰原图以3格模型标定，主体、炮口、残骸统一随模型尺寸缩放。
+	var bc_body: Array = sim.catalog["battlecruiser"].get("size",[3.0,3.0])
+	var bc_cell: float = pixels(maxf(float(bc_body[0]),float(bc_body[1]))/3.0)
 	var view: Rect2 = game._camera_rect()
 	draw_rect(Rect2(Vector2.ZERO,AREA),Color("0d1c2b"))
 	var spacing: float = 1.0 if pixels(1.0)>=12.0 else 5.0
@@ -81,7 +84,7 @@ func _draw() -> void:
 		var a := point(effect.from)
 		if effect.has("muzzle"):
 			# 大和舰：激光从炮管、大和炮从圆形炮口画起（精灵上的位置）。
-			a += game.bc_visual.muzzle_offset(str(effect.muzzle),bool(effect.left),pixels(1.0))
+			a += game.bc_visual.muzzle_offset(str(effect.muzzle),bool(effect.left),bc_cell)
 		var b := point(effect.to)
 		if effect.type=="area_impact":
 			ring(effect.to,float(effect.radius),Color(color,clampf(float(effect.ttl)/0.16,0,1)))
@@ -95,7 +98,8 @@ func _draw() -> void:
 		if effect.type=="line_attack":
 			color=Color(game.sim.catalog[effect.kind].color) if not game._hidden_team(int(effect.team)) else game.CORAL
 			color.a=clampf(float(effect.ttl)/0.24,0,1)
-			draw_line(a,b,color,maxf(1,pixels(0.15)))
+			var width: float = float(effect.get("half_width",0.3))*2.0 if str(effect.get("effect",""))=="flame" else 0.15
+			draw_line(a,b,color,maxf(1,pixels(width)))
 		else:
 			color.a=clampf(float(effect.ttl)/0.16,0,1)
 			if effect.has("muzzle"):color=Color(Color("ffb347"),color.a)
@@ -111,7 +115,7 @@ func _draw() -> void:
 			game.rifle_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(rifle_frame_world))
 	for corpse in game.bc_visual.corpses:
 		if view.grow(4.0).has_point(corpse.pos):
-			game.bc_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(1.0))
+			game.bc_visual.draw_corpse(self,point(corpse.pos),corpse,bc_cell)
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
@@ -135,9 +139,9 @@ func _draw() -> void:
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
 			elif unit.kind == "battlecruiser":
-				# 精灵 80 像素/格（与特战队员同密度），舰长约 3.1 格，对应 3×3 占地。
+				# 精灵按模型尺寸从原3格标定缩放，避免只改占地而舰体不变。
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,24,Color(color,0.8),1)
-				game.bc_visual.draw_unit(self,p,unit,pixels(1.0))
+				game.bc_visual.draw_unit(self,p,unit,bc_cell)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
 		if game.camera_zoom<3:continue

@@ -90,7 +90,7 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if base_offset.dot(wave.direction) >= 0.0 and contact >= float(wave.distance) and contact <= next_distance:
 				base_hits[enemy] += float(wave.damage)
 				wave.base_hit = true
-		sim.events.append({"type":"line_attack","kind":wave.kind,"effect":wave.effect,"source":wave.source,"team":wave.team,
+		sim.events.append({"type":"line_attack","kind":wave.kind,"effect":wave.effect,"half_width":wave.half_width,"source":wave.source,"team":wave.team,
 			"from":wave.origin + wave.direction * float(wave.distance),"to":wave.origin + wave.direction * next_distance})
 		wave.distance = next_distance
 		if next_distance < float(wave.length):

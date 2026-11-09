@@ -48,6 +48,7 @@ func _init(unit_kind: String, parameters: Dictionary, rules: Dictionary = {}) ->
 		if not tags.has(tag): tags.append(tag)
 	var dimensions: Array = parameters.get("size", [1.0, 1.0])
 	size = Vector2(maxf(0.01, float(dimensions[0])), maxf(0.01, float(dimensions[1])))
+	# 最终圆形避让半径，不是在模型半径外再增加的距离。未配置时用最大边长的一半。
 	collision_radius = maxf(0.01,float(parameters.get("collision_radius",maxf(size.x,size.y)*0.5)))
 	separate_when_stopped = bool(parameters.get("separate_when_stopped",false))
 	health_regen = maxf(0.0, float(parameters.get("health_regen", 0)))

@@ -1,5 +1,5 @@
 {
- "version": "0.7.6",
+ "version": "0.7.7",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -46,7 +46,7 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "collision_radius": 0.5,
+   "collision_radius": 0.4,
    "separate_when_stopped": true,
    "hit_count": 1
   },
@@ -76,7 +76,7 @@
      "pattern": "forward",
      "length": 5,
      "speed": 15.0,
-     "half_width": 0.8571,
+     "half_width": 0.3,
      "effect": "flame"
     }
    },
@@ -106,7 +106,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.6
   },
   "marauder": {
    "name": "劫掠者",
@@ -167,7 +168,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.6
   },
   "medic": {
    "name": "医疗兵",
@@ -199,8 +201,8 @@
     "ground"
    ],
    "size": [
-    1,
-    1
+    0.8,
+    0.8
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -221,7 +223,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.4
   },
   "agent": {
    "name": "特工",
@@ -277,8 +280,8 @@
     "air"
    ],
    "size": [
-    1,
-    1
+    0.8,
+    0.8
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -300,7 +303,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.4
   },
   "widow_mine": {
    "name": "寡妇雷",
@@ -339,8 +343,8 @@
     "air"
    ],
    "size": [
-    1,
-    1
+    0.8,
+    0.8
    ],
    "spawn_count": 2,
    "shield": 0,
@@ -360,7 +364,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.4
   },
   "mortar": {
    "name": "坦克",
@@ -415,8 +420,8 @@
     "ground"
    ],
    "size": [
-    2,
-    2
+    1.6,
+    1.6
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -437,7 +442,8 @@
    "windup": 0,
    "backswing": 0,
    "splash_multiplier": 1.0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.8
   },
   "viking": {
    "name": "维京",
@@ -487,7 +493,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.75
   },
   "liberator": {
    "name": "解放者",
@@ -539,8 +546,8 @@
     }
    },
    "size": [
-    2,
-    2
+    1.5,
+    1.5
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -560,7 +567,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.75
   },
   "thor": {
    "name": "雷神",
@@ -649,8 +657,8 @@
     "air"
    ],
    "size": [
-    2.5,
-    2.5
+    2.3,
+    2.3
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -671,7 +679,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 2
+   "hit_count": 2,
+   "collision_radius": 1.15
   },
   "battlecruiser": {
    "name": "大和舰",
@@ -739,8 +748,8 @@
     "air"
    ],
    "size": [
-    3,
-    3
+    2.5,
+    2.5
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -761,7 +770,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.25
   },
   "zergling": {
    "name": "跳虫",
@@ -807,7 +817,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "baneling": {
    "name": "毒爆虫",
@@ -862,7 +873,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "roach": {
    "name": "蟑螂",
@@ -909,7 +921,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "hydralisk": {
    "name": "刺蛇",
@@ -956,7 +969,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "ravager": {
    "name": "破坏者",
@@ -1021,7 +1035,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "piercer": {
    "name": "穿刺者",
@@ -1089,7 +1104,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "tunneler": {
    "name": "钻地兽",
@@ -1144,7 +1160,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "mutalisk": {
    "name": "飞龙",
@@ -1201,7 +1218,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "infestor": {
    "name": "感染虫",
@@ -1271,7 +1289,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "ultralisk": {
    "name": "雷兽",
@@ -1321,7 +1340,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.25
   },
   "brood_lord": {
    "name": "巢虫领主",
@@ -1381,7 +1401,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.25
   },
   "vanguard": {
    "name": "先锋",
@@ -1436,7 +1457,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "stalker": {
    "name": "追猎者",
@@ -1493,7 +1515,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "sentry": {
    "name": "哨兵",
@@ -1554,7 +1577,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "immortal": {
    "name": "不朽者",
@@ -1613,7 +1637,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.9
   },
   "high_templar": {
    "name": "高阶圣堂武士",
@@ -1683,7 +1708,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "archon": {
    "name": "执政官",
@@ -1734,7 +1760,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.8
   },
   "colossus": {
    "name": "巨像",
@@ -1800,7 +1827,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 2
+   "hit_count": 2,
+   "collision_radius": 1.25
   },
   "disruptor": {
    "name": "干扰者",
@@ -1868,7 +1896,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "void_ray": {
    "name": "虚空辉光舰",
@@ -1927,7 +1956,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "carrier": {
    "name": "航母",
@@ -1993,7 +2023,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.5
   },
   "swarm": {
    "name": "蜂群兵",
@@ -2039,7 +2070,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.25
   },
   "rotling": {
    "name": "腐仆",
@@ -2085,7 +2117,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "splitter": {
    "name": "分裂尸",
@@ -2140,7 +2173,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "bloater": {
    "name": "膨胀者",
@@ -2200,7 +2234,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "spitter": {
    "name": "喷吐者",
@@ -2260,7 +2295,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "fly_swarm": {
    "name": "腐蝇群",
@@ -2310,7 +2346,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "spore_drifter": {
    "name": "孢子漂浮体",
@@ -2371,7 +2408,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "abomination": {
    "name": "缝合巨尸",
@@ -2422,7 +2460,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.0
   },
   "plague_herald": {
    "name": "瘟疫使者",
@@ -2480,7 +2519,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "gravedigger": {
    "name": "掘墓人",
@@ -2540,7 +2580,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "brood_mother": {
    "name": "腐化之母",
@@ -2604,7 +2645,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.5
   },
   "gate_tower": {
    "name": "门口防御塔",
@@ -2648,7 +2690,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.75
   },
   "treasury": {
    "name": "宝库",
@@ -2692,7 +2735,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.0
   },
   "tower": {
    "name": "防御塔",
@@ -2736,7 +2780,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 1.0
   },
   "broodling": {
    "cost": 0,
@@ -2782,7 +2827,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1
+   "hit_count": 1,
+   "collision_radius": 0.25
   },
   "interceptor": {
    "cost": 0,
@@ -2830,7 +2876,8 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 2
+   "hit_count": 2,
+   "collision_radius": 0.25
   },
   "terran_bunker": {
    "name": "防御塔",
@@ -2921,7 +2968,8 @@
       }
      ]
     }
-   }
+   },
+   "collision_radius": 1.0
   }
  }
 }

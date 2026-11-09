@@ -108,3 +108,6 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 ## 2026-11-09 0.7.5
 
 攻击周期抽到AttackCycle（纯字典状态）；Unit原有tick_attack/cancel_attack/blocks_movement/ready_to_fire接口委托给它，独立炮位共用相同时间/前后摇规则。UnitDefinition支持skills.independent_weapons.weapons的分组武器模板。terran_bunker为独立建筑模板，避免同局不同种族防御塔共用被修改的属性。
+
+
+2026-11-09 0.7.7：collision_radius 是最终圆形避让半径，不是额外边距；全部49条单位配置均显式填写为模型最大边长/2。未填写时的默认推导规则仍保留，便于后续新增单位。
