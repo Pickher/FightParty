@@ -285,17 +285,7 @@ python tools/unit_workbook.py --output "data/units/兵种配置-更新.xlsx"
 
 生成工具需要 openpyxl；为保护未导入的编辑，它拒绝覆盖现有文件。导入工具兼容旧版工作簿格式，但请使用上面的新版当前表。
 
-## 十四、发给朋友的 Windows 调试包
-
-朋友无需 GitHub 账号或代码编辑器。包内附带 Godot，解压后双击“开始游戏.cmd”即可试玩；只有编辑、导入兵种表时需要 Excel/WPS 和 Python。
-
-- 朋友操作说明：[运行与兵种调试](docs/朋友调试说明.txt)。
-- 打包脚本模板与制作步骤：[tools/friend_package](tools/friend_package/README.md)。
-- 已交付包验证记录：[朋友调试包验证记录](docs/朋友调试包验证记录.txt)。
-
-调试包 ZIP 和引擎不提交到源码仓库；表格、导入工具、游戏源码、启动脚本模板及说明文件纳入版本管理。
-
-## 十五、项目与第三方声明
+## 十四、项目与第三方声明
 
 完整项目仓库：https://github.com/Pickher/FightParty
 

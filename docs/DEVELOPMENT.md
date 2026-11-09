@@ -113,3 +113,6 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 
 
 2026-11-08 0.7.4：医疗兵95生命；解放者架设65+30重甲；雷神按模式2/2/4段。引入武器 hit_count 并同步Excel，内部伤害类型保留；版本0.7.4，Android versionCode24。
+
+
+2026-11-09：移除已停用的朋友 Windows 调试包工作流：tools/friend_package 的启动/编辑/导入脚本模板、专用操作说明和交付验证记录，以及 README 对应入口。保留当前 Excel 编辑及导入、兵种分页、游戏与技能框架；没有回退共享历史提交或改动游戏数值。未运行导入校验、Godot 导入、模拟、测试或打包。
