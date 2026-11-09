@@ -127,4 +127,4 @@ SHA-256：`d8eef78f483fbf000237859609a6e8f265bc7872a1c0df229f2928fbc7af2592`。
 
 已完成资源导入/脚本解析、Android 导出、APK v2/v3 签名校验和 16 KiB 页对齐校验。没有运行对局模拟、战报重放或安卓真机/模拟器安装。导入/导出日志中的 ADB daemon 未连接不影响 APK 产物；aapt 旧版 badging 读取某些 required 属性报错，使用 aapt2 可读取包版本和架构。aapt2 另提示引擎模板引用的 themed_icon.xml 缺失，未将此视为真机通过。
 
-私人下载页沿用 https://fightparty-apk-014.topmole1.chatgpt.site （网址保留旧命名），下载重组代码已校验 APK 的完整大小和 SHA-256。需要使用有权访问此页的 ChatGPT 账号；无需 GitHub 登录。安装包、签名和 SDK 不上传到游戏源码仓库。
+新版私人下载页已发布：https://fightparty-apk-014.wangzeyu2495.chatgpt.site （网址保留旧版本命名，页面内为0.7.4），下载重组代码已校验 APK 的完整大小和 SHA-256。需要使用有权访问此页的 ChatGPT 账号；无需 GitHub 登录。安装包、签名和 SDK 不上传到游戏源码仓库。
