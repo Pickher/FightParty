@@ -190,7 +190,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
     wb.remove(wb.active)
     guide=wb.create_sheet('填写说明')
     notes=[['FightParty 兵种数值表', '源码版本 '+data.get('version','')],
-        ['编辑流程','修改下方三页并保存 → 双击项目根目录 导入兵种.cmd；或把文件交给 AI 导入。'],
+        ['编辑流程','修改下方三页并保存 → 在项目根目录执行 python tools/import_units.py；或把文件交给 AI 导入。'],
         ['兵种属性','一行一个单位；价格按组，生命/伤害按单体；间隔单位秒，射程单位格。'],
         ['武器模式','坦克架设炮、雷神三模式、特工弹药、大和舰空地炮独立列出；这些值会覆盖基础武器。'],
         ['技能参数','一行一个参数；布尔填 true/false；倍率 1.3 表示增加30%，0.5 表示一半。'],
