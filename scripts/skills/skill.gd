@@ -19,8 +19,11 @@ func on_spawn(_sim) -> void: pass
 func on_removed(_sim) -> void: pass
 func on_frame(_ctx: Dictionary) -> void: pass
 func before_target(_ctx: Dictionary) -> bool: return false
+func select_target(_sim, target: Dictionary) -> Dictionary: return target
 func on_target(_ctx: Dictionary) -> void: pass
 func before_action(_ctx: Dictionary) -> void: pass
+func after_action(_ctx: Dictionary) -> void: pass
+func moves_while_attacking() -> bool: return false
 func on_attack(_ctx: Dictionary) -> bool: return false
 func after_attack(_ctx: Dictionary) -> void: pass
 func on_hit(_ctx: Dictionary) -> void: pass

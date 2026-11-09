@@ -1,6 +1,7 @@
 extends RefCounted
 ## 配置键 → 独立组件类。新增技能只注册一次，兵种只需挂参数。
 const TYPES := {
+	"mobile_attack":preload("res://scripts/skills/mobile_attack.gd"),
 	"independent_weapons":preload("res://scripts/skills/independent_weapons.gd"),
 	"deployment":preload("res://scripts/skills/deployment.gd"),
 	"defender_zone":preload("res://scripts/skills/defender_zone.gd"),
@@ -76,6 +77,19 @@ func before_target(ctx: Dictionary) -> bool:
 			publish(ctx.unit)
 			return true
 	publish(ctx.unit)
+	return false
+
+## 在武器选择前修正目标，空地武器会依据最终目标切换。
+func select_target(sim, unit: Dictionary, target: Dictionary) -> Dictionary:
+	for component in components(unit):target=component.select_target(sim,target)
+	publish(unit)
+	return target
+func after_action(ctx: Dictionary) -> void:
+	for component in components(ctx.unit):component.after_action(ctx)
+	publish(ctx.unit)
+func moves_while_attacking(unit: Dictionary) -> bool:
+	for component in components(unit):
+		if component.moves_while_attacking():return true
 	return false
 
 func on_target(ctx: Dictionary) -> void:

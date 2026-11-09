@@ -672,7 +672,7 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
 	if tick<int(unit.get("root_until_tick",0)):return 0.0
-	if unit_model(unit).blocks_movement(): return 0.0
+	if unit_model(unit).blocks_movement() and not skill_system.moves_while_attacking(unit): return 0.0
 	return definitions[unit.kind].speed * skill_system.movement_multiplier(self,unit) * SlowService.speed_multiplier(unit,tick)
 
 func _tick_attack_clock(unit: Dictionary, dt: float) -> void:
@@ -726,7 +726,7 @@ func step() -> Array:
 		if skill_system.before_target(ctx):
 			unit_model(unit).cancel_attack()
 			continue
-		ctx.target=_target(unit)
+		ctx.target=skill_system.select_target(self,unit,_target(unit))
 		skill_system.on_target(ctx)
 		var target: Dictionary = ctx.target
 		var stats: Dictionary = _weapon_stats(unit)
@@ -786,6 +786,7 @@ func step() -> Array:
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
+		skill_system.after_action(ctx)
 	LineService.advance(self, dt, moves, hits, base_hits, pending_slows)
 	AreaService.advance(self,dt,moves,hits,base_hits)
 	StatusService.apply(self)

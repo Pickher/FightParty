@@ -16,7 +16,7 @@ LABELS.pop('damage_type', None)
 LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
 PARAM_LABELS = {
-    'hit_count':'每轮命中次数',
+    'hit_count':'每轮命中次数', 'preferred_distance':'期望距离（格）', 'single_target_limit':'移动追击敌人数上限',
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
     'range':'射程（格）', 'interval':'攻击间隔（秒）', 'splash':'溅射半径（格）',
     'splash_multiplier':'次目标伤害倍率', 'length':'传播长度（格）', 'speed':'传播速度（格/秒）',
@@ -97,7 +97,7 @@ def validate(units):
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or value < 0): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
             if key in ('interval','speed','scan_seconds','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
-            if key in ('hit_count','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
+            if key in ('hit_count','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
             if key=='hit_count' and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
             if key in ('splash_multiplier','health_cost_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
         for key in ('size',):

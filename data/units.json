@@ -1,5 +1,5 @@
 {
- "version": "0.7.5",
+ "version": "0.7.6",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -727,6 +727,10 @@
      "channel_seconds": 2.0,
      "cooldown_seconds": 71.0,
      "min_target_hp": 300
+    },
+    "mobile_attack": {
+     "preferred_distance": 5.5,
+     "single_target_limit": 1
     }
    },
    "layer": "air",
