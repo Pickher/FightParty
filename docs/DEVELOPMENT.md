@@ -116,3 +116,15 @@ godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0
 
 
 2026-11-09：移除已停用的朋友 Windows 调试包工作流：tools/friend_package 的启动/编辑/导入脚本模板、专用操作说明和交付验证记录，以及 README 对应入口。保留当前 Excel 编辑及导入、兵种分页、游戏与技能框架；没有回退共享历史提交或改动游戏数值。未运行导入校验、Godot 导入、模拟、测试或打包。
+
+
+## 2026-11-09 当前安卓测试构建
+
+由 cloud/test 源码提交 `317600d` 构建 0.7.4（versionCode 24），使用现有 Godot 4.6.3 Android debug 模板、SDK 36.0.0 和项目外原测试签名。导出预设 Android Cloud Test，包名 `org.pickher.fightparty.cloudtest`，名称 FightParty Test；包含 arm64-v8a 与 x86_64，minSdk 24 / targetSdk 36，保持当前 Mobile/Vulkan 渲染。
+
+产物：`build/FightParty-0.7.4-cloud-test.apk`，58,400,095 字节。
+SHA-256：`d8eef78f483fbf000237859609a6e8f265bc7872a1c0df229f2928fbc7af2592`。
+
+已完成资源导入/脚本解析、Android 导出、APK v2/v3 签名校验和 16 KiB 页对齐校验。没有运行对局模拟、战报重放或安卓真机/模拟器安装。导入/导出日志中的 ADB daemon 未连接不影响 APK 产物；aapt 旧版 badging 读取某些 required 属性报错，使用 aapt2 可读取包版本和架构。aapt2 另提示引擎模板引用的 themed_icon.xml 缺失，未将此视为真机通过。
+
+私人下载页沿用 https://fightparty-apk-014.topmole1.chatgpt.site （网址保留旧命名），下载重组代码已校验 APK 的完整大小和 SHA-256。需要使用有权访问此页的 ChatGPT 账号；无需 GitHub 登录。安装包、签名和 SDK 不上传到游戏源码仓库。
