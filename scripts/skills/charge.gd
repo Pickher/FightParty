@@ -5,7 +5,8 @@ func step(sim, unit: Dictionary, target: Dictionary, dt: float, moves: Dictionar
 	if sim.tick<int(unit.get("root_until_tick",0)):return false
 	if config.is_empty() or target.is_empty():return false
 	var distance: float = unit.pos.distance_to(target.pos)
-	if distance<=float(stats.range):
+	var reach: float = sim.attack_reach(unit,target,stats)
+	if distance<=reach:
 		state.charge_until_tick=0
 		return false
 	if sim.tick>=int(state.get("charge_ready_tick",0)) and distance<=float(config.range):
@@ -13,7 +14,7 @@ func step(sim, unit: Dictionary, target: Dictionary, dt: float, moves: Dictionar
 		state.charge_until_tick=sim.tick+ceili(float(config.duration)*float(sim.rules.tick_rate))
 		state.charge_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
 	if sim.tick<int(state.get("charge_until_tick",0)):
-		moves[unit.id]=sim.clamp_to_field(unit.pos.move_toward(target.pos,minf(distance-float(stats.range),sim._movement_speed(unit)*float(config.speed_multiplier)*dt)))
+		moves[unit.id]=sim.clamp_to_field(unit.pos.move_toward(target.pos,minf(distance-reach,sim._movement_speed(unit)*float(config.speed_multiplier)*dt)))
 		return true
 	return false
 

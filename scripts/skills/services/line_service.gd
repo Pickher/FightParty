@@ -7,6 +7,7 @@ const MOVE_MARGIN := 1.0
 static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, multiplier: float = 1.0) -> void:
 	var stats: Dictionary = sim._weapon_stats(unit).duplicate(true)
 	stats.damage=float(stats.damage)*multiplier
+	stats.shield_bonus=float(stats.get("shield_bonus",0))*multiplier
 	if stats.has("bonus"):
 		for key in stats.bonus:stats.bonus[key]=float(stats.bonus[key])*multiplier
 	if stats.has("bonus_tags"):
@@ -27,7 +28,7 @@ static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, mul
 			"distance":0.0,"length":length,"speed":float(config.speed),
 			"half_width":float(config.half_width),"damage":float(stats.damage),
 			"bonus":stats.get("bonus",{}).duplicate(),
-			"bonus_tags":stats.get("bonus_tags",{}).duplicate(),"damage_type":stats.get("damage_type","physical"),
+			"bonus_tags":stats.get("bonus_tags",{}).duplicate(),"shield_bonus":stats.shield_bonus,"damage_type":stats.get("damage_type","physical"),
 			"attacks_structures":stats.get("attacks_structures",stats.get("attacks_base",true)),
 			"source_id":unit.id,"impact_skills":sim.skill_system.impact_configs(unit),
 			"target_layers":stats.get("target_layers",["ground"]).duplicate(),"attacks_base":stats.get("attacks_base",true),

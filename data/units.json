@@ -1,5 +1,5 @@
 {
- "version": "0.7.7",
+ "version": "0.8.0",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -780,13 +780,13 @@
    "status": "ready",
    "sc2": "跳虫 Zergling",
    "cost": 50,
-   "hp": 95,
+   "hp": 35,
    "armor_type": "light",
-   "armor": 0,
-   "damage": 15,
-   "interval": 0.5,
-   "range": 0.7857,
-   "speed": 2.9375,
+   "armor": 3,
+   "damage": 8,
+   "interval": 0.497,
+   "range": 0.1,
+   "speed": 4.13,
    "splash": 0.0,
    "color": "e39bd0",
    "role": "高速近战 · 数量包围",
@@ -804,7 +804,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -818,7 +818,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": true,
+   "pending": [
+    "代谢加速 / 肾上腺素：未默认研究"
+   ]
   },
   "baneling": {
    "name": "毒爆虫",
@@ -830,17 +837,15 @@
    ],
    "sc2": "毒爆虫 Baneling",
    "cost": 75,
-   "hp": 80,
-   "armor_type": "light",
-   "armor": 0,
-   "damage": 48,
-   "bonus": {
-    "light": 57
-   },
+   "hp": 30,
+   "armor_type": "none",
+   "armor": 3,
+   "damage": 22,
+   "bonus": {},
    "interval": 1,
-   "range": 0.7857,
-   "speed": 2.5,
-   "splash": 2.2143,
+   "range": 0.25,
+   "speed": 3.5,
+   "splash": 2.2,
    "color": "a6e86b",
    "role": "近身自爆 · 反轻甲",
    "counter": "接敌后自爆，伤害范围内地面敌军；会消耗自身",
@@ -854,13 +859,16 @@
    ],
    "spawn_count": 1,
    "skills": {
-    "suicide": {}
+    "suicide": {
+     "structure_damage": 95,
+     "structure_ignore_armor": true
+    }
    },
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -874,7 +882,13 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": true,
+   "pending": [
+    "离心钩：未默认研究；不自动增加生命与移速"
+   ]
   },
   "roach": {
    "name": "蟑螂",
@@ -883,17 +897,17 @@
    "status": "ready",
    "sc2": "蟑螂 Roach",
    "cost": 100,
-   "hp": 390,
+   "hp": 145,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 48,
+   "armor": 4,
+   "damage": 22,
    "interval": 1.43,
-   "range": 4.0,
-   "speed": 2.25,
+   "range": 4,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "c98a5e",
    "role": "耐打前排 · 脱战回血",
-   "counter": "脱战 3 秒后快速回血；怕反重甲",
+   "counter": "自然回血；埋地加速回血与埋地移动待实现",
    "skills": {},
    "layer": "ground",
    "target_layers": [
@@ -908,8 +922,8 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 20,
-   "health_regen_delay": 3,
+   "health_regen": 0.38,
+   "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
    "energy_regen": 0,
@@ -922,7 +936,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "埋地回血 / 地下移动：待实现；移除旧的脱战20HP/秒假回血；只保留基础自然回血"
+   ]
   },
   "hydralisk": {
    "name": "刺蛇",
@@ -931,13 +952,13 @@
    "status": "ready",
    "sc2": "刺蛇 Hydralisk",
    "cost": 150,
-   "hp": 245,
+   "hp": 90,
    "armor_type": "light",
-   "armor": 0,
-   "damage": 36,
+   "armor": 3,
+   "damage": 15,
    "interval": 0.59,
-   "range": 6.0,
-   "speed": 2.25,
+   "range": 5,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "d87ec4",
    "role": "中排高输出 · 对空对地",
@@ -956,7 +977,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -970,7 +991,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "肌肉强化 / 针刺射程 / 冲刺：未默认研究；射程当前为基础5格；专属科技另行确认"
+   ]
   },
   "ravager": {
    "name": "破坏者",
@@ -982,24 +1010,24 @@
    ],
    "sc2": "破坏者 Ravager",
    "cost": 150,
-   "hp": 325,
-   "armor_type": "light",
-   "armor": 3,
-   "damage": 48,
+   "hp": 120,
+   "armor_type": "none",
+   "armor": 4,
+   "damage": 22,
    "interval": 1.14,
-   "range": 6.0,
-   "speed": 2.75,
+   "range": 6,
+   "speed": 3.85,
    "splash": 0.0,
    "color": "f07a5a",
    "role": "腐蚀胆汁 · 延迟范围",
    "counter": "胆汁能打建筑与静止单位；可被躲开",
    "skills": {
     "delayed_area": {
-     "damage": 180,
+     "damage": 60,
      "delay": 2.5,
-     "radius": 1.0,
-     "cooldown": 7,
-     "range": 9.0,
+     "radius": 0.5,
+     "cooldown": 7.14,
+     "range": 9,
      "effect": "bile",
      "target_layers": [
       "ground",
@@ -1022,7 +1050,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1036,7 +1064,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "腐蚀胆汁：简化实现；自动选择位置；投射/落地时间待确认"
+   ]
   },
   "piercer": {
    "name": "穿刺者",
@@ -1048,16 +1083,16 @@
    ],
    "sc2": "潜伏者 Lurker",
    "cost": 175,
-   "hp": 515,
+   "hp": 190,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 60,
+   "armor": 4,
+   "damage": 26,
    "bonus": {
-    "heavy": 30
+    "heavy": 13
    },
    "interval": 1.43,
-   "range": 8.0,
-   "speed": 2.9375,
+   "range": 8,
+   "speed": 4.13,
    "splash": 0.0,
    "color": "d6a1f4",
    "role": "埋地穿刺 · 直线伤害",
@@ -1091,7 +1126,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1105,29 +1140,35 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "埋地攻击 / 直线地刺：简化实现；隐身/探测尚未接入，几何与传播速度需确认"
+   ]
   },
   "tunneler": {
-   "name": "钻地兽",
+   "name": "虫群宿主",
    "symbol": "U",
    "race": "zerg",
    "status": "ready",
    "requires": [
     "roach"
    ],
-   "sc2": "埋地移动的蟑螂（概念）",
+   "sc2": "虫群宿主 Swarm Host",
    "cost": 150,
-   "hp": 390,
+   "hp": 160,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 48,
-   "interval": 1.43,
-   "range": 4.0,
-   "speed": 2.25,
+   "armor": 4,
+   "damage": 0,
+   "interval": 1,
+   "range": 7,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "b07850",
-   "role": "钻地突入 · 打后排",
-   "counter": "钻地切入射程最远的后排；出土后正常受攻击，不附带隐身",
+   "role": "召唤蝗虫 · 远程消耗",
+   "counter": "每43秒从自身附近产生2只限时蝗虫；本体无普通攻击",
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -1138,16 +1179,23 @@
    ],
    "spawn_count": 1,
    "skills": {
-    "dive": {
-     "range": 8,
-     "cooldown": 12
+    "summon": {
+     "kind": "locust",
+     "on": "timer",
+     "count": 2,
+     "interval": 43,
+     "lifetime": 18,
+     "max_count": 2,
+     "requires_combat": true,
+     "allow_base": true,
+     "spawn_at_owner": true
     }
    },
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1161,7 +1209,16 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "孵化蝗虫：简化实现；内部ID保留tunneler以兼容存档；目前生成地面蝗虫",
+    "埋地 / 飞行蝗虫 / 俯冲：待实现；不再使用虚构钻地突入能力"
+   ],
+   "attacks_base": false
   },
   "mutalisk": {
    "name": "飞龙",
@@ -1173,18 +1230,18 @@
    ],
    "sc2": "飞龙 Mutalisk",
    "cost": 175,
-   "hp": 325,
+   "hp": 120,
    "armor_type": "light",
-   "armor": 0,
+   "armor": 3,
    "layer": "air",
    "target_layers": [
     "ground",
     "air"
    ],
-   "damage": 27,
+   "damage": 12,
    "interval": 1.09,
-   "range": 3.0,
-   "speed": 4.0,
+   "range": 3,
+   "speed": 5.6,
    "splash": 0.0,
    "color": "c7a0ff",
    "role": "高速飞越 · 弹射攻击",
@@ -1192,8 +1249,8 @@
    "skills": {
     "chain_attack": {
      "bounces": 2,
-     "falloff": 0.33,
-     "radius": 1.7857
+     "falloff": 0.3333333333333333,
+     "radius": 3
     }
    },
    "size": [
@@ -1205,7 +1262,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 1.4,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1219,7 +1276,12 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": []
   },
   "infestor": {
    "name": "感染虫",
@@ -1231,32 +1293,34 @@
    ],
    "sc2": "感染虫 Infestor",
    "cost": 200,
-   "hp": 245,
+   "hp": 90,
    "armor_type": "heavy",
-   "armor": 0,
+   "armor": 3,
    "damage": 0,
    "interval": 1,
-   "range": 9.0,
-   "speed": 2.25,
+   "range": 10,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "9fd07a",
-   "role": "真菌增生 · 区域定身",
-   "counter": "定身一片地空单位并造成伤害；本体无攻击",
+   "role": "真菌增生 · 区域减速",
+   "counter": "真菌增生减速并持续伤害；神经寄生与微生物护罩待实现",
    "skills": {
     "delayed_area": {
-     "damage": 90,
+     "damage": 25,
      "delay": 0,
      "radius": 2.25,
-     "cooldown": 10,
-     "root_seconds": 2.85,
+     "cooldown": 0,
      "effect": "fungal",
-     "range": 9,
+     "range": 10,
      "duration": 2.85,
      "target_layers": [
       "ground",
       "air"
      ],
-     "attacks_structures": false
+     "attacks_structures": false,
+     "energy_cost": 75,
+     "dot_on_impact": true,
+     "slow_multiplier": 0.25
     }
    },
    "layer": "ground",
@@ -1272,13 +1336,13 @@
    "attacks_base": false,
    "shield": 0,
    "shield_armor": 0,
-   "energy": 0,
-   "initial_energy": 0,
-   "health_regen": 0,
+   "energy": 200,
+   "initial_energy": 75,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
-   "energy_regen": 0,
+   "energy_regen": 0.7875,
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
@@ -1290,7 +1354,15 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "真菌增生：简化实现；随目标持续伤害与减速已接入；弹道、揭隐及禁传送未完整实现",
+    "神经寄生 / 微生物护罩：待实现"
+   ]
   },
   "ultralisk": {
    "name": "雷兽",
@@ -1302,17 +1374,17 @@
    ],
    "sc2": "雷兽 Ultralisk",
    "cost": 350,
-   "hp": 1350,
-   "armor_type": "special",
-   "armor": 6,
-   "damage": 105,
+   "hp": 500,
+   "armor_type": "heavy",
+   "armor": 5,
+   "damage": 44,
    "interval": 0.61,
-   "range": 1.0714,
-   "speed": 2.9375,
+   "range": 1,
+   "speed": 4.13,
    "splash": 1.4286,
    "color": "e0b8a0",
    "role": "巨型前排 · 顺劈",
-   "counter": "高护甲、近战溅射；怕风筝与空军",
+   "counter": "重甲巨型生物，近战顺劈；狂暴免疫待实现",
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -1326,7 +1398,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1341,7 +1413,16 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 1.25
+   "collision_radius": 1.25,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": true,
+   "pending": [
+    "狂暴免疫 / 巨型推开友军：待实现；不把其伪装成特殊甲",
+    "甲壳强化 / 合成代谢：未默认研究"
+   ],
+   "splash_multiplier": 0.33
   },
   "brood_lord": {
    "name": "巢虫领主",
@@ -1353,17 +1434,17 @@
    ],
    "sc2": "巢虫领主 Brood Lord",
    "cost": 350,
-   "hp": 610,
+   "hp": 225,
    "armor_type": "heavy",
-   "armor": 3,
+   "armor": 4,
    "layer": "air",
    "target_layers": [
     "ground"
    ],
-   "damage": 60,
+   "damage": 26,
    "interval": 1.79,
-   "range": 10.0,
-   "speed": 1.375,
+   "range": 10,
+   "speed": 2.24,
    "splash": 0.0,
    "color": "a080d0",
    "role": "远程空投 · 召唤巢虫",
@@ -1373,7 +1454,7 @@
      "kind": "broodling",
      "on": "hit",
      "count": 1,
-     "lifetime": 5.7,
+     "lifetime": 3.57,
      "max_count": 12,
      "spawn_radius": 0.7
     }
@@ -1387,7 +1468,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -1401,8 +1482,13 @@
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 1.25
+   "hit_count": 2,
+   "collision_radius": 1.25,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": []
   },
   "vanguard": {
    "name": "先锋",
@@ -1411,18 +1497,18 @@
    "status": "ready",
    "sc2": "狂热者 Zealot",
    "cost": 100,
-   "hp": 270,
-   "shield": 135,
+   "hp": 100,
+   "shield": 50,
    "armor_type": "light",
-   "armor": 3,
-   "damage": 48,
+   "armor": 4,
+   "damage": 11,
    "interval": 0.86,
-   "range": 0.7857,
-   "speed": 2.25,
+   "range": 0.1,
+   "speed": 4.725,
    "splash": 0.0,
    "color": "7ed8ed",
    "role": "护盾近战 · 前排冲锋",
-   "counter": "护盾先吸收伤害，脱战回盾；怕风筝与喷火",
+   "counter": "参考狂热者；每轮两段伤害，具有冲锋",
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -1434,13 +1520,13 @@
    "spawn_count": 1,
    "skills": {
     "charge": {
-     "range": 8,
-     "duration": 1.5,
-     "cooldown": 7,
-     "speed_multiplier": 3.0
+     "range": 4,
+     "duration": 2.5,
+     "cooldown": 7.14,
+     "speed_multiplier": 2.2010582010582014
     }
    },
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1451,14 +1537,18 @@
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
-    "biological",
-    "psionic"
+    "biological"
    ],
    "damage_type": "physical",
    "windup": 0,
    "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "hit_count": 2,
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": true,
+   "pending": []
   },
   "stalker": {
    "name": "追猎者",
@@ -1467,17 +1557,17 @@
    "status": "ready",
    "sc2": "追猎者 Stalker",
    "cost": 150,
-   "hp": 215,
-   "shield": 215,
+   "hp": 80,
+   "shield": 80,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 39,
+   "armor": 4,
+   "damage": 16,
    "bonus": {
-    "heavy": 15
+    "heavy": 8
    },
    "interval": 1.34,
-   "range": 6.0,
-   "speed": 2.9375,
+   "range": 6,
+   "speed": 4.13,
    "splash": 0.0,
    "color": "8fb8ff",
    "role": "中排机动 · 对空对地",
@@ -1495,11 +1585,11 @@
    "skills": {
     "blink": {
      "distance": 8,
-     "cooldown": 7,
+     "cooldown": 7.14,
      "shield_ratio": 0.25
     }
    },
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1516,7 +1606,13 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "闪烁：简化实现；沿用受伤后自动后撤的项目AI"
+   ]
   },
   "sentry": {
    "name": "哨兵",
@@ -1528,14 +1624,14 @@
    ],
    "sc2": "哨兵 Sentry（守护盾）",
    "cost": 125,
-   "hp": 110,
-   "shield": 110,
-   "armor_type": "light",
-   "armor": 3,
-   "damage": 18,
+   "hp": 40,
+   "shield": 40,
+   "armor_type": "none",
+   "armor": 4,
+   "damage": 9,
    "interval": 0.71,
-   "range": 5.0,
-   "speed": 2.25,
+   "range": 5,
+   "speed": 3.5,
    "splash": 0.0,
    "color": "a0f0f0",
    "role": "守护光环 · 远程减伤",
@@ -1543,10 +1639,11 @@
    "skills": {
     "aura": {
      "radius": 4.5,
-     "ranged_damage_reduction": 6,
+     "ranged_damage_reduction": 2,
      "duration": 12.86,
-     "cooldown": 20,
-     "requires_combat": true
+     "cooldown": 12.86,
+     "requires_combat": true,
+     "energy_cost": 75
     }
    },
    "layer": "ground",
@@ -1559,14 +1656,14 @@
     1
    ],
    "spawn_count": 1,
-   "shield_armor": 0,
-   "energy": 0,
-   "initial_energy": 0,
+   "shield_armor": 3,
+   "energy": 200,
+   "initial_energy": 50,
    "health_regen": 0,
    "health_regen_delay": 0,
    "shield_regen": 7.5,
    "shield_regen_delay": 7,
-   "energy_regen": 0,
+   "energy_regen": 0.7875,
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
@@ -1578,7 +1675,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 4,
+   "range_from_edge": false,
+   "pending": [
+    "力场 / 幻象：待实现"
+   ]
   },
   "immortal": {
    "name": "不朽者",
@@ -1590,17 +1694,17 @@
    ],
    "sc2": "不朽者 Immortal",
    "cost": 250,
-   "hp": 540,
-   "shield": 270,
+   "hp": 200,
+   "shield": 100,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 60,
+   "armor": 4,
+   "damage": 26,
    "bonus": {
-    "heavy": 90
+    "heavy": 39
    },
-   "interval": 1.04,
-   "range": 6.0,
-   "speed": 2.25,
+   "interval": 1.143,
+   "range": 6,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "f0d070",
    "role": "反重甲 · 坚固前排",
@@ -1616,12 +1720,13 @@
    "spawn_count": 1,
    "skills": {
     "barrier": {
-     "amount": 300,
+     "amount": 100,
      "duration": 2,
-     "cooldown": 32
+     "cooldown": 32,
+     "block_trigger_hit": true
     }
    },
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1638,7 +1743,11 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.9
+   "collision_radius": 0.9,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": []
   },
   "high_templar": {
    "name": "高阶圣堂武士",
@@ -1650,54 +1759,54 @@
    ],
    "sc2": "高阶圣堂武士 High Templar",
    "cost": 200,
-   "hp": 110,
-   "shield": 110,
+   "hp": 40,
+   "shield": 40,
    "armor_type": "light",
-   "armor": 0,
-   "damage": 0,
-   "interval": 1,
-   "range": 9.0,
-   "speed": 1.875,
+   "armor": 3,
+   "damage": 7,
+   "interval": 1.25,
+   "range": 6,
+   "speed": 2.82,
    "splash": 0.0,
    "color": "c0a0ff",
    "role": "灵能风暴 · 区域持续伤害",
-   "counter": "风暴持续伤害一片；自身极脆",
+   "counter": "有微弱对地普攻与灵能风暴；反馈、融合待实现",
    "skills": {
     "delayed_area": {
-     "damage": 240,
+     "damage": 110,
      "delay": 0,
-     "duration": 2.85,
-     "radius": 1.5,
-     "cooldown": 10,
+     "duration": 6,
+     "radius": 2,
+     "cooldown": 1.43,
      "effect": "storm",
-     "range": 9,
+     "range": 8,
      "target_layers": [
       "ground",
       "air"
      ],
      "attacks_structures": false,
-     "friendly_fire": true
+     "friendly_fire": true,
+     "energy_cost": 75
     }
    },
    "layer": "ground",
    "target_layers": [
-    "ground",
-    "air"
+    "ground"
    ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false,
-   "shield_armor": 0,
-   "energy": 0,
-   "initial_energy": 0,
+   "attacks_base": true,
+   "shield_armor": 3,
+   "energy": 200,
+   "initial_energy": 50,
    "health_regen": 0,
    "health_regen_delay": 0,
    "shield_regen": 7.5,
    "shield_regen_delay": 7,
-   "energy_regen": 0,
+   "energy_regen": 0.7875,
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
@@ -1709,7 +1818,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "反馈 / 执政官融合：待实现"
+   ]
   },
   "archon": {
    "name": "执政官",
@@ -1721,18 +1837,18 @@
    ],
    "sc2": "执政官 Archon",
    "cost": 350,
-   "hp": 30,
-   "shield": 945,
-   "armor_type": "special",
-   "armor": 0,
-   "damage": 75,
+   "hp": 10,
+   "shield": 350,
+   "armor_type": "none",
+   "armor": 3,
+   "damage": 34,
    "interval": 1.25,
-   "range": 3.0,
-   "speed": 2.8125,
+   "range": 3,
+   "speed": 3.94,
    "splash": 1.0,
    "color": "b0d8ff",
    "role": "能量巨像 · 短程溅射",
-   "counter": "几乎全是护盾，地空溅射；特殊甲不吃克制加成",
+   "counter": "溅射攻击对生物额外加伤；无轻甲/重甲标签",
    "layer": "ground",
    "target_layers": [
     "ground",
@@ -1743,7 +1859,7 @@
     1.6
    ],
    "spawn_count": 1,
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1761,7 +1877,16 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.8
+   "collision_radius": 0.8,
+   "bonus": {},
+   "bonus_tags": {
+    "biological": 13
+   },
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "生物加成 / 溅射：简化实现；生物标签加成已接入；分层溅射仍需完善"
+   ]
   },
   "colossus": {
    "name": "巨像",
@@ -1773,17 +1898,17 @@
    ],
    "sc2": "巨像 Colossus",
    "cost": 250,
-   "hp": 540,
-   "shield": 405,
+   "hp": 250,
+   "shield": 100,
    "armor_type": "heavy",
-   "armor": 3,
-   "damage": 30,
+   "armor": 4,
+   "damage": 13,
    "bonus": {
-    "light": 15
+    "light": 8
    },
    "interval": 1.07,
-   "range": 9.0,
-   "speed": 2.25,
+   "range": 7,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "ffd580",
    "role": "双束扫射 · 横向伤害",
@@ -1810,7 +1935,7 @@
     "ground",
     "air"
    ],
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1828,7 +1953,13 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 2,
-   "collision_radius": 1.25
+   "collision_radius": 1.25,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "热能射线射程 / 跨越悬崖：未默认研究；基础射程7；没有高度地形系统"
+   ]
   },
   "disruptor": {
    "name": "干扰者",
@@ -1840,24 +1971,24 @@
    ],
    "sc2": "干扰者 Disruptor",
    "cost": 300,
-   "hp": 270,
-   "shield": 270,
+   "hp": 100,
+   "shield": 100,
    "armor_type": "heavy",
-   "armor": 3,
+   "armor": 4,
    "damage": 0,
    "interval": 1,
-   "range": 13.0,
-   "speed": 2.25,
+   "range": 13,
+   "speed": 3.15,
    "splash": 0.0,
    "color": "e0e0ff",
    "role": "净化新星 · 延迟巨量范围",
    "counter": "延迟后巨量范围伤害，长冷却；可被躲开",
    "skills": {
     "delayed_area": {
-     "damage": 435,
+     "damage": 100,
      "delay": 2.1,
      "radius": 1.5,
-     "cooldown": 21,
+     "cooldown": 17,
      "effect": "nova",
      "range": 13,
      "projectile": true,
@@ -1867,7 +1998,9 @@
      ],
      "attacks_structures": true,
      "attacks_base": true,
-     "immune_same_kind": true
+     "immune_same_kind": true,
+     "shield_bonus": 100,
+     "channel_seconds": 2.1
     }
    },
    "layer": "ground",
@@ -1880,7 +2013,7 @@
    ],
    "spawn_count": 1,
    "attacks_base": false,
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1897,7 +2030,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "净化新星：简化实现；伤害与护盾加伤已接入；仍使用自动选点固定落点，不可手控球"
+   ]
   },
   "void_ray": {
    "name": "虚空辉光舰",
@@ -1909,30 +2049,35 @@
    ],
    "sc2": "虚空辉光舰 Void Ray",
    "cost": 250,
-   "hp": 405,
-   "shield": 270,
+   "hp": 150,
+   "shield": 100,
    "armor_type": "heavy",
-   "armor": 0,
+   "armor": 3,
    "layer": "air",
    "target_layers": [
     "ground",
     "air"
    ],
-   "damage": 18,
+   "damage": 9,
    "bonus": {
-    "heavy": 12
+    "heavy": 4
    },
    "interval": 0.36,
-   "range": 6.0,
-   "speed": 2.75,
+   "range": 6,
+   "speed": 3.85,
    "splash": 0.0,
    "color": "c8b0ff",
-   "role": "持续光束 · 克重甲",
-   "counter": "持续攻击同一目标逐渐增伤，转火或中断后重新蓄能；克重甲",
+   "role": "棱镜光束 · 反重甲",
+   "counter": "棱镜校准暂时提高对重甲伤害并降低自身移速",
    "skills": {
-    "ramp_damage": {
-     "per_second": 0.2,
-     "max_multiplier": 2.0
+    "weapon_buff": {
+     "duration": 14.3,
+     "cooldown": 42.9,
+     "bonus": {
+      "heavy": 6
+     },
+     "speed_multiplier": 0.75,
+     "required_armor": "heavy"
     }
    },
    "size": [
@@ -1940,7 +2085,7 @@
     1
    ],
    "spawn_count": 1,
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -1957,7 +2102,11 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": []
   },
   "carrier": {
    "name": "航母",
@@ -1969,10 +2118,10 @@
    ],
    "sc2": "航母 Carrier",
    "cost": 450,
-   "hp": 810,
-   "shield": 405,
-   "armor_type": "special",
-   "armor": 6,
+   "hp": 300,
+   "shield": 150,
+   "armor_type": "heavy",
+   "armor": 5,
    "layer": "air",
    "target_layers": [
     "ground",
@@ -1980,8 +2129,8 @@
    ],
    "damage": 0,
    "interval": 1,
-   "range": 8.0,
-   "speed": 1.875,
+   "range": 8,
+   "speed": 2.62,
    "splash": 0.0,
    "color": "f0e0b0",
    "role": "母舰 · 放出拦截机",
@@ -1991,7 +2140,7 @@
      "kind": "interceptor",
      "on": "timer",
      "count": 1,
-     "interval": 0.5,
+     "interval": 0.27,
      "max_count": 8,
      "dependent": true,
      "leash": 10,
@@ -2006,7 +2155,7 @@
    "spawn_count": 1,
    "attacks_base": true,
    "attacks_structures": true,
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -2024,7 +2173,14 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 1.5
+   "collision_radius": 1.5,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "发射拦截机：简化实现；没有回收/补盾/付费制造机库循环"
+   ]
   },
   "swarm": {
    "name": "蜂群兵",
@@ -2787,7 +2943,7 @@
    "cost": 0,
    "status": "summoned",
    "armor_type": "light",
-   "armor": 0,
+   "armor": 3,
    "splash": 0,
    "size": [
     0.5,
@@ -2801,11 +2957,11 @@
    "name": "巢虫",
    "symbol": "b",
    "race": "zerg",
-   "hp": 60,
-   "damage": 12,
-   "interval": 0.5,
-   "range": 0.7,
-   "speed": 3,
+   "hp": 20,
+   "damage": 7,
+   "interval": 0.57,
+   "range": 0.1,
+   "speed": 4.13,
    "layer": "ground",
    "target_layers": [
     "ground"
@@ -2814,7 +2970,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -2828,13 +2984,18 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.25
+   "collision_radius": 0.25,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": true,
+   "pending": []
   },
   "interceptor": {
    "cost": 0,
    "status": "summoned",
    "armor_type": "light",
-   "armor": 0,
+   "armor": 3,
    "splash": 0,
    "size": [
     0.5,
@@ -2848,19 +3009,19 @@
    "name": "拦截机",
    "symbol": "i",
    "race": "protoss",
-   "hp": 110,
-   "shield": 110,
-   "damage": 15,
-   "interval": 0.8,
+   "hp": 40,
+   "shield": 40,
+   "damage": 8,
+   "interval": 2.14,
    "range": 2,
-   "speed": 8,
+   "speed": 10.5,
    "layer": "air",
    "target_layers": [
     "ground",
     "air"
    ],
    "skills": {},
-   "shield_armor": 0,
+   "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
    "health_regen": 0,
@@ -2877,7 +3038,12 @@
    "windup": 0,
    "backswing": 0,
    "hit_count": 2,
-   "collision_radius": 0.25
+   "collision_radius": 0.25,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": []
   },
   "terran_bunker": {
    "name": "防御塔",
@@ -2970,6 +3136,62 @@
     }
    },
    "collision_radius": 1.0
+  },
+  "locust": {
+   "cost": 0,
+   "status": "summoned",
+   "armor_type": "light",
+   "armor": 3,
+   "splash": 0,
+   "size": [
+    0.5,
+    0.5
+   ],
+   "spawn_count": 1,
+   "attacks_base": true,
+   "color": "d9c4ee",
+   "role": "限时地面召唤单位",
+   "counter": "持续18秒，仅攻击地面；飞行及俯冲阶段待实现",
+   "name": "蝗虫",
+   "symbol": "l",
+   "race": "zerg",
+   "hp": 50,
+   "damage": 13,
+   "interval": 0.43,
+   "range": 3,
+   "speed": 2.62,
+   "layer": "ground",
+   "target_layers": [
+    "ground"
+   ],
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0.38,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "summon",
+   "tags": [
+    "biological"
+   ],
+   "damage_type": "physical",
+   "windup": 0,
+   "backswing": 0,
+   "hit_count": 1,
+   "collision_radius": 0.25,
+   "bonus": {},
+   "bonus_tags": {},
+   "shield_bonus": 0,
+   "range_from_edge": false,
+   "pending": [
+    "飞行蝗虫与俯冲落地阶段待实现",
+    "飞行 / 俯冲落地：待实现"
+   ],
+   "sc2": "蝗虫 Locust"
   }
  }
 }

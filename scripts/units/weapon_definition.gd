@@ -4,6 +4,8 @@ var id: String = "primary"
 var damage: float = 0.0
 ## 每轮独立命中次数，每次都使用完整单段伤害并单独扣甲。
 var hit_count: int = 1
+var shield_bonus: float = 0.0
+var range_from_edge: bool = false
 var damage_type: String = "physical"
 var bonus: Dictionary = {}
 var bonus_tags: Dictionary = {}
@@ -27,6 +29,8 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	id = str(parameters.get("id", weapon_id))
 	damage = maxf(0.0, float(parameters.get("damage", 0)))
 	hit_count = maxi(1,int(parameters.get("hit_count",1)))
+	shield_bonus = maxf(0.0,float(parameters.get("shield_bonus",0)))
+	range_from_edge = bool(parameters.get("range_from_edge",false))
 	damage_type = str(parameters.get("damage_type", "physical"))
 	assert(damage_type in ["physical", "spell", "true"], "未知伤害类型：" + damage_type)
 	bonus = parameters.get("bonus", {}).duplicate(true)
@@ -43,7 +47,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 
 func to_data() -> Dictionary:
 	var result := _data.duplicate(true)
-	result.merge({"id":id, "damage":damage, "hit_count":hit_count, "damage_type":damage_type,
+	result.merge({"id":id, "damage":damage, "hit_count":hit_count, "shield_bonus":shield_bonus, "range_from_edge":range_from_edge, "damage_type":damage_type,
 		"bonus":bonus.duplicate(true), "bonus_tags":bonus_tags.duplicate(true), "range":range, "interval":interval,
 		"windup":windup, "backswing":backswing, "splash":splash, "splash_multiplier":splash_multiplier,
 		"target_layers":target_layers.duplicate(), "attacks_base":attacks_base,

@@ -8,6 +8,7 @@ func barrier_absorb(sim, unit: Dictionary, raw: float) -> float:
 			state.barrier_hp=float(config.amount)
 			state.barrier_until_tick=sim.tick+ceili(float(config.duration)*float(sim.rules.tick_rate))
 			state.barrier_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
+			if bool(config.get("block_trigger_hit",false)):return 0.0
 	var absorbed: float = minf(raw,float(state.get("barrier_hp",0)))
 	state.barrier_hp=float(state.get("barrier_hp",0))-absorbed
 	return raw-absorbed

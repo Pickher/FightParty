@@ -1,4 +1,5 @@
 extends RefCounted
+const Slow = preload("res://scripts/skills/services/slow_service.gd")
 const Status = preload("res://scripts/skills/services/status_service.gd")
 static func eligible(sim, stats: Dictionary, config: Dictionary, victim: Dictionary) -> bool:
 	return config.get("target_layers",stats.get("target_layers",["ground"])).has(sim.catalog[victim.kind].get("layer","ground")) and (bool(config.get("attacks_structures",false)) or not sim.is_structure(victim))
@@ -16,7 +17,7 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			continue
 		var config: Dictionary = area.config
 		var duration: float = float(config.get("duration",0))
-		var ticks_total := maxi(1,ceili(duration*float(sim.rules.tick_rate)))
+		var ticks_total := 1 if bool(config.get("dot_on_impact",false)) else maxi(1,ceili(duration*float(sim.rules.tick_rate)))
 		var amount: float = float(config.get("damage",0))/ticks_total
 		var stats: Dictionary = sim.catalog[area.kind]
 		# 先决定全部单位位置，再在本步末尾按实际位置判定法术范围。
@@ -29,23 +30,29 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if not area.rooted.has(victim.id):
 				Status.queue_root(sim,victim,float(config.get("root_seconds",0)))
 				area.rooted[victim.id]=true
-			if duration>0:
+			if bool(config.get("dot_on_impact",false)):
+				Status.queue_dot(sim,victim,{"per_second":sim.raw_damage(config,victim.kind)/maxf(duration,dt),"duration":duration,"max_stacks":1},{"team":area.team,"kind":area.kind})
+				if not sim.is_structure(victim):
+					Slow.queue_hit(sim,victim,{"speed_multiplier":float(config.get("slow_multiplier",1)),"duration":duration},sim.skill_system.incoming_slows)
+			elif duration>0:
 				# 同类持续区域不叠加，避免多个风暴在同一步重复扣血。
 				var key := "%s:%d:%d" % [str(config.get("effect",area.kind)),int(area.team),int(victim.id)]
 				var raw: float = sim.raw_damage(config,victim.kind) / ticks_total
 				if not periodic.has(key) or raw > float(periodic[key].amount):
 					periodic[key]={"amount":raw,"victim":victim,"team":area.team,"config":config}
 			else:
-				var raw: float = sim.raw_damage(config,victim.kind)
-				if config.has("damage_type"):
+				var raw: float = float(config.structure_damage) if sim.is_structure(victim) and config.has("structure_damage") else sim.raw_damage(config,victim.kind)
+				if sim.is_structure(victim) and bool(config.get("structure_ignore_armor",false)):
+					sim.queue_hit(hits,victim,raw,false,true)
+				elif config.has("damage_type"):
 					sim.queue_weapon_hit(hits,victim,config,raw)
 				else:
-					sim.queue_hit(hits,victim,raw,false,bool(config.get("ignore_armor",true)))
+					sim.queue_hit(hits,victim,raw,false,bool(config.get("ignore_armor",true)),float(config.get("shield_bonus",0)))
 				sim.damage_done[int(area.team)]+=raw
 		if bool(config.get("attacks_base",false)):
 			for team in range(2):
 				if team==int(area.team) and not bool(config.get("friendly_fire",false)):continue
-				if sim.base_pos(team).distance_to(area.pos)<=float(config.radius)+float(sim.rules.layout.base_radius):base_hits[team]+=amount
+				if sim.base_pos(team).distance_to(area.pos)<=float(config.radius)+float(sim.rules.layout.base_radius):base_hits[team]+=float(config.get("structure_damage",amount))
 		area.pulse=int(area.pulse)+1
 		if int(area.pulse)<ticks_total:active.append(area)
 		else:sim.events.append({"type":"area_impact","from":area.pos,"to":area.pos,"team":area.team,"kind":area.kind,"radius":config.radius})

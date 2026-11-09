@@ -8,7 +8,7 @@ func step(sim, unit: Dictionary, target: Dictionary) -> void:
 		var reach: float = float(sim.catalog[unit.kind].range)+(float(sim.rules.layout.base_radius) if target.is_empty() else 0.0)
 		if (target.is_empty() and not bool(config.get("allow_base",false))) or unit.pos.distance_to(destination)>reach:return
 	var location: Vector2 = unit.pos if target.is_empty() else target.pos
-	if bool(config.get("dependent",false)):location=unit.pos
+	if bool(config.get("dependent",false)) or bool(config.get("spawn_at_owner",false)):location=unit.pos
 	if not can_pay_energy(sim): return
 	if Summons.queue(sim,unit,str(config.kind),int(config.count),location,config) > 0:
 		pay_energy(sim)

@@ -1,0 +1,887 @@
+{
+  "checked_on": "2026-11-09",
+  "patch": "5.0.17 live / Legacy of the Void Versus",
+  "official_patch": "https://news.blizzard.com/en-us/article/24309308/starcraft-ii-5-0-17-patch-notes",
+  "policy": "普通武器=基础伤害+3×每级增量；生命护甲=基础护甲+3；神族护盾护甲3。独立专属科技不自动点满；原来已挂载的冲锋、闪烁、风暴等技能仍启用。射程/速度为非菌毯；模型、价格、每组数量保留。",
+  "units": {
+    "zergling": {
+      "name": "跳虫",
+      "prototype": "Zergling",
+      "source": "https://liquipedia.net/starcraft2/Zergling_(Legacy_of_the_Void)",
+      "weapon_base": 5,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "代谢加速 / 肾上腺素",
+          "status": "未默认研究",
+          "parameters": {
+            "speed_with_metabolic": 6.58,
+            "interval_with_adrenal": 0.354
+          },
+          "note": ""
+        }
+      ]
+    },
+    "baneling": {
+      "name": "毒爆虫",
+      "prototype": "Baneling",
+      "source": "https://liquipedia.net/starcraft2/Baneling_(Legacy_of_the_Void)",
+      "weapon_base": 16,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "离心钩",
+          "status": "未默认研究",
+          "parameters": {
+            "hp_bonus": 5
+          },
+          "note": "不自动增加生命与移速"
+        },
+        {
+          "name": "接敌/死亡自爆",
+          "status": "已接入",
+          "parameters": {
+            "splash": 2.2,
+            "damage": 22,
+            "bonus_light": 19,
+            "damage_structures": 95
+          },
+          "note": ""
+        }
+      ]
+    },
+    "roach": {
+      "name": "蟑螂",
+      "prototype": "Roach",
+      "source": "https://liquipedia.net/starcraft2/Roach_(Legacy_of_the_Void)",
+      "weapon_base": 16,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "埋地回血 / 地下移动",
+          "status": "待实现",
+          "parameters": {},
+          "note": "移除旧的脱战20HP/秒假回血；只保留基础自然回血"
+        }
+      ]
+    },
+    "hydralisk": {
+      "name": "刺蛇",
+      "prototype": "Hydralisk",
+      "source": "https://liquipedia.net/starcraft2/Hydralisk_(Legacy_of_the_Void)",
+      "weapon_base": 12,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "肌肉强化 / 针刺射程 / 冲刺",
+          "status": "未默认研究",
+          "parameters": {
+            "range_upgrade": 1
+          },
+          "note": "射程当前为基础5格；专属科技另行确认"
+        }
+      ]
+    },
+    "ravager": {
+      "name": "破坏者",
+      "prototype": "Ravager",
+      "source": "https://liquipedia.net/starcraft2/Ravager",
+      "weapon_base": 16,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "腐蚀胆汁",
+          "status": "简化实现",
+          "parameters": {
+            "damage": 60,
+            "range": 9,
+            "radius": 0.5,
+            "cooldown": 7.14
+          },
+          "note": "自动选择位置；投射/落地时间待确认"
+        }
+      ]
+    },
+    "piercer": {
+      "name": "穿刺者",
+      "prototype": "Lurker",
+      "source": "https://liquipedia.net/starcraft2/Lurker_(Legacy_of_the_Void)",
+      "weapon_base": 20,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "埋地攻击 / 直线地刺",
+          "status": "简化实现",
+          "parameters": {
+            "range_base": 8,
+            "range_upgrade": 2,
+            "damage": 26,
+            "bonus_heavy": 13
+          },
+          "note": "隐身/探测尚未接入，几何与传播速度需确认"
+        }
+      ]
+    },
+    "tunneler": {
+      "name": "虫群宿主",
+      "prototype": "Swarm Host",
+      "source": "https://liquipedia.net/starcraft2/Swarm_Host_(Legacy_of_the_Void)",
+      "weapon_base": 0,
+      "weapon_per_level": 0,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "孵化蝗虫",
+          "status": "简化实现",
+          "parameters": {
+            "count": 2,
+            "cooldown": 43,
+            "lifetime": 18
+          },
+          "note": "内部ID保留tunneler以兼容存档；目前生成地面蝗虫"
+        },
+        {
+          "name": "埋地 / 飞行蝗虫 / 俯冲",
+          "status": "待实现",
+          "parameters": {
+            "swoop_range": 6
+          },
+          "note": "不再使用虚构钻地突入能力"
+        }
+      ]
+    },
+    "mutalisk": {
+      "name": "飞龙",
+      "prototype": "Mutalisk",
+      "source": "https://liquipedia.net/starcraft2/Mutalisk_(Legacy_of_the_Void)",
+      "weapon_base": 9,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "弹射 / 组织再生",
+          "status": "已接入",
+          "parameters": {
+            "falloff": 0.3333333333333333,
+            "bounces": 2,
+            "regen": 1.4
+          },
+          "note": ""
+        }
+      ]
+    },
+    "infestor": {
+      "name": "感染虫",
+      "prototype": "Infestor",
+      "source": "https://liquipedia.net/starcraft2/Infestor_(Legacy_of_the_Void)",
+      "weapon_base": 0,
+      "weapon_per_level": 0,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "真菌增生",
+          "status": "简化实现",
+          "parameters": {
+            "damage": 25,
+            "range": 10,
+            "energy": 75,
+            "slow": 0.75
+          },
+          "note": "随目标持续伤害与减速已接入；弹道、揭隐及禁传送未完整实现"
+        },
+        {
+          "name": "神经寄生 / 微生物护罩",
+          "status": "待实现",
+          "parameters": {
+            "neural_energy": 100,
+            "neural_range": 8,
+            "neural_duration": 11,
+            "shroud_energy": 100,
+            "shroud_range": 9,
+            "shroud_duration": 11,
+            "shroud_radius": 3.5,
+            "shroud_reduction": 0.5
+          },
+          "note": ""
+        }
+      ]
+    },
+    "ultralisk": {
+      "name": "雷兽",
+      "prototype": "Ultralisk",
+      "source": "https://liquipedia.net/starcraft2/Ultralisk_(Legacy_of_the_Void)",
+      "weapon_base": 35,
+      "weapon_per_level": 3,
+      "weapon_level": 3,
+      "armor_base": 2,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "狂暴免疫 / 巨型推开友军",
+          "status": "待实现",
+          "parameters": {},
+          "note": "不把其伪装成特殊甲"
+        },
+        {
+          "name": "甲壳强化 / 合成代谢",
+          "status": "未默认研究",
+          "parameters": {
+            "armor_bonus": 2,
+            "speed_bonus": 0.59
+          },
+          "note": ""
+        }
+      ]
+    },
+    "brood_lord": {
+      "name": "巢虫领主",
+      "prototype": "Brood Lord",
+      "source": "https://liquipedia.net/starcraft2/Brood_Lord_(Legacy_of_the_Void)",
+      "weapon_base": 20,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "巢虫寄生",
+          "status": "已接入",
+          "parameters": {
+            "hits_per_cycle": 2,
+            "broodlings_per_hit": 1,
+            "broodling_lifetime": 3.57
+          },
+          "note": ""
+        }
+      ]
+    },
+    "vanguard": {
+      "name": "先锋",
+      "prototype": "Zealot",
+      "source": "https://liquipedia.net/starcraft2/Zealot_(Legacy_of_the_Void)",
+      "weapon_base": 8,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "冲锋",
+          "status": "已接入",
+          "parameters": {
+            "range": 4,
+            "cooldown": 7.14,
+            "duration": 2.5,
+            "researched_speed": 4.725
+          },
+          "note": ""
+        }
+      ]
+    },
+    "stalker": {
+      "name": "追猎者",
+      "prototype": "Stalker",
+      "source": "https://liquipedia.net/starcraft2/Stalker_(Legacy_of_the_Void)",
+      "weapon_base": 13,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "闪烁",
+          "status": "简化实现",
+          "parameters": {
+            "distance": 8,
+            "cooldown": 7.14
+          },
+          "note": "沿用受伤后自动后撤的项目AI"
+        }
+      ]
+    },
+    "sentry": {
+      "name": "哨兵",
+      "prototype": "Sentry",
+      "source": "https://liquipedia.net/starcraft2/Sentry_(Legacy_of_the_Void)",
+      "weapon_base": 6,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "守护者之盾",
+          "status": "已接入",
+          "parameters": {
+            "energy": 75,
+            "radius": 4.5,
+            "duration": 12.86,
+            "reduction_per_hit": 2
+          },
+          "note": ""
+        },
+        {
+          "name": "力场 / 幻象",
+          "status": "待实现",
+          "parameters": {
+            "forcefield_energy": 50,
+            "forcefield_range": 9,
+            "forcefield_duration": 11,
+            "hallucination_energy": 75
+          },
+          "note": ""
+        }
+      ]
+    },
+    "immortal": {
+      "name": "不朽者",
+      "prototype": "Immortal",
+      "source": "https://liquipedia.net/starcraft2/Immortal_(Legacy_of_the_Void)",
+      "weapon_base": 20,
+      "weapon_per_level": 2,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "屏障",
+          "status": "已接入",
+          "parameters": {
+            "absorb": 100,
+            "duration": 2,
+            "cooldown": 32,
+            "blocks_trigger_hit": true
+          },
+          "note": ""
+        }
+      ]
+    },
+    "high_templar": {
+      "name": "高阶圣堂武士",
+      "prototype": "High Templar",
+      "source": "https://liquipedia.net/starcraft2/High_Templar_(Legacy_of_the_Void)",
+      "weapon_base": 4,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "灵能风暴",
+          "status": "已接入",
+          "parameters": {
+            "damage": 110,
+            "duration": 6,
+            "radius": 2,
+            "range": 8,
+            "energy": 75,
+            "cooldown": 1.43
+          },
+          "note": "5.0.17伤害110覆盖5.0.15旧值140，法术不受三攻加成"
+        },
+        {
+          "name": "反馈 / 执政官融合",
+          "status": "待实现",
+          "parameters": {
+            "feedback_energy": 50,
+            "feedback_range": 10,
+            "feedback_damage_per_energy": 0.5,
+            "merge_seconds": 8.57
+          },
+          "note": ""
+        }
+      ]
+    },
+    "archon": {
+      "name": "执政官",
+      "prototype": "Archon",
+      "source": "https://liquipedia.net/starcraft2/Archon_(Legacy_of_the_Void)",
+      "weapon_base": 25,
+      "weapon_per_level": 3,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "生物加成 / 溅射",
+          "status": "简化实现",
+          "parameters": {
+            "damage": 34,
+            "bonus_biological": 13
+          },
+          "note": "生物标签加成已接入；分层溅射仍需完善"
+        }
+      ]
+    },
+    "colossus": {
+      "name": "巨像",
+      "prototype": "Colossus",
+      "source": "https://liquipedia.net/starcraft2/Colossus_(Legacy_of_the_Void)",
+      "weapon_base": 10,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "双束横扫 / 空地可选中",
+          "status": "已接入",
+          "parameters": {
+            "hit_count": 2,
+            "damage_per_hit": 13,
+            "bonus_light_per_hit": 8
+          },
+          "note": ""
+        },
+        {
+          "name": "热能射线射程 / 跨越悬崖",
+          "status": "未默认研究",
+          "parameters": {
+            "range_upgrade": 2
+          },
+          "note": "基础射程7；没有高度地形系统"
+        }
+      ]
+    },
+    "disruptor": {
+      "name": "干扰者",
+      "prototype": "Disruptor",
+      "source": "https://liquipedia.net/starcraft2/Disruptor",
+      "weapon_base": 0,
+      "weapon_per_level": 0,
+      "weapon_level": 3,
+      "armor_base": 1,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "净化新星",
+          "status": "简化实现",
+          "parameters": {
+            "damage": 100,
+            "shield_bonus": 100,
+            "delay": 2.1,
+            "cooldown": 17,
+            "radius": 1.5
+          },
+          "note": "伤害与护盾加伤已接入；仍使用自动选点固定落点，不可手控球"
+        }
+      ]
+    },
+    "void_ray": {
+      "name": "虚空辉光舰",
+      "prototype": "Void Ray",
+      "source": "https://liquipedia.net/starcraft2/Void_Ray_(Legacy_of_the_Void)",
+      "weapon_base": 6,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "棱镜校准",
+          "status": "已接入",
+          "parameters": {
+            "bonus_heavy": 6,
+            "duration": 14.3,
+            "cooldown": 42.9,
+            "speed_multiplier": 0.75
+          },
+          "note": "替换旧版蓄能；额外6伤害不随三攻增长"
+        }
+      ]
+    },
+    "carrier": {
+      "name": "航母",
+      "prototype": "Carrier",
+      "source": "https://liquipedia.net/starcraft2/Carrier_(Legacy_of_the_Void)",
+      "weapon_base": 0,
+      "weapon_per_level": 0,
+      "weapon_level": 3,
+      "armor_base": 2,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "发射拦截机",
+          "status": "简化实现",
+          "parameters": {
+            "max_count": 8,
+            "launch_interval": 0.27
+          },
+          "note": "没有回收/补盾/付费制造机库循环"
+        }
+      ]
+    },
+    "broodling": {
+      "name": "巢虫",
+      "prototype": "Broodling",
+      "source": "https://liquipedia.net/starcraft2/Broodling_(Legacy_of_the_Void)",
+      "weapon_base": 4,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": []
+    },
+    "interceptor": {
+      "name": "拦截机",
+      "prototype": "Interceptor",
+      "source": "https://liquipedia.net/starcraft2/Interceptor_(Legacy_of_the_Void)",
+      "weapon_base": 5,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "双重攻击",
+          "status": "已接入",
+          "parameters": {
+            "hit_count": 2,
+            "damage_per_hit": 8,
+            "interval": 2.14
+          },
+          "note": ""
+        }
+      ]
+    },
+    "locust": {
+      "name": "蝗虫",
+      "prototype": "Locust",
+      "source": "https://liquipedia.net/starcraft2/Locust_(Legacy_of_the_Void)",
+      "weapon_base": 10,
+      "weapon_per_level": 1,
+      "weapon_level": 3,
+      "armor_base": 0,
+      "armor_level": 3,
+      "abilities": [
+        {
+          "name": "飞行 / 俯冲落地",
+          "status": "待实现",
+          "parameters": {
+            "swoop_range": 6
+          },
+          "note": ""
+        }
+      ]
+    }
+  },
+  "review": [
+    {
+      "id": "tunneler",
+      "path": "interval",
+      "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
+      "kind": "不适用",
+      "runtime_value": 1
+    },
+    {
+      "id": "infestor",
+      "path": "interval",
+      "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
+      "kind": "不适用",
+      "runtime_value": 1
+    },
+    {
+      "id": "disruptor",
+      "path": "interval",
+      "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
+      "kind": "不适用",
+      "runtime_value": 1
+    },
+    {
+      "id": "carrier",
+      "path": "interval",
+      "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
+      "kind": "不适用",
+      "runtime_value": 1
+    },
+    {
+      "id": "tunneler",
+      "path": "range",
+      "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "infestor",
+      "path": "range",
+      "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
+      "kind": "待确认",
+      "runtime_value": 10
+    },
+    {
+      "id": "disruptor",
+      "path": "range",
+      "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
+      "kind": "待确认",
+      "runtime_value": 13
+    },
+    {
+      "id": "carrier",
+      "path": "range",
+      "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
+      "kind": "待确认",
+      "runtime_value": 8
+    },
+    {
+      "id": "piercer",
+      "path": "skills/line_attack/speed",
+      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
+      "kind": "待确认",
+      "runtime_value": 9.2857
+    },
+    {
+      "id": "piercer",
+      "path": "skills/line_attack/half_width",
+      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
+      "kind": "待确认",
+      "runtime_value": 0.5
+    },
+    {
+      "id": "colossus",
+      "path": "skills/line_attack/length",
+      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
+      "kind": "待确认",
+      "runtime_value": 6.4286
+    },
+    {
+      "id": "colossus",
+      "path": "skills/line_attack/speed",
+      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
+      "kind": "待确认",
+      "runtime_value": 6.4286
+    },
+    {
+      "id": "colossus",
+      "path": "skills/line_attack/half_width",
+      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
+      "kind": "待确认",
+      "runtime_value": 0.5
+    },
+    {
+      "id": "ultralisk",
+      "path": "splash",
+      "reason": "原版顺劈是定向区域，现有圆形半径不能确认等价",
+      "kind": "待确认",
+      "runtime_value": 1.4286
+    },
+    {
+      "id": "archon",
+      "path": "splash",
+      "reason": "原版存在分层溅射，现有单圆半径不能完整表示",
+      "kind": "待确认",
+      "runtime_value": 1.0
+    },
+    {
+      "id": "ravager",
+      "path": "skills/delayed_area/delay",
+      "reason": "资料存在2秒与2.5秒/弹道时间口径差异，未确认",
+      "kind": "待确认",
+      "runtime_value": 2.5
+    },
+    {
+      "id": "infestor",
+      "path": "skills/delayed_area/duration",
+      "reason": "资料存在3秒与Faster2.86秒口径差异，待确认",
+      "kind": "待确认",
+      "runtime_value": 2.85
+    },
+    {
+      "id": "infestor",
+      "path": "skills/delayed_area/delay",
+      "reason": "当前即时自动落点尚未复刻真菌弹道时间",
+      "kind": "待确认",
+      "runtime_value": 0
+    },
+    {
+      "id": "ultralisk",
+      "path": "armor",
+      "reason": "当前只按基础2+三防3=5；是否默认甲壳强化再+2需确认",
+      "kind": "待确认",
+      "runtime_value": 5
+    },
+    {
+      "id": "vanguard",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "vanguard",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "stalker",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "stalker",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "sentry",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "sentry",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "immortal",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "immortal",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "high_templar",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "high_templar",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "archon",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "archon",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "colossus",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "colossus",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "disruptor",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "disruptor",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "void_ray",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "void_ray",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "carrier",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "carrier",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    },
+    {
+      "id": "interceptor",
+      "path": "shield_regen",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7.5
+    },
+    {
+      "id": "interceptor",
+      "path": "shield_regen_delay",
+      "reason": "原有7.5/7秒为项目参数，原版实时恢复/延迟口径本轮未确认",
+      "kind": "待确认",
+      "runtime_value": 7
+    }
+  ],
+  "snapshot": "https://github.com/ysh020603/SC2_DATA_Agent/tree/main/data_sc2_260701/markdown",
+  "notes": [
+    "基础数据交叉核对Liquipedia当前条目与2026-06-27抓取快照；以Blizzard正式5.0.17/5.0.15增量覆盖。",
+    "未对人族、腐族、建筑模板、价格、每组数量、模型尺寸和碰撞半径做平衡调整。",
+    "黄色空白是未确认值，灰色空白是不适用；JSON保留运行占位，批注可见。技能核对页区分未研究、待实现与简化实现。"
+  ]
+}

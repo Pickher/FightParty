@@ -121,3 +121,6 @@ services 下放的是所有组件可以复用的世界机制：
 新增 independent_weapons 独立组件。配置 weapons 为数组，每组含 id/label/count/weapon，UnitDefinition 将每组 weapon 规范化为 WeaponDefinition。组件在 before_target 消费普通攻击行动，挂载单位的基础武器不再额外开火。state.mounts 只保存组号和 AttackCycle 纯数据状态，可快照，不生成隐藏单位。不同炮位独立锁定/冷却，闲置炮位先分散、再按最近距离选敌；锁定不被重新分配。
 
 普通Unit和独立炮位共用units/attack_cycle.gd，普通单段命中共用BattleSim.queue_direct_strike，保留hit_count、溅射倍率、护盾/护甲、命中/攻击后效果的结算入口。当前人族防御塔使用8+2组数，未来可直接配置其他武器/数量；这里不实现治疗、传播攻击或变形等武器专用技能的自动组合。
+
+
+2026-11-09 0.8.0：新增weapon_buff组件，用可配置的持续时间、冷却、对甲额外伤害与移动倍率实现棱镜校准。summon新增spawn_at_owner配置，用于虫群宿主。delayed_area新增dot_on_impact/slow_multiplier以区分随目标DOT和固定区域，以及channel_seconds限制移动；既有腐族参数不变。

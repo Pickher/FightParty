@@ -17,7 +17,7 @@ func chain(sim, unit: Dictionary, first: Dictionary, hits: Dictionary) -> void:
 		if chosen.is_empty():break
 		struck[chosen.id]=true
 		var raw: float = sim.raw_damage(stats,chosen.kind)*pow(float(config.falloff),hop+1)
-		sim.queue_weapon_hit(hits,chosen,stats,raw,true)
+		sim.queue_weapon_hit(hits,chosen,stats,raw,true,pow(float(config.falloff),hop+1))
 		sim.damage_done[int(unit.team)]+=raw
 		sim.skill_system.hit(sim,unit,chosen,hits)
 		sim.events.append({"type":"chain","from":previous.pos,"to":chosen.pos,"kind":unit.kind,"team":unit.team})

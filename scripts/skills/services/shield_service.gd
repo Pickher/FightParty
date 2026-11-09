@@ -9,7 +9,7 @@ static func initialize(sim, unit: Dictionary) -> void:
 
 ## 结算一次命中：raw 是已含穿甲加成的攻击力（0 表示无伤害，不套用最低伤害）。
 ## 返回扣除的生命值，护盾变化直接写回 unit。
-static func absorb(sim, unit: Dictionary, raw: float, ignore_armor: bool = false) -> float:
+static func absorb(sim, unit: Dictionary, raw: float, ignore_armor: bool = false, shield_bonus: float = 0.0) -> float:
 	if raw <= 0.0:
 		return 0.0
 	var stats: Dictionary = sim.catalog[unit.kind]
@@ -19,10 +19,10 @@ static func absorb(sim, unit: Dictionary, raw: float, ignore_armor: bool = false
 		return maxf(raw - armor, minimum)
 	var shield_armor: float = 0.0 if ignore_armor else float(stats.get("shield_armor", 0))
 	var to_shield: float = maxf(raw - shield_armor, minimum)
-	if to_shield <= float(unit.shield):
-		unit.shield = float(unit.shield) - to_shield
+	if to_shield+shield_bonus <= float(unit.shield):
+		unit.shield = float(unit.shield) - to_shield-shield_bonus
 		return 0.0
-	var leftover: float = to_shield - float(unit.shield)
+	var leftover: float = maxf(0.0,to_shield-maxf(0.0,float(unit.shield)-shield_bonus))
 	unit.shield = 0.0
 	return maxf(leftover - armor, 0.0)
 

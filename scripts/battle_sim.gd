@@ -468,6 +468,14 @@ func _neighbors(pos: Vector2, radius: float = FINE) -> Array:
 func _weapon_stats(unit: Dictionary) -> Dictionary:
 	return skill_system.weapon(self,unit)
 
+## 仅显式启用的原版近战武器按接触边缘量射程，避免0.1格武器要求模型重叠。
+func attack_reach(unit: Dictionary, target: Dictionary, weapon: Dictionary) -> float:
+	var reach: float = float(weapon.range)
+	if bool(weapon.get("range_from_edge",false)):
+		reach+=body_radius(unit)
+		if not target.is_empty():reach+=body_radius(target)
+	return reach
+
 func _search_stats(unit: Dictionary) -> Dictionary:
 	return skill_system.search(self,unit)
 
@@ -493,7 +501,7 @@ func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
 		return 0.0
 	if WeaponDefinition.ignores_armor(weapon): return raw
 	if float(victim.get("shield", 0.0)) > 0.0:
-		return maxf(raw - float(catalog[victim.kind].get("shield_armor", 0)), float(rules.min_damage))
+		return maxf(raw - float(catalog[victim.kind].get("shield_armor", 0)), float(rules.min_damage))+minf(float(weapon.get("shield_bonus",0)),float(victim.shield))
 	return maxf(raw - float(catalog[victim.kind].get("armor", 0)), float(rules.min_damage))
 
 ## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
@@ -521,10 +529,11 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 func _target(unit: Dictionary) -> Dictionary:
 	var weapon := _search_stats(unit)
 	var reach := float(weapon.range)
-	var radius: float = skill_system.discovery_radius(self,unit,reach*1.5)
+	var discovery: float = reach+body_radius(unit)+max_body_radius if bool(weapon.get("range_from_edge",false)) else reach
+	var radius: float = skill_system.discovery_radius(self,unit,discovery*1.5)
 	var locked = by_id.get(unit.locked_target_id)
 	if locked != null and locked.team != unit.team and locked.hp > 0 and _can_hit_unit(unit,locked,weapon):
-		if unit.pos.distance_to(locked.pos) <= float(_weapon_stats(unit).range):
+		if unit.pos.distance_to(locked.pos) <= attack_reach(unit,locked,_weapon_stats(unit)):
 			return locked
 	unit.locked_target_id=0
 	if skill_system.has_priority(unit):
@@ -642,17 +651,17 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 	return found
 
 ## 把一次命中的原始伤害（含穿甲加成）排入本步待结算列表；hits 是 id → 原始伤害数组。
-func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false) -> void:
+func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0) -> void:
 	if raw<=0:return
 	if ranged:
 		raw=maxf(float(rules.min_damage),raw-float(aura_modifiers.get(victim.id,{}).get("reduction",0)))
 	if not hits.has(victim.id):
 		hits[victim.id] = []
-	hits[victim.id].append({"raw":raw,"ignore_armor":true} if ignore_armor else raw)
+	hits[victim.id].append({"raw":raw,"ignore_armor":ignore_armor,"shield_bonus":shield_bonus} if ignore_armor or shield_bonus>0 else raw)
 
 ## 普通、传播、弹射武器共用伤害属性。true 额外跳过远程光环减伤。
-func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false) -> void:
-	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon))
+func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false, bonus_multiplier: float = 1.0) -> void:
+	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier)
 
 ## 普通武器的一段命中；独立炮位也经过相同的溅射、护甲、护盾和命中技能结算。
 func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary, strike: int) -> void:
@@ -660,11 +669,12 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 	var victims: Array = [target] if float(weapon.splash)==0 else _nearby(target.pos,float(weapon.splash))
 	for victim in victims:
 		if victim.team==unit.team or not _can_hit_unit(unit,victim,weapon):continue
-		var raw: float = raw_damage(weapon,victim.kind)*float(ctx.get("damage_multiplier",1.0))
-		if victim.id!=target.id:raw*=float(weapon.splash_multiplier)
+		var multiplier: float = float(ctx.get("damage_multiplier",1.0))
+		if victim.id!=target.id:multiplier*=float(weapon.splash_multiplier)
+		var raw: float = raw_damage(weapon,victim.kind)*multiplier
 		if raw<=0:continue
-		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type},victim)
-		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5)
+		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
+		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier)
 		damage_done[int(unit.team)]+=amount
 		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
 		skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
@@ -744,7 +754,7 @@ func step() -> Array:
 		var distance: float = unit.pos.distance_to(goal)
 		# 攻击基地时加上基地半径，相当于允许攻击到基地边缘。
 		var attacking_base: bool = target.is_empty() and not unit.has("defender_goal") and goal.is_equal_approx(base_pos(enemy))
-		var reach: float = float(stats.range) + (float(rules.layout.base_radius) if attacking_base else 0.0)
+		var reach: float = attack_reach(unit,target,stats) + (float(rules.layout.base_radius) if attacking_base else 0.0)
 		ctx.goal=goal
 		ctx.distance=distance
 		ctx.reach=reach
@@ -809,7 +819,8 @@ func step() -> Array:
 				var raw: float = float(hit.raw) if hit is Dictionary else float(hit)
 				var ignore_armor: bool = bool(hit.ignore_armor) if hit is Dictionary else false
 				raw=skill_system.absorb(self,unit,raw)
-				hp_loss += Shield.absorb(self, unit, raw, ignore_armor)
+				var shield_bonus: float = float(hit.get("shield_bonus",0)) if hit is Dictionary and raw>0 else 0.0
+				hp_loss += Shield.absorb(self, unit, raw, ignore_armor,shield_bonus)
 			lost += hp_loss
 			unit.last_hit_tick = tick
 			events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})
