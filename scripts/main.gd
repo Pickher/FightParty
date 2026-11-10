@@ -4,6 +4,7 @@
 # 当前 UI 是代码直接绘制的，编辑器里不会出现每张卡片的独立 Button 节点。
 # 将来升级 3D 时可替换战场表现，继续使用 sim 计算出的状态和事件。
 extends Control
+const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 const BattleView = preload("res://scripts/battle_view.gd")
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
@@ -490,10 +491,11 @@ func _draw_editor() -> void:
 		buttons.append({"rect":rect,"action":"select:"+kind})
 		i += 1
 	if sim.catalog.has(selected):
-		_text(Vector2(764,806),sim.catalog[selected].counter,17,Color("e6c28e"))
-		var stats: Dictionary = sim.catalog[selected]
-		var body: Array = stats.get("size",[1,1])
-		_text(Vector2(764,834),"%d/组  尺寸 %s×%s  射程 %s  移速 %s" % [int(stats.get("spawn_count",1)),str(body[0]),str(body[1]),str(stats.range),str(stats.speed)],14,MUTED)
+		var summary: String = UnitSummary.text(sim.catalog[selected])
+		var font_size := 14
+		while font_size>11 and FONT.get_multiline_string_size(summary,HORIZONTAL_ALIGNMENT_LEFT,416,font_size).y>68:
+			font_size-=1
+		draw_multiline_string(FONT,Vector2(764,786+FONT.get_ascent(font_size)),summary,HORIZONTAL_ALIGNMENT_LEFT,416,font_size,4,MUTED)
 	else:
 		_text(Vector2(764,806),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",17,MINT)
 	_panel(Rect2(1212,573,196,287))
