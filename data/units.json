@@ -1,5 +1,5 @@
 {
- "version": "0.8.2",
+ "version": "0.8.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -387,7 +387,7 @@
    "splash": 0.0,
    "color": "ff8378",
    "role": "移动单体 · 架设溅射",
-   "counter": "移动单体射程7；架设射程13，周围半伤",
+   "counter": "移动单体射程7；架设射程13，溅射内圈60%、外圈30%",
    "skills": {
     "deployment": {
      "deploy_seconds": 1.5,
@@ -405,13 +405,15 @@
       "interval": 3.0,
       "range": 13,
       "splash": 2.5,
-      "splash_multiplier": 0.5,
+      "splash_multiplier": 0.3,
       "target_layers": [
        "ground"
       ],
       "attacks_base": true,
       "attacks_structures": true,
-      "hit_count": 1
+      "hit_count": 1,
+      "splash_inner_ratio": 0.5,
+      "splash_inner_multiplier": 0.6
      }
     }
    },

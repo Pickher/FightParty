@@ -154,3 +154,6 @@ SHA-256：`d8eef78f483fbf000237859609a6e8f265bc7872a1c0df229f2928fbc7af2592`。
 
 
 2026-11-11 0.8.2：玩家防御塔位置不变，宝库向己方基地后移2.25格，左右坐标为(34.875,9)/(55.125,9)，与塔中心相距4.5格，大于坦克2.5格溅射半径。宝库改为5000生命/1000护盾，health_regen=2、health_regen_delay=0、shield_regen=10、shield_regen_delay=15；复用Unit.restore的独立回血/回盾，不等待生命回满。布局参考、Excel同步；源码0.8.2 / Android versionCode30。按用户要求未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
+
+
+2026-11-11 0.8.3：坦克架设炮主目标全伤，半径2.5格内，≤1.25格次目标60%，外圈次目标30%。通过通用WeaponDefinition分圈字段与queue_direct_strike实现，按比例缩放护甲前基础伤害及加成，不影响移动炮和未配置分圈的兵种。Excel参数、导入字段范围规则与文档同步；源码0.8.3 / Android versionCode31。按用户要求未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。

@@ -16,6 +16,7 @@ LABELS.pop('damage_type', None)
 LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
 LABELS['collision_radius']='碰撞半径（最终值）'
+LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
     'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','range_from_edge':'按模型边缘量射程',
@@ -23,6 +24,7 @@ PARAM_LABELS = {
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
     'range':'射程（格）', 'interval':'攻击间隔（秒）', 'splash':'溅射半径（格）',
     'splash_multiplier':'次目标伤害倍率', 'length':'传播长度（格）', 'speed':'传播速度（格/秒）',
+    'splash_inner_ratio':'内圈占总半径比例', 'splash_inner_multiplier':'内圈伤害倍率',
     'half_width':'攻击半宽（格）', 'duration':'持续时间（秒）', 'duration_seconds':'持续时间（秒）',
     'health_cost_ratio':'最大生命消耗比例', 'attack_multiplier':'攻速倍率', 'speed_multiplier':'移速倍率',
     'deploy_seconds':'架设/埋地耗时（秒）', 'pack_seconds':'收起耗时（秒）',
@@ -102,7 +104,7 @@ def validate(units):
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
             if key in ('hit_count','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
             if key=='hit_count' and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
-            if key in ('splash_multiplier','health_cost_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
+            if key in ('splash_multiplier','splash_inner_ratio','splash_inner_multiplier','health_cost_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
         for key in ('size',):
             val = unit.get(key,[1,1])
             if not isinstance(val,list) or len(val)!=2 or any(not isinstance(x,(int,float)) or isinstance(x,bool) or x<=0 for x in val): raise ValueError(where + 'size 须为两个正数的 JSON 数组。')
@@ -240,6 +242,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。与玩家塔中心相距4.5格，位置在data/rules.json调整。'],
         ['多段攻击','每轮命中次数×每段伤害；每段单独扣甲/护盾并触发命中效果，可以叠加溅射；一轮只消耗一次攻击冷却。伤害类型由内部保留。'],
+        ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],
         ['雷神','对地2×(27+12重甲)，7格/1.28秒；对空2×(26+22重甲)，10格/3秒；溅射对空4×(9+9轻甲)，10格/3秒/半径1.2。'],
         ['技能能力','填参数仅能调整已实现机制；填写文字不会自动产生新的技能效果。']]
     for row in notes: guide.append(row)

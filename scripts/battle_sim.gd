@@ -681,7 +681,8 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 	for victim in victims:
 		if victim.team==unit.team or not _can_hit_unit(unit,victim,weapon):continue
 		var multiplier: float = float(ctx.get("damage_multiplier",1.0))
-		if victim.id!=target.id:multiplier*=float(weapon.splash_multiplier)
+		if victim.id!=target.id:
+			multiplier*=WeaponDefinition.splash_damage_multiplier(weapon,target.pos.distance_to(victim.pos))
 		var raw: float = raw_damage(weapon,victim.kind)*multiplier
 		if raw<=0:continue
 		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
