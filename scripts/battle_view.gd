@@ -90,7 +90,15 @@ func _draw() -> void:
 			draw_colored_polygon(sector,Color(color,0.08))
 			sector.append(sector[0])
 			draw_polyline(sector,Color(color,0.6),1.5)
+	for projectile in sim.projectiles:
+		if not view.grow(1.0).has_point(projectile.pos):continue
+		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
+		var p := point(projectile.pos)
+		draw_circle(p,maxf(1.5,pixels(0.09)),tint)
+		var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
+		draw_line(point(projectile.pos-tail),p,Color(tint,0.6),1.5)
 	for effect in game.effects:
+		if bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
 		var a := point(effect.from)
 		if effect.has("muzzle"):

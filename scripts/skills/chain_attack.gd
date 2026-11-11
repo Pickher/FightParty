@@ -1,7 +1,7 @@
 extends "res://scripts/skills/skill.gd"
 
-func chain(sim, unit: Dictionary, first: Dictionary, hits: Dictionary) -> void:
-	var stats: Dictionary = sim._weapon_stats(unit)
+func chain(sim, unit: Dictionary, first: Dictionary, hits: Dictionary, weapon: Dictionary = {}, effects: Dictionary = {}, multiplier: float = 1.0) -> void:
+	var stats: Dictionary = sim._weapon_stats(unit) if weapon.is_empty() else weapon
 	if config.is_empty():return
 	var struck: Dictionary = {first.id:true}
 	var previous := first
@@ -16,12 +16,16 @@ func chain(sim, unit: Dictionary, first: Dictionary, hits: Dictionary) -> void:
 				distance=candidate
 		if chosen.is_empty():break
 		struck[chosen.id]=true
-		var raw: float = sim.raw_damage(stats,chosen.kind)*pow(float(config.falloff),hop+1)
-		sim.queue_weapon_hit(hits,chosen,stats,raw,true,pow(float(config.falloff),hop+1))
+		var factor: float = multiplier*pow(float(config.falloff),hop+1)
+		var raw: float = sim.raw_damage(stats,chosen.kind)*factor
+		sim.queue_weapon_hit(hits,chosen,stats,raw,true,factor)
 		sim.damage_done[int(unit.team)]+=raw
-		sim.skill_system.hit(sim,unit,chosen,hits)
+		var extras := effects.duplicate(true)
+		extras.erase("chain_attack")
+		if not extras.is_empty():sim.skill_system.wave_hit(sim,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"weapon":stats,"impact_skills":extras,"damage_multiplier":factor},chosen,hits,sim.skill_system.incoming_slows)
 		sim.events.append({"type":"chain","from":previous.pos,"to":chosen.pos,"kind":unit.kind,"team":unit.team})
 		previous=chosen
 
-func after_attack(ctx: Dictionary) -> void:
-	if not ctx.target.is_empty():chain(ctx.sim,owner,ctx.target,ctx.hits)
+func _init() -> void: hit_effect=true
+func on_hit(ctx: Dictionary) -> void:
+	chain(ctx.sim,owner,ctx.victim,ctx.hits,ctx.get("weapon",{}),ctx.get("impact_skills",{}),float(ctx.get("damage_multiplier",1)))

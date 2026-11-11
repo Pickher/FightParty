@@ -2,6 +2,8 @@ extends "res://scripts/skills/skill.gd"
 const Line = preload("res://scripts/skills/services/line_service.gd")
 
 func on_attack(ctx: Dictionary) -> bool:
+	# 当前运行由AttackSequence按模式delivery发出；保留旧调用的兼容入口。
+	if ctx.has("weapon") and ctx.weapon.has("delivery"):return false
 	Line.launch(ctx.sim,owner,ctx.goal,config,float(ctx.get("damage_multiplier",1.0)))
 	return true
 

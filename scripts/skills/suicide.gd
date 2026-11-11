@@ -19,8 +19,9 @@ func suicide(sim, unit: Dictionary, target: Dictionary, hits: Dictionary, base_h
 	return true
 
 func _init() -> void: priority=50
-func before_action(ctx: Dictionary) -> void:
-	if ctx.can_act and not ctx.handled:ctx.handled=suicide(ctx.sim,owner,ctx.target,ctx.hits,ctx.base_hits)
+func on_attack(ctx: Dictionary) -> bool:
+	suicide(ctx.sim,owner,ctx.target,ctx.hits,ctx.base_hits)
+	return true
 func on_death(ctx: Dictionary) -> void:
 	if ctx.sim.self_destruct.has(owner.id):return
 	var stats: Dictionary = ctx.sim.catalog[owner.kind]

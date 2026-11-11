@@ -28,6 +28,7 @@ func _init(template: UnitDefinition, unit_id: int, team: int, point: Vector2, ti
 		"last_hit_tick":-1000000, "last_energy_spend_tick":-1000000,
 		"cooldown":0.0, "attack_phase":"idle", "attack_phase_left":0.0,
 		"attack_target_id":0, "attack_weapon_id":"", "attack_interval":0.0}
+	state.merge(AttackCycle.create(),true)
 
 func has_tag(tag: String) -> bool:
 	return definition.has_tag(tag)

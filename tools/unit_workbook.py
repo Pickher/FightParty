@@ -15,10 +15,12 @@ LABELS = dict(zip(
 LABELS.pop('damage_type', None)
 LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
+LABELS['primary_mode']='默认攻击模式ID'
 LABELS['collision_radius']='碰撞半径（最终值）'
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
+    'attack_duration':'本轮出手持续（秒）','delivery':'弹道','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'弹道类型','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
     'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','range_from_edge':'按模型边缘量射程',
     'hit_count':'每轮命中次数', 'preferred_distance':'期望距离（格）', 'single_target_limit':'移动追击敌人数上限',
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
@@ -80,18 +82,46 @@ def set_path(unit, path, value):
 
 
 def is_weapon(path):
-    return 'weapon' in path or 'weapons' in path
+    return path[0]=='attack_modes' or 'weapon' in path or 'weapons' in path
 
 
 def validate(units):
     for uid, unit in units.items():
         where = uid + '：'
-        for key in ('hp', 'interval'):
+        for key in ('hp',):
             if not isinstance(unit.get(key), (int, float)) or unit[key] <= 0: raise ValueError(where + key + ' 必须大于 0。')
         for key in ('cost', 'spawn_count'):
             val = unit.get(key, 1)
             if not isinstance(val, (int, float)) or isinstance(val, bool) or int(val) != val or val < (0 if key == 'cost' and (unit.get('structure') or unit.get('status')=='summoned') else 1):
                 raise ValueError(where + key + ' 必须为整数，兵种价格/数量须为正。')
+        modes=unit.get('attack_modes',[])
+        if 'attack_modes' in unit and (not isinstance(modes,list) or not modes or any(not isinstance(m,dict) for m in modes)):
+            raise ValueError(where+'必须显式保留至少一种攻击/支援模式。')
+        if modes:
+            if any(key in unit for key in ('damage','bonus','bonus_tags','damage_type','hit_count','range','interval','splash','target_layers')):raise ValueError(where+'武器字段应只填写在attack_modes内，不能与单位顶层重复。')
+            ids=[m.get('id') for m in modes]
+            if len(ids)!=len(set(ids)) or not all(isinstance(x,str) and x for x in ids) or unit.get('primary_mode') not in ids:raise ValueError(where+'攻击模式ID重复、为空或默认模式不存在。')
+            for m in modes:
+                if not m.get('label') or m.get('interval',0)<=0 or m.get('attack_duration',0)<=0:raise ValueError(where+'每个攻击模式需要名称、正持续时间和正间隔。')
+                if not isinstance(m.get('bonus',{}),dict) or not isinstance(m.get('bonus_tags',{}),dict):raise ValueError(where+'模式加成须为对象。')
+                for field in ('damage','range','interval','attack_duration'):
+                    if not isinstance(m.get(field),(int,float)) or isinstance(m[field],bool):raise ValueError(where+'模式'+field+'须为数值。')
+                for field in ('bonus','bonus_tags'):
+                    if any(not isinstance(v,(int,float)) or isinstance(v,bool) for v in m.get(field,{}).values()):raise ValueError(where+'模式加成须为数值对象。')
+                if m.get('damage_type') not in ('physical','spell','true'):raise ValueError(where+'攻击模式伤害类型无效。')
+                layers=m.get('target_layers',[])
+                if not layers or any(x not in ('ground','air') for x in layers):raise ValueError(where+'攻击模式目标层无效。')
+                delivery=m.get('delivery',{}); typ=delivery.get('type')
+                if typ not in ('instant','fixed','distance','wave'):raise ValueError(where+'弹道类型须为instant/fixed/distance/wave。')
+                if typ=='fixed' and ('seconds' not in delivery or delivery['seconds']<0):raise ValueError(where+'固定弹道需要非负seconds。')
+                if typ in ('distance','wave') and delivery.get('speed',0)<=0:raise ValueError(where+'弹道速度必须大于0。')
+                if typ=='wave' and (delivery.get('length',0)<=0 or delivery.get('half_width',0)<=0 or delivery.get('pattern') not in ('forward','transverse')):raise ValueError(where+'传播弹道的长度、半宽或形状无效。')
+            skills=unit.get('skills',{})
+            references=list(skills.get('weapon_switch',{}).get('mode_ids',[]))
+            for key in ('deployment','defender_zone'):
+                if 'mode_id' in skills.get(key,{}):references.append(skills[key]['mode_id'])
+            references.extend(g['mode_id'] for g in skills.get('independent_weapons',{}).get('weapons',[]) if 'mode_id' in g)
+            if any(x not in ids for x in references):raise ValueError(where+'技能引用了不存在的攻击模式。')
         for key, choices in [('race', ('terran','zerg','protoss','blight','neutral')), ('armor_type', ('none','light','heavy','special')), ('layer', ('ground','air')), ('status', ('ready','stub','summoned')), ('damage_type', ('physical','spell','true'))]:
             if key in unit and unit[key] not in choices: raise ValueError(where + key + ' 枚举值无效。')
         if not unit.get('name') or not re.fullmatch('[0-9a-fA-F]{6}', str(unit.get('color',''))): raise ValueError(where + '名称或颜色无效。')
@@ -148,7 +178,7 @@ def parse_workbook(path, current, read_rows):
     rows=read_rows(path,'兵种属性')
     headers=rows[2]
     if len(set(headers.values()))!=len(headers) or 'id' not in headers.values(): raise ValueError('兵种属性字段缺失或重复。')
-    samples={k:v for u in base.values() for k,v in u.items() if k!='skills'}
+    samples={k:v for u in base.values() for k,v in u.items() if k not in ('skills','attack_modes')}
     if not set(headers.values()).issubset(set(samples)|{'id'}): raise ValueError('存在未知属性列。')
     seen=set()
     for n,cells in rows.items():
@@ -157,7 +187,7 @@ def parse_workbook(path, current, read_rows):
         uid=str(next((cells.get(c,'') for c,k in headers.items() if k=='id'),''))
         if uid not in base or uid in seen: raise ValueError('未知或重复兵种 ID：'+uid+'；新增兵种请先由开发者接入。')
         seen.add(uid)
-        expected=set(base[uid])-{'skills','damage_type'}
+        expected=set(base[uid])-{'skills','attack_modes','damage_type'}
         if not expected.issubset(set(headers.values())): raise ValueError(uid+'：属性列被删除。')
         for col,key in headers.items():
             if key=='id': continue
@@ -174,7 +204,7 @@ def parse_workbook(path, current, read_rows):
             edited[uid][key]=value
             touched[(uid,key)]=value
     if seen!=set(base): raise ValueError('不能删除兵种数据行或更改 ID。')
-    expected={(uid,'/'.join(p)):v for uid,u in base.items() for p,v in leaves(u.get('skills',{}),('skills',)) if 'skills' in u}
+    expected={(uid,'/'.join(p)):v for uid,u in base.items() for key in ('skills','attack_modes') if key in u for p,v in leaves(u[key],(key,))}
     seen=set()
     for sheet in ('武器模式','技能参数'):
         for n,cells in read_rows(path,sheet).items():
@@ -225,7 +255,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['原版口径','虫族/神族按5.0.17正式服三攻三防；神族含三盾。独立专属科技未全部点满，详情见技能核对。价格/每组数量保持项目原值。'],
         ['技能核对','该页仅列参考能力及支持状态，待实现能力不会因为填数字而自动生效。待确认清单D列可导入，确认后请同步sc2_reference.json审核状态。'],
         ['兵种属性','一行一个单位；价格按组，生命/伤害按单体；间隔单位秒，射程单位格。'],
-        ['武器模式','坦克架设炮、雷神三模式、特工弹药、大和舰空地炮独立列出；这些值会覆盖基础武器。'],
+        ['武器模式','每个兵种均显式列出攻击模式；伤害、加成、目标层、射程、每轮段数、出手持续时间、轮后间隔和弹道属于模式，单位属性不再重复保存武器值。技能通过mode_id引用。'],
         ['技能参数','一行一个参数；布尔填 true/false；倍率 1.3 表示增加30%，0.5 表示一半。'],
         ['编辑范围','只改属性数据格或参数页 F 列“数值”；保留英文列名、ID、路径、全部数据行及源数据页。支持筛选和整行排序。'],
         ['碰撞体积','collision_radius是最终圆半径，不叠加模型半径；直径=半径×2。全部单位已按模型最大边的一半显式配置；特战队员0.8×0.8对应半径0.4。当前为圆形软避让，不是矩形刚体。'],
@@ -235,22 +265,22 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['生效范围','导入写入 data/units.json 并自动备份；重启源码游戏生效，已有APK/EXE需要重新打包。'],
         ['刷新表格','python tools/unit_workbook.py --output 新文件.xlsx；生成需安装 openpyxl，导入仅需 Python 标准库。请先保存并导入已有编辑。'],
         ['恶火','开火距离4.5格，火焰固定传播5格，总宽0.6格（half_width为0.3）。'],
-        ['当前待确认：特工','基础攻击40，弹药模式仍是30；该差异保留，请在武器模式页分别填写。'],
+        ['特工弹药','使用穿甲弹/狙击弹模式内的单段伤害30，移除旧顶层未使用的40；各模式伤害和加成独立。'],
         ['解放者 / 大和','解放者架设65+30重甲/1.14秒；大和720且目标门槛300。'],
         ['人族防御塔','1200生命/重甲/建筑/不自然回血；驻军8名特战队员、2名劫掠者。武器模式页count是独立炮位数，hit_count是每炮位每轮段数。'],
         ['基地防御模块','gate_tower不再生成独立单位；hp为基地额外生命5000，射程8，单发300真实伤害，间隔0.2秒；health_regen为防御层存在时整座基地的回血5/秒。'],
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。与玩家塔中心相距4.5格，位置在data/rules.json调整。'],
-        ['多段攻击','每轮命中次数×每段伤害；每段单独扣甲/护盾并触发命中效果，可以叠加溅射；一轮只消耗一次攻击冷却。伤害类型由内部保留。'],
+        ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
         ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],
-        ['雷神','对地2×(27+12重甲)，7格/1.28秒；对空2×(26+22重甲)，10格/3秒；溅射对空4×(9+9轻甲)，10格/3秒/半径1.2。'],
+        ['雷神','重炮射击2×(13+11重甲)，0.2秒打完/7格；高射炮击2×(23+15重甲)，0.4秒打完/10格；雷神之锤导弹4×(6+4轻甲)，0.5秒打完/10格/溅射1.2。三模式轮后均等待1秒，前两模式固定0.1秒弹道，导弹25格/秒。'],
         ['技能能力','填参数仅能调整已实现机制；填写文字不会自动产生新的技能效果。']]
     for row in notes: guide.append(row)
     fields=['id']+[k for k in LABELS if k!='id' and any(k in u for u in units.values())]
     if 'hit_count' in fields:
         fields.remove('hit_count')
         fields.insert(fields.index('damage')+1,'hit_count')
-    fields += sorted({k for u in units.values() for k in u}-set(fields)-{'skills','damage_type'})
+    fields += sorted({k for u in units.values() for k in u}-set(fields)-{'skills','attack_modes','damage_type'})
     basic=wb.create_sheet('兵种属性')
     basic.append([LABELS.get(k,k) for k in fields]);basic.append(fields)
     for uid,u in units.items():
@@ -259,18 +289,18 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
     for name in ('武器模式','技能参数'):
         ws=wb.create_sheet(name);ws.append(['兵种ID','名称','参数说明','参数路径（勿改）','类型（勿改）','数值（编辑此列）']);ws.append(['id','name','label','path','type','value']);tabs[name]=ws
     for uid,u in units.items():
-        if 'skills' not in u: continue
-        for p,v in leaves(u['skills'],('skills',)):
-            ws=tabs['武器模式' if is_weapon(p) else '技能参数']
-            context=p[1] if len(p)>1 else 'skills'
-            if 'weapons' in p:
-                i=p.index('weapons')
-                mode=u['skills'][p[1]]['weapons'][int(p[i+1])]
-                context=mode.get('label',mode.get('id',context))
-            elif 'weapon' in p:
-                context='架设炮' if p[1]=='deployment' else '防卫对地炮'
-            label=context+' · '+PARAM_LABELS.get(p[-1],LABELS.get(p[-1],p[-1]))
-            ws.append([uid,u['name'],label,'/'.join(p),kind(v),encode(v)])
+        for key in ('attack_modes','skills'):
+            if key not in u:continue
+            for p,v in leaves(u[key],(key,)):
+                ws=tabs['武器模式' if is_weapon(p) else '技能参数']
+                context=p[1] if len(p)>1 else key
+                if key=='attack_modes':context=u[key][int(p[1])]['label']
+                elif 'weapons' in p:
+                    i=p.index('weapons')
+                    group=u['skills'][p[1]]['weapons'][int(p[i+1])]
+                    context=group.get('label',group.get('id',context))
+                label=context+' · '+PARAM_LABELS.get(p[-1],LABELS.get(p[-1],p[-1]))
+                ws.append([uid,u['name'],label,'/'.join(p),kind(v),encode(v)])
     if reviews:
         review_manifest=wb.create_sheet('待确认字段');review_manifest.append(['id','path'])
         todo=wb.create_sheet('待确认清单')

@@ -8,6 +8,8 @@ const Catalog = preload("res://scripts/catalog.gd")
 const Unit = preload("res://scripts/units/unit.gd")
 const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
 const BaseDefense = preload("res://scripts/units/base_defense.gd")
+const AttackSequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
+const Projectiles = preload("res://scripts/skills/services/projectile_service.gd")
 const SkillSystem = preload("res://scripts/skills/skill_system.gd")
 const Shield = preload("res://scripts/skills/services/shield_service.gd")
 const StatusService = preload("res://scripts/skills/services/status_service.gd")
@@ -44,6 +46,9 @@ var tower_builds: Array = [0, 0]
 var units: Array = []
 # 已发出的传播攻击独立于发射者存活，按固定步推进。
 var attack_waves: Array = []
+var attack_sequences: Array = []
+var projectiles: Array = []
+var next_projectile_id: int = 1
 var bases: Array = [0.0, 0.0]
 var base_defenses: Array = []
 var tick: int = 0
@@ -533,7 +538,7 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 	# 结构体按 attacks_structures 判断（缺省同 attacks_base），解放者不能攻击建筑。
 	if catalog[other.kind].get("structure", false) and not weapon.get("attacks_structures", weapon.get("attacks_base", true)):
 		return false
-	return skill_system.can_target(self,unit,other)
+	return true if bool(unit.get("projectile",false)) else skill_system.can_target(self,unit,other)
 
 ## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
 ## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。同距时以稳定 ID 决定。
@@ -677,19 +682,28 @@ func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, 
 ## 普通武器的一段命中；独立炮位也经过相同的溅射、护甲、护盾和命中技能结算。
 func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary, strike: int) -> void:
 	var unit: Dictionary = ctx.unit
-	var victims: Array = [target] if float(weapon.splash)==0 else _nearby(target.pos,float(weapon.splash))
+	var center: Vector2 = ctx.get("impact_position",target.pos)
+	var direct = by_id.get(int(target.id))
+	var victims: Array = ([] if direct==null else [direct]) if float(weapon.splash)==0 else nearby_team(center,float(weapon.splash)+float(ctx.get("motion_margin",0)),1-int(unit.team))
 	for victim in victims:
 		if victim.team==unit.team or not _can_hit_unit(unit,victim,weapon):continue
+		var position: Vector2 = victim.pos
+		if ctx.has("impact_fraction"):position=victim.pos.lerp(ctx.moves.get(victim.id,victim.pos),float(ctx.impact_fraction))
+		var distance: float = center.distance_to(position)
+		if float(weapon.splash)>0 and distance>float(weapon.splash):continue
+		if float(weapon.splash)<=0 and ctx.has("impact_position") and not bool(weapon.get("delivery",{}).get("tracking",true)) and distance>body_radius(victim):continue
 		var multiplier: float = float(ctx.get("damage_multiplier",1.0))
 		if victim.id!=target.id:
-			multiplier*=WeaponDefinition.splash_damage_multiplier(weapon,target.pos.distance_to(victim.pos))
+			multiplier*=WeaponDefinition.splash_damage_multiplier(weapon,distance)
 		var raw: float = raw_damage(weapon,victim.kind)*multiplier
 		if raw<=0:continue
 		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
 		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier)
 		damage_done[int(unit.team)]+=amount
-		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount})
-		skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
+		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
+		if ctx.has("impact_skills"):
+			skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
+		else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
 
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
@@ -784,20 +798,8 @@ func step() -> Array:
 			if target.is_empty() and (not attacking_base or not bool(stats.get("attacks_base",true))):
 				continue
 			if fire:
-				if not target.is_empty():unit.locked_target_id=target.id
 				ctx.damage_multiplier=skill_system.damage_multiplier(ctx) if not target.is_empty() else 1.0
-				if skill_system.attack(ctx):
-					pass
-				else:
-					for strike in range(skill_system.attack_count(self,unit,stats)):
-						if target.is_empty():
-							base_hits[enemy] += float(stats.damage)
-						else:
-							# 只有实际开火才锁定；追击和等待首次攻击冷却时仍可重新选敌。
-							unit.locked_target_id = target.id
-							queue_direct_strike(ctx,stats,target,strike)
-						skill_system.after_attack(ctx)
-						events.append({"type":"attack","from":unit.pos,"to":goal,"kind":unit.kind,"team":unit.team,"splash":float(stats.splash)})
+				AttackSequences.launch(ctx,unit)
 			# 配置允许的机动单位在攻击冷却期间也可松开队形；前摇、后摇和开火当步不移动。
 			if not fire and definitions[unit.kind].separate_when_stopped and unit.attack_phase=="idle" and str(unit.get("siege_state","mobile"))=="mobile":
 				var drift: Vector2 = (_separation(unit)*0.65).limit_length(1.0)*_movement_speed(unit)
@@ -810,6 +812,8 @@ func step() -> Array:
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 		skill_system.after_action(ctx)
+	AttackSequences.advance(self,frame)
+	Projectiles.advance(self,frame)
 	LineService.advance(self, dt, moves, hits, base_hits, pending_slows)
 	AreaService.advance(self,dt,moves,hits,base_hits)
 	StatusService.apply(self)
@@ -852,7 +856,9 @@ func step() -> Array:
 		else:
 			kills[1 - int(unit.team)] += 1
 			events.append({"type":"death","id":unit.id,"pos":unit.pos,"team":unit.team})
-	for dead in deaths:skill_system.death({"sim":self,"dead":dead})
+	for dead in deaths:
+		Projectiles.target_died(self,dead)
+		skill_system.death({"sim":self,"dead":dead})
 	units = alive
 	SummonService.flush(self)
 	skill_system.prune(self,units)
@@ -901,6 +907,7 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
+		"attack_sequences":attack_sequences.duplicate(true),"projectiles":projectiles.duplicate(true),"next_projectile_id":next_projectile_id,
 		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),
 		"units":units.map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
 		"races":[visible_race(viewer, 0), visible_race(viewer, 1)],"revealed":revealed,

@@ -1,9 +1,12 @@
 extends RefCounted
-## 武器模板。interval 是两次启动之间的最短间隔，包含前摇和后摇。
+## 独立攻击模式。interval 是整轮出手结束后的等待时间，弹道另行推进。
 var id: String = "primary"
 var damage: float = 0.0
 ## 每轮独立命中次数，每次都使用完整单段伤害并单独扣甲。
 var hit_count: int = 1
+var attack_duration: float = 0.1
+var delivery: Dictionary = {}
+var continue_on_target_death: bool = false
 var shield_bonus: float = 0.0
 var range_from_edge: bool = false
 var damage_type: String = "physical"
@@ -32,6 +35,9 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	id = str(parameters.get("id", weapon_id))
 	damage = maxf(0.0, float(parameters.get("damage", 0)))
 	hit_count = maxi(1,int(parameters.get("hit_count",1)))
+	attack_duration = maxf(0.001,float(parameters.get("attack_duration",0.1)))
+	delivery = parameters.get("delivery",{"type":"instant"}).duplicate(true)
+	continue_on_target_death = bool(parameters.get("continue_on_target_death",float(parameters.get("splash",0))>0))
 	shield_bonus = maxf(0.0,float(parameters.get("shield_bonus",0)))
 	range_from_edge = bool(parameters.get("range_from_edge",false))
 	damage_type = str(parameters.get("damage_type", "physical"))
@@ -41,7 +47,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	range = maxf(0.0, float(parameters.get("range", 0)))
 	windup = maxf(0.0, float(parameters.get("windup", 0)))
 	backswing = maxf(0.0, float(parameters.get("backswing", 0)))
-	interval = maxf(maxf(0.001, float(parameters.get("interval", 1))), windup + backswing)
+	interval = maxf(0.001, float(parameters.get("interval", 1)))
 	splash = maxf(0.0, float(parameters.get("splash", 0)))
 	splash_multiplier = clampf(float(parameters.get("splash_multiplier",1.0)),0.0,1.0)
 	splash_inner_ratio = clampf(float(parameters.get("splash_inner_ratio",0.0)),0.0,1.0)
@@ -53,6 +59,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 func to_data() -> Dictionary:
 	var result := _data.duplicate(true)
 	result.merge({"id":id, "damage":damage, "hit_count":hit_count, "shield_bonus":shield_bonus, "range_from_edge":range_from_edge, "damage_type":damage_type,
+		"attack_duration":attack_duration,"delivery":delivery.duplicate(true),"continue_on_target_death":continue_on_target_death,
 		"bonus":bonus.duplicate(true), "bonus_tags":bonus_tags.duplicate(true), "range":range, "interval":interval,
 		"windup":windup, "backswing":backswing, "splash":splash, "splash_multiplier":splash_multiplier,
 		"splash_inner_ratio":splash_inner_ratio, "splash_inner_multiplier":splash_inner_multiplier,

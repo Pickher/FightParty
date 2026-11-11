@@ -130,3 +130,8 @@ UnitDefinition 新增 collision_radius 与 separate_when_stopped，前者供空�
 ## 0.7.3 坦克移动/架设武器
 
 架设组件支持可选 weapon 和 mobile_can_attack，在读取本步武器前推进状态，已架设才切到新武器。移动炮单体 21+14 重甲、1.04 秒、7 格；架设炮主目标 52+33 重甲、3 秒、13 格、旁侧 50% 溅射。保持原扫描与收放时间，共享单位攻击冷却，不改其他部署兵种的开火限制。未运行验证。
+
+
+## 0.9.0 攻击序列与弹体
+
+正式配置把武器归入attack_modes，UnitDefinition构造独立WeaponDefinition，技能用mode_id引用；Catalog/UnitDefinition生成兼容投影供现有UI和技能读字段，JSON不保留单位顶层武器真值。普通单位、独立炮位和基地共享AttackCycle及AttackSequence服务。AttackCycle把出手阶段和轮后冷却分开，序列保存模式/命中技能快照，按步内偏移逐段发射；Projectile按固定或距离弹道推进，命中才进入queue_direct_strike。传播模式每段走LineService，未发出段随死亡/中断取消，已发弹体继续。快照新增attack_sequences/projectiles/next_projectile_id，数据均为纯字典；攻击事件带source_id、mode、time，移动单位的炮口动画可稳定匹配发射者。命中仍按既有固定步同时结算，具体口径及全兵种初值见ATTACK_MODES.md。

@@ -1,5 +1,6 @@
 extends "res://scripts/skills/skill.gd"
 const AttackCycle = preload("res://scripts/units/attack_cycle.gd")
+const Sequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
 
 ## 一组可复用的驻军炮位：count 决定独立炮位数量，weapon 决定每套武器。
 ## 不生成可走出建筑的友军实体；建筑被摧毁时全部炮位随组件回收。
@@ -57,10 +58,7 @@ func before_target(ctx: Dictionary) -> bool:
 		shot.weapon=weapon
 		shot.goal=target.pos
 		shot.damage_multiplier=sim.skill_system.damage_multiplier(shot)
-		for strike in range(sim.skill_system.attack_count(sim,owner,weapon)):
-			sim.queue_direct_strike(shot,weapon,target,strike)
-			sim.skill_system.after_attack(shot)
-			sim.events.append({"type":"attack","from":owner.pos,"to":target.pos,"kind":owner.kind,"team":owner.team,"splash":weapon.splash,"mount":index})
+		Sequences.launch(shot,mount,index)
 	sim._tick_attack_clock(owner,float(ctx.dt))
 	return true
 

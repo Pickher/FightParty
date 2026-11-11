@@ -74,7 +74,7 @@ func observe(units: Array, prune_missing: bool = true) -> void:
 			if not living.has(id):
 				poses.erase(id)
 
-## 攻击/大和炮事件没有攻击者 ID，按同队同兵种、发射位置匹配（与特战队员相同）。
+## 普通攻击按source_id匹配；旧事件/大和炮仍按同队同兵种和发射位置匹配。
 ## 匹配到后在事件里写入 muzzle 与 left，供特效从炮口画起。
 func event(event_data: Dictionary, before: Dictionary, units: Array, revealed: bool) -> void:
 	if event_data.type == "death" and before.has(event_data.id) and before[event_data.id].kind == "battlecruiser":
@@ -86,7 +86,8 @@ func event(event_data: Dictionary, before: Dictionary, units: Array, revealed: b
 	if (event_data.type != "attack" and event_data.type != "yamato") or event_data.kind != "battlecruiser":
 		return
 	for unit in before.values():
-		if unit.kind != "battlecruiser" or unit.team != event_data.team or not unit.pos.is_equal_approx(event_data.from) or not poses.has(unit.id):
+		var matches_source: bool = int(event_data.source_id)==int(unit.id) if event_data.has("source_id") else unit.pos.is_equal_approx(event_data.from)
+		if unit.kind != "battlecruiser" or unit.team != event_data.team or not matches_source or not poses.has(unit.id):
 			continue
 		var pose: Dictionary = poses[unit.id]
 		var dx: float = event_data.to.x - event_data.from.x

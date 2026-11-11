@@ -1,5 +1,5 @@
 {
- "version": "0.8.3",
+ "version": "0.9.0",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -11,19 +11,11 @@
    "hp": 55,
    "armor_type": "light",
    "armor": 3,
-   "damage": 9,
-   "interval": 0.86,
-   "range": 5,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "75e0ac",
    "role": "中排主力 · 对空对地",
    "counter": "数量多、能对空；怕溅射与反轻甲",
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     0.8,
     0.8
@@ -43,12 +35,43 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
    "collision_radius": 0.4,
    "separate_when_stopped": true,
-   "hit_count": 1
+   "primary_mode": "gauss_rifle",
+   "attack_modes": [
+    {
+     "damage": 9,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5,
+     "interval": 0.86,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "gauss_rifle",
+     "label": "电磁步枪",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    }
+   ]
   },
   "hellbat": {
    "name": "恶火",
@@ -60,30 +83,14 @@
    "hp": 90,
    "armor_type": "light",
    "armor": 5,
-   "damage": 11,
-   "bonus": {
-    "light": 19
-   },
-   "interval": 2.5,
-   "range": 4.5,
    "speed": 4.25,
-   "splash": 0.0,
    "color": "ff9f5a",
    "role": "前排喷火 · 克轻甲",
    "counter": "短程直线喷火，克密集轻甲；怕远程与重甲",
    "skills": {
-    "line_attack": {
-     "pattern": "forward",
-     "length": 5,
-     "speed": 15.0,
-     "half_width": 0.3,
-     "effect": "flame"
-    }
+    "line_attack": {}
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1.2,
     1.2
@@ -103,11 +110,47 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.6
+   "collision_radius": 0.6,
+   "primary_mode": "flame_jet",
+   "attack_modes": [
+    {
+     "damage": 11,
+     "hit_count": 1,
+     "bonus": {
+      "light": 19
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4.5,
+     "interval": 2.5,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "flame_jet",
+     "label": "火焰喷射",
+     "attack_duration": 0.25,
+     "continue_on_target_death": false,
+     "delivery": {
+      "pattern": "forward",
+      "length": 5,
+      "speed": 15.0,
+      "half_width": 0.3,
+      "effect": "flame",
+      "type": "wave",
+      "tracking": false
+     }
+    }
+   ]
   },
   "marauder": {
    "name": "劫掠者",
@@ -119,14 +162,7 @@
    "hp": 125,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 13,
-   "bonus": {
-    "heavy": 13
-   },
-   "interval": 1.5,
-   "range": 6.0,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "c39be8",
    "role": "强化突击 · 命中减速",
    "counter": "克重甲；强化剂消耗生命；怕轻甲海",
@@ -143,9 +179,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1.2,
     1.2
@@ -165,11 +198,43 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.6
+   "collision_radius": 0.6,
+   "primary_mode": "concussive_grenade",
+   "attack_modes": [
+    {
+     "damage": 13,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 13
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6.0,
+     "interval": 1.5,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "concussive_grenade",
+     "label": "震荡榴弹",
+     "attack_duration": 0.18,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "medic": {
    "name": "医疗兵",
@@ -181,11 +246,7 @@
    "hp": 95,
    "armor_type": "light",
    "armor": 3,
-   "damage": 0,
-   "interval": 0.5,
-   "range": 5.7143,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "85efd9",
    "role": "后排治疗 · 跟随友军",
    "counter": "治疗受伤友军（不回护盾）；无攻击能力，怕突袭",
@@ -197,9 +258,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     0.8,
     0.8
@@ -220,11 +278,40 @@
     "biological",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.4
+   "collision_radius": 0.4,
+   "primary_mode": "medical_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5.7143,
+     "interval": 0.5,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "medical_support",
+     "label": "医疗支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "agent": {
    "name": "特工",
@@ -236,49 +323,20 @@
    "hp": 125,
    "armor_type": "light",
    "armor": 3,
-   "damage": 40,
-   "bonus": {
-    "heavy": 60
-   },
-   "interval": 1.5,
-   "range": 8.0,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "a8b5ff",
    "role": "远程狙击 · 按护甲换弹",
    "counter": "穿甲弹打重甲、狙击弹打轻甲；换弹 1.5 秒不能开火",
    "skills": {
     "weapon_switch": {
      "switch_seconds": 1.5,
-     "weapons": [
-      {
-       "id": "armor_piercing",
-       "label": "穿甲弹",
-       "damage": 30,
-       "bonus": {
-        "heavy": 60
-       },
-       "interval": 1.5,
-       "hit_count": 1
-      },
-      {
-       "id": "precision",
-       "label": "狙击弹",
-       "damage": 30,
-       "bonus": {
-        "light": 30
-       },
-       "interval": 1.07,
-       "hit_count": 1
-      }
+     "mode_ids": [
+      "armor_piercing",
+      "precision"
      ]
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     0.8,
     0.8
@@ -300,11 +358,78 @@
     "psionic",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.4
+   "collision_radius": 0.4,
+   "primary_mode": "armor_piercing",
+   "attack_modes": [
+    {
+     "damage": 30,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 60
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8.0,
+     "interval": 1.5,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "armor_piercing",
+     "label": "穿甲弹",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 30,
+     "hit_count": 1,
+     "bonus": {
+      "light": 30
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8.0,
+     "interval": 1.07,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "precision",
+     "label": "狙击弹",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "widow_mine": {
    "name": "寡妇雷",
@@ -316,14 +441,7 @@
    "hp": 90,
    "armor_type": "light",
    "armor": 3,
-   "damage": 85,
-   "bonus": {
-    "heavy": 30
-   },
-   "interval": 23,
-   "range": 4,
    "speed": 2.8125,
-   "splash": 1.75,
    "color": "e8e27a",
    "role": "埋地伏击 · 一发大范围",
    "counter": "埋地后单发重伤一片；冷却很长，怕分散与先手清除",
@@ -338,10 +456,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     0.8,
     0.8
@@ -361,11 +475,44 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.4
+   "collision_radius": 0.4,
+   "primary_mode": "sentinel_missile",
+   "attack_modes": [
+    {
+     "damage": 85,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 30
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4,
+     "interval": 23,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.75,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "sentinel_missile",
+     "label": "哨戒导弹",
+     "attack_duration": 0.2,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "mortar": {
    "name": "坦克",
@@ -377,14 +524,7 @@
    "hp": 175,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 21,
-   "bonus": {
-    "heavy": 14
-   },
-   "interval": 1.04,
-   "range": 7,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "ff8378",
    "role": "移动单体 · 架设溅射",
    "counter": "移动单体射程7；架设射程13，溅射内圈60%、外圈30%",
@@ -397,30 +537,10 @@
      "hold_range_multiplier": 1.2,
      "mode": "siege",
      "mobile_can_attack": true,
-     "weapon": {
-      "damage": 52,
-      "bonus": {
-       "heavy": 33
-      },
-      "interval": 3.0,
-      "range": 13,
-      "splash": 2.5,
-      "splash_multiplier": 0.3,
-      "target_layers": [
-       "ground"
-      ],
-      "attacks_base": true,
-      "attacks_structures": true,
-      "hit_count": 1,
-      "splash_inner_ratio": 0.5,
-      "splash_inner_multiplier": 0.6
-     }
+     "mode_id": "siege_cannon"
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1.6,
     1.6
@@ -440,12 +560,76 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "splash_multiplier": 1.0,
-   "hit_count": 1,
-   "collision_radius": 0.8
+   "collision_radius": 0.8,
+   "primary_mode": "mobile_cannon",
+   "attack_modes": [
+    {
+     "damage": 21,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 14
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 1.04,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1.0,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "mobile_cannon",
+     "label": "机动炮击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 52,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 33
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 13,
+     "interval": 3.0,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 2.5,
+     "splash_multiplier": 0.3,
+     "splash_inner_ratio": 0.5,
+     "splash_inner_multiplier": 0.6,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "siege_cannon",
+     "label": "攻城炮击",
+     "attack_duration": 0.3,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "viking": {
    "name": "维京",
@@ -458,18 +642,7 @@
    "armor_type": "heavy",
    "armor": 3,
    "layer": "air",
-   "target_layers": [
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 26,
-   "bonus": {
-    "heavy": 8
-   },
-   "interval": 2,
-   "range": 11,
    "speed": 2.25,
-   "splash": 0.0,
    "color": "9cc4ff",
    "role": "远程对空 · 专打重甲空军",
    "counter": "射程最远的对空；不能对地、不能打基地",
@@ -492,11 +665,43 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.75
+   "collision_radius": 0.75,
+   "primary_mode": "anti_air_missile",
+   "attack_modes": [
+    {
+     "damage": 26,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 8
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 11,
+     "interval": 2,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "anti_air_missile",
+     "label": "对空导弹",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "liberator": {
    "name": "解放者",
@@ -509,15 +714,7 @@
    "armor_type": "heavy",
    "armor": 3,
    "layer": "air",
-   "target_layers": [
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 30,
-   "interval": 1.29,
-   "range": 5.0,
    "speed": 3.38,
-   "splash": 0,
    "color": "f2dc79",
    "role": "扇形防卫 · 对地重击",
    "counter": "架设后朝敌方展开 40° 扇形，半径 8；不能攻击建筑",
@@ -529,22 +726,9 @@
      "scan_seconds": 0.5,
      "hold_range_multiplier": 1.2,
      "mode": "defender",
-     "weapon": {
-      "target_layers": [
-       "ground"
-      ],
-      "attacks_base": false,
-      "damage": 65,
-      "interval": 1.14,
-      "range": 8,
-      "splash": 0.0,
-      "bonus": {
-       "heavy": 30
-      },
-      "hit_count": 1
-     },
      "shape": "sector",
-     "angle_degrees": 40
+     "angle_degrees": 40,
+     "mode_id": "defender_cannon"
     }
    },
    "size": [
@@ -566,11 +750,74 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.75
+   "collision_radius": 0.75,
+   "primary_mode": "anti_air_burst",
+   "attack_modes": [
+    {
+     "damage": 30,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5.0,
+     "interval": 1.29,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "anti_air_burst",
+     "label": "对空散射",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 65,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 30
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8,
+     "interval": 1.14,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "defender_cannon",
+     "label": "防卫炮击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "thor": {
    "name": "雷神",
@@ -582,17 +829,10 @@
    "hp": 400,
    "armor_type": "special",
    "armor": 4,
-   "damage": 26,
-   "bonus": {
-    "heavy": 22
-   },
-   "interval": 3,
-   "range": 10,
    "speed": 1.88,
-   "splash": 0.0,
    "color": "d9c3a0",
    "role": "远程防空 · 重甲杀手",
-   "counter": "优先对空；重甲用单体高爆，轻甲空军成群时切溅射",
+   "counter": "重炮射击对地；默认高射炮击对空，轻甲空军密集时切换雷神之锤导弹",
    "skills": {
     "weapon_switch": {
      "switch_seconds": 0.5,
@@ -601,63 +841,14 @@
      "light_air_threshold": 3,
      "cluster_radius": 2.5,
      "default_index": 0,
-     "weapons": [
-      {
-       "id": "high_impact",
-       "label": "高爆对空炮",
-       "target_layers": [
-        "air"
-       ],
-       "attacks_base": false,
-       "damage": 26,
-       "bonus": {
-        "heavy": 22
-       },
-       "interval": 3,
-       "range": 10,
-       "splash": 0,
-       "hit_count": 2
-      },
-      {
-       "id": "javelin",
-       "label": "轻甲溅射导弹",
-       "target_layers": [
-        "air"
-       ],
-       "attacks_base": false,
-       "damage": 9,
-       "bonus": {
-        "light": 9
-       },
-       "interval": 3,
-       "range": 10,
-       "splash": 1.2,
-       "hit_count": 4
-      },
-      {
-       "id": "hammer",
-       "label": "雷霆重炮",
-       "target_layers": [
-        "ground"
-       ],
-       "attacks_base": true,
-       "damage": 27,
-       "interval": 1.28,
-       "range": 7,
-       "splash": 0,
-       "bonus": {
-        "heavy": 12
-       },
-       "hit_count": 2
-      }
+     "mode_ids": [
+      "high_impact",
+      "javelin",
+      "hammer"
      ]
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     2.3,
     2.3
@@ -678,11 +869,109 @@
     "mechanical",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 2,
-   "collision_radius": 1.15
+   "collision_radius": 1.15,
+   "primary_mode": "hammer",
+   "attack_modes": [
+    {
+     "damage": 23,
+     "hit_count": 2,
+     "bonus": {
+      "heavy": 15
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 10,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "high_impact",
+     "label": "高射炮击",
+     "attack_duration": 0.4,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.1,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 6,
+     "hit_count": 4,
+     "bonus": {
+      "light": 4
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 10,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.2,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "javelin",
+     "label": "雷神之锤导弹",
+     "attack_duration": 0.5,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "distance",
+      "speed": 25,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 13,
+     "hit_count": 2,
+     "bonus": {
+      "heavy": 11
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "hammer",
+     "label": "重炮射击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.1,
+      "tracking": true
+     }
+    }
+   ]
   },
   "battlecruiser": {
    "name": "大和舰",
@@ -697,39 +986,16 @@
    "hp": 550,
    "armor_type": "heavy",
    "armor": 6,
-   "damage": 24,
-   "interval": 0.16,
-   "range": 6.0,
    "speed": 1.875,
-   "splash": 0,
    "color": "9fb3c8",
    "role": "空中旗舰 · 大和炮",
    "counter": "激光连射地空皆可；大和炮引导 2 秒不能动，克高血单位；特殊甲不吃克制加成",
    "skills": {
     "weapon_switch": {
      "switch_seconds": 0,
-     "weapons": [
-      {
-       "id": "ats_laser",
-       "label": "对地激光炮组",
-       "target_layers": [
-        "ground"
-       ],
-       "damage": 24,
-       "interval": 0.16,
-       "hit_count": 1
-      },
-      {
-       "id": "ata_laser",
-       "label": "对空激光炮组",
-       "target_layers": [
-        "air"
-       ],
-       "attacks_base": false,
-       "damage": 15,
-       "interval": 0.16,
-       "hit_count": 1
-      }
+     "mode_ids": [
+      "ats_laser",
+      "ata_laser"
      ]
     },
     "yamato": {
@@ -745,10 +1011,6 @@
     }
    },
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     2.5,
     2.5
@@ -769,11 +1031,72 @@
     "mechanical",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 1.25
+   "collision_radius": 1.25,
+   "primary_mode": "ats_laser",
+   "attack_modes": [
+    {
+     "damage": 24,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6.0,
+     "interval": 0.16,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "ats_laser",
+     "label": "对地激光炮组",
+     "attack_duration": 0.08,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6.0,
+     "interval": 0.16,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "ata_laser",
+     "label": "对空激光炮组",
+     "attack_duration": 0.08,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    }
+   ]
   },
   "zergling": {
    "name": "跳虫",
@@ -785,18 +1108,11 @@
    "hp": 35,
    "armor_type": "light",
    "armor": 3,
-   "damage": 8,
-   "interval": 0.497,
-   "range": 0.1,
    "speed": 4.13,
-   "splash": 0.0,
    "color": "e39bd0",
    "role": "高速近战 · 数量包围",
    "counter": "便宜快速，包围后排；怕溅射与喷火",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -816,17 +1132,42 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": true,
    "pending": [
     "代谢加速 / 肾上腺素：未默认研究"
+   ],
+   "primary_mode": "claw_strike",
+   "attack_modes": [
+    {
+     "damage": 8,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 0.1,
+     "interval": 0.497,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "claw_strike",
+     "label": "利爪撕咬",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
    ]
   },
   "baneling": {
@@ -842,19 +1183,11 @@
    "hp": 30,
    "armor_type": "none",
    "armor": 3,
-   "damage": 22,
-   "bonus": {},
-   "interval": 1,
-   "range": 0.25,
    "speed": 3.5,
-   "splash": 2.2,
    "color": "a6e86b",
    "role": "近身自爆 · 反轻甲",
    "counter": "接敌后自爆，伤害范围内地面敌军；会消耗自身",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -880,16 +1213,42 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": true,
    "pending": [
     "离心钩：未默认研究；不自动增加生命与移速"
+   ],
+   "primary_mode": "volatile_burst",
+   "attack_modes": [
+    {
+     "damage": 22,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 0.25,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 2.2,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "volatile_burst",
+     "label": "酸液自爆",
+     "attack_duration": 0.1,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
    ]
   },
   "roach": {
@@ -902,19 +1261,12 @@
    "hp": 145,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 22,
-   "interval": 1.43,
-   "range": 4,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "c98a5e",
    "role": "耐打前排 · 脱战回血",
    "counter": "自然回血；埋地加速回血与埋地移动待实现",
    "skills": {},
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -934,17 +1286,43 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "埋地回血 / 地下移动：待实现；移除旧的脱战20HP/秒假回血；只保留基础自然回血"
+   ],
+   "primary_mode": "acid_spit",
+   "attack_modes": [
+    {
+     "damage": 22,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4,
+     "interval": 1.43,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "acid_spit",
+     "label": "酸液喷吐",
+     "attack_duration": 0.22,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
    ]
   },
   "hydralisk": {
@@ -957,19 +1335,11 @@
    "hp": 90,
    "armor_type": "light",
    "armor": 3,
-   "damage": 15,
-   "interval": 0.59,
-   "range": 5,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "d87ec4",
    "role": "中排高输出 · 对空对地",
    "counter": "高 DPS、能对空；身板脆，怕溅射",
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1,
     1
@@ -989,17 +1359,44 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "肌肉强化 / 针刺射程 / 冲刺：未默认研究；射程当前为基础5格；专属科技另行确认"
+   ],
+   "primary_mode": "needle_spines",
+   "attack_modes": [
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5,
+     "interval": 0.59,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "needle_spines",
+     "label": "骨针射击",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
    ]
   },
   "ravager": {
@@ -1015,11 +1412,7 @@
    "hp": 120,
    "armor_type": "none",
    "armor": 4,
-   "damage": 22,
-   "interval": 1.14,
-   "range": 6,
    "speed": 3.85,
-   "splash": 0.0,
    "color": "f07a5a",
    "role": "腐蚀胆汁 · 延迟范围",
    "counter": "胆汁能打建筑与静止单位；可被躲开",
@@ -1040,9 +1433,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -1062,17 +1452,43 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "腐蚀胆汁：简化实现；自动选择位置；投射/落地时间待确认"
+   ],
+   "primary_mode": "plasma_spit",
+   "attack_modes": [
+    {
+     "damage": 22,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 1.14,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "plasma_spit",
+     "label": "等离子喷吐",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
    ]
   },
   "piercer": {
@@ -1088,14 +1504,7 @@
    "hp": 190,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 26,
-   "bonus": {
-    "heavy": 13
-   },
-   "interval": 1.43,
-   "range": 8,
    "speed": 4.13,
-   "splash": 0.0,
    "color": "d6a1f4",
    "role": "埋地穿刺 · 直线伤害",
    "counter": "克制纵列敌军；怕分散与远程炮击",
@@ -1108,17 +1517,9 @@
      "hold_range_multiplier": 1.2,
      "mode": "burrow"
     },
-    "line_attack": {
-     "pattern": "forward",
-     "speed": 9.2857,
-     "half_width": 0.5,
-     "effect": "spike"
-    }
+    "line_attack": {}
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -1138,16 +1539,48 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "埋地攻击 / 直线地刺：简化实现；隐身/探测尚未接入，几何与传播速度需确认"
+   ],
+   "primary_mode": "lurker_spines",
+   "attack_modes": [
+    {
+     "damage": 26,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 13
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8,
+     "interval": 1.43,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "lurker_spines",
+     "label": "地刺穿透",
+     "attack_duration": 0.25,
+     "continue_on_target_death": false,
+     "delivery": {
+      "pattern": "forward",
+      "speed": 9.2857,
+      "half_width": 0.5,
+      "effect": "spike",
+      "type": "wave",
+      "tracking": false
+     }
+    }
    ]
   },
   "tunneler": {
@@ -1163,18 +1596,11 @@
    "hp": 160,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 0,
-   "interval": 1,
-   "range": 7,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "b07850",
    "role": "召唤蝗虫 · 远程消耗",
    "counter": "每43秒从自身附近产生2只限时蝗虫；本体无普通攻击",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -1207,20 +1633,44 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "孵化蝗虫：简化实现；内部ID保留tunneler以兼容存档；目前生成地面蝗虫",
     "埋地 / 飞行蝗虫 / 俯冲：待实现；不再使用虚构钻地突入能力"
    ],
-   "attacks_base": false
+   "primary_mode": "swarm_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "swarm_support",
+     "label": "孵化支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "mutalisk": {
    "name": "飞龙",
@@ -1236,15 +1686,7 @@
    "armor_type": "light",
    "armor": 3,
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "damage": 12,
-   "interval": 1.09,
-   "range": 3,
    "speed": 5.6,
-   "splash": 0.0,
    "color": "c7a0ff",
    "role": "高速飞越 · 弹射攻击",
    "counter": "飞行越过地面前排，刃虫连续弹射三名敌人，伤害逐次降低",
@@ -1274,16 +1716,43 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
-   "pending": []
+   "pending": [],
+   "primary_mode": "glaive_wurm",
+   "attack_modes": [
+    {
+     "damage": 12,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 3,
+     "interval": 1.09,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "glaive_wurm",
+     "label": "刃虫弹射",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "infestor": {
    "name": "感染虫",
@@ -1298,11 +1767,7 @@
    "hp": 90,
    "armor_type": "heavy",
    "armor": 3,
-   "damage": 0,
-   "interval": 1,
-   "range": 10,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "9fd07a",
    "role": "真菌增生 · 区域减速",
    "counter": "真菌增生减速并持续伤害；神经寄生与微生物护罩待实现",
@@ -1326,16 +1791,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false,
    "shield": 0,
    "shield_armor": 0,
    "energy": 200,
@@ -1352,18 +1812,44 @@
     "psionic",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "真菌增生：简化实现；随目标持续伤害与减速已接入；弹道、揭隐及禁传送未完整实现",
     "神经寄生 / 微生物护罩：待实现"
+   ],
+   "primary_mode": "infestation_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 10,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "infestation_support",
+     "label": "感染支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
    ]
   },
   "ultralisk": {
@@ -1379,18 +1865,11 @@
    "hp": 500,
    "armor_type": "heavy",
    "armor": 5,
-   "damage": 44,
-   "interval": 0.61,
-   "range": 1,
    "speed": 4.13,
-   "splash": 1.4286,
    "color": "e0b8a0",
    "role": "巨型前排 · 顺劈",
    "counter": "重甲巨型生物，近战顺劈；狂暴免疫待实现",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     2.5,
     2.5
@@ -1411,20 +1890,44 @@
     "biological",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 1.25,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": true,
    "pending": [
     "狂暴免疫 / 巨型推开友军：待实现；不把其伪装成特殊甲",
     "甲壳强化 / 合成代谢：未默认研究"
    ],
-   "splash_multiplier": 0.33
+   "primary_mode": "kaiser_blades",
+   "attack_modes": [
+    {
+     "damage": 44,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 1,
+     "interval": 0.61,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.4286,
+     "splash_multiplier": 0.33,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "kaiser_blades",
+     "label": "巨刃横扫",
+     "attack_duration": 0.35,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "brood_lord": {
    "name": "巢虫领主",
@@ -1440,14 +1943,7 @@
    "armor_type": "heavy",
    "armor": 4,
    "layer": "air",
-   "target_layers": [
-    "ground"
-   ],
-   "damage": 26,
-   "interval": 1.79,
-   "range": 10,
    "speed": 2.24,
-   "splash": 0.0,
    "color": "a080d0",
    "role": "远程空投 · 召唤巢虫",
    "counter": "每次命中生成临时巢虫；怕对空",
@@ -1481,16 +1977,42 @@
     "biological",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 2,
    "collision_radius": 1.25,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
-   "pending": []
+   "pending": [],
+   "primary_mode": "broodling_strike",
+   "attack_modes": [
+    {
+     "damage": 26,
+     "hit_count": 2,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 10,
+     "interval": 1.79,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "broodling_strike",
+     "label": "巢虫轰击",
+     "attack_duration": 0.3,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "vanguard": {
    "name": "先锋",
@@ -1503,18 +2025,11 @@
    "shield": 50,
    "armor_type": "light",
    "armor": 4,
-   "damage": 11,
-   "interval": 0.86,
-   "range": 0.1,
    "speed": 4.725,
-   "splash": 0.0,
    "color": "7ed8ed",
    "role": "护盾近战 · 前排冲锋",
    "counter": "参考狂热者；每轮两段伤害，具有冲锋",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -1541,16 +2056,41 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 2,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": true,
-   "pending": []
+   "pending": [],
+   "primary_mode": "psi_blades",
+   "attack_modes": [
+    {
+     "damage": 11,
+     "hit_count": 2,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 0.1,
+     "interval": 0.86,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "psi_blades",
+     "label": "双刃斩击",
+     "attack_duration": 0.3,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "stalker": {
    "name": "追猎者",
@@ -1563,22 +2103,11 @@
    "shield": 80,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 16,
-   "bonus": {
-    "heavy": 8
-   },
-   "interval": 1.34,
-   "range": 6,
    "speed": 4.13,
-   "splash": 0.0,
    "color": "8fb8ff",
    "role": "中排机动 · 对空对地",
    "counter": "地空皆可，略克重甲；单发低，怕轻甲海",
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1,
     1
@@ -1604,16 +2133,46 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "闪烁：简化实现；沿用受伤后自动后撤的项目AI"
+   ],
+   "primary_mode": "particle_disruptor",
+   "attack_modes": [
+    {
+     "damage": 16,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 8
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 1.34,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "particle_disruptor",
+     "label": "粒子碎裂炮",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
    ]
   },
   "sentry": {
@@ -1630,11 +2189,7 @@
    "shield": 40,
    "armor_type": "none",
    "armor": 4,
-   "damage": 9,
-   "interval": 0.71,
-   "range": 5,
    "speed": 3.5,
-   "splash": 0.0,
    "color": "a0f0f0",
    "role": "守护光环 · 远程减伤",
    "counter": "附近友军受远程伤害降低",
@@ -1649,10 +2204,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1,
     1
@@ -1673,17 +2224,44 @@
     "psionic",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 4,
-   "range_from_edge": false,
    "pending": [
     "力场 / 幻象：待实现"
+   ],
+   "primary_mode": "disruption_beam",
+   "attack_modes": [
+    {
+     "damage": 9,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 4,
+     "range_from_edge": false,
+     "range": 5,
+     "interval": 0.71,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "disruption_beam",
+     "label": "裂解光束",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    }
    ]
   },
   "immortal": {
@@ -1700,21 +2278,11 @@
    "shield": 100,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 26,
-   "bonus": {
-    "heavy": 39
-   },
-   "interval": 1.143,
-   "range": 6,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "f0d070",
    "role": "反重甲 · 坚固前排",
    "counter": "重击重甲单位；怕轻甲海与空军",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1.8,
     1.8
@@ -1741,15 +2309,44 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.9,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
-   "pending": []
+   "pending": [],
+   "primary_mode": "phase_disruptor",
+   "attack_modes": [
+    {
+     "damage": 26,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 39
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 1.143,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "phase_disruptor",
+     "label": "相位炮击",
+     "attack_duration": 0.25,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "high_templar": {
    "name": "高阶圣堂武士",
@@ -1765,11 +2362,7 @@
    "shield": 40,
    "armor_type": "light",
    "armor": 3,
-   "damage": 7,
-   "interval": 1.25,
-   "range": 6,
    "speed": 2.82,
-   "splash": 0.0,
    "color": "c0a0ff",
    "role": "灵能风暴 · 区域持续伤害",
    "counter": "有微弱对地普攻与灵能风暴；反馈、融合待实现",
@@ -1792,15 +2385,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": true,
    "shield_armor": 3,
    "energy": 200,
    "initial_energy": 50,
@@ -1816,17 +2405,43 @@
     "psionic",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "反馈 / 执政官融合：待实现"
+   ],
+   "primary_mode": "psi_blast",
+   "attack_modes": [
+    {
+     "damage": 7,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 1.25,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "psi_blast",
+     "label": "灵能冲击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    }
    ]
   },
   "archon": {
@@ -1843,19 +2458,11 @@
    "shield": 350,
    "armor_type": "none",
    "armor": 3,
-   "damage": 34,
-   "interval": 1.25,
-   "range": 3,
    "speed": 3.94,
-   "splash": 1.0,
    "color": "b0d8ff",
    "role": "能量巨像 · 短程溅射",
    "counter": "溅射攻击对生物额外加伤；无轻甲/重甲标签",
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1.6,
     1.6
@@ -1875,19 +2482,46 @@
     "psionic",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.8,
-   "bonus": {},
-   "bonus_tags": {
-    "biological": 13
-   },
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "生物加成 / 溅射：简化实现；生物标签加成已接入；分层溅射仍需完善"
+   ],
+   "primary_mode": "psionic_shockwave",
+   "attack_modes": [
+    {
+     "damage": 34,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {
+      "biological": 13
+     },
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 3,
+     "interval": 1.25,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "psionic_shockwave",
+     "label": "灵能震荡",
+     "attack_duration": 0.25,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
    ]
   },
   "colossus": {
@@ -1904,30 +2538,14 @@
    "shield": 100,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 13,
-   "bonus": {
-    "light": 8
-   },
-   "interval": 1.07,
-   "range": 7,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "ffd580",
    "role": "双束扫射 · 横向伤害",
    "counter": "克制横排轻甲；怕反重甲与对空武器",
    "skills": {
-    "line_attack": {
-     "pattern": "transverse",
-     "length": 6.4286,
-     "speed": 6.4286,
-     "half_width": 0.5,
-     "effect": "beam"
-    }
+    "line_attack": {}
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     2.5,
     2.5
@@ -1951,16 +2569,49 @@
     "mechanical",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 2,
    "collision_radius": 1.25,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "热能射线射程 / 跨越悬崖：未默认研究；基础射程7；没有高度地形系统"
+   ],
+   "primary_mode": "thermal_lances",
+   "attack_modes": [
+    {
+     "damage": 13,
+     "hit_count": 2,
+     "bonus": {
+      "light": 8
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 1.07,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "thermal_lances",
+     "label": "双束热能扫射",
+     "attack_duration": 0.4,
+     "continue_on_target_death": false,
+     "delivery": {
+      "pattern": "transverse",
+      "length": 6.4286,
+      "speed": 6.4286,
+      "half_width": 0.5,
+      "effect": "beam",
+      "type": "wave",
+      "tracking": false
+     }
+    }
    ]
   },
   "disruptor": {
@@ -1977,11 +2628,7 @@
    "shield": 100,
    "armor_type": "heavy",
    "armor": 4,
-   "damage": 0,
-   "interval": 1,
-   "range": 13,
    "speed": 3.15,
-   "splash": 0.0,
    "color": "e0e0ff",
    "role": "净化新星 · 延迟巨量范围",
    "counter": "延迟后巨量范围伤害，长冷却；可被躲开",
@@ -2006,15 +2653,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false,
    "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
@@ -2028,17 +2671,42 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "净化新星：简化实现；伤害与护盾加伤已接入；仍使用自动选点固定落点，不可手控球"
+   ],
+   "primary_mode": "purification_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 13,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "purification_support",
+     "label": "净化支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
    ]
   },
   "void_ray": {
@@ -2056,18 +2724,7 @@
    "armor_type": "heavy",
    "armor": 3,
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "damage": 9,
-   "bonus": {
-    "heavy": 4
-   },
-   "interval": 0.36,
-   "range": 6,
    "speed": 3.85,
-   "splash": 0.0,
    "color": "c8b0ff",
    "role": "棱镜光束 · 反重甲",
    "counter": "棱镜校准暂时提高对重甲伤害并降低自身移速",
@@ -2100,15 +2757,45 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.5,
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
-   "pending": []
+   "pending": [],
+   "primary_mode": "prismatic_beam",
+   "attack_modes": [
+    {
+     "damage": 9,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 4
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 0.36,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "prismatic_beam",
+     "label": "棱镜光束",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "fixed",
+      "seconds": 0.05,
+      "tracking": true
+     }
+    }
+   ]
   },
   "carrier": {
    "name": "航母",
@@ -2125,15 +2812,7 @@
    "armor_type": "heavy",
    "armor": 5,
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "damage": 0,
-   "interval": 1,
-   "range": 8,
    "speed": 2.62,
-   "splash": 0.0,
    "color": "f0e0b0",
    "role": "母舰 · 放出拦截机",
    "counter": "逐架放出最多 8 架可被攻击的拦截机；母舰死亡时拦截机消失",
@@ -2155,8 +2834,6 @@
     3
    ],
    "spawn_count": 1,
-   "attacks_base": true,
-   "attacks_structures": true,
    "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
@@ -2171,17 +2848,43 @@
     "mechanical",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 1.5,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "发射拦截机：简化实现；没有回收/补盾/付费制造机库循环"
+   ],
+   "primary_mode": "interceptor_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "interceptor_support",
+     "label": "舰载机支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
    ]
   },
   "swarm": {
@@ -2194,18 +2897,11 @@
    "hp": 90,
    "armor_type": "light",
    "armor": 0,
-   "damage": 15,
-   "interval": 0.55,
-   "range": 0.7857,
    "speed": 3,
-   "splash": 0.0,
    "color": "dc9af2",
    "role": "快速近战 · 数量包围",
    "counter": "克制孤立后排；怕溅射与喷火",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     0.5,
     0.5
@@ -2225,11 +2921,40 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.25
+   "collision_radius": 0.25,
+   "primary_mode": "swarm_bite",
+   "attack_modes": [
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 0.7857,
+     "interval": 0.55,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "swarm_bite",
+     "label": "蜂群撕咬",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "rotling": {
    "name": "腐仆",
@@ -2241,18 +2966,11 @@
    "hp": 55,
    "armor_type": "none",
    "armor": 0,
-   "damage": 12,
-   "interval": 0.46,
-   "range": 0.7857,
    "speed": 2.5,
-   "splash": 0.0,
    "color": "9ccf6a",
    "role": "廉价尸潮 · 一格多只",
    "counter": "一格出多只；单只极弱",
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -2272,11 +2990,40 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "rotting_claws",
+   "attack_modes": [
+    {
+     "damage": 12,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 0.7857,
+     "interval": 0.46,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "rotting_claws",
+     "label": "腐爪攻击",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "splitter": {
    "name": "分裂尸",
@@ -2291,11 +3038,7 @@
    "hp": 200,
    "armor_type": "light",
    "armor": 0,
-   "damage": 18,
-   "interval": 0.8,
-   "range": 0.7857,
    "speed": 2.125,
-   "splash": 0.0,
    "color": "b4d878",
    "role": "死亡分裂 · 消耗",
    "counter": "死亡时分裂成 2 只腐仆",
@@ -2306,9 +3049,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -2328,11 +3068,40 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "corpse_claws",
+   "attack_modes": [
+    {
+     "damage": 18,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 0.7857,
+     "interval": 0.8,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "corpse_claws",
+     "label": "裂尸挥击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "bloater": {
    "name": "膨胀者",
@@ -2347,11 +3116,7 @@
    "hp": 270,
    "armor_type": "light",
    "armor": 0,
-   "damage": 15,
-   "interval": 1,
-   "range": 0.7857,
    "speed": 1.625,
-   "splash": 0.0,
    "color": "8fbf50",
    "role": "慢速肉盾 · 死后毒云",
    "counter": "死亡留下腐毒云，持续伤害",
@@ -2367,9 +3132,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
@@ -2389,11 +3151,40 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "bloated_strike",
+   "attack_modes": [
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 0.7857,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "bloated_strike",
+     "label": "膨胀冲击",
+     "attack_duration": 0.25,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "spitter": {
    "name": "喷吐者",
@@ -2408,14 +3199,7 @@
    "hp": 150,
    "armor_type": "light",
    "armor": 0,
-   "damage": 21,
-   "bonus": {
-    "heavy": 9
-   },
-   "interval": 0.8,
-   "range": 5.0,
    "speed": 2.125,
-   "splash": 0.0,
    "color": "c0e070",
    "role": "中排酸液 · 对空对地",
    "counter": "酸液略克重甲，地空皆可；身板脆",
@@ -2427,10 +3211,6 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "size": [
     1,
     1
@@ -2450,11 +3230,44 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "toxic_spit",
+   "attack_modes": [
+    {
+     "damage": 21,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 9
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5.0,
+     "interval": 0.8,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "toxic_spit",
+     "label": "毒液喷吐",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "fly_swarm": {
    "name": "腐蝇群",
@@ -2470,15 +3283,7 @@
    "armor_type": "light",
    "armor": 0,
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "damage": 15,
-   "interval": 0.6,
-   "range": 2.0,
    "speed": 3.125,
-   "splash": 0.0,
    "color": "d0e890",
    "role": "飞行骚扰 · 地空皆可",
    "counter": "便宜的空中骚扰；怕对空溅射",
@@ -2501,11 +3306,42 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "fly_bite",
+   "attack_modes": [
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 2.0,
+     "interval": 0.6,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "fly_bite",
+     "label": "腐蝇啃噬",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "spore_drifter": {
    "name": "孢子漂浮体",
@@ -2521,14 +3357,6 @@
    "armor_type": "light",
    "armor": 0,
    "layer": "air",
-   "target_layers": [
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 30,
-   "interval": 0.86,
-   "range": 7.0,
-   "splash": 1.0714,
    "speed": 1.625,
    "color": "e0f0a0",
    "role": "对空溅射 · 漂浮炮台",
@@ -2563,11 +3391,41 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "spore_shot",
+   "attack_modes": [
+    {
+     "damage": 30,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7.0,
+     "interval": 0.86,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.0714,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "spore_shot",
+     "label": "孢子射击",
+     "attack_duration": 0.25,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "abomination": {
    "name": "缝合巨尸",
@@ -2582,19 +3440,12 @@
    "hp": 900,
    "armor_type": "heavy",
    "armor": 3,
-   "damage": 45,
-   "interval": 1.0,
-   "range": 0.9286,
    "speed": 1.75,
-   "splash": 1.0714,
    "color": "a8c070",
    "role": "高血肉盾 · 顺劈再生",
    "counter": "慢速高血、近战溅射、脱战再生；怕反重甲与风筝",
    "skills": {},
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     2,
     2
@@ -2615,11 +3466,40 @@
     "biological",
     "massive"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 1.0
+   "collision_radius": 1.0,
+   "primary_mode": "stitched_cleaver",
+   "attack_modes": [
+    {
+     "damage": 45,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 0.9286,
+     "interval": 1.0,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 1.0714,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "stitched_cleaver",
+     "label": "巨尸劈砍",
+     "attack_duration": 0.35,
+     "continue_on_target_death": true,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "plague_herald": {
    "name": "瘟疫使者",
@@ -2634,11 +3514,7 @@
    "hp": 200,
    "armor_type": "light",
    "armor": 0,
-   "damage": 0,
-   "interval": 1,
-   "range": 5.0,
    "speed": 1.875,
-   "splash": 0.0,
    "color": "7fa040",
    "role": "瘟疫光环 · 持续掉血",
    "counter": "周围敌人持续掉血，友军攻速提高",
@@ -2650,15 +3526,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -2674,11 +3546,40 @@
     "biological",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "plague_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5.0,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "plague_support",
+     "label": "瘟疫支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "gravedigger": {
    "name": "掘墓人",
@@ -2693,11 +3594,7 @@
    "hp": 200,
    "armor_type": "light",
    "armor": 0,
-   "damage": 0,
-   "interval": 1,
-   "range": 5.0,
    "speed": 1.875,
-   "splash": 0.0,
    "color": "90a870",
    "role": "尸体复生 · 临时腐仆",
    "counter": "附近单位死亡时有几率复生为临时腐仆",
@@ -2711,15 +3608,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": false,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -2735,11 +3628,40 @@
     "biological",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "corpse_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5.0,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "corpse_support",
+     "label": "复生支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "brood_mother": {
    "name": "腐化之母",
@@ -2754,11 +3676,7 @@
    "hp": 430,
    "armor_type": "heavy",
    "armor": 3,
-   "damage": 0,
-   "interval": 1,
-   "range": 8,
    "speed": 1.875,
-   "splash": 0.0,
    "color": "b0d060",
    "role": "周期召唤 · 腐仆冲锋",
    "counter": "周期生成一批临时腐仆",
@@ -2775,16 +3693,11 @@
     }
    },
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "size": [
     1,
     1
    ],
    "spawn_count": 1,
-   "attacks_base": true,
-   "attacks_structures": true,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -2800,11 +3713,40 @@
     "biological",
     "caster"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 0.5
+   "collision_radius": 0.5,
+   "primary_mode": "brood_support",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8,
+     "interval": 1,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "brood_support",
+     "label": "孵化支援（无普通攻击）",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "gate_tower": {
    "name": "基地防御模块",
@@ -2815,16 +3757,7 @@
    "hp": 5000,
    "armor_type": "heavy",
    "armor": 0,
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 300,
-   "interval": 0.2,
-   "range": 8,
    "speed": 0.0,
-   "splash": 0.0,
    "color": "9fd8ff",
    "role": "基地一体防御 · 单体反击",
    "counter": "额外5000生命耗尽后永久失去反击，生命上限降为10000",
@@ -2845,12 +3778,42 @@
    "energy_regen_delay": 0,
    "unit_type": "structure",
    "tags": [],
-   "damage_type": "true",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.75,
-   "attacks_structures": true
+   "primary_mode": "base_defense",
+   "attack_modes": [
+    {
+     "damage": 300,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "true",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8,
+     "interval": 0.2,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "base_defense",
+     "label": "基地防御炮",
+     "attack_duration": 0.05,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "treasury": {
    "name": "宝库",
@@ -2861,16 +3824,7 @@
    "hp": 5000,
    "armor_type": "heavy",
    "armor": 3,
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 10,
-   "interval": 1.0,
-   "range": 4.2857,
    "speed": 0.0,
-   "splash": 0.0,
    "color": "f5c542",
    "role": "战场宝库 · 反击很弱",
    "counter": "被摧毁时攻击方获得矿物奖励",
@@ -2891,11 +3845,42 @@
    "energy_regen_delay": 0,
    "unit_type": "structure",
    "tags": [],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 1.0
+   "collision_radius": 1.0,
+   "primary_mode": "treasury_guard",
+   "attack_modes": [
+    {
+     "damage": 10,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4.2857,
+     "interval": 1.0,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "treasury_guard",
+     "label": "宝库守卫炮",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "tower": {
    "name": "防御塔",
@@ -2906,16 +3891,7 @@
    "hp": 1500,
    "armor_type": "heavy",
    "armor": 3,
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 70,
-   "interval": 1.2,
-   "range": 8.5714,
    "speed": 0.0,
-   "splash": 0.0,
    "color": "b8a1ff",
    "role": "玩家建造 · 前期火力强",
    "counter": "单体攻击，敌军数量多时作用下降；被摧毁不给奖励",
@@ -2936,24 +3912,53 @@
    "energy_regen_delay": 0,
    "unit_type": "structure",
    "tags": [],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
-   "collision_radius": 1.0
+   "collision_radius": 1.0,
+   "primary_mode": "defense_cannon",
+   "attack_modes": [
+    {
+     "damage": 70,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 8.5714,
+     "interval": 1.2,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "defense_cannon",
+     "label": "防御炮击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "broodling": {
    "cost": 0,
    "status": "summoned",
    "armor_type": "light",
    "armor": 3,
-   "splash": 0,
    "size": [
     0.5,
     0.5
    ],
    "spawn_count": 1,
-   "attacks_base": true,
    "color": "d9c4ee",
    "role": "临时召唤单位",
    "counter": "由母体技能生成，不能直接购买",
@@ -2961,14 +3966,8 @@
    "symbol": "b",
    "race": "zerg",
    "hp": 20,
-   "damage": 7,
-   "interval": 0.57,
-   "range": 0.1,
    "speed": 4.13,
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -2983,29 +3982,52 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.25,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": true,
-   "pending": []
+   "pending": [],
+   "primary_mode": "broodling_claws",
+   "attack_modes": [
+    {
+     "damage": 7,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 0.1,
+     "interval": 0.57,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "broodling_claws",
+     "label": "巢虫撕咬",
+     "attack_duration": 0.15,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "instant",
+      "tracking": true
+     }
+    }
+   ]
   },
   "interceptor": {
    "cost": 0,
    "status": "summoned",
    "armor_type": "light",
    "armor": 3,
-   "splash": 0,
    "size": [
     0.5,
     0.5
    ],
    "spawn_count": 1,
-   "attacks_base": true,
    "color": "d9c4ee",
    "role": "临时召唤单位",
    "counter": "由母体技能生成，不能直接购买",
@@ -3014,15 +4036,8 @@
    "race": "protoss",
    "hp": 40,
    "shield": 40,
-   "damage": 8,
-   "interval": 2.14,
-   "range": 2,
    "speed": 10.5,
    "layer": "air",
-   "target_layers": [
-    "ground",
-    "air"
-   ],
    "skills": {},
    "shield_armor": 3,
    "energy": 0,
@@ -3037,16 +4052,43 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 2,
    "collision_radius": 0.25,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
-   "pending": []
+   "pending": [],
+   "primary_mode": "pulse_cannons",
+   "attack_modes": [
+    {
+     "damage": 8,
+     "hit_count": 2,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 2,
+     "interval": 2.14,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "pulse_cannons",
+     "label": "脉冲炮击",
+     "attack_duration": 0.2,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "terran_bunker": {
    "name": "防御塔",
@@ -3057,16 +4099,7 @@
    "hp": 1200,
    "armor_type": "heavy",
    "armor": 3,
-   "target_layers": [
-    "ground",
-    "air"
-   ],
-   "attacks_base": false,
-   "damage": 0,
-   "interval": 1,
-   "range": 7,
    "speed": 0,
-   "splash": 0.0,
    "color": "b8a1ff",
    "role": "驻军火力 · 独立索敌",
    "counter": "8名特战队员对空对地，2名劫掠者只对地；各自锁定与冷却",
@@ -3089,10 +4122,6 @@
    "tags": [
     "mechanical"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "skills": {
     "independent_weapons": {
      "weapons": [
@@ -3100,58 +4129,97 @@
        "id": "garrison_rifle",
        "label": "驻军特战队员",
        "count": 8,
-       "weapon": {
-        "damage": 15,
-        "bonus": {},
-        "range": 6,
-        "interval": 0.43,
-        "hit_count": 1,
-        "splash": 0,
-        "target_layers": [
-         "ground",
-         "air"
-        ],
-        "attacks_base": false,
-        "attacks_structures": true
-       }
+       "mode_id": "garrison_rifle"
       },
       {
        "id": "garrison_marauder",
        "label": "驻军劫掠者",
        "count": 2,
-       "weapon": {
-        "damage": 20,
-        "bonus": {
-         "heavy": 20
-        },
-        "range": 7,
-        "interval": 0.75,
-        "hit_count": 1,
-        "splash": 0,
-        "target_layers": [
-         "ground"
-        ],
-        "attacks_base": false,
-        "attacks_structures": true
-       }
+       "mode_id": "garrison_marauder"
       }
      ]
     }
    },
-   "collision_radius": 1.0
+   "collision_radius": 1.0,
+   "primary_mode": "garrison_rifle",
+   "attack_modes": [
+    {
+     "damage": 15,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 6,
+     "interval": 0.43,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "garrison_rifle",
+     "label": "驻军特战队员",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    },
+    {
+     "damage": 20,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 20
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 0.75,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "garrison_marauder",
+     "label": "驻军劫掠者",
+     "attack_duration": 0.18,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   },
   "locust": {
    "cost": 0,
    "status": "summoned",
    "armor_type": "light",
    "armor": 3,
-   "splash": 0,
    "size": [
     0.5,
     0.5
    ],
    "spawn_count": 1,
-   "attacks_base": true,
    "color": "d9c4ee",
    "role": "限时地面召唤单位",
    "counter": "持续18秒，仅攻击地面；飞行及俯冲阶段待实现",
@@ -3159,14 +4227,8 @@
    "symbol": "l",
    "race": "zerg",
    "hp": 50,
-   "damage": 13,
-   "interval": 0.43,
-   "range": 3,
    "speed": 2.62,
    "layer": "ground",
-   "target_layers": [
-    "ground"
-   ],
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -3181,20 +4243,46 @@
    "tags": [
     "biological"
    ],
-   "damage_type": "physical",
-   "windup": 0,
-   "backswing": 0,
-   "hit_count": 1,
    "collision_radius": 0.25,
-   "bonus": {},
-   "bonus_tags": {},
-   "shield_bonus": 0,
-   "range_from_edge": false,
    "pending": [
     "飞行蝗虫与俯冲落地阶段待实现",
     "飞行 / 俯冲落地：待实现"
    ],
-   "sc2": "蝗虫 Locust"
+   "sc2": "蝗虫 Locust",
+   "primary_mode": "locust_spit",
+   "attack_modes": [
+    {
+     "damage": 13,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 3,
+     "interval": 0.43,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "locust_spit",
+     "label": "蝗虫喷吐",
+     "attack_duration": 0.1,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "distance",
+      "speed": 20,
+      "tracking": true
+     }
+    }
+   ]
   }
  }
 }

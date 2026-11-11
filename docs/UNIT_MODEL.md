@@ -117,3 +117,6 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 
 
 2026-11-11 0.8.3：WeaponDefinition新增splash_inner_ratio（内圈半径/总半径，默认0不启用）和splash_inner_multiplier（内圈次目标伤害倍率），原splash_multiplier作为外圈/无分圈时的次目标倍率。公共queue_direct_strike按爆心与受击者中心距离选择倍率；主目标ID始终全伤，内圈边界归内圈，外圈边界归溅射。倍率缩放基础伤害及加成、护盾额外伤害，再逐次扣甲；可叠加多段攻击。坦克架设炮配置半径2.5、内圈比例0.5、内圈0.6、外圈0.3；未配置分圈的武器维持原规则，传播/范围法术/弹射不变。
+
+
+2026-11-11 0.9.0：攻击模式统一迁入attack_modes，每个模式完整保存伤害、类型、加成及时间/弹道；primary_mode指定默认。UnitDefinition不在模式之间隐式继承伤害，技能仅引用mode_id/mode_ids，to_data仍提供旧字段的运行时兼容投影。AttackCycle→AttackSequence→Projectile/Line→公共命中服务，正式JSON/Excel不再双份存储单位武器。详见ATTACK_MODES.md。

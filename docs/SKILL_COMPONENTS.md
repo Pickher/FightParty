@@ -124,3 +124,6 @@ services 下放的是所有组件可以复用的世界机制：
 
 
 2026-11-09 0.8.0：新增weapon_buff组件，用可配置的持续时间、冷却、对甲额外伤害与移动倍率实现棱镜校准。summon新增spawn_at_owner配置，用于虫群宿主。delayed_area新增dot_on_impact/slow_multiplier以区分随目标DOT和固定区域，以及channel_seconds限制移动；既有腐族参数不变。
+
+
+2026-11-11 0.9.0：weapon_switch使用mode_ids，deployment/defender_zone及独立炮位使用mode_id引用单位的attack_modes，运行时解析为武器模板。line_attack的轨迹几何参数迁入模式delivery，组件保留为技能标记/旧入口。chain_attack改为命中时触发，命中技能配置随弹体保存，射手死亡后仍可结算；弹射排除自身递归。普通攻击的持续时间与段数由公共AttackSequence调度，组件不再自行一次循环发出所有段。

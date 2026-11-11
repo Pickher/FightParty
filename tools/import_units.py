@@ -84,6 +84,8 @@ def parse_units(path, current):
         if any(s.get('name') == '源数据' for s in book.findall('s:sheets/s:sheet', NS)):
             from unit_workbook import parse_workbook
             return parse_workbook(path, current, read_rows)
+    if any('attack_modes' in unit for unit in current['units'].values()):
+        raise ValueError('当前源码已使用独立攻击模式；旧版“兵种”单页格式无法表达这些数据，请使用data/units/兵种配置.xlsx。')
     rows = read_rows(path)
     headers = rows.get(5, {})
     if len(headers.values()) != len(set(str(v) for v in headers.values())):

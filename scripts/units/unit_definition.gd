@@ -58,50 +58,70 @@ func _init(unit_kind: String, parameters: Dictionary, rules: Dictionary = {}) ->
 	energy_regen = maxf(0.0, float(parameters.get("energy_regen", 0)))
 	energy_regen_delay = maxf(0.0, float(parameters.get("energy_regen_delay", 0)))
 	skills = parameters.get("skills", {}).duplicate(true)
-	# 顶层旧武器字段继续可读；新配置可把主武器写进 weapon。
-	var primary_data := parameters.duplicate(true)
-	primary_data.merge(parameters.get("weapon", {}), true)
-	primary_weapon = WeaponDefinition.new(primary_data)
-	primary_weapon_data = primary_weapon.to_data()
-	weapons["primary"] = primary_weapon
-	if skills.has("weapon_switch"):
-		var modes: Array = skills.weapon_switch.weapons
-		for i in range(modes.size()):
-			var mode: Dictionary = primary_weapon.to_data()
-			mode["bonus"] = {}
-			mode["bonus_tags"] = {}
-			mode.merge(modes[i], true)
-			mode.id = str(modes[i].get("id", "mode_%d" % i))
-			# 不继承主武器的结构体开火开关覆盖模式自身的 attacks_base。
-			if not modes[i].has("attacks_structures"):
-				mode.attacks_structures = bool(mode.get("attacks_base", true))
-			var definition = WeaponDefinition.new(mode, "mode_%d" % i)
+	# 正式数据的每个模式均独立构造，伤害与加成不从单位继承。
+	if parameters.has("attack_modes"):
+		for mode in parameters.attack_modes:
+			var definition = WeaponDefinition.new(mode,str(mode.id))
 			weapons[definition.id] = definition
-			modes[i] = definition.to_data()
-	for skill_id in ["deployment","defender_zone"]:
-		if not skills.has(skill_id) or not skills[skill_id].has("weapon"):continue
-		var configured: Dictionary = skills[skill_id].weapon
-		var deployed: Dictionary = primary_weapon.to_data()
-		deployed.merge(configured, true)
-		deployed.id = "deployed" if skill_id=="deployment" else "defense"
-		if not configured.has("attacks_structures"):
-			deployed.attacks_structures=bool(deployed.get("attacks_base",true))
-		var definition = WeaponDefinition.new(deployed,str(deployed.id))
-		weapons[definition.id] = definition
-		skills[skill_id].weapon = definition.to_data()
+		var primary_id: String = str(parameters.get("primary_mode",parameters.attack_modes[0].id))
+		primary_weapon = weapons[primary_id]
+		primary_weapon_data = primary_weapon.to_data()
+		if skills.has("weapon_switch"):
+			skills.weapon_switch.weapons = []
+			for mode_id in skills.weapon_switch.mode_ids:
+				skills.weapon_switch.weapons.append(weapons[mode_id].to_data())
+		for key in ["deployment","defender_zone"]:
+			if skills.has(key) and skills[key].has("mode_id"):
+				skills[key].weapon = weapons[skills[key].mode_id].to_data()
+		if skills.has("independent_weapons"):
+			for group in skills.independent_weapons.weapons:
+				group.weapon = weapons[group.mode_id].to_data()
+	else:
+		# 仅兼容旧测试注入/旧配置；当前JSON已全部使用attack_modes。
+		# 顶层旧武器字段继续可读；新配置可把主武器写进 weapon。
+		var primary_data := parameters.duplicate(true)
+		primary_data.merge(parameters.get("weapon", {}), true)
+		primary_weapon = WeaponDefinition.new(primary_data)
+		primary_weapon_data = primary_weapon.to_data()
+		weapons["primary"] = primary_weapon
+		if skills.has("weapon_switch"):
+			var modes: Array = skills.weapon_switch.weapons
+			for i in range(modes.size()):
+				var mode: Dictionary = primary_weapon.to_data()
+				mode["bonus"] = {}
+				mode["bonus_tags"] = {}
+				mode.merge(modes[i], true)
+				mode.id = str(modes[i].get("id", "mode_%d" % i))
+				# 不继承主武器的结构体开火开关覆盖模式自身的 attacks_base。
+				if not modes[i].has("attacks_structures"):
+					mode.attacks_structures = bool(mode.get("attacks_base", true))
+				var definition = WeaponDefinition.new(mode, "mode_%d" % i)
+				weapons[definition.id] = definition
+				modes[i] = definition.to_data()
+		for skill_id in ["deployment","defender_zone"]:
+			if not skills.has(skill_id) or not skills[skill_id].has("weapon"):continue
+			var configured: Dictionary = skills[skill_id].weapon
+			var deployed: Dictionary = primary_weapon.to_data()
+			deployed.merge(configured, true)
+			deployed.id = "deployed" if skill_id=="deployment" else "defense"
+			if not configured.has("attacks_structures"):
+				deployed.attacks_structures=bool(deployed.get("attacks_base",true))
+			var definition = WeaponDefinition.new(deployed,str(deployed.id))
+			weapons[definition.id] = definition
+			skills[skill_id].weapon = definition.to_data()
 
-	if skills.has("independent_weapons"):
-		for group in skills.independent_weapons.weapons:
-			var data: Dictionary = primary_weapon.to_data()
-			data.bonus={}
-			data.bonus_tags={}
-			data.merge(group.weapon,true)
-			data.id=str(group.id)
-			if not group.weapon.has("attacks_structures"):
-				data.attacks_structures=bool(data.get("attacks_base",true))
-			var definition = WeaponDefinition.new(data,str(group.id))
-			weapons[definition.id]=definition
-			group.weapon=definition.to_data()
+		if skills.has("independent_weapons"):
+			for group in skills.independent_weapons.weapons:
+				var data: Dictionary = primary_weapon.to_data()
+				data.bonus={}
+				data.bonus_tags={}
+				data.merge(group.weapon,true)
+				data.id=str(group.id)
+				if not group.weapon.has("attacks_structures"):
+					data.attacks_structures=bool(data.get("attacks_base",true))
+				var definition = WeaponDefinition.new(data,str(group.id))
+				weapons[definition.id]=definition
+				group.weapon=definition.to_data()
 
 func has_tag(tag: String) -> bool:
 	return tags.has(tag)

@@ -1,6 +1,7 @@
 extends RefCounted
 ## 基地只用一份生命池；防御层、攻击周期均为可保存的纯字典状态。
 const AttackCycle = preload("res://scripts/units/attack_cycle.gd")
+const Sequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
 
 static func create(active: bool) -> Dictionary:
 	var state := AttackCycle.create()
@@ -55,6 +56,7 @@ static func fire(sim, frame: Dictionary) -> void:
 		var shot: Dictionary = frame.duplicate()
 		shot.unit = source
 		shot.target = target
+		shot.weapon = weapon
+		shot.goal = target.pos
 		shot.damage_multiplier = 1.0
-		sim.queue_direct_strike(shot, weapon, target, 0)
-		sim.events.append({"type":"attack","from":source.pos,"to":target.pos,"kind":"gate_tower","team":team,"splash":0.0})
+		Sequences.launch(shot,state,-1,team)

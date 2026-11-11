@@ -13,7 +13,7 @@ const SKILL_NAMES := {
 	"independent_weapons":"驻军火力"
 }
 const EFFECT_NAMES := {"flame":"火焰喷射","spike":"地刺","beam":"双束扫射","bile":"腐蚀胆汁","fungal":"真菌增生","storm":"灵能风暴","nova":"净化新星"}
-const MODE_NAMES := {"high_impact":"高爆","javelin":"导弹","hammer":"对地","armor_piercing":"穿甲","precision":"狙击","ats_laser":"对地","ata_laser":"对空"}
+const MODE_NAMES := {"high_impact":"高射","javelin":"导弹","hammer":"重炮","armor_piercing":"穿甲","precision":"狙击","ats_laser":"对地","ata_laser":"对空","siege_cannon":"架设","mobile_cannon":"机动","defender_cannon":"防卫","garrison_rifle":"驻军枪兵","garrison_marauder":"驻军劫掠者"}
 const TAG_NAMES := {"biological":"生物","mechanical":"机械","massive":"巨型","psionic":"灵能","structure":"建筑","light":"轻甲","heavy":"重甲"}
 
 static func number(value) -> String:
@@ -22,6 +22,10 @@ static func number(value) -> String:
 static func weapons(stats: Dictionary) -> Array:
 	var skills: Dictionary = stats.get("skills",{})
 	var result: Array = []
+	if stats.has("attack_modes"):
+		for mode in stats.attack_modes:
+			result.append({"label":"" if stats.attack_modes.size()==1 else MODE_NAMES.get(str(mode.id),mode.label),"data":mode})
+		return result
 	if skills.has("weapon_switch"):
 		for mode in skills.weapon_switch.weapons:
 			result.append({"label":MODE_NAMES.get(str(mode.id),mode.get("label","")),"data":mode})

@@ -62,9 +62,10 @@ func event(event_data: Dictionary, before: Dictionary, _units: Array, revealed: 
 		var impulse: Vector2 = pose.get("impact",-Vector2.from_angle(facing*PI/4.0))
 		corpses.append({"pos":event_data.pos,"direction":poses.get(unit.id,{}).get("direction",0 if unit.team == 0 else 4),"at":clock,"impulse":impulse})
 	if event_data.type == "attack" and event_data.kind == "rifle":
-		# Existing attack events have no attacker ID. Match same-team source position.
+		# 分段弹道带source_id，兼容旧事件的位置匹配。
 		for unit in before.values():
-			if unit.kind == "rifle" and unit.team == event_data.team and unit.pos.is_equal_approx(event_data.from) and poses.has(unit.id):
+			var matches_source: bool = int(event_data.source_id)==int(unit.id) if event_data.has("source_id") else unit.pos.is_equal_approx(event_data.from)
+			if unit.kind == "rifle" and unit.team == event_data.team and matches_source and poses.has(unit.id):
 				var pose: Dictionary = poses[unit.id]
 				pose.direction = direction(event_data.to - event_data.from)
 				pose.fire_at = clock

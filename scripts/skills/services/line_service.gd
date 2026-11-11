@@ -5,34 +5,35 @@ const MOVE_MARGIN := 1.0
 ## 一个普通攻击周期生成 count 条独立传播轨迹；每条有自己的命中记录。
 ## forward 从自身出发；transverse 以目标位置为中心，垂直于开火方向扫过。
 static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, multiplier: float = 1.0) -> void:
-	var stats: Dictionary = sim._weapon_stats(unit).duplicate(true)
+	var stats: Dictionary = sim._weapon_stats(unit)
+	for strike in range(sim.skill_system.attack_count(sim,unit,stats)):
+		launch_strike(sim,unit,goal,config,stats,strike,multiplier,unit.pos,0.0,sim.skill_system.impact_configs(unit))
+
+## 单段出手只创建一条轨迹，段间节奏由AttackSequence统一调度。
+static func launch_strike(sim, unit: Dictionary, goal: Vector2, config: Dictionary, weapon: Dictionary, strike: int, multiplier: float, source: Vector2, fire_offset: float, impact_skills: Dictionary) -> void:
+	var stats := weapon.duplicate(true)
 	stats.damage=float(stats.damage)*multiplier
 	stats.shield_bonus=float(stats.get("shield_bonus",0))*multiplier
-	if stats.has("bonus"):
-		for key in stats.bonus:stats.bonus[key]=float(stats.bonus[key])*multiplier
-	if stats.has("bonus_tags"):
-		for key in stats.bonus_tags:stats.bonus_tags[key]=float(stats.bonus_tags[key])*multiplier
-	var forward: Vector2 = (goal - unit.pos).normalized()
-	if forward == Vector2.ZERO:
-		forward = Vector2.RIGHT if unit.team == 0 else Vector2.LEFT
+	for key in stats.get("bonus",{}):stats.bonus[key]=float(stats.bonus[key])*multiplier
+	for key in stats.get("bonus_tags",{}):stats.bonus_tags[key]=float(stats.bonus_tags[key])*multiplier
+	var forward: Vector2 = (goal-source).normalized()
+	if forward==Vector2.ZERO:forward=Vector2.RIGHT if unit.team==0 else Vector2.LEFT
 	var length: float = float(config.get("length",stats.range))
-	for strike in range(sim.skill_system.attack_count(sim,unit,stats)):
-		var origin: Vector2 = unit.pos
-		var direction: Vector2 = forward
-		if config.pattern == "transverse":
-			var side: Vector2 = Vector2(-forward.y,forward.x) * (1.0 if strike%2==0 else -1.0)
-			origin = goal + side * length * 0.5
-			direction = -side
-		sim.attack_waves.append({"origin":origin,"direction":direction,"source":unit.pos,
-			"team":unit.team,"kind":unit.kind,"effect":config.effect,"strike":strike,
-			"distance":0.0,"length":length,"speed":float(config.speed),
-			"half_width":float(config.half_width),"damage":float(stats.damage),
-			"bonus":stats.get("bonus",{}).duplicate(),
-			"bonus_tags":stats.get("bonus_tags",{}).duplicate(),"shield_bonus":stats.shield_bonus,"damage_type":stats.get("damage_type","physical"),
-			"attacks_structures":stats.get("attacks_structures",stats.get("attacks_base",true)),
-			"source_id":unit.id,"impact_skills":sim.skill_system.impact_configs(unit),
-			"target_layers":stats.get("target_layers",["ground"]).duplicate(),"attacks_base":stats.get("attacks_base",true),
-			"born":sim.tick,"hit_ids":{},"base_hit":false})
+	var origin: Vector2 = source
+	var direction: Vector2 = forward
+	if config.pattern=="transverse":
+		var side: Vector2 = Vector2(-forward.y,forward.x)*(1.0 if strike%2==0 else -1.0)
+		origin=goal+side*length*0.5
+		direction=-side
+	sim.attack_waves.append({"origin":origin,"direction":direction,"source":source,
+		"team":unit.team,"kind":unit.kind,"effect":config.effect,"strike":strike,
+		"distance":0.0,"length":length,"speed":float(config.speed),"launch_offset":fire_offset,
+		"half_width":float(config.half_width),"damage":float(stats.damage),
+		"bonus":stats.get("bonus",{}).duplicate(),"bonus_tags":stats.get("bonus_tags",{}).duplicate(),
+		"shield_bonus":stats.shield_bonus,"damage_type":stats.damage_type,"weapon":stats,
+		"attacks_structures":stats.attacks_structures,"source_id":unit.id,"impact_skills":impact_skills.duplicate(true),
+		"target_layers":stats.target_layers.duplicate(),"attacks_base":stats.attacks_base,
+		"born":sim.tick,"hit_ids":{},"base_hit":false})
 
 ## 检查单位在本步的运动轨迹是否穿过推进中的攻击前沿。
 ## 在前沿实际到达时判断横向宽度，允许敌军闪避或进入路径；不会补伤前沿后方。
@@ -52,11 +53,12 @@ static func crosses(wave: Dictionary, start: Vector2, finish: Vector2, next_dist
 static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hits: Array, pending_slows: Dictionary) -> void:
 	var active: Array = []
 	for wave in sim.attack_waves:
-		# 发射当步只创建波；下一模拟步才开始传播，避免瞬间命中。
-		if int(wave.born) == sim.tick:
+		var start_fraction: float = float(wave.get("launch_offset",0))/dt if int(wave.born)==sim.tick else 0.0
+		var travel_dt: float = dt*(1.0-start_fraction)
+		if travel_dt<=0.000001:
 			active.append(wave)
 			continue
-		var next_distance := minf(float(wave.length), float(wave.distance) + float(wave.speed) * dt)
+		var next_distance := minf(float(wave.length),float(wave.distance)+float(wave.speed)*travel_dt)
 		var duration_fraction: float = (next_distance - float(wave.distance)) / (float(wave.speed) * dt)
 		# 只检查前沿本步扫过区域附近的敌人；单位一步最多移动约 5，留 MOVE_MARGIN 余量。
 		var layers: Array = wave.get("target_layers",["ground"])
@@ -72,8 +74,8 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if not compatible:continue
 			if sim.is_structure(victim) and not bool(wave.get("attacks_structures", wave.get("attacks_base", true))):
 				continue
-			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),duration_fraction)
-			var start: Vector2 = finish if sim.teleports.has(victim.id) else victim.pos
+			var finish: Vector2 = victim.pos.lerp(moves.get(victim.id,victim.pos),start_fraction+duration_fraction)
+			var start: Vector2 = finish if sim.teleports.has(victim.id) else victim.pos.lerp(moves.get(victim.id,victim.pos),start_fraction)
 			if crosses(wave, start, finish, next_distance):
 				wave.hit_ids[victim.id] = true
 				var amount: float = sim.expected_damage(wave, victim)

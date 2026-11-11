@@ -4,7 +4,9 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.8.3，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.9.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
+
+0.9.0：所有兵种显式配置独立攻击模式，伤害与加成归模式所有；普通攻击按持续时间分段出手，再经过弹道结算。轮后才开始计算攻击间隔，雷神三模式按最新指定数值更新，详情见[攻击模式与弹道](docs/ATTACK_MODES.md)。配置表武器模式页已同步，未运行模拟或打包。
 
 当前世界尺度为 **长 90 × 宽 18 格**，相当于特战队员行走 40 秒 × 8 秒的距离。基地→出兵点→宝库→防御塔→中线的间隔依次为行走2、11、2、2.5秒的距离。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮现显示为坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
 
@@ -123,6 +125,8 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 ## 七、units.json：兵种字段解释
 
+0.9.0起，下面的武器字段（damage、bonus、interval、range、target_layers等）均填写在单位的`attack_modes`对应模式中，不再放在单位顶层。`primary_mode`引用默认模式ID；`attack_duration`是本轮出手持续时间，`interval`是本轮结束后的等待时间。完整结构与每种兵种的初始模式见[攻击模式与弹道](docs/ATTACK_MODES.md)。
+
 打开 data/units.json，找到 units 下的对象。0.3.0 起共有四个种族（人族、虫族、神族、腐族）约 40 个兵种，完整清单与 SC2 参考见 docs/DESIGN.md 的“种族、护甲与护盾”一节。旧 ID guard（盾卫）、breaker（破甲手）、sniper（狙击手）已经删除：盾卫改名“先锋” vanguard 归神族，破甲手与狙击手合并为人族“特工” agent。
 
 - name：界面显示的中文名称。
@@ -140,18 +144,18 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 - target_layers：武器可攻击的层列表；attacks_base 表示是否可以攻击基地。
 - damage：基础单次伤害。
 - bonus：穿甲加成，例如 {"heavy":30} 表示打重甲时每发多 30。
-- interval：攻击间隔，单位秒，越小攻击越快。
+- interval：本轮出手结束后的攻击间隔，单位秒；两轮起手之间还需加上出手持续时间及额外前后摇。
 - range：攻击距离，按逻辑战场坐标计算，不等于屏幕像素。
 - speed：每秒移动的逻辑距离。
 - skills：可复用技能配置，省略时使用普通移动/攻击。详细字段及组合示例见 [docs/SKILLS.md](docs/SKILLS.md)。
 - skills.healing：`heal` 为单次治疗量；`follow_distance`、`danger_distance` 控制后排跟随与避敌。医疗兵当前每 0.5 秒治疗 12，范围 160。
 - skills.deployment：`deploy_seconds`、`pack_seconds` 为展开/收起耗时；`deploy_enemy_threshold`、`scan_seconds` 控制人数阈值与扫描确认；`hold_range_multiplier` 控制外围保持范围。`mode` 用 siege 显示架设，用 burrow 显示埋地，埋地暂不隐身。
-- skills.line_attack：`pattern` 为 forward（从自身沿目标方向传播）或 transverse（以目标位置为中心横向扫射）；`speed` 为传播速度，`half_width` 为半宽，`length` 为固定长度，省略时使用 range；`effect` 选择 spike/beam 外观。
+- skills.line_attack：直线攻击技能标记；0.9.0起轨迹参数位于模式的`delivery`：`type=wave`，`pattern`为forward（从自身向目标方向）或transverse（横向扫射），`speed`为传播速度，`half_width`为半宽，`length`为固定长度，`effect`为spike/beam/flame外观。
 - skills.defender_zone：划定固定防卫圈并切换武器，复用展开/收起时序。解放者普通模式对空，防卫模式仅对圈内地面单位。
 - skills.stimulant：自动交战强化剂，配置最大生命扣除比例、持续秒数、攻速倍率与移速倍率。劫掠者为 15%、20 秒、1.3、1.5。
 - skills.on_hit_slow：命中后移动减速，配置持续秒数与移速倍率；劫掠者为 2 秒、0.5，重复命中刷新、不叠加。
 - skills.multi_attack.count：每次攻击的独立打击次数，巨像为 2。每击都按护甲规则结算，共享一次攻击冷却；直线攻击每击拥有独立轨迹及命中记录。
-- skills.weapon_switch：多武器。特工有穿甲弹与狙击弹，按目标护甲自动换弹，换弹 1.5 秒不能开火；雷神对地、对空各一把武器，换武器没有延迟。
+- skills.weapon_switch：通过mode_ids引用独立攻击模式。特工换弹耗时1.5秒；雷神固定保留对地重炮，只在两套对空模式之间切换，耗时0.5秒，空地武器之间不用切换耗时。
 - skills.yamato：大和炮：引导 2 秒、伤害 720、冷却 71 秒、射程 10 格，优先高生命加护盾的敌方单位。
 - skills.regen：脱战再生，`delay` 秒没受伤后每秒回 `per_second` 生命（蟑螂、缝合巨尸）。
 - splash：范围伤害半径，0 表示单体攻击。
@@ -262,11 +266,11 @@ git -C 'D:\MyCode\FightParty' diff
 
 ## 十三、用 Excel 批量修改兵种
 
-当前表格在 [data/units/兵种配置.xlsx](data/units/兵种配置.xlsx)，与 `data/units.json` 同属兵种数据目录。已按当前代码导出全部 50 个单位和建筑，包括现有武器模式及技能参数；“特战队员”名称和本轮人族调整均已保留。0.7.4 新增每轮命中次数 hit_count；每段单独计算护甲，能叠加溅射。表格隐藏内部伤害类型。当前只保留这一份编辑表。0.8.0 新增[原版数值核对记录](docs/SC2_BALANCE_REFERENCE.md)、待确认清单及技能核对页。黄色/灰色标记格可留空，导入保留兼容值；其他数值格不能清空。
+当前表格在 [data/units/兵种配置.xlsx](data/units/兵种配置.xlsx)，与 `data/units.json` 同属兵种数据目录。已按当前代码导出全部50个单位和建筑。0.9.0起所有武器数值（包括伤害类型、加成、段数、持续时间和弹道）独立列在“武器模式”页，单位属性不重复存武器。当前只保留这一份编辑表；旧版表格需刷新后编辑。保留[原版数值核对记录](docs/SC2_BALANCE_REFERENCE.md)、待确认清单及技能核对页，待确认字段路径已随模式迁移。黄色/灰色标记格可留空，导入保留兼容值；其他数值格不能清空。
 
-1. 用 Excel/WPS 打开新表。“兵种属性”一行一个单位，可改生命、护盾、能量、移速、碰撞半径、每组数量、基础武器和自然恢复等。
-2. 在“武器模式”筛选兵种 ID，修改 F 列数值。坦克架设炮、雷神三套武器、特工两种弹药及大和舰空地炮分别配置，会覆盖对应的基础武器字段。
-3. 在“技能参数”筛选兵种 ID，修改 F 列数值，例如强化剂持续时间、埋地耗时、地刺速度、双重攻击次数。修改参数只能调整已有机制，新能力仍需写代码。
+1. 用Excel/WPS打开新表。“兵种属性”一行一个单位，可改生命、护盾、能量、移速、碰撞半径、每组数量和自然恢复等。
+2. 在“武器模式”筛选兵种ID，修改F列数值。每种模式独立保存伤害、加成、射程、段数、持续时间、轮后间隔及弹道参数，包括只有一种模式的兵种。保留模式ID。
+3. 在“技能参数”筛选兵种ID，修改F列数值，例如强化剂持续时间、埋地耗时和模式引用。地刺速度、双重攻击段数现在在对应武器模式中。修改参数只能调整已有机制，新能力仍需写代码。
 4. 保存并关闭表格，在项目根目录执行 `python tools/import_units.py`，或把编辑后的表格交给 AI 导入。导入后重启源码游戏；已导出的 APK/EXE 需要重新打包。
 
 保留页签、英文列名、兵种 ID、参数路径及全部数据行。“源数据”隐藏页用于识别用户编辑及并发修改，不能删除。支持筛选、整行排序和属性整列移动；不要单独排序某一列。新增单位、技能或删除参数先交给开发者处理。属性页中原本空白的字段可按同列其他单位格式补值；清空已有数值不会删除字段。

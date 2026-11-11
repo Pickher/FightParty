@@ -16,6 +16,9 @@ static func rules() -> Dictionary:
 static func units() -> Dictionary:
 	var result: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json"))["units"]
 	result.merge(extra_units.duplicate(true), true)
+	var game_rules := rules()
+	for kind in result:
+		result[kind] = UnitDefinition.new(str(kind),result[kind],game_rules).to_data()
 	return result
 
 ## 模板与 JSON/商店视图分离。每局创建模板；运行时不要改写共享模板。

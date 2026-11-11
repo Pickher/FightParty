@@ -124,7 +124,7 @@ func impact_configs(unit: Dictionary) -> Dictionary:
 	return result
 func wave_hit(sim, wave: Dictionary, victim: Dictionary, hits: Dictionary, slows: Dictionary) -> void:
 	var source := {"id":int(wave.source_id),"kind":wave.kind,"team":wave.team,"pos":wave.source}
-	var ctx := {"sim":sim,"unit":source,"victim":victim,"hits":hits,"pending_slows":slows}
+	var ctx := {"sim":sim,"unit":source,"victim":victim,"hits":hits,"pending_slows":slows,"weapon":wave.get("weapon",wave),"impact_skills":wave.impact_skills,"damage_multiplier":float(wave.get("damage_multiplier",1))}
 	for key in wave.impact_skills:
 		var component=TYPES[key].new()
 		component.configure(str(key),source,wave.impact_skills[key])

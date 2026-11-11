@@ -32,12 +32,13 @@ func counter_for(enemy_kind: String) -> String:
 	var best_score := 0.0
 	for kind in pool:
 		var stats: Dictionary = catalog[kind]
-		var weapons: Array = stats.get("skills", {}).get("weapon_switch", {}).get("weapons", [stats])
+		var weapons: Array = stats.get("attack_modes",stats.get("skills", {}).get("weapon_switch", {}).get("weapons", [stats]))
 		var score := 0.0
 		for weapon in weapons:
 			if not weapon.get("target_layers", stats.get("target_layers", ["ground"])).has(layer) or float(weapon.get("damage", 0)) <= 0.0:
 				continue
-			score = maxf(score, calculator.expected_damage(weapon, victim) / float(weapon.interval))
+			var cycle: float = float(weapon.interval)+float(weapon.get("attack_duration",0))+float(weapon.get("windup",0))+float(weapon.get("backswing",0))
+			score = maxf(score, calculator.expected_damage(weapon, victim)*int(weapon.get("hit_count",1)) / cycle)
 		score *= float(stats.get("spawn_count",1)) / float(stats.cost)
 		if score > best_score + 0.000001:
 			best = kind

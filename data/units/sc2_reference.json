@@ -592,105 +592,105 @@
   "review": [
     {
       "id": "tunneler",
-      "path": "interval",
+      "path": "attack_modes/0/interval",
       "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
       "kind": "不适用",
       "runtime_value": 1
     },
     {
       "id": "infestor",
-      "path": "interval",
+      "path": "attack_modes/0/interval",
       "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
       "kind": "不适用",
       "runtime_value": 1
     },
     {
       "id": "disruptor",
-      "path": "interval",
+      "path": "attack_modes/0/interval",
       "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
       "kind": "不适用",
       "runtime_value": 1
     },
     {
       "id": "carrier",
-      "path": "interval",
+      "path": "attack_modes/0/interval",
       "reason": "本体无普通攻击；JSON的1仅为公共武器结构兼容占位",
       "kind": "不适用",
       "runtime_value": 1
     },
     {
       "id": "tunneler",
-      "path": "range",
+      "path": "attack_modes/0/range",
       "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
       "kind": "待确认",
       "runtime_value": 7
     },
     {
       "id": "infestor",
-      "path": "range",
+      "path": "attack_modes/0/range",
       "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
       "kind": "待确认",
       "runtime_value": 10
     },
     {
       "id": "disruptor",
-      "path": "range",
+      "path": "attack_modes/0/range",
       "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
       "kind": "待确认",
       "runtime_value": 13
     },
     {
       "id": "carrier",
-      "path": "range",
+      "path": "attack_modes/0/range",
       "reason": "此项是自动施法/放飞所用的项目接敌距离，不是本体普通武器射程",
       "kind": "待确认",
       "runtime_value": 8
     },
     {
       "id": "piercer",
-      "path": "skills/line_attack/speed",
+      "path": "attack_modes/0/delivery/speed",
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 9.2857
     },
     {
       "id": "piercer",
-      "path": "skills/line_attack/half_width",
+      "path": "attack_modes/0/delivery/half_width",
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 0.5
     },
     {
       "id": "colossus",
-      "path": "skills/line_attack/length",
+      "path": "attack_modes/0/delivery/length",
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 6.4286
     },
     {
       "id": "colossus",
-      "path": "skills/line_attack/speed",
+      "path": "attack_modes/0/delivery/speed",
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 6.4286
     },
     {
       "id": "colossus",
-      "path": "skills/line_attack/half_width",
+      "path": "attack_modes/0/delivery/half_width",
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 0.5
     },
     {
       "id": "ultralisk",
-      "path": "splash",
+      "path": "attack_modes/0/splash",
       "reason": "原版顺劈是定向区域，现有圆形半径不能确认等价",
       "kind": "待确认",
       "runtime_value": 1.4286
     },
     {
       "id": "archon",
-      "path": "splash",
+      "path": "attack_modes/0/splash",
       "reason": "原版存在分层溅射，现有单圆半径不能完整表示",
       "kind": "待确认",
       "runtime_value": 1.0
