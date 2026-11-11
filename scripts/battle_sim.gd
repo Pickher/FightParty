@@ -7,6 +7,7 @@ extends RefCounted
 const Catalog = preload("res://scripts/catalog.gd")
 const Unit = preload("res://scripts/units/unit.gd")
 const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
+const BaseDefense = preload("res://scripts/units/base_defense.gd")
 const SkillSystem = preload("res://scripts/skills/skill_system.gd")
 const Shield = preload("res://scripts/skills/services/shield_service.gd")
 const StatusService = preload("res://scripts/skills/services/status_service.gd")
@@ -43,7 +44,8 @@ var tower_builds: Array = [0, 0]
 var units: Array = []
 # 已发出的传播攻击独立于发射者存活，按固定步推进。
 var attack_waves: Array = []
-var bases: Array = [3000.0, 3000.0]
+var bases: Array = [0.0, 0.0]
+var base_defenses: Array = []
 var tick: int = 0
 var wave: int = 0
 # 最后一波出兵的 tick；-1 表示还没到最后一波。
@@ -78,15 +80,15 @@ func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	for team in range(2):
 		if not Catalog.RACES.has(races[team]):
 			races[team] = "terran"
-	bases = [float(rules.base_hp), float(rules.base_hp)]
+	base_defenses = [BaseDefense.create(bool(rules.get("structures", true))), BaseDefense.create(bool(rules.get("structures", true)))]
+	bases = [base_max_hp(0), base_max_hp(1)]
 	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
 	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
 	if bool(rules.get("structures", true)):
 		for team in range(2):
-			_place_structure(team, "gate_tower", "gate")
 			_place_structure(team, "treasury", "treasury")
 
-## 结构体（门口防御塔、宝库、防御塔）也是 units 中的静止单位，坐标来自 layout 的 <name>_x/<name>_y。
+## 宝库、玩家防御塔是 units 中的静止单位；基地防御层不是独立实体。
 func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
 	var layout: Dictionary = rules.layout
 	return spawn_unit(team, kind, Vector2(mirror_x(team, float(layout[slot + "_x"])), float(layout[slot + "_y"])))
@@ -388,6 +390,15 @@ func mirror_x(team: int, x: float) -> float:
 
 func base_pos(team: int) -> Vector2:
 	return Vector2(mirror_x(team, float(rules.layout.base_x)), float(rules.layout.base_y))
+
+func base_max_hp(team: int) -> float:
+	return float(rules.base_hp) + (float(catalog.gate_tower.hp) if bool(base_defenses[team].active) else 0.0)
+
+func base_has_defense(team: int) -> bool:
+	return bool(base_defenses[team].active) and float(bases[team]) > float(rules.base_hp)
+
+func base_extra_hp(team: int) -> float:
+	return maxf(0.0, float(bases[team]) - float(rules.base_hp)) if base_has_defense(team) else 0.0
 
 func clamp_to_field(point: Vector2) -> Vector2:
 	var bounds: Dictionary = rules.layout.bounds
@@ -726,6 +737,7 @@ func step() -> Array:
 	var frame := {"sim":self,"dt":dt,"hits":hits,"heals":heals,"moves":moves,"self_costs":self_costs,"base_hits":base_hits,"pending_slows":pending_slows,"motion":motion}
 	skill_system.frame(frame)
 	StatusService.tick(self,dt,hits)
+	BaseDefense.fire(self, frame)
 	for unit in units:
 		var ctx: Dictionary = frame.duplicate()
 		ctx.unit=unit
@@ -846,9 +858,7 @@ func step() -> Array:
 	_prune_unit_instances()
 	skill_system.end_frame(units)
 	for team in range(2):
-		bases[team] = maxf(0.0, float(bases[team]) - float(base_hits[team]))
-		if base_hits[team] > 0:
-			events.append({"type":"base_damage","team":team,"amount":base_hits[team]})
+		BaseDefense.settle(self, team, float(base_hits[team]), dt)
 	if not revealed and (not hits.is_empty() or float(base_hits[0]) + float(base_hits[1]) > 0.0):
 		revealed = true
 		revealed_tick = tick
@@ -872,7 +882,7 @@ func wave_ticks() -> int:
 func _end(result: int) -> void:
 	finished = true
 	winner = result
-	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"kills":kills.duplicate()}
+	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),"kills":kills.duplicate()}
 	events.append({"type":"ended","winner":winner})
 
 ## viewer 能看到的对方上一波阵容：首次交战前为空数组。电脑与敌情栏都只能用它。
@@ -890,6 +900,7 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
+		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),
 		"units":units.map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
 		"races":[visible_race(viewer, 0), visible_race(viewer, 1)],"revealed":revealed,
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}

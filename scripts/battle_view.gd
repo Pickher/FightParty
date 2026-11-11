@@ -51,6 +51,17 @@ func _draw() -> void:
 		if view.grow(float(sim.rules.layout.base_radius)).has_point(base):
 			draw_circle(p,r,Color(color,0.15))
 			draw_arc(p,r,0,TAU,32,color,2)
+			# 核心与炮台共用基地中心，防御层失效后只留下核心。
+			var core := Rect2(p-Vector2(r*0.5,r*0.45),Vector2(r,r*0.9))
+			draw_rect(core,Color(color,0.3))
+			draw_rect(core,color,false,1.5)
+			draw_line(p+Vector2(-r*0.32,0),p+Vector2(r*0.32,0),color,2)
+			if sim.base_has_defense(team):
+				var defense_color := Color("ffcd70")
+				var fraction: float = sim.base_extra_hp(team)/float(sim.catalog.gate_tower.hp)
+				draw_arc(p,r*1.12,-PI*0.5,-PI*0.5+TAU*fraction,40,defense_color,2.5)
+				draw_circle(p,r*0.23,defense_color)
+				draw_line(p,p+Vector2(r*0.9*(1 if team==0 else -1),0),defense_color,maxf(2.0,r*0.18))
 			label(p+Vector2(-14,-r-4),"基地",color)
 		var spawn_point := Vector2(sim.mirror_x(team,float(sim.rules.layout.spawn_x)),float(sim.rules.layout.spawn_y))
 		if view.grow(1.0).has_point(spawn_point):

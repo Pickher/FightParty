@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.8.1",
   "tick_rate": 20,
   "wave_seconds": 30,
   "races": [
@@ -13,7 +13,8 @@
   "wave_income": 300,
   "wave_limit": 64,
   "final_phase_max_seconds": 600,
-  "base_hp": 3000,
+  "base_hp": 10000,
+  "base_regen_per_second": 5,
   "unit_lifetime": 0,
   "structures": true,
   "treasury_reward": 400,
@@ -77,8 +78,6 @@
     "base_x": 5.625,
     "base_y": 9,
     "base_radius": 1.75,
-    "gate_x": 5.625,
-    "gate_y": 12.375,
     "treasury_x": 37.125,
     "treasury_y": 9,
     "tower_x": 39.375,

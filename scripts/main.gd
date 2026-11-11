@@ -265,15 +265,15 @@ func advance_tick() -> void:
 			_save_journal()
 			if volume > 0:
 				speaker.play()
+		elif event.type == "base_defense_lost":
+			_note("%s基地防御失效 · 无法恢复" % ("我方" if event.team == 0 else "敌方"))
 		elif event.type == "structure_destroyed":
-			var names := {"treasury":"宝库","gate_tower":"门口防御塔","tower":"防御塔"}
+			var names := {"treasury":"宝库","gate_tower":"基地防御模块","tower":"防御塔","terran_bunker":"地堡"}
 			var side: String = "我方" if event.team == 0 else "敌方"
 			if event.kind == "treasury":
 				_note("%s宝库被摧毁 · %s +%d 矿" % [side,"敌方" if event.team == 0 else "我方",int(sim.rules.treasury_reward)])
-			elif event.kind == "gate_tower":
-				_note("%s门口防御塔失守 · 基地已无防御" % side)
 			else:
-				_note("%s%s被摧毁" % [side,names[event.kind]])
+				_note("%s%s被摧毁" % [side,names.get(event.kind,"建筑")])
 		elif event.type == "revealed":
 			_note("首次交战 · 敌方种族：%s" % _race_name(str(sim.races[1])))
 		elif event.type == "tower_built" and event.team == 1:
@@ -394,7 +394,11 @@ func _draw_battle() -> void:
 		var color: Color = MINT if team==0 else CORAL
 		var x: float = 56 if team==0 else 1000
 		_text(Vector2(x,130),"我方基地" if team==0 else "敌方基地",18,color)
-		_bar(Rect2(x+104,116,230,10),float(sim.bases[team])/float(sim.rules.base_hp),color)
+		var capacity: float = sim.base_max_hp(team)
+		_bar(Rect2(x+104,116,230,10),float(sim.bases[team])/capacity,color)
+		if sim.base_has_defense(team):
+			var extra_width: float = 230.0*sim.base_extra_hp(team)/capacity
+			draw_rect(Rect2(x+104+230.0*float(sim.rules.base_hp)/capacity,116,extra_width,10),Color("ffcd70"))
 		_text(Vector2(x+344,130),str(int(sim.bases[team])),16,color)
 	if battle_viewport!=null:
 		draw_texture_rect(battle_viewport.get_texture(),BATTLE_RECT,false)
@@ -539,7 +543,7 @@ func _draw_help() -> void:
 		"4. 本轮新买、未出场的单位取消可全额退回；出场过的取消不退款。",
 		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
-		"   门口塔守护基地，塔倒后基地无还手；摧毁敌方宝库奖励 %d 矿。" % int(sim.rules.treasury_reward),
+		"   基地防御层耗尽后永久失去反击，每秒回血5；摧毁敌方宝库奖励 %d 矿。" % int(sim.rules.treasury_reward),
 		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",

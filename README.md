@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.8.0，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.8.1，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
 
 当前世界尺度为 **长 90 × 宽 18 格**，相当于特战队员行走 40 秒 × 8 秒的距离。基地→出兵点→宝库→防御塔→中线的间隔依次为行走 2、12、1、2.5 秒的距离。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮现显示为坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
 
@@ -172,15 +172,16 @@ data/races.json 是种族表：每个种族的中文名、主题色、一句风�
 - wave_income：每次出兵后双方各得的矿物，默认 300。
 - wave_limit：最后一波的编号，默认 64；之后不再出兵也不再发收入。
 - final_phase_max_seconds：最后一波后的安全时限，默认 600 秒；到时比较基地剩余生命，防止双方互相打不到时对局卡死。
-- base_hp：双方基地初始生命，默认 3000。基地本身不攻击。
-- structures：是否放置门口防御塔和宝库，默认 true；测试用 false 隔离单位行为。
+- base_hp：基地核心生命上限，默认10000。开局额外获得gate_tower.hp的5000生命，总计15000；降至10000及以下后永久失去额外上限与反击。
+- base_regen_per_second：仅剩核心时每秒回血，默认5；防御层存在时采用gate_tower.health_regen，同为整座基地5/秒，不叠加。回血不能复活基地或恢复失效的防御层。
+- structures：是否启用基地防御层和放置宝库，默认true；false时基地只有核心生命、不反击，供隔离单位行为使用。基地防御模块不生成独立单位，在基地中心以8格射程、0.2秒间隔造成300点无视护甲的单体伤害，可对地对空。
 - treasury_reward：摧毁对方宝库时攻击方获得的矿物，默认 400。
 - tower_max_builds：每方每局可建造防御塔的次数，默认 1；被摧毁不归还次数。防御塔价格取 units.json 中 tower 的 cost（默认 500）。
 - unit_lifetime：单位最多存活秒数，默认 0 表示不撤离（0.1.8 为 90）。
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
 - columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
-- world_width、world_height：逻辑战场尺寸，当前 1200×400；敌方坐标按 world_width 镜像，画面映射也按这两个值缩放。
-- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius 是基地中心与判定半径；gate_x/gate_y、treasury_x/treasury_y、tower_x/tower_y 是门口防御塔、宝库与防御塔建造位；spawn_x/spawn_y 是出兵中心，spawn_width/spawn_height 是组中心展开跨度，spawn_column_spacing 是最大列距；bounds 是单位可移动的边界。医疗兵无掩护时退向 spawn_x。
+- world_width、world_height：逻辑战场尺寸，当前90×18；敌方坐标按world_width镜像，画面映射也按这两个值缩放。
+- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius是基地中心与判定半径，基地防御模块共用此位置；treasury_x/treasury_y、tower_x/tower_y是宝库与防御塔建造位；spawn_x/spawn_y是出兵中心，spawn_width/spawn_height是组中心展开跨度，spawn_column_spacing是最大列距；bounds是单位可移动的边界。医疗兵无掩护时退向spawn_x。
 - races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。未知种族按 terran 处理。
 - race_setup：开局弹窗两行种族选择的标题 labels 与推荐值 recommended（默认我方 terran、电脑 random）。random 在建局时随机成具体种族，写入战报的是随机后的结果，所以重放不会再随机。
 - min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。

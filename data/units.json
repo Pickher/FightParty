@@ -1,5 +1,5 @@
 {
- "version": "0.8.0",
+ "version": "0.8.1",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -2805,27 +2805,27 @@
    "collision_radius": 0.5
   },
   "gate_tower": {
-   "name": "门口防御塔",
+   "name": "基地防御模块",
    "symbol": "G",
    "race": "neutral",
    "cost": 0,
    "structure": true,
-   "hp": 2500,
+   "hp": 5000,
    "armor_type": "heavy",
-   "armor": 3,
+   "armor": 0,
    "target_layers": [
     "ground",
     "air"
    ],
    "attacks_base": false,
-   "damage": 45,
-   "interval": 1.0,
-   "range": 7.8571,
+   "damage": 300,
+   "interval": 0.2,
+   "range": 8,
    "speed": 0.0,
    "splash": 0.0,
    "color": "9fd8ff",
-   "role": "基地门口 · 强力单体",
-   "counter": "被摧毁后基地再无还手能力",
+   "role": "基地一体防御 · 单体反击",
+   "counter": "额外5000生命耗尽后永久失去反击，生命上限降为10000",
    "size": [
     1.5,
     1.5
@@ -2835,7 +2835,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 5,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -2843,11 +2843,12 @@
    "energy_regen_delay": 0,
    "unit_type": "structure",
    "tags": [],
-   "damage_type": "physical",
+   "damage_type": "true",
    "windup": 0,
    "backswing": 0,
    "hit_count": 1,
-   "collision_radius": 0.75
+   "collision_radius": 0.75,
+   "attacks_structures": true
   },
   "treasury": {
    "name": "宝库",
