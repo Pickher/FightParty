@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.8.1，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.8.2，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
 
 当前世界尺度为 **长 90 × 宽 18 格**，相当于特战队员行走 40 秒 × 8 秒的距离。基地→出兵点→宝库→防御塔→中线的间隔依次为行走 2、12、1、2.5 秒的距离。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮现显示为坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
 

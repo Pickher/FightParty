@@ -45,6 +45,7 @@ func spend_energy(amount: float, tick: int) -> bool:
 func restore(dt: float, tick: int, tick_rate: float) -> void:
 	if hp <= 0.0: return
 	var since_hit: float = float(tick - int(state.last_hit_tick)) / tick_rate
+	# 回血、回盾独立判断等待时间；回盾不要求生命先恢复到上限。
 	if since_hit >= definition.health_regen_delay:
 		hp += definition.health_regen * dt
 	if since_hit >= definition.shield_regen_delay:

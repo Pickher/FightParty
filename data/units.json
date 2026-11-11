@@ -1,5 +1,5 @@
 {
- "version": "0.8.1",
+ "version": "0.8.2",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -2856,7 +2856,7 @@
    "race": "neutral",
    "cost": 0,
    "structure": true,
-   "hp": 800,
+   "hp": 5000,
    "armor_type": "heavy",
    "armor": 3,
    "target_layers": [
@@ -2877,14 +2877,14 @@
     2
    ],
    "spawn_count": 1,
-   "shield": 0,
+   "shield": 1000,
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 0,
+   "health_regen": 2,
    "health_regen_delay": 0,
-   "shield_regen": 0,
-   "shield_regen_delay": 0,
+   "shield_regen": 10,
+   "shield_regen_delay": 15,
    "energy_regen": 0,
    "energy_regen_delay": 0,
    "unit_type": "structure",

@@ -1,5 +1,5 @@
 {
-  "version": "0.8.1",
+  "version": "0.8.2",
   "tick_rate": 20,
   "wave_seconds": 30,
   "races": [
@@ -78,7 +78,7 @@
     "base_x": 5.625,
     "base_y": 9,
     "base_radius": 1.75,
-    "treasury_x": 37.125,
+    "treasury_x": 34.875,
     "treasury_y": 9,
     "tower_x": 39.375,
     "tower_y": 9,
@@ -102,8 +102,8 @@
     "width_seconds": 40,
     "height_seconds": 8,
     "base_to_spawn_seconds": 2,
-    "spawn_to_treasury_seconds": 12,
-    "treasury_to_tower_seconds": 1,
+    "spawn_to_treasury_seconds": 11,
+    "treasury_to_tower_seconds": 2,
     "tower_to_midline_seconds": 2.5
   }
 }
