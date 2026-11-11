@@ -120,3 +120,6 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 
 
 2026-11-11 0.9.0：攻击模式统一迁入attack_modes，每个模式完整保存伤害、类型、加成及时间/弹道；primary_mode指定默认。UnitDefinition不在模式之间隐式继承伤害，技能仅引用mode_id/mode_ids，to_data仍提供旧字段的运行时兼容投影。AttackCycle→AttackSequence→Projectile/Line→公共命中服务，正式JSON/Excel不再双份存储单位武器。详见ATTACK_MODES.md。
+
+
+2026-11-12 0.9.1：武器模板支持healing及beam弹道。光束attack_duration表示面板周期，与delivery.tick_interval同为0.5秒，hit_count为1，interval为0；switch_delay为切换目标等待0.3秒。healing属于武器模式而非单位/治疗技能的重复参数。普通fixed/seconds=0表示出手当步命中，不取消attack_duration。光束采用原有完整单次命中护甲规则，没有额外护甲分摊接口。

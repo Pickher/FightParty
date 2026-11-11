@@ -135,3 +135,6 @@ UnitDefinition 新增 collision_radius 与 separate_when_stopped，前者供空�
 ## 0.9.0 攻击序列与弹体
 
 正式配置把武器归入attack_modes，UnitDefinition构造独立WeaponDefinition，技能用mode_id引用；Catalog/UnitDefinition生成兼容投影供现有UI和技能读字段，JSON不保留单位顶层武器真值。普通单位、独立炮位和基地共享AttackCycle及AttackSequence服务。AttackCycle把出手阶段和轮后冷却分开，序列保存模式/命中技能快照，按步内偏移逐段发射；Projectile按固定或距离弹道推进，命中才进入queue_direct_strike。传播模式每段走LineService，未发出段随死亡/中断取消，已发弹体继续。快照新增attack_sequences/projectiles/next_projectile_id，数据均为纯字典；攻击事件带source_id、mode、time，移动单位的炮口动画可稳定匹配发射者。命中仍按既有固定步同时结算，具体口径及全兵种初值见ATTACK_MODES.md。
+
+
+0.9.1：delivery.type=beam由BeamService处理，不创建AttackSequence/Projectile。每个持有者/炮位保存beam_state（目标、模式、切换截止时间、累计作用时间）；每0.5秒一次正常伤害/治疗，使用原有每命中护甲结算。active_beams仅用于连续画面并包含在快照中，重置不影响beam_state。医疗兵与基地也复用此服务；目标切换等0.3秒，不做0.05秒细分伤害计算。

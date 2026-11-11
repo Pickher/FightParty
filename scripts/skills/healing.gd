@@ -1,7 +1,9 @@
 extends "res://scripts/skills/skill.gd"
+const Beams = preload("res://scripts/skills/services/beam_service.gd")
 
 func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary) -> void:
 	var stats: Dictionary = sim.catalog[unit.kind]
+	var weapon: Dictionary = sim._weapon_stats(unit)
 	var forward: float = 1.0 if unit.team == 0 else -1.0
 	var front: Dictionary = {}
 	for ally in sim.units:
@@ -24,6 +26,7 @@ func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary
 	for ally in sim._nearby(unit.pos, float(stats.range) * 1.5):
 		if ally.team != unit.team or ally.id == unit.id or ally.hp <= 0 or sim.is_structure(ally):
 			continue
+		if not weapon.target_layers.has(sim.catalog[ally.kind].get("layer","ground")):continue
 		var ratio: float = float(ally.hp) / float(sim.catalog[ally.kind].hp)
 		if ratio >= 1.0:
 			continue
@@ -34,11 +37,18 @@ func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary
 		if distance <= float(stats.range) and (ratio < best_ratio or (is_equal_approx(ratio, best_ratio) and int(ally.id) < int(patient.get("id",2147483647)))):
 			patient = ally
 			best_ratio = ratio
+	# 持续治疗当前病人，避免反复比较血量比例导致频繁换人。
+	if weapon.delivery.type=="beam":
+		var beam_state := Beams.state_for(unit)
+		var current = sim.by_id.get(int(beam_state.target_id))
+		if current!=null and int(current.team)==int(unit.team) and float(current.hp)>0 and float(current.hp)<float(sim.catalog[current.kind].hp) and not sim.is_structure(current) and weapon.target_layers.has(sim.catalog[current.kind].get("layer","ground")) and unit.pos.distance_to(current.pos)<=float(weapon.range):patient=current
 	if not patient.is_empty():
 		goal = unit.pos
-		if float(unit.cooldown) <= 0.00001 and pay_energy(sim):
+		if weapon.delivery.type=="beam":
+			Beams.apply({"sim":sim,"unit":unit,"dt":dt,"heals":heals,"healing_energy_per_period":float(config.get("energy_cost",0))},unit,weapon,patient,int(patient.id),true)
+		elif float(unit.cooldown) <= 0.00001 and pay_energy(sim):
 			unit.cooldown = float(stats.interval)
-			heals[patient.id] = float(heals.get(patient.id,0.0)) + float(config.heal)
+			heals[patient.id] = float(heals.get(patient.id,0.0)) + float(config.get("heal",weapon.healing))
 			sim.events.append({"type":"heal","from":unit.pos,"to":patient.pos,"kind":unit.kind,"team":unit.team})
 	elif not chase.is_empty() and not front.is_empty():
 		goal = chase.pos

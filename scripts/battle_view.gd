@@ -90,6 +90,17 @@ func _draw() -> void:
 			draw_colored_polygon(sector,Color(color,0.08))
 			sector.append(sector[0])
 			draw_polyline(sector,Color(color,0.6),1.5)
+	for beam in sim.active_beams:
+		var from: Vector2 = beam.from
+		var to: Vector2 = beam.to
+		var source = sim.by_id.get(int(beam.source_id))
+		var target = sim.by_id.get(int(beam.target_id))
+		if source!=null:from=source.pos
+		if target!=null:to=target.pos
+		var tint: Color = game.MINT if int(beam.team)==0 else game.CORAL
+		if bool(beam.healing):tint=Color("85efd9") if int(beam.team)==0 else game.CORAL
+		draw_line(point(from),point(to),Color(tint,0.25),maxf(3,pixels(0.16)))
+		draw_line(point(from),point(to),tint,maxf(1.5,pixels(0.06)))
 	for projectile in sim.projectiles:
 		if not view.grow(1.0).has_point(projectile.pos):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL

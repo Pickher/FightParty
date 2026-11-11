@@ -10,6 +10,7 @@ const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
 const BaseDefense = preload("res://scripts/units/base_defense.gd")
 const AttackSequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
 const Projectiles = preload("res://scripts/skills/services/projectile_service.gd")
+const Beams = preload("res://scripts/skills/services/beam_service.gd")
 const SkillSystem = preload("res://scripts/skills/skill_system.gd")
 const Shield = preload("res://scripts/skills/services/shield_service.gd")
 const StatusService = preload("res://scripts/skills/services/status_service.gd")
@@ -49,6 +50,7 @@ var attack_waves: Array = []
 var attack_sequences: Array = []
 var projectiles: Array = []
 var next_projectile_id: int = 1
+var active_beams: Array = []
 var bases: Array = [0.0, 0.0]
 var base_defenses: Array = []
 var tick: int = 0
@@ -717,6 +719,7 @@ func _tick_attack_clock(unit: Dictionary, dt: float) -> void:
 ## 固定步：撤离/出兵 → 同时决定行动 → 统一应用代价、伤害和状态 → 胜负。
 func step() -> Array:
 	events = []
+	active_beams=[]
 	if finished:
 		return events
 	tick += 1
@@ -793,6 +796,13 @@ func step() -> Array:
 		var eligible: bool = ctx.armed and float(stats.damage) > 0.0 and distance <= reach and (not target.is_empty() or (attacking_base and bool(stats.get("attacks_base", true))))
 		# 基地用负编号，敌军用稳定正编号，未开火时不设置 locked_target_id。
 		var target_id: int = int(target.id) if not target.is_empty() else -enemy - 1
+		if stats.delivery.type=="beam":
+			if eligible:
+				ctx.damage_multiplier=skill_system.damage_multiplier(ctx) if not target.is_empty() else 1.0
+				var beam_target: Dictionary = target if not target.is_empty() else {"id":target_id,"pos":goal}
+				Beams.apply(ctx,unit,stats,beam_target,target_id)
+				skill_system.after_action(ctx)
+				continue
 		var fire: bool = unit_model(unit).ready_to_fire(stats, target_id, eligible)
 		if distance <= reach:
 			if target.is_empty() and (not attacking_base or not bool(stats.get("attacks_base",true))):
@@ -907,6 +917,7 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
+		"active_beams":active_beams.duplicate(true),
 		"attack_sequences":attack_sequences.duplicate(true),"projectiles":projectiles.duplicate(true),"next_projectile_id":next_projectile_id,
 		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),
 		"units":units.map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,

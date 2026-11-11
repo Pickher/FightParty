@@ -46,8 +46,13 @@ static func skill_names(stats: Dictionary, modes: Array) -> Array:
 		elif key=="summon":name=str({"locust":"孵化蝗虫","broodling":"孵化巢虫","interceptor":"拦截机"}.get(str(config.get("kind","")),name))
 		elif key=="on_death":name="死亡分裂" if config.has("summon") else "死亡爆发"
 		if not names.has(name):names.append(name)
-	var count := int(stats.get("hit_count",1))
-	for mode in modes:count=maxi(count,int(mode.data.get("hit_count",1)))
+	var count: int = 1 if stats.get("delivery",{}).get("type","")=="beam" else int(stats.get("hit_count",1))
+	for mode in modes:
+		if mode.data.get("delivery",{}).get("type","")=="beam":
+			var beam_name := "持续治疗" if float(mode.data.get("healing",0))>0 else "持续光束"
+			if float(mode.data.get("healing",0))>0:names.erase("治疗")
+			if not names.has(beam_name):names.append(beam_name)
+		else:count=maxi(count,int(mode.data.get("hit_count",1)))
 	if count>1:
 		var name := "双重攻击" if count==2 else "多重攻击"
 		if not names.has(name):names.append(name)

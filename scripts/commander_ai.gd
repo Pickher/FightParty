@@ -38,7 +38,8 @@ func counter_for(enemy_kind: String) -> String:
 			if not weapon.get("target_layers", stats.get("target_layers", ["ground"])).has(layer) or float(weapon.get("damage", 0)) <= 0.0:
 				continue
 			var cycle: float = float(weapon.interval)+float(weapon.get("attack_duration",0))+float(weapon.get("windup",0))+float(weapon.get("backswing",0))
-			score = maxf(score, calculator.expected_damage(weapon, victim)*int(weapon.get("hit_count",1)) / cycle)
+			var count: int = 1 if weapon.get("delivery",{}).get("type","")=="beam" else int(weapon.get("hit_count",1))
+			score = maxf(score, calculator.expected_damage(weapon, victim)*count / cycle)
 		score *= float(stats.get("spawn_count",1)) / float(stats.cost)
 		if score > best_score + 0.000001:
 			best = kind

@@ -1,5 +1,5 @@
 {
- "version": "0.9.0",
+ "version": "0.9.1",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -67,7 +67,7 @@
      "continue_on_target_death": false,
      "delivery": {
       "type": "fixed",
-      "seconds": 0.05,
+      "seconds": 0,
       "tracking": true
      }
     }
@@ -252,7 +252,6 @@
    "counter": "治疗受伤友军（不回护盾）；无攻击能力，怕突袭",
    "skills": {
     "healing": {
-     "heal": 12,
      "follow_distance": 3.2143,
      "danger_distance": 3.5714
     }
@@ -290,7 +289,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 5.7143,
-     "interval": 0.5,
+     "interval": 0,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -298,18 +297,22 @@
      "splash_inner_ratio": 0,
      "splash_inner_multiplier": 1,
      "target_layers": [
-      "ground"
+      "ground",
+      "air"
      ],
-     "attacks_base": true,
-     "attacks_structures": true,
+     "attacks_base": false,
+     "attacks_structures": false,
      "id": "medical_support",
-     "label": "医疗支援（无普通攻击）",
-     "attack_duration": 0.1,
+     "label": "治疗光束",
+     "attack_duration": 0.5,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
+      "type": "beam",
+      "tick_interval": 0.5,
+      "switch_delay": 0.3,
       "tracking": true
-     }
+     },
+     "healing": 12
     }
    ]
   },
@@ -390,8 +393,8 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "fixed",
+      "seconds": 0,
       "tracking": true
      }
     },
@@ -424,8 +427,8 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "fixed",
+      "seconds": 0,
       "tracking": true
      }
     }
@@ -591,8 +594,8 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "fixed",
+      "seconds": 0,
       "tracking": true
      }
     },
@@ -624,8 +627,8 @@
      "attack_duration": 0.3,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "fixed",
+      "seconds": 0,
       "tracking": true
      }
     }
@@ -2239,7 +2242,7 @@
      "shield_bonus": 4,
      "range_from_edge": false,
      "range": 5,
-     "interval": 0.71,
+     "interval": 0,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -2254,11 +2257,12 @@
      "attacks_structures": true,
      "id": "disruption_beam",
      "label": "裂解光束",
-     "attack_duration": 0.15,
+     "attack_duration": 0.5,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
-      "seconds": 0.05,
+      "type": "beam",
+      "tick_interval": 0.5,
+      "switch_delay": 0.3,
       "tracking": true
      }
     }
@@ -2772,7 +2776,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 6,
-     "interval": 0.36,
+     "interval": 0,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -2787,11 +2791,12 @@
      "attacks_structures": true,
      "id": "prismatic_beam",
      "label": "棱镜光束",
-     "attack_duration": 0.15,
+     "attack_duration": 0.5,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
-      "seconds": 0.05,
+      "type": "beam",
+      "tick_interval": 0.5,
+      "switch_delay": 0.3,
       "tracking": true
      }
     }
@@ -3790,7 +3795,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 8,
-     "interval": 0.2,
+     "interval": 0,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -3804,12 +3809,13 @@
      "attacks_base": false,
      "attacks_structures": true,
      "id": "base_defense",
-     "label": "基地防御炮",
-     "attack_duration": 0.05,
+     "label": "基地防御光束",
+     "attack_duration": 0.5,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "beam",
+      "tick_interval": 0.5,
+      "switch_delay": 0.3,
       "tracking": true
      }
     }
@@ -4170,8 +4176,8 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
-      "speed": 20,
+      "type": "fixed",
+      "seconds": 0,
       "tracking": true
      }
     },

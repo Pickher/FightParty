@@ -127,3 +127,6 @@ services 下放的是所有组件可以复用的世界机制：
 
 
 2026-11-11 0.9.0：weapon_switch使用mode_ids，deployment/defender_zone及独立炮位使用mode_id引用单位的attack_modes，运行时解析为武器模板。line_attack的轨迹几何参数迁入模式delivery，组件保留为技能标记/旧入口。chain_attack改为命中时触发，命中技能配置随弹体保存，射手死亡后仍可结算；弹射排除自身递归。普通攻击的持续时间与段数由公共AttackSequence调度，组件不再自行一次循环发出所有段。
+
+
+2026-11-12 0.9.1：治疗组件保留选病人、跟随前排和避敌行为，治疗量迁入攻击模式healing；连续治疗通过BeamService按0.5秒结算，切换对象等待0.3秒。光束伤害与治疗共用周期和切换状态，单位/基地/独立炮位均可接入。
