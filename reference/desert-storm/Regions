@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Regions>
+    <region id="1">
+        <name value="Base 1"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="46,164,70,188"/>
+        </shape>
+    </region>
+    <region id="2">
+        <name value="Base 1 expansion"/>
+        <color value="255,198,92,57"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="70.0498,164.0097,94.0498,188.0097"/>
+        </shape>
+    </region>
+    <region id="3">
+        <name value="Base 2"/>
+        <color value="255,0,0,128"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="97.96,163.94,121.96,187.94"/>
+        </shape>
+    </region>
+    <region id="4">
+        <name value="Base 2 expansion"/>
+        <color value="255,41,1,126"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="121.97,164.0698,145.97,188.0698"/>
+        </shape>
+    </region>
+    <region id="5">
+        <name value="Base 3"/>
+        <color value="255,0,255,255"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="149.98,164.0197,173.98,188.0197"/>
+        </shape>
+    </region>
+    <region id="6">
+        <name value="Base 3 expansion"/>
+        <color value="255,0,255,179"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="173.95,164.0297,197.95,188.0297"/>
+        </shape>
+    </region>
+    <region id="7">
+        <name value="Base 4"/>
+        <color value="255,255,128,64"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="9.97,8.0598,33.97,32.0598"/>
+        </shape>
+    </region>
+    <region id="8">
+        <name value="Base 4 expansion"/>
+        <color value="255,255,198,64"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="34.0197,8.1098,58.0197,32.1098"/>
+        </shape>
+    </region>
+    <region id="9">
+        <name value="Base 5"/>
+        <color value="255,128,64,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="62,7.99,86,31.99"/>
+        </shape>
+    </region>
+    <region id="10">
+        <name value="Base 5 expansion"/>
+        <color value="255,128,48,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="85.99,8.14,109.99,32.14"/>
+        </shape>
+    </region>
+    <region id="11">
+        <name value="Base 6"/>
+        <color value="255,255,255,255"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="113.96,7.98,137.96,31.98"/>
+        </shape>
+    </region>
+    <region id="12">
+        <name value="Base 6 expansion"/>
+        <color value="255,192,192,192"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="137.95,8.09,161.95,32.0898"/>
+        </shape>
+    </region>
+    <region id="13">
+        <name value="Base 1 Beacon"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="59.5,186.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="14">
+        <name value="Base 2 Beacon"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="111.5,186.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="15">
+        <name value="Base 3 Beacon"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="163.5,186.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="16">
+        <name value="Base 4 Beacon"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="23.5,30.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="17">
+        <name value="Base 5 Beacon"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="75.5,30.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="18">
+        <name value="Base 6 Beacon"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="127.5,30.5"/>
+            <radius value="1.25"/>
+        </shape>
+    </region>
+    <region id="19">
+        <name value="Team 1 Beacon"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="193.96,147.58,196.96,150.5798"/>
+        </shape>
+    </region>
+    <region id="20">
+        <name value="Team 2 Beacon"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="11.9702,42.94,14.97,45.94"/>
+        </shape>
+    </region>
+    <region id="22">
+        <name value="Purple&apos;s side"/>
+        <color value="255,196,196,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="34.9953,80.077"/>
+            <radius value="30"/>
+        </shape>
+        <shape type="circle">
+            <center value="59.9953,90.077"/>
+            <radius value="30"/>
+        </shape>
+        <shape type="rect">
+            <quad value="6.4953,40.077,65.4953,92.077"/>
+        </shape>
+        <shape type="circle">
+            <center value="96,98.078"/>
+            <radius value="30"/>
+        </shape>
+    </region>
+    <region id="23">
+        <name value="Entire Field"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="6.0002,39.0004,202,157.0002"/>
+        </shape>
+    </region>
+    <region id="24">
+        <name value="Silo T2"/>
+        <color value="255,255,255,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="68,98"/>
+            <radius value="10"/>
+        </shape>
+        <shape type="circle">
+            <negative/>
+            <center value="68,98"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="25">
+        <name value="Silo T1"/>
+        <color value="255,64,0,128"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="140,98"/>
+            <radius value="10"/>
+        </shape>
+        <shape type="circle">
+            <negative/>
+            <center value="140,98"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="26">
+        <name value="Desert Fortress 2"/>
+        <color value="255,255,255,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="36,78"/>
+            <radius value="17.5"/>
+        </shape>
+        <shape type="circle">
+            <negative/>
+            <center value="36,78"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="27">
+        <name value="Desert Fortress 1"/>
+        <color value="255,64,0,128"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="172,118"/>
+            <radius value="17.5"/>
+        </shape>
+        <shape type="circle">
+            <negative/>
+            <center value="172,118"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="28">
+        <name value="Yellow&apos;s spawn"/>
+        <color value="255,255,255,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="157.0651,94.5998,200.415,134.5998"/>
+        </shape>
+    </region>
+    <region id="30">
+        <name value="Team 1 Bases"/>
+        <color value="255,0,255,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="44.477,161.364,198.5825,189.7756"/>
+        </shape>
+    </region>
+    <region id="31">
+        <name value="Team 2 Bases"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="9.527,7.0441,163.6325,35.4558"/>
+        </shape>
+    </region>
+    <region id="32">
+        <name value="Silo T1 whole"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="140,98"/>
+            <radius value="16"/>
+        </shape>
+    </region>
+    <region id="33">
+        <name value="Silo T2 whole"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="68,98"/>
+            <radius value="16"/>
+        </shape>
+    </region>
+    <region id="34">
+        <name value="Desert Fortress T2 Whole"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="40,82"/>
+            <radius value="16"/>
+        </shape>
+    </region>
+    <region id="35">
+        <name value="Desert Fortress T1 Whole"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="168,114"/>
+            <radius value="16"/>
+        </shape>
+    </region>
+    <region id="36">
+        <name value="Team 1 anti-cheat."/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="95.0002,158.25,97,204.25"/>
+        </shape>
+        <shape type="rect">
+            <quad value="-24.04,155.8,231.96,160.8195"/>
+        </shape>
+        <shape type="rect">
+            <quad value="147,158.25,149,204.25"/>
+        </shape>
+    </region>
+    <region id="37">
+        <name value="Team 2 anti-cheat"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="-20.05,36.7851,235.95,39.215"/>
+        </shape>
+        <shape type="rect">
+            <quad value="59,-1.25,61,38.75"/>
+        </shape>
+        <shape type="rect">
+            <quad value="111,-1.25,113,38.75"/>
+        </shape>
+    </region>
+    <region id="38">
+        <name value="玩家7的禁OB区"/>
+        <invisible/>
+        <shape type="diamond">
+            <center value="177.74,130.3298"/>
+            <width value="3.6457"/>
+            <height value="57.3371"/>
+        </shape>
+    </region>
+    <region id="39">
+        <name value="玩家8的禁OB区"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="diamond">
+            <center value="31.2897,70.5498"/>
+            <width value="3.65"/>
+            <height value="57.3398"/>
+        </shape>
+    </region>
+    <region id="40">
+        <name value="Battle Zone"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="84,78,124,118"/>
+        </shape>
+    </region>
+    <region id="41">
+        <name value="Sun Rain Lunch ATT"/>
+        <color value="255,255,0,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="41.1015,71.9916"/>
+            <radius value="6.5856"/>
+        </shape>
+    </region>
+    <region id="21">
+        <name value="Yellow&apos;s side"/>
+        <color value="255,128,0,255"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="148,106"/>
+            <radius value="30"/>
+        </shape>
+        <shape type="circle">
+            <center value="173,116"/>
+            <radius value="30"/>
+        </shape>
+        <shape type="rect">
+            <quad value="142.5,104,201.5,156"/>
+        </shape>
+        <shape type="circle">
+            <center value="112,98"/>
+            <radius value="30"/>
+        </shape>
+    </region>
+    <region id="29">
+        <name value="JCQY L"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="36.0002,80"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="42">
+        <name value="JCQY R"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="172.0002,116"/>
+            <radius value="5"/>
+        </shape>
+    </region>
+    <region id="43">
+        <name value="Entire Field Wacther"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="6.0002,68.0002,202,128"/>
+        </shape>
+    </region>
+    <region id="44">
+        <name value="Base 1 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="46.0002,164.0002,94.0002,188.0002"/>
+        </shape>
+    </region>
+    <region id="45">
+        <name value="Base 2 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="98.0002,164.0002,146.0002,188.0002"/>
+        </shape>
+    </region>
+    <region id="46">
+        <name value="Base 3 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="150.0002,164.0002,198.0002,188.0002"/>
+        </shape>
+    </region>
+    <region id="47">
+        <name value="Base 4 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="10.0002,8.0002,58.0002,32.0002"/>
+        </shape>
+    </region>
+    <region id="48">
+        <name value="Base 5 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="62.0002,8.0002,110.0002,32.0002"/>
+        </shape>
+    </region>
+    <region id="49">
+        <name value="Base 6 All"/>
+        <invisible/>
+        <shape type="rect">
+            <quad value="114.0002,8.0002,162.0002,32.0002"/>
+        </shape>
+    </region>
+    <region id="50">
+        <name value="Center Circle"/>
+        <color value="255,255,255,0"/>
+        <invisible/>
+        <shape type="circle">
+            <center value="104,98"/>
+            <radius value="18"/>
+        </shape>
+    </region>
+</Regions>

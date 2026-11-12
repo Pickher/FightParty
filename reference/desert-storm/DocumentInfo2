@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DocInfo>
+    <ModType>
+        <Value>Interface</Value>
+    </ModType>
+    <Icon>
+        <Value>S4LOGO.png</Value>
+    </Icon>
+    <Dependencies>
+        <Value>bnet:沙漠风暴依赖项1128/0.0/179127,file:Mods\沙漠风暴依赖项.SC2Mod</Value>
+        <Value>bnet:国服修正版丨沙漠风暴称号MOD/0.0/228522,file:Mods\沙漠风暴称号MOD.SC2Mod</Value>
+        <Value>bnet:国服修正版丨沙漠风暴MOD丨PVE/0.0/228521,file:Mods\沙漠风暴MOD丨PVE.SC2Mod</Value>
+    </Dependencies>
+    <Screenshot>
+        <File>
+            <Value>Network Anchor\Snap3.png</Value>
+            <Value>Network Anchor\Snap2.png</Value>
+            <Value>Network Anchor\Snap1.png</Value>
+        </File>
+        <CaptionId>
+            <Value>2</Value>
+            <Value>1</Value>
+            <Value>3</Value>
+        </CaptionId>
+        <Flags>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+        </Flags>
+    </Screenshot>
+    <ScreenshotHowToPlay>
+        <File>
+            <Value>Introduce\人类建议前期部署单位.jpg</Value>
+            <Value>Introduce\异虫建议前期部署单位.jpg</Value>
+            <Value>Introduce\星灵建议前期部署单位.jpg</Value>
+            <Value>Introduce\Introduce1.png</Value>
+            <Value>Introduce\Introduce2.png</Value>
+        </File>
+        <CaptionId>
+            <Value>4</Value>
+            <Value>5</Value>
+            <Value>1</Value>
+            <Value>2</Value>
+            <Value>3</Value>
+        </CaptionId>
+        <Flags>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+        </Flags>
+    </ScreenshotHowToPlay>
+    <PatchNote>
+        <Version>
+            <Value>9.0</Value>
+        </Version>
+        <Date>
+            <Value>12/1/2022</Value>
+        </Date>
+        <Notes>
+            <Value>1,2,3,4,5</Value>
+        </Notes>
+    </PatchNote>
+</DocInfo>

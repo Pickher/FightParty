@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DocInfo>
+    <ModType>
+        <Value>Interface</Value>
+    </ModType>
+    <Icon>
+        <Value>S4LOGO.png</Value>
+    </Icon>
+    <Dependencies>
+        <Value>bnet:沙漠风暴-美术音乐文件/0.0/179136,file:Mods\沙漠风暴-美术音乐文件.SC2Mod</Value>
+        <Value>bnet:沙漠风暴-称号/0.0/179137,file:Mods\沙漠风暴-称号.SC2Mod</Value>
+        <Value>bnet:沙漠风暴-PVE/0.0/179138,file:Mods\沙漠风暴-PVE.SC2Mod</Value>
+    </Dependencies>
+    <Screenshot>
+        <File>
+            <Value>Network Anchor\Snap3.png</Value>
+            <Value>Network Anchor\Snap2.png</Value>
+            <Value>Network Anchor\Snap1.png</Value>
+        </File>
+        <CaptionId>
+            <Value>2</Value>
+            <Value>1</Value>
+            <Value>3</Value>
+        </CaptionId>
+        <Flags>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+        </Flags>
+    </Screenshot>
+    <ScreenshotHowToPlay>
+        <File>
+            <Value>Introduce\人类建议前期部署单位.jpg</Value>
+            <Value>Introduce\异虫建议前期部署单位.jpg</Value>
+            <Value>Introduce\星灵建议前期部署单位.jpg</Value>
+            <Value>Introduce\Introduce1.png</Value>
+            <Value>Introduce\Introduce2.png</Value>
+        </File>
+        <CaptionId>
+            <Value>4</Value>
+            <Value>5</Value>
+            <Value>1</Value>
+            <Value>2</Value>
+            <Value>3</Value>
+        </CaptionId>
+        <Flags>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+            <Value> </Value>
+        </Flags>
+    </ScreenshotHowToPlay>
+    <PatchNote>
+        <Version>
+            <Value>0.123</Value>
+            <Value>0.124</Value>
+            <Value>0.125</Value>
+            <Value>0.126</Value>
+            <Value>0.127</Value>
+            <Value>0.128</Value>
+            <Value>0.129</Value>
+            <Value>0.130</Value>
+            <Value>0.131</Value>
+            <Value>0.132</Value>
+            <Value>0.133</Value>
+            <Value>0.134</Value>
+            <Value>0.135</Value>
+            <Value>0.136</Value>
+            <Value>0.137</Value>
+        </Version>
+        <Date>
+            <Value>5/14/2026</Value>
+            <Value>5/15/2026</Value>
+            <Value>5/22/2026</Value>
+            <Value>5/29/2026</Value>
+            <Value>6/1/2026</Value>
+            <Value>6/5/2026</Value>
+            <Value>6/8/2026</Value>
+            <Value>6/13/2026</Value>
+            <Value>6/15/2026</Value>
+            <Value>6/19/2026</Value>
+            <Value>6/22/2026</Value>
+            <Value>6/26/2026</Value>
+            <Value>10/12/2026</Value>
+            <Value>10/17/2026</Value>
+            <Value>10/28/2026</Value>
+        </Date>
+        <Notes>
+            <Value>71,72,73,74</Value>
+            <Value>75</Value>
+            <Value>76,77,78,79,80</Value>
+            <Value>81,82,83,84</Value>
+            <Value>85,86,87</Value>
+            <Value>88,89,90,91,92,93,94,95,96,97,98,99,100,101</Value>
+            <Value>102,103,104,105,106,107,108,109</Value>
+            <Value>110,111,112,113,114,115,116,117,118,119,120,121</Value>
+            <Value>1,2</Value>
+            <Value>3</Value>
+            <Value>4,5,6</Value>
+            <Value>7,8,9,10,11,12,13,14,15,16,17</Value>
+            <Value>18,19,20,21,22,23,24,25,26,27,28</Value>
+            <Value>29,30,31,32,33,34</Value>
+            <Value>35,36</Value>
+        </Notes>
+    </PatchNote>
+</DocInfo>

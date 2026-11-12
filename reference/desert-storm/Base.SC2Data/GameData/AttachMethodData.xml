@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CAttachMethodFilter id="AMFilterHardpointSetA1">
+        <Keys Keyword="Hardpoint"/>
+        <Keys Keyword="SetA" Index="1"/>
+    </CAttachMethodFilter>
+    <CAttachMethodPattern id="AMPatternVikingFighter3">
+        <Keyword value="Weapon"/>
+        <Driver value="LanzerTorpedoesLM3"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternVikingFighter2">
+        <Keyword value="Weapon"/>
+        <Driver value="LanzerTorpedoesLM2"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPattern_Mothership_Weapon">
+        <Keyword value="Weapon"/>
+        <Driver value="Mothership_Weapon_FSW"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="Abil_INWORLD_MGWG_BOSS_03_FS_UP">
+        <Keyword value="Weapon"/>
+        <Driver value="Abil_INWORLD_MGWG_BOSS_03_FS_UP"/>
+    </CAttachMethodPattern>
+    <CAttachMethodFilter id="AttachMethod_Abil_INWORLD_MGWG_BOSS_03">
+        <Keys Keyword="Weapon" Index="0"/>
+        <Keys Keyword="Weapon" Index="1"/>
+        <Keys Keyword="Weapon" Index="2"/>
+        <Keys Keyword="Weapon" Index="3"/>
+        <Keys Keyword="Weapon" Index="4"/>
+        <Keys Keyword="Weapon" Index="5"/>
+        <Keys Keyword="Weapon" Index="6"/>
+        <Keys Keyword="Weapon" Index="7"/>
+        <Keys Keyword="Weapon" Index="8"/>
+        <Keys Keyword="Weapon" Index="9"/>
+        <Keys Keyword="Weapon" Index="10"/>
+        <Keys Keyword="Weapon" Index="11"/>
+        <Keys Keyword="Weapon" Index="12"/>
+        <Keys Keyword="Weapon" Index="13"/>
+        <Keys Keyword="Weapon" Index="14"/>
+        <Logic value="OR"/>
+    </CAttachMethodFilter>
+    <CAttachMethodFilter id="AMFilterTurretY">
+        <Keys Keyword="TurretY"/>
+    </CAttachMethodFilter>
+    <CAttachMethodFilter id="AMFilterWeaponSetA">
+        <Keys Keyword="Weapon"/>
+        <Keys Keyword="SetA"/>
+    </CAttachMethodFilter>
+    <CAttachMethodFilter id="AMFilterWeaponSetB">
+        <Keys Keyword="Weapon"/>
+        <Keys Keyword="SetB"/>
+    </CAttachMethodFilter>
+    <CAttachMethodPattern id="AMPatternArchAngelPnPChaingun">
+        <Keyword value="Weapon"/>
+        <Driver value="ArchAngelPnPShootDamage"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternBansheeBlackOps">
+        <Keyword value="Weapon"/>
+        <Driver value="Banshee_BlackOpsLaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternCODXelNagaConstructMissiles">
+        <Keyword value="SetA"/>
+        <Driver value="CODXelNagaConstructMissilesAttackLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternFenixArbiter">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="FenixArbiterWeaponLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternGoliathBlackOps">
+        <Keyword value="SetB"/>
+        <Base value="::RollingIndex"/>
+        <Offset value="1"/>
+        <Multiplier value="2"/>
+        <Driver value="Goliath_BlackOpsALM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternGoliathBlackOpsLockdown">
+        <Keyword value="SetB"/>
+        <Base value="::RollingIndex"/>
+        <Offset value="1"/>
+        <Multiplier value="2"/>
+        <Driver value="Goliath_BlackOpsALMLockDown"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternGriffon">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="HHGriffonDamage"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternHHHellion">
+        <Keyword value="SetA"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="HHHellionPunisherGrenadesLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternHHVikingFighter">
+        <Keyword value="Weapon"/>
+        <Driver value="HHLanzerTorpedoesLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternHHWraith">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="HHWraithLaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternMarauder2">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="PunisherGrenadesLM4"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternMarauder3">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="PunisherGrenadesLM3"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternMiraStarport">
+        <Keyword value="SetA"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="MiraStarportAttackWeaponLaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternOdinMKIIAA">
+        <Keyword value="Weapon"/>
+        <Driver value="OdinMKIIAALaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternSIMissileTurret">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Multiplier value="2"/>
+        <Driver value="SILongboltMissileLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternStukovAleksanderAir">
+        <Keyword value="SetA"/>
+        <Driver value="StukovAleksanderAirAttackLaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternStukovInfestedBanshee">
+        <Keyword value="Weapon"/>
+        <Driver value="StukovInfestedBacklashRocketsLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternStukovInfestedDiamondBackBileStream">
+        <Driver value="StukovInfestedDiamondBackBileStreamSprayLaunchMissile"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternTychusFirebat">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="TychusPunisherGrenadesLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodPattern id="AMPatternVulture">
+        <Keyword value="Weapon"/>
+        <Base value="::RollingIndex"/>
+        <Driver value="FragmentationGrenadeLM"/>
+    </CAttachMethodPattern>
+    <CAttachMethodFilter id="FilterWeapon0102">
+        <Keys Keyword="Weapon" Index="1"/>
+        <Keys Keyword="Weapon" Index="2"/>
+        <Logic value="OR"/>
+    </CAttachMethodFilter>
+    <CAttachMethodFilter id="FilterWeaponLR">
+        <Keys Keyword="Weapon"/>
+        <Keys Keyword="Left"/>
+        <Keys Keyword="Right"/>
+        <Logic value="OR"/>
+    </CAttachMethodFilter>
+</Catalog>

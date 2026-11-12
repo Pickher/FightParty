@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CSkin id="Jinara">
+        <ReplacementArray Catalog="Model" From="SCV" To="Jinara"/>
+        <ReplacementArray Catalog="Model" From="SCVPortrait" To="Jinara_Portrait"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Jinara"/>
+        <ReplacementArray Catalog="Model" From="ProbePortrait" To="Jinara_Portrait"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="Jinara"/>
+        <ReplacementArray Catalog="Model" From="DronePortrait" To="Jinara_Portrait"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+            <Models value="SCVPortrait"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+            <Models value="ProbePortrait"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+            <Models value="DronePortrait"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="S3REWARD">
+        <ReplacementArray Catalog="Model" From="SCV" To="SCV_BlackOps"/>
+        <ReplacementArray Catalog="Model" From="SCVDeath" To="SCV_BlackOps_Death"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Probe_Purifier_Collection"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeath" To="Probe_Purifier_Collection_Death"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="DroneSCV"/>
+        <ReplacementArray Catalog="Model" From="DroneDeath" To="DroneSCVDeath"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+            <Models value="SCVDeath"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+            <Models value="ProbeDeath"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+            <Models value="DroneDeath"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="S4REWARD">
+        <ReplacementArray Catalog="Model" From="SCV" To="SCV_Blizzcon17"/>
+        <ReplacementArray Catalog="Model" From="SCVDeath" To="SCV_Blizzcon17_Death"/>
+        <ReplacementArray Catalog="Model" From="SCVPortrait" To="SCV_Blizzcon17_Portrait"/>
+        <ReplacementArray Catalog="Model" From="SCVDeathRagdoll" To="SCV_Blizzcon17_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Probe_Blizzcon17"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeath" To="Probe_Blizzcon17_Death"/>
+        <ReplacementArray Catalog="Model" From="ProbePortrait" To="Probe_Blizzcon17_Portrait"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeathRagdoll" To="Probe_Blizzcon17_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="Drone_Blizzcon17"/>
+        <ReplacementArray Catalog="Model" From="DroneDeath" To="Drone_Blizzcon17_Death"/>
+        <ReplacementArray Catalog="Model" From="DronePortrait" To="Drone_Blizzcon17_Portrait"/>
+        <ReplacementArray Catalog="Model" From="DroneDeathRagdoll" To="Drone_Blizzcon17_DeathRagdoll"/>
+        <VariationIcon value="Assets/Textures/ui_glues_heroselect_skin_S3REWARD.dds"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+            <Models value="SCVDeath"/>
+            <Models value="SCVPortrait"/>
+            <Models value="SCVDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+            <Models value="ProbeDeath"/>
+            <Models value="ProbePortrait"/>
+            <Models value="ProbeDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+            <Models value="DroneDeath"/>
+            <Models value="DronePortrait"/>
+            <Models value="DroneDeathRagdoll"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="SUPER5WREWARD">
+        <ReplacementArray Catalog="Model" From="SCV" To="SiegeTank_Commando"/>
+        <ReplacementArray Catalog="Model" From="SCVDeath" To="SiegeTank_Commando_Death"/>
+        <ReplacementArray Catalog="Model" From="SCVPortrait" To="SiegeTank_Commando_Portrait"/>
+        <ReplacementArray Catalog="Model" From="SCVDeathRagdoll" To="SiegeTank_Commando_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Disruptor_Purifier"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeath" To="Disruptor_Purifier_Death"/>
+        <ReplacementArray Catalog="Model" From="ProbePortrait" To="Disruptor_Purifier_Portrait"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeathRagdoll" To="Disruptor_Purifier_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="ZerglingCarbot"/>
+        <ReplacementArray Catalog="Model" From="DroneDeath" To="ZerglingCarbotDeath"/>
+        <VariationIcon value="Assets/Textures/ui_glues_heroselect_skin_S3REWARD.dds"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+            <Models value="SCVDeath"/>
+            <Models value="SCVPortrait"/>
+            <Models value="SCVDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+            <Models value="ProbeDeath"/>
+            <Models value="ProbePortrait"/>
+            <Models value="ProbeDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+            <Models value="DroneDeath"/>
+            <Models value="DronePortrait"/>
+            <Models value="DroneDeathRagdoll"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="S4ReportReward01">
+        <ReplacementArray Catalog="Model" From="SCV" To="SCV_Silver"/>
+        <ReplacementArray Catalog="Model" From="SCVDeath" To="SCV_Silver_Death"/>
+        <ReplacementArray Catalog="Model" From="SCVPortrait" To="SCV_Silver_Portrait"/>
+        <ReplacementArray Catalog="Model" From="SCVDeathRagdoll" To="SCV_Silver_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Probe_Ihanrii"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeath" To="Probe_Ihanrii_Death"/>
+        <ReplacementArray Catalog="Model" From="ProbePortrait" To="Probe_Ihanrii_Portrait"/>
+        <ReplacementArray Catalog="Model" From="ProbeDeathRagdoll" To="Probe_Ihanrii_DeathRagdoll"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="Drone_RCZ"/>
+        <ReplacementArray Catalog="Model" From="DroneDeath" To="Drone_RCZ_Death"/>
+        <ReplacementArray Catalog="Model" From="DronePortrait" To="Drone_RCZ_Portrait"/>
+        <ReplacementArray Catalog="Model" From="DroneDeathRagdoll" To="Drone_RCZ_DeathRagdoll"/>
+        <VariationIcon value="Assets/Textures/ui_glues_heroselect_skin_S3REWARD.dds"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+            <Models value="SCVDeath"/>
+            <Models value="SCVPortrait"/>
+            <Models value="SCVDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+            <Models value="DroneDeath"/>
+            <Models value="DronePortrait"/>
+            <Models value="DroneDeathRagdoll"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+            <Models value="ProbeDeath"/>
+            <Models value="ProbePortrait"/>
+            <Models value="ProbeDeathRagdoll"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin10000550">
+        <ReplacementArray Catalog="Model" From="SCV" To="Banshee_BlackOps"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Banshee_BlackOps"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="Banshee_BlackOps"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin5218052">
+        <ReplacementArray Catalog="Model" From="SCV" To="ShapeApple"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="ShapeApple"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="ShapeApple"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin4249534">
+        <ReplacementArray Catalog="Model" From="SCV" To="tychusMarauder"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="tychusMarauder"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="tychusMarauder"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin6433458">
+        <ReplacementArray Catalog="Model" From="SCV" To="NarudXelNaga"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="NarudXelNaga"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="NarudXelNaga"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin4297602">
+        <ReplacementArray Catalog="Model" From="SCV" To="HybridDominator"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="HybridDominator"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="HybridDominator"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin9296705">
+        <ReplacementArray Catalog="Model" From="SCV" To="tychusMedic"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="tychusMedic"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="tychusMedic"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin6651159">
+        <ReplacementArray Catalog="Model" From="SCV" To="KerriganEpilogue03"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="KerriganEpilogue03"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="KerriganEpilogue03"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin11495891">
+        <ReplacementArray Catalog="Model" From="SCV" To="DarkArchonChampion"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="DarkArchonChampion"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="DarkArchonChampion"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin4109915">
+        <ReplacementArray Catalog="Model" From="SCV" To="DarkArchonEX"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="DarkArchonEX"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="DarkArchonEX"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+    <CSkin id="skin3001602">
+        <ReplacementArray Catalog="Model" From="SCV" To="Banshee_BlackOps"/>
+        <ReplacementArray Catalog="Model" From="Probe" To="Banshee_BlackOps"/>
+        <ReplacementArray Catalog="Model" From="Drone" To="Banshee_BlackOps"/>
+        <ModelGroups Name="SCVModels">
+            <Models value="SCV"/>
+        </ModelGroups>
+        <ModelGroups Name="ProbeModels">
+            <Models value="Probe"/>
+        </ModelGroups>
+        <ModelGroups Name="DroneModels">
+            <Models value="Drone"/>
+        </ModelGroups>
+        <ModelMacroRun Macro="Disruptor"/>
+    </CSkin>
+</Catalog>

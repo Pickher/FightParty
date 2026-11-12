@@ -1,0 +1,1280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CRequirement id="ArmBroodlingEscortAdvance">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LTCountUnitBroodlingEscort2QueuedOrBetterAtUnit2"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptor">
+        <NodeArray index="Use" Link="LT1343547441CountUnitInterceptorQueuedOrBetterAtUnit8"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptor10">
+        <NodeArray index="Use" Link="LT3787986125CountUnitInterceptorQueuedOrBetterAtUnit10"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptor12">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT2705495516CountUnitInterceptorQueuedOrBetterAtUnit12"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptor4">
+        <NodeArray index="Use" Link="LT1207804096CountUnitInterceptorQueuedOrBetterAtUnit4"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptor6">
+        <NodeArray index="Use" Link="LT2205531686CountUnitInterceptorQueuedOrBetterAtUnit6"/>
+    </CRequirement>
+    <CRequirement id="ArmInterceptorXSJD">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT1343547441CountUnitInterceptor4QueuedOrBetterAtUnit8"/>
+    </CRequirement>
+    <CRequirement id="ArmScarab">
+        <NodeArray index="Use" Link="LT3705655193CountUnitScarabQueuedOrBetterAtUnit10"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost11">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitHybridDominatorVoidQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost12">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitKerriganEpilogue032QueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost13">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitKaraxChampionQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Behavior_NOT_Basespeedup">
+        <EditorCategories value="TechType:Ability"/>
+        <NodeArray index="Use" Link="Eq1752903951CountBehaviorBasespeedupCompleteOnlyAtUnit1"/>
+        <NodeArray index="Show" Link="EqCountBehaviorBasespeedupCompleteOnlyAtUnit1"/>
+    </CRequirement>
+    <CRequirement id="BiomassBuff103">
+        <EditorCategories value="Race:Zerg"/>
+        <NodeArray index="Show" Link="CountBehaviorBiomassBuff103QueuedOrBetterAtUnit"/>
+    </CRequirement>
+    <CRequirement id="BuildFenixAltarOfPsiStorms">
+        <NodeArray index="Use" Link="Not2537767773CountUnitFenixAltarOfPsiStormsQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixCommanderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQHA">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndEq1065386586CountUpgradeSelectRace8QueuedOrBetter1LT2066956844CountUpgradeDehakaUpgradeLifeQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRace8QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQH2">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndEq1065386586CountUpgradeSelectRace8QueuedOrBetter1LT2066956844CountUpgradeDehakaUpgradeAttackQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRace8QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQHC">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndEq1065386586CountUpgradeSelectRace8QueuedOrBetter1LT2066956844CountUpgradeDehakaUpgradeArmorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRace8QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQH_DWMB_1">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="CountUpgradeDehakaUpgradeLifeQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQH_DWMB_2">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="CountUpgradeDehakaUpgradeAttackQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQH_DWMB_3">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="CountUpgradeDehakaUpgradeArmorQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="FenixChampionImmortalCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixTaldarinImmortalCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="FenixClolarionArmBomber">
+        <NodeArray index="Use" Link="LTCountUnitFenixClolarionBomberQueuedOrBetterAtUnit2"/>
+    </CRequirement>
+    <CRequirement id="FenixClolarionArmInterceptor">
+        <NodeArray index="Use" Link="LT2270681000CountUnitFenixClolarionInterceptorQueuedOrBetterAtUnit8"/>
+    </CRequirement>
+    <CRequirement id="FenixClolarionCarrierCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixClolarionCarrierCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="FenixKaldalisZealotCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixKaldalisZealotCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="FenixKaldalisZealotReviveOffCooldown">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Show" Link="NotCountBehaviorFenixKaldalisZealotReviveSupressedCompleteOnlyAtUnit"/>
+    </CRequirement>
+    <CRequirement id="FenixMojoScoutCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixMojoScoutCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="FenixTalisAdeptCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixTalisAdeptCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="FenixWarbringerColossusCount">
+        <NodeArray index="Use" Link="EqCountUnitFenixWarbringerColossusCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="HaveAdeptFenixShadeSpawn">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeAdeptFenixShadeSpawnCompleteOnly3221045989"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixArbiterSoAPassive">
+        <NodeArray index="Show" Link="GTCountUnitFenixArbiterCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixChampionCarrierBombers">
+        <NodeArray index="Use" Link="CountUpgradeFenixChampionCarrierBombersCompleteOnly3906139676"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionCarrierBombersCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixChampionScoutAOEMissiles">
+        <NodeArray index="Use" Link="CountUpgradeFenixChampionScoutAOEMissilesCompleteOnly3123415249"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixChampionSwapBoost">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionSwapBoostCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixClolarionCarrierActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionClolarionCarrierCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixCommander">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixCommanderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixDragoonSoAPassive">
+        <NodeArray index="Show" Link="GTCountUnitFenixDragoonCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixKaldalisZealotActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionKaldalisZealotCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixMojoScoutActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionMojoScoutCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiority">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="CountUpgradeFenixNetworkedSuperiorityCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityAdept">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityAdeptCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityCarrier">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityCarrierCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityColossus">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityColossusCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityImmortal">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityImmortalCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityScout">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityScoutCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixNetworkedSuperiorityZealot">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixNetworkedSuperiorityZealotCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixScoutWeaponRange">
+        <NodeArray index="Use" Link="CountUpgradeFenixScoutWeaponRangeCompleteOnly2181805527"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixCommanderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixSentryGuardianZoneUpgrade">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeFenixSentryGuardianZoneUpgradeCompleteOnly1629168316"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixSentryPhotonOvercharge">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeFenixSentryPhotonOverchargeCompleteOnly214638509"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixSoAPassive">
+        <NodeArray index="Show" Link="GTCountUnitFenixCoopCompleteOnly0"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixSuitAttackDamage">
+        <NodeArray index="Show" Link="CountUpgradeFenixSuitAttackDamageCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixTaldarinImmortalActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionTaldarinImmortalCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixTalisAdeptActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionTalisAdeptCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixWarbringerColossusActive">
+        <NodeArray index="Show" Link="CountUpgradeFenixChampionWarbringerColossusCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixWarbringerColossusIceBeam">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixWarbringerColossusIceBeamCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixWarbringerColossusIceBeamStructureUpgrade">
+        <NodeArray index="Show" Link="CountUpgradeFenixWarbringerColossusIceBeamStructureCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveFenixWarbringerColossusPowerShot">
+        <NodeArray index="Use" Link="CountUpgradeFenixWarbringerColossusPowerShotCompleteOnly2904446950"/>
+    </CRequirement>
+    <CRequirement id="HaveGateway">
+        <NodeArray index="Use" Link="CountUnitAlias_GatewayCompleteOnly2498390370TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveLair3">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="Or2407241998CountUnitAlias_LairCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveLair2">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="Or2407241998CountUnitAlias_LairCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveLair4">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="Or2407241998CountUnitAlias_LairCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace7QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveLair5">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="Or2407241998CountUnitAlias_LairCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHiveandonlyoneCreepColony">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndOr3961467345CountUnitHiveCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheatLT1450983226CountUnitCreepColonyQueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveImaginary">
+        <NodeArray index="Use" Link="CountUpgradeSelectRace0QueuedOrBetter2142854436"/>
+    </CRequirement>
+    <CRequirement id="HaveLair">
+        <NodeArray index="Use" Link="CountUnitAlias_LairCompleteOnly473470789TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixChampionAttackSpeed">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixChampionAttackSpeedCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixChampionLifeShieldBuff">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixChampionLifeShieldBuffCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixChronoBoostExtra">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixChronoBoostExtraCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixReducedResearchCosts">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixReducedResearchCostsCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixSuitAttackSpeed">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixSuitAttackSpeedCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveMasteryFenixSuitEnergyRegen">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeMasteryFenixSuitEnergyRegenCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsBayAndFenixCommander">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUnitRoboticsBayCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="CountUpgradeFenixCommanderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveStarport">
+        <NodeArray index="Use" Link="CountUnitAlias_StarportCompleteOnly3312044644TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="LearnAdeptFenixShadeSpawn">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Show" Link="NotCountUpgradeAdeptFenixShadeSpawnQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixArbiterDetection">
+        <NodeArray index="Show" Link="NotCountUpgradeFenixArbiterDetectionQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixChampionCarrierBombers">
+        <NodeArray index="Use" Link="CountUpgradeFenixChampionClolarionCarrierCompleteOnly1383360590"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionCarrierBombersQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixChampionScoutAOEMissiles">
+        <NodeArray index="Use" Link="CountUpgradeFenixChampionMojoScoutCompleteOnly1277215926"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionScoutAOEMissilesQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixScoutWeaponRange">
+        <NodeArray index="Show" Link="NotCountUpgradeFenixScoutWeaponRangeQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixSentryGuardianZoneUpgrade">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Show" Link="AndCountUpgradeFenixCommanderCompleteOnlyNotCountUpgradeFenixSentryGuardianZoneUpgradeQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixSentryPhotonOvercharge">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Show" Link="AndCountUpgradeFenixCommanderCompleteOnlyNotCountUpgradeFenixSentryPhotonOverchargeQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixSuitAttackDamage">
+        <NodeArray index="Show" Link="NotCountUpgradeFenixSuitAttackDamageQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="LearnFenixWarbringerColossusPowerShot">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeFenixChampionWarbringerColossusCompleteOnly2700135604"/>
+        <NodeArray index="Show" Link="And2700135604CountUpgradeFenixCommanderCompleteOnlyNotCountUpgradeFenixWarbringerColossusPowerShotQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Limit_6_StukovApocalisk">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndCountUnitAlias_InfestedEngBayCompleteOnly1489534796LT1798609973CountUnitInfestedCCQueuedOrBetter1"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace7QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsNova">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace3QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="INWORLD_MGWG_JY1">
+        <EditorCategories value="Race:Other"/>
+        <NodeArray index="Use" Link="AndLT3827129371CountUnitINWORLD_MGWG_JY1QueuedOrBetter1CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost14">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitHybridBehemothQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost15">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitArtanisVoidQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost16">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitRaynor01QueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost17">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitToshQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost18">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitDragoonPurifierQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="AuthorMost19">
+        <NodeArray index="Use" Link="AndLT404744902CountUnitFZX_megalithQueuedOrBetter1LT3125486541CountUnitAlies_AuthorQueuedOrBetter5"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRaceBOSSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="BOSS02Requirement00">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="EqCountBehaviorBOSS02VoidPylonPowerSourceOPENCompleteOnlyAtUnit1"/>
+        <NodeArray index="Show" Link="EqCountBehaviorBOSS02VoidPylonPowerSourceOPENCompleteOnlyAtUnit1"/>
+    </CRequirement>
+    <CRequirement id="BOSS02Requirement01">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="EqCountBehaviorBOSS02VoidPylonPowerSourceOPENCompleteOnlyAtUnit0"/>
+        <NodeArray index="Show" Link="EqCountBehaviorBOSS02VoidPylonPowerSourceOPENCompleteOnlyAtUnit0"/>
+    </CRequirement>
+    <CRequirement id="CannonLimit2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT3139151179CountUnitBunkerQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="CannonLimit22">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT168351453CountUnitMissileTurretQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="HHBomberPlatformLimit">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT2855585873CountUnitHHBomberPlatformQueuedOrBetterTechTreeCheat1"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace4QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade3QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="Dehaka_JYQH">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndEq1065386586CountUpgradeSelectRace8QueuedOrBetter1LT3689091582CountUpgradeDehakaUpgrade_JYQHQueuedOrBetter4"/>
+        <NodeArray index="Show" Link="CountUpgradeSelectRace8QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="HaveStargateandonlyone">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndLT3768102977CountUnitNexus_TaldarimQueuedOrBetter1CountUnitAlias_StargateCompleteOnly2574199674TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace12QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="INWORLD_MGWG">
+        <EditorCategories value="Race:Other"/>
+        <NodeArray index="Use" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="INWORLD_MGWG_JY2">
+        <EditorCategories value="Race:Other"/>
+        <NodeArray index="Use" Link="AndLT215917855CountUnitINWORLD_MGWG_JY2QueuedOrBetter1CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="INWORLD_MGWG_JY3">
+        <EditorCategories value="Race:Other"/>
+        <NodeArray index="Use" Link="AndLT74334860CountUnitINWORLD_MGWG_JY3QueuedOrBetter1CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="INWORLD_MGWG_BOSS">
+        <EditorCategories value="Race:Other"/>
+        <NodeArray index="Use" Link="AndLT1827550202CountUnitINWORLD_MGWG_BOSSQueuedOrBetter1CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeINWORLD_MGWGQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="IsRaynor">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement17">
+        <NodeArray index="Use" Link="CountUpgradeSelectRace0QueuedOrBetter3486769792"/>
+        <EditorCategories value="Race:Other"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitPlanetaryFortress3QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings3">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitBarracksTechReactorQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings4">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitScienceFacilityDSQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings5">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitFactoryTechReactorQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings6">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitStarportTechReactorQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings7">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitBioDomeCommandQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Requirement_GJJAIZKXT">
+        <EditorCategories value="Race:Terran,TechType:Ability"/>
+        <NodeArray index="Show" Link="OrCountBehaviorGJJAIZKXT_SiegeBreakerQueuedOrBetterAtUnitCountBehaviorGJJAIZKXT_Liberator_BlackOpsQueuedOrBetterAtUnitCountBehaviorGJJAIZKXT_MengskBansheeQueuedOrBetterAtUnitCountBehaviorGJJAIZKXT_Spa1603736682"/>
+    </CRequirement>
+    <CRequirement id="BiomassBuff">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountBehavior_BiomassBuffQueuedOrBetterAtUnit"/>
+    </CRequirement>
+    <CRequirement id="Requirement_BehaviorJxbl">
+        <EditorCategories value="Race:Terran,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountBehaviorBehaviorJxblQueuedOrBetterAtUnit"/>
+    </CRequirement>
+    <CRequirement id="Requirement_Limit_1_OrbitalCommand">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="AndGTE3459363092CountUnitRefractionCoreQueuedOrBetter1LT912689825CountUnitOrbitalCommandQueuedOrBetter1"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="Requirement_TDLLHXSGFXT">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountBehaviorBehavior_TDLLHXSGFXTQueuedOrBetterAtUnit"/>
+    </CRequirement>
+    <CRequirement id="Requirement_Limit_3_Adjudicator">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LT472175477CountUnitProtossRadioTowerQueuedOrBetter3"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="Requirement_HyperionVoidCoopDamageAuraTarget2">
+        <EditorCategories value="Race:Terran,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountBehaviorHyperionVoidCoopDamageAuraTarget2QueuedOrBetterAtUnit"/>
+    </CRequirement>
+    <CRequirement id="TrainFenixClolarionCarrier"/>
+    <CRequirement id="TrainFenixKaldalisZealot">
+        <NodeArray index="Show" Link="Eq1591831059CountUnitFenixKaldalisZealotQueuedOrBetter0"/>
+    </CRequirement>
+    <CRequirement id="TrainFenixMojoScout">
+        <NodeArray index="Use" Link="CountUnitStargateCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="Eq4270546557CountUnitFenixMojoScoutQueuedOrBetter0"/>
+    </CRequirement>
+    <CRequirement id="TrainFenixTaldarinImmortal">
+        <NodeArray index="Use" Link="CountUnitRoboticsFacilityCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="Eq3258173817CountUnitFenixTaldarinImmortalQueuedOrBetter0"/>
+    </CRequirement>
+    <CRequirement id="TrainFenixTalisAdept">
+        <NodeArray index="Use" Link="CountUnitCyberneticsCoreCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="Eq3258173817CountUnitFenixTalisAdeptQueuedOrBetter0"/>
+    </CRequirement>
+    <CRequirement id="TrainFenixWarbringerColossus"/>
+    <CRequirement id="UNITLIMIT_TJPJ_5">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LT1620376215CountUnitBioDomeCommand2QueuedOrBetter5"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement16">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade31QueuedOrBetter2403670662"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade31QueuedOrBetter"/>
+        <EditorCategories value="Race:Other"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement_GASLimit">
+        <NodeArray index="Use" Link="OrLTE2966045061CountUnitLIMIT_SMXKWSGCCompleteOnly2And949250048CountUpgradeNSKXP_Requirement_GASLimit_JCCompleteOnlyLTECountUnitLIMIT_SMXKWSGCCompleteOnly5"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement_ZHLimit">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Requirement_GASLimit_JCCompleteOnly645160423"/>
+    </CRequirement>
+    <CRequirement id="Requirement_Festival">
+        <NodeArray index="Use" Link="CountUpgradeUpgrade_FestivalQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgrade_FestivalQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="SICivilianLimit">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT3697265839CountUnitSICivilianQueuedOrBetter1"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace7QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="Crawlerlimit">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT3492415008SumCountUnitSporeCrawlerQueuedOrBetterTechTreeCheatCountUnitSporeCrawlerUprootedQueuedOrBetterTechTreeCheatCountUnitSpineCrawlerQueuedOrBetterTechTreeCheatCountUnitSpineCrawlerUprootedQueuedOrBetterTechTreeCheat4"/>
+    </CRequirement>
+    <CRequirement id="FlyingBarracksLimit">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT1706253479CountUnitBarracksFlyingInProgressOrBetterTechTreeCheat12"/>
+    </CRequirement>
+    <CRequirement id="CannonLimit5">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT334305319CountUnitDrakkenTurretQueuedOrBetterTechTreeCheat1"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace2QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="DarkPylonLimit">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT2769859673CountUnitDarkPylonQueuedOrBetterTechTreeCheat3"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace10QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="BileLauncherZagaraLimit">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="AndCountUnitSunkenColonyCompleteOnly2277772449LT3944028281CountUnitBileLauncherZagaraQueuedOrBetter3"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="CannonLimit6">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT24069632CountUnitK_TowerQueuedOrBetterTechTreeCheat1"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace11QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="CannotUsed">
+        <NodeArray index="Show" Link="CountUpgradeUpgradeCannotUsedCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="DSShieldSystemBrokenOff">
+        <NodeArray index="Show" Link="CountUpgradeShieldSysyemBrokenCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="DSCannonSystemBrokenOff2">
+        <NodeArray index="Show" Link="CountUpgradeCannonSysyemBroken2CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="DontHaveNexus">
+        <NodeArray index="Use" Link="NotCountUnitAiurLightBridgeAbandonedNE8CompleteOnly245776122"/>
+    </CRequirement>
+    <CRequirement id="FlyingFactoryLimit">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT1706253479CountUnitFactoryFlyingInProgressOrBetterTechTreeCheat12"/>
+    </CRequirement>
+    <CRequirement id="FlyingStarportLimit">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT1706253479CountUnitStarportFlyingInProgressOrBetterTechTreeCheat12"/>
+    </CRequirement>
+    <CRequirement id="HatcherySpawnLarva2">
+        <EditorCategories value="TechType:Unit,Race:Terran"/>
+        <NodeArray index="Use" Link="LTCountUnitSCVQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="HatcherySpawnLarva222">
+        <EditorCategories value="TechType:Unit,Race:Zerg"/>
+        <NodeArray index="Use" Link="LTCountUnitDroneQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="HatcherySpawnLarva3">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Show" Link="LTCountUnitQueenCompleteOnlyAtUnit1"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks">
+        <NodeArray index="Use" Link="GTE2983987925CountUnitAlias_BarracksCompleteOnlyTechTreeCheat2"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks2" parent="HaveBarracks">
+        <NodeArray index="Use" Link="GTE4062223404CountUnitAlias_BarracksCompleteOnlyTechTreeCheat2"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks3" parent="HaveBarracks">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace2QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks4" parent="HaveBarracks">
+        <NodeArray index="Use" Link="GTE4062223404CountUnitAlias_BarracksCompleteOnlyTechTreeCheat2"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace3QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks5" parent="HaveBarracks">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveBarracks6" parent="HaveBarracks">
+        <NodeArray index="Use" Link="GTE4062223404CountUnitAlias_BarracksCompleteOnlyTechTreeCheat2"/>
+        <NodeArray index="Show" Link="EqCountUnitSCVTotal1"/>
+    </CRequirement>
+    <CRequirement id="HaveCommandCenter2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="Or3998383256TechTreeCheatCountUnitOrbitalCommandCompleteOnlyTechTreeCheatEqCountUpgradeUnknownUpgrade5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveCyberneticsCore2">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="Or4241725476CountUnitCyberneticsCoreCompleteOnlyTechTreeCheatCountUnitCyberneticsCore2CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeBounsp2CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveCyberneticsCore22">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="And4241725476OrTechTreeCheatCountUnitCyberneticsCore2CompleteOnlyTechTreeCheatCountUnitCyberneticsCoreCompleteOnlyTechTreeCheatNotTechTreeCheatCountUpgradeUpgradeBounsp2QueuedOrBetterTechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeUpgradeBounsp2QueuedOrBetterTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveCorruptSpire">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="GTE2875252718TechTreeCheatSumTechTreeCheatCountUnitCorruptSpireCompleteOnlyCountUnitUltraliskCavern22CompleteOnly1"/>
+    </CRequirement>
+    <CRequirement id="HaveCyberneticsCore">
+        <NodeArray index="Use" Link="CountUnitAlias_CyberneticsCoreCompleteOnly119114798"/>
+    </CRequirement>
+    <CRequirement id="HaveFactory">
+        <NodeArray index="Use" Link="GTE1457346175CountUnitAlias_FactoryCompleteOnly2"/>
+    </CRequirement>
+    <CRequirement id="DSHaveFactory" parent="HaveFactory">
+        <NodeArray index="Use" Link="GTE166822671CountUnitAlias_FactoryCompleteOnly1"/>
+    </CRequirement>
+    <CRequirement id="HaveFactory2" parent="HaveFactory">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveFactory3" parent="HaveFactory">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace2QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveFactory4" parent="HaveFactory">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace3QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveFactory5" parent="HaveFactory">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveGreaterSpire">
+        <NodeArray index="Use" Link="CountUnitAlias_GreaterSpireCompleteOnly1444211841TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveGreaterSpire2" parent="HaveGreaterSpire">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveGreaterSpire3" parent="HaveGreaterSpire">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveGreaterSpire4" parent="HaveGreaterSpire">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace7QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveGreaterSpire5" parent="HaveGreaterSpire">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHive">
+        <NodeArray index="Use" Link="Or2379972112CountUnitHiveCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveHive2" parent="HaveHive">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveSIBarracksTrainInfestedCivilianLevel2">
+        <EditorCategories value="Race:Zerg"/>
+        <NodeArray index="Use" Link="CountUpgradeSIBarracksTrainInfestedCivilianLevel2CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveSIBarracksTrainInfestedCivilianLevel3">
+        <EditorCategories value="Race:Zerg"/>
+        <NodeArray index="Use" Link="CountUpgradeSIBarracksTrainInfestedCivilianLevel3CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveSIBarracksTrainInfestedCivilianLevel4">
+        <EditorCategories value="Race:Zerg"/>
+        <NodeArray index="Use" Link="CountUpgradeSIBarracksTrainInfestedCivilianLevel4CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="IsSICivilianStructureRooted">
+        <NodeArray index="Use" Link="CountUnitSICivilianStructureCompleteOnlyAtUnit1344415123"/>
+        <EditorCategories value="Race:Zerg"/>
+    </CRequirement>
+    <CRequirement id="IsAbathurBrutalisk3">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LT2981345094CountUnitCarrionNestQueuedOrBetter6"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsAbathurLeviathan3">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LT472175477CountUnitSpireLeviathanQueuedOrBetter3"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="JXCW_0">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_0QueuedOrBetter2380035077"/>
+    </CRequirement>
+    <CRequirement id="JXCW_1">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_1QueuedOrBetter1044808609"/>
+    </CRequirement>
+    <CRequirement id="JXCW_10">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_10QueuedOrBetter2829873130"/>
+    </CRequirement>
+    <CRequirement id="JXCW_11">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_11QueuedOrBetter1470490119"/>
+    </CRequirement>
+    <CRequirement id="JXCW_12">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_12QueuedOrBetter3547800517"/>
+    </CRequirement>
+    <CRequirement id="JXCW_13">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_13QueuedOrBetter2146137740"/>
+    </CRequirement>
+    <CRequirement id="JXCW_14">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_14QueuedOrBetter3934024805"/>
+    </CRequirement>
+    <CRequirement id="JXCW_2">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_2QueuedOrBetter2044257492"/>
+    </CRequirement>
+    <CRequirement id="JXCW_3">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_3QueuedOrBetter2027785292"/>
+    </CRequirement>
+    <CRequirement id="JXCW_4">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_4QueuedOrBetter2024991500"/>
+    </CRequirement>
+    <CRequirement id="JXCW_5">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_5QueuedOrBetter935876890"/>
+    </CRequirement>
+    <CRequirement id="JXCW_6">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_6QueuedOrBetter2895941838"/>
+    </CRequirement>
+    <CRequirement id="JXCW_7">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_7QueuedOrBetter2546054535"/>
+    </CRequirement>
+    <CRequirement id="JXCW_8">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_8QueuedOrBetter1983449531"/>
+    </CRequirement>
+    <CRequirement id="JXCW_9">
+        <NodeArray index="Use" Link="CountUpgradeTC_JXPF_9QueuedOrBetter374367994"/>
+    </CRequirement>
+    <CRequirement id="KaraxHaveSolarEfficiencyLevel1">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="AndCountUpgradeSolarEfficiencyLevel1CompleteOnlyNotCountUpgradeSolarEfficiencyLevel2CompleteOnlyNotCountUpgradeSolarEfficiencyLevel4CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="KaraxHaveSolarEfficiencyLevel2">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="AndCountUpgradeSolarEfficiencyLevel2CompleteOnlyNotCountUpgradeSolarEfficiencyLevel4CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="KaraxHaveSolarEfficiencyLevel3">
+        <EditorCategories value="Race:Protoss,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeSolarEfficiencyLevel4CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="IsZagara">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace5QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHive3" parent="HaveHive">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHive4" parent="HaveHive">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace7QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHive5" parent="HaveHive">
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveHydraliskDen2">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="GT4068894844TechTreeCheatSumTechTreeCheatCountUnitHydraliskDenDSCompleteOnlyCountUnitHydraliskDen2CompleteOnlyCountUnitLurkerDenDSCompleteOnlyCountUnitImpalerDenCompleteOnly1"/>
+    </CRequirement>
+    <CRequirement id="HaveInfestationPit">
+        <NodeArray index="Use" Link="Or3313737707TechTreeCheatCountUnitInfestationPitCompleteOnlyCountUnitInfestationPit2CompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="HaveInfestationPit2" parent="HaveInfestationPit">
+        <NodeArray index="Use" Link="OrTechTreeCheatCountUnitInfestationPitCompleteOnlyCountUnitInfestationPit2CompleteOnly"/>
+        <NodeArray index="Show" Link="EqCountUpgradeUnknownUpgrade8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveRoachWarrenOrImpalerDen">
+        <NodeArray index="Use" Link="CountUnitAlias_RoachWarrenCompleteOnly3908575289TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsFa">
+        <NodeArray index="Use" Link="CountUnitAlias_RoboticsFacilityCompleteOnly3215714902TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsFaArtanis" parent="HaveRoboticsFa">
+        <NodeArray index="Use" Link="CountUnitAlias_RoboticsFacilityCompleteOnly2925901175TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsFaVorazun" parent="HaveRoboticsFa">
+        <NodeArray index="Use" Link="CountUnitAlias_RoboticsFacilityCompleteOnly2925901175TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsFaKarax" parent="HaveRoboticsFa">
+        <NodeArray index="Use" Link="CountUnitAlias_RoboticsFacilityCompleteOnly2925901175TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace11QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveRoboticsFaAlarak" parent="HaveRoboticsFa">
+        <NodeArray index="Use" Link="CountUnitAlias_RoboticsFacilityCompleteOnly2925901175TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace12QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveSpawningPool">
+        <NodeArray index="Use" Link="CountUnitAlias_SpawmingPoolQueuedOrBetter2977899811"/>
+    </CRequirement>
+    <CRequirement id="HaveSpawningPool2" parent="HaveSpawningPool">
+        <NodeArray index="Use" Link="Or2977899811CountUnitSpawningPoolCompleteOnlyTechTreeCheatCountUnitEvolutionChamberCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="EqCountUpgradeUnknownUpgrade8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_StargateCompleteOnly2574199674TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="HaveStargate2" parent="HaveStargate">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveDarkShrine2" parent="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_DarkShrineCompleteOnly1779408957TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveTwilightCouncil5" parent="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_TwilightCouncilCompleteOnly395387363TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace12QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveTwilightCouncil4" parent="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_TwilightCouncilCompleteOnly2492569938TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace11QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveTwilightCouncil3" parent="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_TwilightCouncilCompleteOnly2492569938TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveTwilightCouncil2" parent="HaveStargate">
+        <NodeArray index="Use" Link="CountUnitAlias_TwilightCouncilCompleteOnly2492569938TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsArtanis">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace9QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStargate3" parent="HaveStargate">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStargate4" parent="HaveStargate">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace11QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStargate5" parent="HaveStargate">
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace12QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStarport2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="CountUnitAlias_StarportCompleteOnly1154957850TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace1QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStarport3">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="CountUnitAlias_StarportCompleteOnly1154957850TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace2QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStarport4">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="CountUnitAlias_StarportCompleteOnly1154957850TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace3QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveStarport5">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="CountUnitAlias_StarportCompleteOnly1154957850TechTreeCheat"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="HaveTwilightCouncil">
+        <NodeArray index="Use" Link="CountUnitAlias_TwilightCouncilCompleteOnly2492569938TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="IsVorazun">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace10QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsFenix">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace11QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsAlarak">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="GTECountUpgradeSelectRace12QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsAbathur">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace6QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsStukov">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace7QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="IsDehaka">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace8QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="LearnSIBarracksTrainInfestedCivilianLevel2">
+        <NodeArray index="Use" Link="Or2379972112CountUnitHiveCompleteOnlyTechTreeCheatCountUnitHive3CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeSIBarracksTrainInfestedCivilianLevel2QueuedOrBetter"/>
+        <EditorCategories value="Race:Zerg"/>
+    </CRequirement>
+    <CRequirement id="LearnSIBarracksTrainInfestedCivilianLevel3">
+        <NodeArray index="Use" Link="CountUnitAlias_InfestedEngBayCompleteOnly1489534796"/>
+        <NodeArray index="Show" Link="AndNotCountUpgradeSIBarracksTrainInfestedCivilianLevel3QueuedOrBetterCountUpgradeSIBarracksTrainInfestedCivilianLevel2CompleteOnly"/>
+        <EditorCategories value="Race:Zerg"/>
+    </CRequirement>
+    <CRequirement id="LearnSIBarracksTrainInfestedCivilianLevel4">
+        <NodeArray index="Use" Link="CountUnitAlias_InfestedFactoryCompleteOnly3666948393"/>
+        <NodeArray index="Show" Link="AndNotCountUpgradeSIBarracksTrainInfestedCivilianLevel4QueuedOrBetterCountUpgradeSIBarracksTrainInfestedCivilianLevel3CompleteOnly"/>
+        <EditorCategories value="Race:Zerg"/>
+    </CRequirement>
+    <CRequirement id="Medicrequipment">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Use" Link="GTE4062223404CountUnitAlias_BarracksCompleteOnlyTechTreeCheat2"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeBounst2CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="NOTPVEAI">
+        <NodeArray index="Use" Link="NotCountUpgradePVEAIQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement0">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade0QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade0QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement15">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade15QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement1">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade1QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade1QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement2">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade2QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade2QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement3">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade3QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade3QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement4">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade8QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade8QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement5">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade9QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade9QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement6">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade10QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade10QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement7">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade11QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade11QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement8">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade4QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade4QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement9">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade5QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade5QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement10">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade6QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade6QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement11">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade7QueuedOrBetter4186206497"/>
+        <NodeArray index="Show" Link="CountUpgradeNSKXP_Upgrade7QueuedOrBetter4186206497"/>
+    </CRequirement>
+    <CRequirement id="NSKXP_Requirement_GAS">
+        <NodeArray index="Use" Link="CountUpgradeNSKXP_Upgrade_GASQueuedOrBetter3626259027"/>
+    </CRequirement>
+    <CRequirement id="NotSetTop">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationTopCompleteOnly1"/>
+    </CRequirement>
+    <CRequirement id="NotSetBottom">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationBottomCompleteOnly1"/>
+    </CRequirement>
+    <CRequirement id="NotSetLeft">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationLeftTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetRight">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationRightTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetTopLeft">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationTopLeftTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetTopRight">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationTopRightTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetBottomLeft">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationBottomLeftTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetBottomRight">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationBottomRightTotal1"/>
+    </CRequirement>
+    <CRequirement id="NotSetCenter">
+        <NodeArray index="Show" Link="LTCountBehaviorSetLocationCenterTotal1"/>
+    </CRequirement>
+    <CRequirement id="PhobusClassWeaponSystemsResearchedDS">
+        <EditorCategories value="Race:Terran"/>
+        <NodeArray index="Show" Link="CountUpgradeAresClassWeaponsSystemVikingCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="PlayerIsYellow">
+        <NodeArray index="Show" Link="CountUpgradePlayerIsYellowQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="PlayerIsPurple">
+        <NodeArray index="Show" Link="CountUpgradePlayerIsPurpleQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="Probelimit">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LTCountUnitProbeQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="BabyNexusLimit">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="AndLT2935784830CountUnitNexus_TaldarimQueuedOrBetterTechTreeCheat1Or2574199674CountUnitStargateCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="CannonLimit">
+        <EditorCategories value="Race:Protoss,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT2323930034CountUnitPhotonCannonQueuedOrBetterTechTreeCheat1"/>
+    </CRequirement>
+    <CRequirement id="Probelimit2">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT1867909414SumTechTreeCheatCountUnitSpineCrawlerQueuedOrBetterTechTreeCheatCountUnitSpineCrawlerUprootedQueuedOrBetterTechTreeCheat3"/>
+    </CRequirement>
+    <CRequirement id="RedarNeed">
+        <NodeArray index="Show" Link="CountUpgradeRedarUPCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementDarkTemplarShadowFury">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeDarkTemplarShadowFuryCompleteOnly"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeDarkTemplarShadowFuryCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementDuskWing">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeDuskWingCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementEliteID">
+        <NodeArray index="Use" Link="Or2415667298CountUpgradeIdentificationEliteIDCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementFengbao">
+        <NodeArray index="Use" Link="Or4066678234CountUpgradeUpgradeFengbaoCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementIdentificationLowXP">
+        <NodeArray index="Use" Link="OrCountUpgradeIdentificationUpgradeLowXPCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementLeviathanSpawnMutalisk">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeLeviathanSpawnMutaliskCompleteOnly"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeLeviathanSpawnMutaliskCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementNotReally">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeNotReallyCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementCountUP">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeCountUPCompleteOnly"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeCountUPCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementRoachling">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeRoachlingCompleteOnly"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeRoachlingCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementSeekerMissile">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeSeekerMissileCompleteOnly"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeSeekerMissileCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementSupportP">
+        <NodeArray index="Show" Link="CountUpgradeUpgradeSupportPCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementSupportZ">
+        <NodeArray index="Show" Link="CountUpgradeUpgradeSupportZCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementSupportT">
+        <NodeArray index="Show" Link="CountUpgradeUpgradeSupportTCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementTeyueID">
+        <NodeArray index="Use" Link="Or4228372180CountUpgradeIdentificationSuperAdminIDCompleteOnlyTechTreeCheatCountUpgradeUpgradeTeyueIDCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementTimeLifeFateSelf">
+        <NodeArray index="Use" Link="CountUpgradeUpgradeTimeLifeFateSelfCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RequirementVS">
+        <NodeArray index="Use" Link="Or220898818CountUpgradeUpgradeVSWinCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementVSOpen">
+        <NodeArray index="Use" Link="Or2743354158CountUpgradeIdentificationSuperAdminIDCompleteOnlyTechTreeCheatCountUpgradeUpgradeVSWinCompleteOnlyTechTreeCheatCountUpgradeUpgradeXP10000CompleteOnlyTechTreeCheatCountUpgradeUnknownUpgrade33CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementVSOpen2">
+        <NodeArray index="Use" Link="Or2743354158CountUpgradeIdentificationSuperAdminIDCompleteOnlyTechTreeCheatCountUpgradeUpgradeVSWinCompleteOnlyTechTreeCheatCountUpgradeUpgradeXP10000CompleteOnlyTechTreeCheatCountUpgradeUnknownUpgrade3CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementVSOpen22">
+        <NodeArray index="Use" Link="Or2743354158CountUpgradeIdentificationSuperAdminIDCompleteOnlyTechTreeCheatCountUpgradeUpgradeVSWinCompleteOnlyTechTreeCheatCountUpgradeUpgradeXP10000CompleteOnlyTechTreeCheatCountUpgradeUnknownUpgrade32CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RequirementXP10000">
+        <NodeArray index="Use" Link="Or1953845574CountUpgradeIdentificationSuperAdminIDCompleteOnlyTechTreeCheatCountUpgradeIdentificationAdminIDCompleteOnlyTechTreeCheatCountUpgradeUpgradeXP10000CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="Rightracenotselected"/>
+    <CRequirement id="FLBCCX_Limit">
+        <EditorCategories value="Race:Zerg,TechType:Unit"/>
+        <NodeArray index="Use" Link="LT3211944697CountUnitBanelingEggNestVoidQueuedOrBetter1"/>
+        <NodeArray index="Show" Link="AndGTECountUpgradeSelectRace5QueuedOrBetter1GTECountUpgradeNSKXP_Upgrade4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="SelendisArmInterceptor">
+        <NodeArray index="Use" Link="LT2467183129CountUnitSJFighter1QueuedOrBetterAtUnit8"/>
+    </CRequirement>
+    <CRequirement id="ShowIfHaveNoAddOnParent">
+        <NodeArray index="Use" Link="NotCountUpgradePVEAIQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="TeShuPlayerID">
+        <NodeArray index="Use" Link="CountUpgradeIdentificationSuperAdminIDCompleteOnly4205934019TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="RoachRequirement">
+        <EditorCategories value="Race:Zerg,TechType:Upgrade"/>
+        <NodeArray index="Use" Link="CountUpgradeUpgradeBounsz2CompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="CountUpgradeUpgradeBounsz2CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="TeShuPlayerID2">
+        <NodeArray index="Use" Link="Or220898818CountUpgradeIdentificationAdminIDCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="TeShuPlayerID3">
+        <NodeArray index="Use" Link="Or3654686190CountUpgradeIdentificationSpecialIDCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="TeShuPlayerID4">
+        <NodeArray index="Use" Link="OrCountUpgradeIdentificationUserIDCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="TeShuPlayerID42">
+        <NodeArray index="Use" Link="Or755418383CountUpgradeIdentificationUserID2CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="UNITLIMIT_HDZLJ_2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <CanBeSuppressed index="Use" value="0"/>
+        <NodeArray index="Use" Link="LT472175477CountUnitInfestedDominionHousing2QueuedOrBetter3"/>
+        <NodeArray index="Show" Link="EqCountUpgradeSelectRace4QueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="UnknownRequirement">
+        <NodeArray index="Use" Link="CountUpgradeUnknownUpgrade2CompleteOnly1908581512"/>
+    </CRequirement>
+    <CRequirement id="MothershipLessthan1">
+        <EditorCategories value="Race:Protoss"/>
+        <NodeArray index="Show" Link="AndCountUnitMothershipCoreQueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="S3REWARD1">
+        <EditorCategories value="TechType:Ability,Race:Protoss"/>
+        <NodeArray index="Use" Link="CountUpgradeDarkProtossProbeCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="RaynorHaveBuildings">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="NotCountUnitPlanetaryFortressQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="UpgradeFenixKaldalisZealot">
+        <NodeArray index="Use" Link="CountUnitAlias_GatewayCompleteOnly4260347518TechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionKaldalisZealotQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="UpgradeFenixMojoScout">
+        <NodeArray index="Use" Link="CountUnitAlias_StargateCompleteOnly2435624496TechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionMojoScoutQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="UpgradeFenixTaldarinImmortal">
+        <NodeArray index="Use" Link="CountUnitRoboticsFacilityCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionTaldarinImmortalQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="UpgradeFenixTalisAdept">
+        <NodeArray index="Use" Link="CountUnitCyberneticsCoreCompleteOnlyTechTreeCheat"/>
+        <NodeArray index="Show" Link="NotCountUpgradeFenixChampionTalisAdeptQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossDefender2">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Use" Link="CountUpgradeDarkProtossDefenderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseSOARepairBeam">
+        <NodeArray index="Use" Link="LTCountBehaviorSOARepairBeamCompleteOnly5"/>
+        <NodeArray index="Show" Link=""/>
+    </CRequirement>
+    <CRequirement id="RequirementSOAMothershipv4Cznl3">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Use" Link="LTCountBehaviorPurifyCompleteOnly3"/>
+    </CRequirement>
+    <CRequirement id="UseTechReactorHide">
+        <NodeArray index="Show" Link="AndCountUpgrade1111aa1QueuedOrBetterNotCountUpgradeTechReactorCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseTechReactorHide2">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="AndCountUpgradeUnknownUpgrade5QueuedOrBetterNotCountUpgradeTechReactorCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseTechReactorHide3">
+        <EditorCategories value="Race:Terran,TechType:Unit"/>
+        <NodeArray index="Show" Link="AndNotCountUpgradeTechReactorCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="WomenPlayerID">
+        <NodeArray index="Use" Link="CountUpgradeIdentificationWomenIDCompleteOnly1077196777TechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Use" Link="CountUpgradeDarkProtossProbeCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe2">
+        <EditorCategories value="TechType:Ability"/>
+        <NodeArray index="Use" Link="CountUpgradeHybridCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe3">
+        <EditorCategories value="TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradePermanentCloakSpectre2CompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossDefender">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Use" Link="CountUpgradeDarkProtossDefenderCompleteOnly"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe32">
+        <EditorCategories value="Race:Terran,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeThorSkinCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe33">
+        <EditorCategories value="Race:Protoss,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeCarrierSkinCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="UseDarkProtossProbe34">
+        <EditorCategories value="Race:Zerg,TechType:Ability"/>
+        <NodeArray index="Show" Link="CountUpgradeUltraliskSkinCompleteOnlyTechTreeCheat"/>
+    </CRequirement>
+    <CRequirement id="havebattleworker">
+        <NodeArray index="Use" Link="CountUpgradeAdvanceBattleQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeAdvanceBattleQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="havecoreon">
+        <NodeArray index="Use" Link="CountUpgradecoreonQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradecoreonQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="havetimeon">
+        <NodeArray index="Use" Link="CountUpgradetimeupdownupgradeQueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradetimeupdownupgradeQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="havemoreunit">
+        <NodeArray index="Use" Link="CountUpgradeUnknownUpgrade10QueuedOrBetter"/>
+        <NodeArray index="Show" Link="CountUpgradeUnknownUpgrade10QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="limitcore1">
+        <NodeArray index="Use" Link="AndLT159511101CountUnitPowerCoreQueuedOrBetterSumCountUnitAssimilatorCompleteOnlyCountUnitExtractorCompleteOnlyCountUnitRefineryCompleteOnlyCountUnitSoACasterQueuedOrBetterLT950873312CountUnitPowerCore2QueuedOrBetter1"/>
+        <NodeArray index="Show" Link="CountUpgradecoreonQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="isnotadvancegaming">
+        <NodeArray index="Show" Link="CountUpgradeAdvanceBattleQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="limitcore12">
+        <NodeArray index="Use" Link="AndLT950873312CountUnitPowerCoreQueuedOrBetter1Or2523404396LTCountUnitPowerCore2QueuedOrBetterCountUnitAssimilatorCompleteOnlyLTCountUnitPowerCore2QueuedOrBetterCountUnitRefineryCompleteOnlyLTCountUni3599927419"/>
+        <NodeArray index="Show" Link="CountUpgradecoreonQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="limitcommandcenter">
+        <NodeArray index="Use" Link="LT1798609973CountUnitCommandCenterFlyingQueuedOrBetter1"/>
+    </CRequirement>
+    <CRequirement id="needpractice1">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice1QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice12">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice12QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice13">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice13QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice14">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice14QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice15">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice15QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice16">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice16QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="needpractice52">
+        <NodeArray index="Show" Link="NotCountUpgradeunlockpractice1QueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="unlockxianji">
+        <NodeArray index="Use" Link="CountUpgradexianjiQueuedOrBetter"/>
+    </CRequirement>
+    <CRequirement id="HaveHHBomberNapalm">
+        <EditorCategories value="Race:Terran"/>
+        <NodeArray index="Use" Link="CountUpgradeHHBomberNapalmCompleteOnly4200916742"/>
+    </CRequirement>
+</Catalog>

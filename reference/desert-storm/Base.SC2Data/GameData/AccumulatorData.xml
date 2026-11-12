@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CAccumulatorVitals id="AccumulatorAbilXskjnlljZl">
+        <Ratio value="0.64"/>
+        <VitalType value="Energy"/>
+        <ModificationType value="PerUnit"/>
+    </CAccumulatorVitals>
+    <CAccumulatorConstant id="AccumulatorQxtSsfw">
+        <Amount value="8"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="AccumulatorQxtZhcs">
+        <Amount value="1"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="AccumulatorSjdFw">
+        <Amount value="6"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="AccumulatorQxtZdfw">
+        <Amount value="10"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="JRHDJC">
+        <Amount value="202600"/>
+    </CAccumulatorConstant>
+    <CAccumulatorVitals id="ChannelSnipeDamage2">
+        <Ratio value="0.6"/>
+        <VitalType value="Energy"/>
+        <ModificationType value="PerUnit"/>
+    </CAccumulatorVitals>
+    <CAccumulatorConstant id="AccumulatorSjdZhcs">
+        <Amount value="1"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="AccumulatorSjdLjxs">
+        <Amount value="7"/>
+    </CAccumulatorConstant>
+    <CAccumulatorConstant id="AccumulatorSjdLjsj">
+        <Amount value="2.5"/>
+    </CAccumulatorConstant>
+    <CAccumulatorVitals id="AccumulatorXskjsxljHxbs">
+        <Ratio value="0.1"/>
+        <UnitSource Value="Source"/>
+        <ModificationType value="PerUnitMaxVital"/>
+    </CAccumulatorVitals>
+</Catalog>

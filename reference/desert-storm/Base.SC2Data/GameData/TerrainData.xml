@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Catalog>
+    <CTerrain id="MarSara">
+        <BlendTextures index="6" value="ShakurasBricks"/>
+    </CTerrain>
+    <CTerrain id="UlnarInner">
+        <BlendTextures index="0" value="DesertWorld8"/>
+        <BlendTextures index="2" value="DesertWorld7"/>
+        <BlendTextures index="3" value="ElsecaroCity4"/>
+        <BlendTextures index="6" value="Cybros2"/>
+        <BlendTextures index="7" value="CompoundMansion_5"/>
+    </CTerrain>
+</Catalog>

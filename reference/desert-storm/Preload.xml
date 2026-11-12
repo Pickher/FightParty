@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Preload>
+<Asset path="assets\textures\btn-ability-kerrigan-apocalypse.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_swann.dds" Type="Image"/>
+<Asset path="wjx.dds" Type="Image"/>
+<Asset path="assets\textures\icon-mineral.dds" Type="Image"/>
+<Asset path="assets\textures\btn-ability-terran-bombardmentstrike-color.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_storycallout_highlight_right.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_coop_icon_random.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_collection_warchest_raceiconfree_hover.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_alarak.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_armyupgrade_factionaiur_underline.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_stukov.dds" Type="Image"/>
+<Asset path="cutscenes\ui_soamission.sc2cutscene" Type="Cutscene"/>
+<Asset path="assets\textures\smx2_starmap_ui_travel_nebula1_diff.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_collection_warchest_raceiconzerg_hover.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_tradeshow_modeselectionbutton_border_normal.dds" Type="Image"/>
+<Asset path="assets\textures\btn-building-terran-commandcenter.dds" Type="Image"/>
+<Asset path="assets\textures\ui_console_commandbutton_normal_specialforces.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_mission_genericborder.dds" Type="Image"/>
+<Asset path="cutscenes\mainmenudefaultvoid.sc2cutscene" Type="Cutscene"/>
+<Asset path="assets\textures\sc2_ui_glues_icons_partyready_large.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_glues_icons_lockedwarning.dds" Type="Image"/>
+<Asset path="assets\textures\icon-gas.dds" Type="Image"/>
+<Asset path="assets\textures\btn-techupgrade-terran-defensivematrix.dds" Type="Image"/>
+<Asset path="dsdr\icon\xkzmsy.dds" Type="Image"/>
+<Asset path="assets\textures\ui_console_commandbutton_normal_defaultprotoss.dds" Type="Image"/>
+<Asset path="assets\textures\sc2_ui_collection_warchest_raceiconprotoss_hover.dds" Type="Image"/>
+<Asset path="assets\textures\ui_tip_questionmark.dds" Type="Image"/>
+<Asset path="assets\textures\ui_console_commandbutton_normal_defaultzerg.dds" Type="Image"/>
+<Asset path="assets\textures\btn-hero-artanis.dds" Type="Image"/>
+<Asset path="assets\textures\ui_tipicon_campaign_space01-repair.dds" Type="Image"/>
+<Asset path="assets\textures\btn-building-terran-bunker.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_nova.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_mask.dds" Type="Image"/>
+<Asset path="assets\textures\btn-hero-kerriganascended.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_shared_progressbarframe.dds" Type="Image"/>
+<Asset path="assets\textures\btn-ability-zeratul-topbar-avatarofform.dds" Type="Image"/>
+<Asset path="assets\textures\ui_battlenet_glues_achievement_fanfare_bgglow_terr.dds" Type="Image"/>
+<Asset path="assets\textures\ui_battlenet_glues_achievement_fanfare_bgglow_prot.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_zagara.dds" Type="Image"/>
+<Asset path="assets\textures\ui_battlenet_glues_textbox_active.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_dehaka.dds" Type="Image"/>
+<Asset path="assets\textures\smx2_starmap_ui_travel_nebula1_diff.lvl0" Type="Image"/>
+<Asset path="assets\textures\ui_battlenet_glues_achievement_fanfare_bgglow_zerg.dds" Type="Image"/>
+<Asset path="assets\textures\ui-editoricon-triggercategories_unitgroup.dds" Type="Image"/>
+<Asset path="assets\textures\ui_glue_dropdownarrow_normalpressed_zerg.dds" Type="Image"/>
+<Asset path="assets\textures\ui_commanderportrait_random.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_shared_progressbarfill.dds" Type="Image"/>
+<Asset path="assets\textures\ui_console_commandbutton_normal_defaultterran.dds" Type="Image"/>
+<Asset path="assets\textures\btn-ability-zeratul-topbar-avatarofessence.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_hanandhorner.dds" Type="Image"/>
+<Asset path="assets\textures\ui_battlenet_glue_campaign_purchase_notificationtoastborder.dds" Type="Image"/>
+<Asset path="cutscenes\ui_screens_alliedcommander_background.sc2cutscene" Type="Cutscene"/>
+<Asset path="assets\textures\sc2_ui_collection_warchest_raceiconterran_hover.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_raynor.dds" Type="Image"/>
+<Asset path="ui_glues_logo_wol_enus_ds_4_fb_small.dds" Type="Image"/>
+<Asset path="assets\textures\ui_void_shared_progressbarfill_terr.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_karax.dds" Type="Image"/>
+<Asset path="smx2_starmap_ui_travel_compass_1.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_abathur.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_artanis.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_help_techtree_questionmark.dds" Type="Image"/>
+<Asset path="assets\textures\btn-unit-terran-marine.dds" Type="Image"/>
+<Asset path="assets\textures\ui_ingame_custommutators_playercard_commander_vorazun.dds" Type="Image"/>
+<Asset path="assets\textures\btn-tips-hacking.dds" Type="Image"/>
+<Abil id="biomassspawnsetFlying"/>
+<Abil id="biomassspawnsetland"/>
+<Actor id="SYSTEM_ActorConfig"/>
+<Actor id="AiurTree_Grouped" Variations="0,1,2"/>
+<Actor id="Aiur_ChiseledRock_Brown_Large" Variations="0,1,2,3"/>
+<Actor id="Aiur_City_Archway_Large" Variations="0,1"/>
+<Actor id="Aiur_City_Debris" Variations="0,1,2,5"/>
+<Actor id="Aiur_City_Decals" Variations="7"/>
+<Actor id="Aiur_City_Floating_Platform" Variations="0"/>
+<Actor id="Aiur_City_Floating_Platform_Disk" Variations="2"/>
+<Actor id="Aiur_City_LandingDeck" Variations="0,3"/>
+<Actor id="Aiur_City_Light" Variations="0"/>
+<Actor id="Aiur_Cliff_City_Waterfall" Variations="0"/>
+<Actor id="Aiur_CrashingDebris"/>
+<Actor id="Aiur_Destroyed_Protoss_Units" Variations="0,3,4"/>
+<Actor id="Aiur_GroundCover" Variations="2"/>
+<Actor id="Aiur_Overgrowth" Variations="0,1,2,3,4,5"/>
+<Actor id="Aiur_PowerCrystal"/>
+<Actor id="Aiur_Pyramid_Tower_Medium" Variations="2"/>
+<Actor id="Aiur_Statue_Arched" Variations="0"/>
+<Actor id="Aiur_Statue_RockPillar_Abandoned" Variations="2"/>
+<Actor id="Aiur_Temple_Statue_Large" Variations="0"/>
+<Actor id="AsteroidCliffMetal" Variations="0,2"/>
+<Actor id="Bonepile" Variations="0,2,5"/>
+<Actor id="CharDuneRockLarge" Variations="3"/>
+<Actor id="ChiseledRockEx1" Variations="0,1,4"/>
+<Actor id="ChiseledRockEx1Large" Variations="0,1,2,3"/>
+<Actor id="ColonistHutDeserted" Variations="1"/>
+<Actor id="ConstructionCrane"/>
+<Actor id="Elsecaro_Civilian_Car" Variations="1"/>
+<Actor id="Elsecaro_Downtown_Building_Destroyed" Variations="6,7"/>
+<Actor id="Elsecaro_Foliage" Variations="9,10"/>
+<Actor id="Elsecaro_Small_Rock_NoShadow_Group" Variations="0,1,2,3"/>
+<Actor id="FishSchool"/>
+<Actor id="GasGiantMist"/>
+<Actor id="IceWorldAmbientCrystals" Variations="0,3,4"/>
+<Actor id="KorhalDestroyedBuilding" Variations="0"/>
+<Actor id="Korhal_MengskBuildings" Variations="2"/>
+<Actor id="Korhal_MengskSymbolRuined"/>
+<Actor id="Korhal_Platform_Debris" Variations="2,4"/>
+<Actor id="Korhal_SpacePort_Plane_Destroyed" Variations="6"/>
+<Actor id="MarineHousing"/>
+<Actor id="PortCity_BuildingRound_Destroyed" Variations="4"/>
+<Actor id="PortCity_CargoBoatDestroyed" Variations="0"/>
+<Actor id="PortCity_Downtown_Building_Destroyed" Variations="2"/>
+<Actor id="PortCity_StreetLight" Variations="0"/>
+<Actor id="ProtossTarmac" Variations="5"/>
+<Actor id="PurificationDesert_Blast_Splats" Variations="0,1,2,3"/>
+<Actor id="PurificationDesert_Large_Rock" Variations="0,1,2,3,4,5,6"/>
+<Actor id="PurificationDesert_Medium_Rock_Group" Variations="0,1,2,3,4,5,6,7"/>
+<Actor id="PurificationDesert_SandDrift" Variations="0,1"/>
+<Actor id="PurificationDesert_Small_Rock_Group" Variations="0,1,2,3"/>
+<Actor id="Purifier_City_Decals" Variations="7"/>
+<Actor id="Purifier_Containers" Variations="0,2"/>
+<Actor id="Purifier_Cybros_Hologram" Variations="2"/>
+<Actor id="Purifier_Destroyed_Units" Variations="0,1,3,4,5,6"/>
+<Actor id="Purifier_DisruptorCore_Hologram"/>
+<Actor id="Purifier_Disruptor_Core"/>
+<Actor id="Purifier_DoorSmall_Doodad" Variations="1"/>
+<Actor id="Purifier_Energy_Generator"/>
+<Actor id="Purifier_GroundTrim" Variations="4,9,18"/>
+<Actor id="Purifier_Holding_Pen_Large" Variations="1"/>
+<Actor id="Purifier_Ramp" Variations="0"/>
+<Actor id="Purifier_StasisPods" Variations="1"/>
+<Actor id="Purifier_TeleportPad"/>
+<Actor id="Purifier_Trees_Log" Variations="1"/>
+<Actor id="Purifier_Wall_Window" Variations="0"/>
+<Actor id="Purifier_Warp_In_Pad"/>
+<Actor id="Shadow_Hybrid_Cannon"/>
+<Actor id="Shakuras_XelNaga_Temple_CenterRing"/>
+<Actor id="ShearedRocksDesert" Variations="0,1,2,3,4,6,7"/>
+<Actor id="SlaynMissileTurretNoAnim"/>
+<Actor id="Slayn_TallGrassWindy" Variations="0,1,2,3,4,5,6,7"/>
+<Actor id="StarShipAdun_Broken_Debris" Variations="0,1,2,3,6,7,8"/>
+<Actor id="StarShipAdun_Hexgrid_EnergyLine"/>
+<Actor id="StarShipAdun_TeleportPad"/>
+<Actor id="StarshipArch" Variations="1"/>
+<Actor id="StarshipWallLights" Variations="0"/>
+<Actor id="Tarsonis_Walkways" Variations="2"/>
+<Actor id="TheVoid_GroundScar" Variations="1"/>
+<Actor id="TheVoid_RockPointy2" Variations="0"/>
+<Actor id="TheVoid_RubblePile" Variations="0,1,2,3"/>
+<Actor id="VoidAmonCrystalCatalystFloatingDoodad"/>
+<Actor id="Void_Crystals" Variations="0,1,2,3,4"/>
+<Actor id="Void_GoldPiles" Variations="0,1,3"/>
+<Actor id="Void_SmallRocks" Variations="0,1,2,3"/>
+<Actor id="Void_Temple" Variations="11"/>
+<Actor id="Void_Temple_Small" Variations="7"/>
+<Actor id="XelNagaCavernsTemplePortalDoodad"/>
+<Actor id="XelNagaObeliskConstructDoodadWorkA"/>
+<Actor id="XelNaga_Base_Decals_Amon" Variations="1,2,3"/>
+<Actor id="XelNaga_Cavern_CaveEntrance" Variations="1"/>
+<Actor id="XelNaga_Cavern_HugePillar" Variations="0,2,3,4"/>
+<Actor id="XelNaga_Cavern_Rubble" Variations="1,2,4"/>
+<Actor id="XelNaga_Cavern_Shrine_Destroyed" Variations="0,1,2,3"/>
+<Actor id="XelNaga_Cavern_TallPillar" Variations="1"/>
+<Actor id="XelNaga_Cavern_Vision_Temple" Variations="0,1"/>
+<Actor id="XelNaga_Caverns_Door_Destroyed" Variations="0,2"/>
+<Actor id="XelNaga_Caverns_GroundPlates_Destroyed" Variations="0,1,3"/>
+<Actor id="XelNaga_Caverns_Lantern" Variations="2"/>
+<Actor id="XelNaga_Floating_Bridge"/>
+<Actor id="XelNaga_GroundPlates_Amon" Variations="0"/>
+<Actor id="XelNaga_HugeGate_Doodads" Variations="1,12"/>
+<Actor id="XelNaga_LargeCrate"/>
+<Actor id="XelNaga_ObeliskConstructDestroyed"/>
+<Actor id="XelNaga_RampBlocker"/>
+<Actor id="XelNaga_RampCover"/>
+<Actor id="XelNaga_Techno_Holo_Planet_DNA_Sculpture"/>
+<Actor id="XelNaga_Temple_Small_Destroyed" Variations="3,4,5,6,7"/>
+<Actor id="XelNaga_Trim_Curb" Variations="2"/>
+<Actor id="ZergCarcasses" Variations="1,5"/>
+<Actor id="ZerusLargeTree" Variations="0"/>
+<Actor id="ZerusPlantClusterLarge" Variations="2,3"/>
+<Actor id="ZerusPlantClusterMedium" Variations="2,3,4,5,6"/>
+<Actor id="ZerusPlantClusterSmall" Variations="0,1,2,3,4,5,6,7"/>
+<Actor id="ZerusPlantlife" Variations="3"/>
+<Actor id="ZerusSwampPlants" Variations="6"/>
+<Actor id="ZerusTallGrassCluster" Variations="0,1"/>
+<Actor id="ZerusTree" Variations="0,1,2,4,6,8"/>
+<Actor id="ZerusWaterPlant" Variations="9"/>
+<Actor id="ZerusWaterfall"/>
+<Actor id="BlinkStopModel"/>
+<Actor id="BlinkStopSound"/>
+<Actor id="BarracksWrecked"/>
+<Actor id="BelShirCanopyTreeIsland" Variations="1,2"/>
+<Actor id="BelShirCanopyTrees" Variations="1,3,4,5,6"/>
+<Actor id="BillboardTall" Variations="3"/>
+<Actor id="BunkerWrecked"/>
+<Actor id="ColonistShipAbandoned" Variations="1"/>
+<Actor id="CommandCenterWrecked"/>
+<Actor id="DecalProtoss" Variations="4"/>
+<Actor id="MarSaraBridgeLongDestroyed" Variations="0"/>
+<Actor id="MarSaraCactus" Variations="0,1,2,3,4"/>
+<Actor id="MarSaraCrack" Variations="1,2,3"/>
+<Actor id="MarSaraTree" Variations="5"/>
+<Actor id="NewFolsomSandbags" Variations="6"/>
+<Actor id="PortZionTowerDestroyed" Variations="4"/>
+<Actor id="ProtossEnergyLine"/>
+<Actor id="ProtossEnergyLineOrange"/>
+<Actor id="RedstoneRockSpires" Variations="0,1,2,3"/>
+<Actor id="SpacePlatformRockFormation" Variations="2"/>
+<Actor id="TarsonisTree" Variations="2"/>
+<Actor id="TrenchHorizontalDoodad" Variations="1,2"/>
+<Actor id="Vines" Variations="0,1,2,3,4,5,6"/>
+<Actor id="WreckedBattlecruiser"/>
+<Actor id="WreckedMule" Variations="0,1"/>
+<Actor id="WreckedSandbags" Variations="0,1,2"/>
+<Actor id="XelNagaShrineDoodad"/>
+<Actor id="TrucksDestroyed" Variations="1"/>
+<Actor id="WreckedCargoTruck" Variations="1,3"/>
+<Actor id="KorhalBuildingDebris" Variations="0"/>
+<Actor id="TyphonCurtain" Variations="0,1,2,3"/>
+<Actor id="TerrainObjectXelNagaHullReactorDoodad"/>
+<Actor id="XelNagaCliffWallSpires" Variations="3"/>
+<Actor id="XelNagaHullPlate"/>
+<Actor id="XelNagaHullReactorSmall"/>
+<Actor id="CharCrashingBattlecruiser"/>
+<Actor id="CharCrashingDebris"/>
+<Actor id="CharCrashingFactory"/>
+<Actor id="CharCrashingBarracks"/>
+<Actor id="MarineCorpse" Variations="9"/>
+<Actor id="TTosh01RockSpires" Variations="0,1,2,3,4"/>
+<Actor id="TruckDump"/>
+<Actor id="DefensiveWall45Doodad" Variations="2"/>
+<Actor id="DefensiveWall45RampDoodad"/>
+<Actor id="DefensiveWall45RampDoodadMirror"/>
+<Actor id="DefensiveWallEnd"/>
+<Actor id="PsiDecimatorWave"/>
+<Actor id="StarShipAdun_DoorSmallNE_Doodad"/>
+<Actor id="PurifierStasisPadFlat"/>
+<Actor id="Biomass"/>
+<Actor id="HighYieldMineralFieldHigh7_1"/>
+<Actor id="BlinkStopModel2"/>
+<Actor id="BlinkStopModel3"/>
+<Actor id="LHN_XKZMSY_ZeratulSuppressionCrystalSuppressionAura"/>
+<Actor id="DXBXQ_XGZM"/>
+<Actor id="XelNagaHalo2"/>
+<Actor id="XS_XSJD"/>
+<Behavior id="BiomassBuff102"/>
+<Behavior id="BiomassBuff101"/>
+<Behavior id="BiomassBuff103"/>
+<Behavior id="BehaviorJxbl"/>
+<Behavior id="FenixChampionSwapBoost"/>
+<Behavior id="FenixChampionSwapBoostAdept"/>
+<Behavior id="FenixChampionSwapBoostCarrier"/>
+<Behavior id="FenixChampionSwapBoostColossus"/>
+<Behavior id="FenixChampionSwapBoostImmortal"/>
+<Behavior id="FenixChampionSwapBoostScout"/>
+<Behavior id="FenixChampionSwapBoostZealot"/>
+<Behavior id="FenixHeroPersonaReviveReserve"/>
+<Behavior id="HHMercenarySpaceStationSuicide"/>
+<Behavior id="slowprotoss275"/>
+<Behavior id="RaynorTeleportFlag"/>
+<Behavior id="StalkerBlink0625"/>
+<Behavior id="JnzhLife"/>
+<Behavior id="Abil_AdvancedTargetingSystems"/>
+<Behavior id="Abil_TDLLHXSGFXT"/>
+<Behavior id="Behavior_BKYD"/>
+<Behavior id="GJJAIZKXT_SpartanCompany"/>
+<Behavior id="GJJAIZKXT_SiegeBreaker"/>
+<Behavior id="GJJAIZKXT_Liberator_BlackOps"/>
+<Behavior id="GJJAIZKXT_MengskBanshee"/>
+<Behavior id="HydraliskFrenzy2"/>
+<Behavior id="HyperionVoidCoopDamageAuraTarget2"/>
+<Behavior id="PVE_TZXX_WWZZ"/>
+<Behavior id="PVE_TZXX_WMZZ"/>
+<Behavior id="Behavior_TDLLHXSGFXT"/>
+<Behavior id="ThermalLancesFireBeam3"/>
+<Behavior id="StarMap"/>
+<Behavior id="AscendantSacrificeSelfBuff1"/>
+<Behavior id="AscendantSacrificeSelfBuff2"/>
+<Behavior id="AscendantSacrificeSelfBuff3"/>
+<Behavior id="AscendantSacrificeSelfBuff4"/>
+<Behavior id="AscendantSacrificeSelfBuff5"/>
+<Behavior id="XSGF"/>
+<Behavior id="BUG_ZCE_DDXW"/>
+<Behavior id="BiomassBuff60"/>
+<Behavior id="BiomassBuff30"/>
+<Behavior id="PingNumeric1"/>
+<Behavior id="PingNumeric1_XXYS"/>
+<Behavior id="PingNumeric2_XXYS"/>
+<Behavior id="PingNumeric2"/>
+<Behavior id="CODConstructDisable"/>
+<Behavior id="SOAMapWideChrono"/>
+<Behavior id="XTZL_XJJD"/>
+<Behavior id="XW1"/>
+<Behavior id="XW2"/>
+<Behavior id="NSKXP_XW00000"/>
+<Behavior id="Basespeedup"/>
+<Behavior id="BiomassBuff100"/>
+<Behavior id="RaynorSpeedBoost"/>
+<Behavior id="speed225"/>
+<Behavior id="speed295"/>
+<Behavior id="ZZEL_GNSMT_CXXXG"/>
+<Behavior id="ZealotPurifier_CHFHJH_YY"/>
+<Behavior id="nocontrol"/>
+<Behavior id="SIBarracksTrainTimedLife"/>
+<Behavior id="superbuff"/>
+<Behavior id="XKZMSY_XKJY2_TX"/>
+<Behavior id="XKZMSY_XKJY1_TX"/>
+<Behavior id="XKZMSY_SXGYHJ_QSX"/>
+<Behavior id="XKZMSY_XJJD"/>
+<Behavior id="XKZMSY_ZDYS"/>
+<Button id="Button_INWORLD_XSGF_WMLJZZ_1"/>
+<Button id="Button_INWORLD_XSGF_WMLJZZ_2"/>
+<Button id="Button_INWORLD_XSGF_WMLJZZ_3"/>
+<Effect id="ScannerSweep"/>
+<Effect id="MercAirDrop"/>
+<Effect id="EnergyNovaPersistent"/>
+<Effect id="ZergDropPodCrashing"/>
+<Effect id="SOAStrafeAttackDamage"/>
+<Effect id="ZagaraVoidCoopMassRoachDropCP"/>
+<Effect id="FenixImmortalDetonationSearchArea"/>
+<Effect id="SOAPylonPowerCU"/>
+<Effect id="ZZEL_GNSMT_CXXXG"/>
+<Effect id="DropTrainSetRaynor"/>
+<Effect id="FactoryDropTrainSet"/>
+<Effect id="AscendantSacrificeSelfBuff1"/>
+<Effect id="DarkArchonMindControlApply3"/>
+<Effect id="INWORLD_XW_XSKJLJZSDDFSTD_Launch"/>
+<Effect id="LocationSetClean"/>
+<Effect id="Weapon_ATT0"/>
+<Effect id="Artanis_JZ_Warp"/>
+<Effect id="XSGF_NexusRecalled"/>
+<Effect id="Weapon_XSJNQJJC_PHLM"/>
+<Effect id="MPDownTo_0"/>
+<Effect id="MPUpTo_660"/>
+<Effect id="AlarakACSummonDeathfleet"/>
+<Effect id="BOSS02_PhaseCannonInitialStun"/>
+<Effect id="MPDown_4"/>
+<Effect id="MPDown_3"/>
+<Effect id="MPDown_2"/>
+<Effect id="MPDown_5"/>
+<Effect id="MPDown_6"/>
+<Effect id="MutatorDeathAOECP"/>
+<Effect id="MPDown_1"/>
+<Effect id="ZergCalldownOrderZagara"/>
+<Effect id="TerranCalldownOrderWait"/>
+<Effect id="ZergCalldownOrderWait"/>
+<Effect id="HHBomberPlatformAreaBombOrderDummyCP"/>
+<Light id="Aiur"/>
+<Light id="Haven"/>
+<Light id="MarSaraCampaignNight"/>
+<Light id="Zerus"/>
+<Light id="UlnarInner"/>
+<Light id="TerranSpecial"/>
+<Model id="MinimapPing"/>
+<Model id="PingAlert"/>
+<Model id="PingBoss"/>
+<Model id="BattlecruiserPortrait"/>
+<Model id="DropPodFalling"/>
+<Model id="MarinePortrait"/>
+<Model id="NydusRumble"/>
+<Model id="PingPanelBeaconDefend"/>
+<Model id="RaynorCommanderPortrait"/>
+<Model id="SwannPortrait"/>
+<Model id="ZagaraPortrait"/>
+<Model id="HornerPortrait"/>
+<Model id="NovaPortrait"/>
+<Model id="FireworksBlue"/>
+<Model id="FireworksRed"/>
+<Model id="FireworksYellow"/>
+<Model id="HybridWarpInEffect"/>
+<Model id="SarahPortrait"/>
+<Model id="DehakaPortrait"/>
+<Model id="EvolutionMasterPortrait"/>
+<Model id="StukovInfestedTerranPortrait"/>
+<Model id="SOAWarpInReinforcementsBeam"/>
+<Model id="KerriganEpilogue03ExtinctionPulse"/>
+<Model id="KerriganEpilogue03ExtinctionShockwave"/>
+<Model id="VulcanChampionPortrait"/>
+<Model id="DarkArchonChampionPortrait"/>
+<Model id="DarkTemplarChampionPortrait"/>
+<Model id="ArtanisPortraitAiur01"/>
+<Model id="HighYieldMineralFieldHigh7_2_1"/>
+<Model id="XSGF_BJ"/>
+<Model id="ImmortalShadowCannonMissileRight"/>
+<Race id="Terr"/>
+<Race id="Zerg"/>
+<Race id="Prot"/>
+<Sound id="Battlecruiser_Help"/>
+<Sound id="Ghost_NukeExplode"/>
+<Sound id="UI_GenericError" Variations="0"/>
+<Sound id="WarpGate_TrainStart"/>
+<Sound id="WarpGate_TrainLoop"/>
+<Sound id="WarpGate_TrainFinish"/>
+<Sound id="Probe_Ready"/>
+<Sound id="NullCircuit_Explode"/>
+<Sound id="Shuttle_Load" Variations="0"/>
+<Sound id="UI_VO_ArtanisUI_007" Variations="0"/>
+<Sound id="UI_MissionComplete"/>
+<Sound id="HornerHanAnnouncer_GameResumed" Variations="0"/>
+<Sound id="HornerHanAnnouncer_NeedMoreMinerals"/>
+<Sound id="DehakaA_NeedMoreMinerals"/>
+<Sound id="AbathurA_NeedMoreMinerals"/>
+<Sound id="AbathurA_Transmission" Variations="0"/>
+<Sound id="AlarakA_GameResumed" Variations="0"/>
+<Sound id="AlarakA_NeedMoreMinerals"/>
+<Sound id="ArtanisA_NeedMoreMinerals"/>
+<Sound id="KaraxA_NeedMoreGas"/>
+<Sound id="NovaA_GameResumed" Variations="0"/>
+<Sound id="NovaA_NeedMoreMinerals"/>
+<Sound id="RaynorA_Countdown"/>
+<Sound id="RaynorA_NeedMoreMinerals"/>
+<Sound id="SwannA_NeedMoreMinerals"/>
+<Sound id="VorazunA_GameResumed" Variations="0"/>
+<Sound id="VorazunA_NeedMoreMinerals"/>
+<Sound id="ZagaraA_GameResumed" Variations="0"/>
+<Sound id="ZagaraA_NeedMoreMinerals"/>
+<Sound id="UI_Bnet_MatchCountdownGo"/>
+<Sound id="UI_BnetCountdown"/>
+<Sound id="Silent"/>
+<Sound id="Alert_BaseUnderAttackKlaxon"/>
+<Sound id="UI_TransmissionText"/>
+<Sound id="Ultralisk_Roar"/>
+<Sound id="UI_ObjectiveComplete" Variations="0"/>
+<Sound id="UI_TechPurchaseCountdown"/>
+<Sound id="Uni_RockExplosionLarge" Variations="0"/>
+<Sound id="Marine_EnterBunkerVO"/>
+<Sound id="UI_TerranMissionFailed"/>
+<Sound id="TUIWarningPing"/>
+<Sound id="Swann_What" Variations="2"/>
+<Sound id="Raynor_Yes" Variations="3"/>
+<Sound id="Niadra_Death" Variations="0"/>
+<Sound id="UI_ArmyUpgrades_Evolve"/>
+<Sound id="UI_ArmyUpgrades_Confirm"/>
+<Sound id="SOA_ChronoSurge"/>
+<Sound id="Karax_What" Variations="8"/>
+<Sound id="ArtifactUlnarB_Crystal_Orange_StandWorkStart_A"/>
+<Sound id="ArtanisCommander_GDHZ"/>
+<Sound id="DehakaCommander_DXYSYC"/>
+<Sound id="KaraxCommander_Chrono2"/>
+<Sound id="SwannCommander_ZDKT"/>
+<Sound id="VorazunCommander_AYWD"/>
+<Sound id="StukovCommander_InfestStructure"/>
+<Sound id="AbathurCommander_Mend"/>
+<Sound id="AlarakCommander_DeathFleet"/>
+<Sound id="HornerHan_CallFleetUsed"/>
+<Sound id="MutatorSoAPowerWarning" Variations="0"/>
+<Sound id="NovaCommander_DefensiveMatrix"/>
+<Sound id="SkillFBSolo" Variations="0"/>
+<Sound id="StukovCommander_needmoreminerals"/>
+<Sound id="StukovCommander_Ready" Variations="0"/>
+<Sound id="DehakaCommander_Ready" Variations="0"/>
+<Sound id="ZagaraCommander_Creep"/>
+<Sound id="acObj_ACCybrosEscort_2055"/>
+<Sound id="acObj_ACMeinhoffMedic_1895"/>
+<Sound id="acObj_BelshirScientist_1543"/>
+<Sound id="acObj_BelshirScientist_1545"/>
+<Sound id="acObj_BelshirScientist_1564"/>
+<Sound id="acObj_BelshirScientist_1601"/>
+<Sound id="acObj_DominionOfficer_1071"/>
+<Sound id="acObj_DominionOfficer_1072"/>
+<Sound id="acObj_SgtHammer_1024"/>
+<Sound id="acObj_ShakurasAlly_1171"/>
+<Sound id="acObj_ShakurasAlly_887"/>
+<Sound id="acObj_TDChampion_1283"/>
+<Sound id="acObj_TDChampion_1301"/>
+<Soundtrack id="Music_ZergRedEnvelope"/>
+<Soundtrack id="Music_TerranRedEnvelope"/>
+<Soundtrack id="Music_ProtossRedEnvelope"/>
+<Soundtrack id="BGM_XJZ_3_1"/>
+<Soundtrack id="MOD_BGM_RJ_KC"/>
+<Soundtrack id="MOD_BGM_LS"/>
+<Soundtrack id="MOD_BGM_KS"/>
+<Soundtrack id="MOD_BGM_HZDK"/>
+<Soundtrack id="BGM_DJZ_1"/>
+<Soundtrack id="BGM_DJZ_2"/>
+<Soundtrack id="BP_START"/>
+<Soundtrack id="BGM_BJ_high"/>
+<Soundtrack id="TXQX"/>
+<Soundtrack id="XSGF"/>
+<Soundtrack id="XKZCZ"/>
+<Soundtrack id="XKZMSY_boss"/>
+<Soundtrack id="XGZM"/>
+<Terrain id="UlnarInner"/>
+<Unit id="CommandCenter"/>
+<Unit id="MissileTurret"/>
+<Unit id="Bunker"/>
+<Unit id="GhostAcademy"/>
+<Unit id="SCV"/>
+<Unit id="PhotonCannon"/>
+<Unit id="Observer"/>
+<Unit id="Probe"/>
+<Unit id="SpineCrawler"/>
+<Unit id="SporeCrawler"/>
+<Unit id="Egg"/>
+<Unit id="Drone"/>
+<Unit id="Roach"/>
+<Unit id="Infestor"/>
+<Unit id="PlanetaryFortress"/>
+<Unit id="OrbitalCommand"/>
+<Unit id="MULE"/>
+<Unit id="DestructibleRock2x6Vertical"/>
+<Unit id="Shape6PointStar"/>
+<Unit id="WarPig"/>
+<Unit id="HammerSecurity"/>
+<Unit id="DuskWing"/>
+<Unit id="BarracksTechReactor"/>
+<Unit id="FactoryTechReactor"/>
+<Unit id="StarportTechReactor"/>
+<Unit id="BioDomeCommand"/>
+<Unit id="Vulture"/>
+<Unit id="Firebat"/>
+<Unit id="Raynor01"/>
+<Unit id="DrakkenLaserDrill"/>
+<Unit id="Raynor"/>
+<Unit id="Tosh"/>
+<Unit id="HybridReaver"/>
+<Unit id="SMArcturusMengsk"/>
+<Unit id="Medic"/>
+<Unit id="HydraliskImpaler"/>
+<Unit id="MengskVikingAssault"/>
+<Unit id="MengskVikingFighter"/>
+<Unit id="MengskMarine"/>
+<Unit id="DroneFull"/>
+<Unit id="ProtossBaseBioMassStorage"/>
+<Unit id="Zerus02Chrysalis"/>
+<Unit id="Dragoon"/>
+<Unit id="FenixChampion"/>
+<Unit id="KaraxChampion"/>
+<Unit id="ArtanisVoid"/>
+<Unit id="HybridDominatorVoid"/>
+<Unit id="VoidChasm"/>
+<Unit id="InfestedExploder"/>
+<Unit id="HybridBehemoth"/>
+<Unit id="INWORLD_MGWG_GR2_1"/>
+<Unit id="INWORLD_MGWG_GR1_1"/>
+<Unit id="INWORLD_MGWG_GR3_1"/>
+<Unit id="INWORLD_MGWG_BOSS"/>
+<Unit id="INWORLD_MGWG_JY1"/>
+<Unit id="INWORLD_MGWG_JY2"/>
+<Unit id="INWORLD_MGWG_JY3"/>
+<Unit id="INWORLD_MGWG_XB1"/>
+<Unit id="INWORLD_MGWG_XB3"/>
+<Unit id="INWORLD_MGWG_XB2"/>
+<Unit id="INWORLD_MGWG_GR1"/>
+<Unit id="INWORLD_MGWG_GR2"/>
+<Unit id="INWORLD_MGWG_GR3"/>
+<Unit id="Pylon2"/>
+<Unit id="KerriganEpilogue032"/>
+<Unit id="DragoonPurifier"/>
+<Unit id="FZX_megalith"/>
+<Unit id="Infestor2"/>
+<Unit id="SICivilianStructure"/>
+<Unit id="PlanetaryFortress3"/>
+<Unit id="DrakkenLaserDrillCoop"/>
+<Unit id="LurkerDen2"/>
+<Unit id="Hive2"/>
+<Unit id="ScienceFacilityDS"/>
+<Unit id="HHBomberPlatform"/>
+<Unit id="UnfinishedDrakkenLaserDrillCoop"/>
+<Unit id="Hive3"/>
+<Unit id="BOSS00"/>
+<Unit id="Barracks2"/>
+<Unit id="Factory2"/>
+<Unit id="Starport2"/>
+<Unit id="CorruptorAdvance"/>
+<Unit id="KelMorianGrenadeTurret"/>
+<Unit id="Artifact2"/>
+<Unit id="UnitSj"/>
+<Unit id="UnitQxt"/>
+<Unit id="UnitSjd"/>
+<Unit id="XSGF2"/>
+<Unit id="DuskWing2"/>
+<Unit id="HighYieldMineralFieldHigh7_2"/>
+<Unit id="HighYieldMineralFieldHigh7_3"/>
+<Unit id="HighYieldMineralFieldHigh7_4"/>
+<Unit id="INWORLD_MGWG_GR1_2"/>
+<Unit id="INWORLD_MGWG_MG4"/>
+<Unit id="INWORLD_MGWG_XB1_JY1"/>
+<Unit id="INWORLD_MGWG_XB3_JY1"/>
+<Unit id="XSGF"/>
+<Unit id="SSHX"/>
+<Unit id="XSJD_BKGCQY"/>
+<Unit id="XSJDSW"/>
+<Unit id="ArtanisVoid2"/>
+<Unit id="DSBeacon_Z"/>
+<Unit id="DSBeacon_T"/>
+<Unit id="InfestedEngBay2"/>
+<Unit id="InfestedFactory2"/>
+<Unit id="BOSS02XKZCZ"/>
+<Unit id="BOSSUnitZZEL00"/>
+<Unit id="BZXT_ZSXT_CASTER_Auir"/>
+<Unit id="BZXT_ZSXT_CASTER_Char"/>
+<Unit id="BZXT_ZSXT_CASTER_YMY"/>
+<Unit id="BabyStargate2"/>
+<Unit id="CyberneticsCore6"/>
+<Unit id="DragoonPurifier2"/>
+<Unit id="Drone2"/>
+<Unit id="EvolutionChamber23"/>
+<Unit id="FZX_megalith2"/>
+<Unit id="Gateway3"/>
+<Unit id="DSBeacon_P"/>
+<Unit id="HornerAirFleetTargeter"/>
+<Unit id="HornerAirFleetTargeterSecondary"/>
+<Unit id="HybridBehemoth2"/>
+<Unit id="HybridDominatorVoid2"/>
+<Unit id="HydraliskDen3"/>
+<Unit id="DSPowerSource"/>
+<Unit id="KaraxChampion2"/>
+<Unit id="KerriganEpilogue0322"/>
+<Unit id="Probe2"/>
+<Unit id="SSHX_Z"/>
+<Unit id="SSHX_P"/>
+<Unit id="Vulture2"/>
+<Unit id="XSJDHX"/>
+<Unit id="XSHX_T"/>
+<Unit id="XSHX_P"/>
+<Unit id="INWORLD_QY_WM1"/>
+<Unit id="HighYieldMineralFieldHigh7"/>
+<Unit id="Raynor012"/>
+<Unit id="RoachWarren3"/>
+<Unit id="RoboticsFacility2"/>
+<Unit id="SCV2"/>
+<Unit id="SkillCasterProtoss_XS"/>
+<Unit id="SkillCasterProtossVorazun"/>
+<Unit id="SkillCasterProtossKarax"/>
+<Unit id="SkillCasterProtossAlarak"/>
+<Unit id="SkillCasterProtossArtanis"/>
+<Unit id="SkillCasterTerran_XS"/>
+<Unit id="SkillCasterTerranHorner"/>
+<Unit id="SkillCasterZerg_XS"/>
+<Unit id="SkillCasterZergAbathur"/>
+<Unit id="SkillCasterZergStukov"/>
+<Unit id="SkillCasterZerg4Dehaka"/>
+<Unit id="SkillCasterZergZagara"/>
+<Unit id="SpawningPool3"/>
+<Unit id="Stargate3"/>
+<Unit id="Invisibleboss"/>
+<Unit id="Marauder2"/>
+<Unit id="SkillCasterProtoss"/>
+<Unit id="SkillCasterTerranRaynor"/>
+<Unit id="SkillCasterTerranNova"/>
+<Unit id="SkillCasterTerranSwann"/>
+<Unit id="SkillCasterZerg"/>
+<Unit id="Immortal3"/>
+<Unit id="SoACaster2"/>
+<Unit id="SkillCasterTerran"/>
+<Unit id="Tosh2"/>
+<Unit id="XSHX_Z"/>
+<Unit id="SSHX_T"/>
+<Unit id="XS_WM1"/>
+<Unit id="XS_WM2"/>
+<Unit id="XS_WM3"/>
+<Unit id="XS_XSJD"/>
+<Unit id="ZSZCZK_CASTER"/>
+<Unit id="ZSZCZK_CASTER2"/>
+<Unit id="TwilightCouncil2"/>
+<Unit id="DarkShrine2"/>
+<Unit id="GreaterSpire2"/>
+<Unit id="Nexus2"/>
+<Unit id="PhotonCannon2"/>
+<Unit id="PhotonCannon4"/>
+<Unit id="SporeCrawler2"/>
+<Unit id="SporeCrawler22"/>
+<Unit id="XKZMSY"/>
+<Upgrade id="PlayerIsYellow"/>
+<Upgrade id="PlayerIsPurple"/>
+<Weapon id="GJZSMX_WEAPON"/>
+</Preload>

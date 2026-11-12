@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="us-ascii"?>
+<Catalog>
+    <CGame id="Dflt">
+        <CreepDecayTime value="0.125"/>
+        <AcquireLeashRadius value="500"/>
+    </CGame>
+</Catalog>

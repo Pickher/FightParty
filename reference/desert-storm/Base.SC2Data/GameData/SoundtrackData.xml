@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CSoundtrack id="SoundtrackFBBGM">
+        <CueArray>
+            <MasterLayer Sound="solo"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+    </CSoundtrack>
+    <CSoundtrack id="JJXJZ">
+        <CueArray>
+            <MasterLayer Sound="JJXJZ"/>
+        </CueArray>
+    </CSoundtrack>
+    <CSoundtrack id="XGZM2">
+        <CueArray>
+            <MasterLayer Sound="ZZerus03MusicAlt2"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+        <Delay value="10,10"/>
+        <Select value="Sequential"/>
+    </CSoundtrack>
+    <CSoundtrack id="BP_START">
+        <CueArray>
+            <MasterLayer Sound="BP_START"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+        <Delay value="10,10"/>
+        <Next value="XGZM2"/>
+    </CSoundtrack>
+    <CSoundtrack id="BGM_BJ_high">
+        <CueArray>
+            <MasterLayer Sound="BGM_BJ_high"/>
+        </CueArray>
+    </CSoundtrack>
+    <CSoundtrack id="TXQX">
+        <CueArray>
+            <MasterLayer Sound="TXQX"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+        <Delay value="10,10"/>
+        <Select value="Sequential"/>
+        <Next value="XGZM2"/>
+    </CSoundtrack>
+    <CSoundtrack id="XSGF">
+        <CueArray>
+            <MasterLayer Sound="XSGF"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+        <Delay value="5,5"/>
+        <Select value="Sequential"/>
+        <Next value="XSGF"/>
+    </CSoundtrack>
+    <CSoundtrack id="XKZCZ">
+        <CueArray>
+            <MasterLayer Sound="XKZCZ"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+    </CSoundtrack>
+    <CSoundtrack id="XKZMSY_boss">
+        <CueArray>
+            <MasterLayer Sound="XKZMSY_boss"/>
+        </CueArray>
+    </CSoundtrack>
+    <CSoundtrack id="XGZM">
+        <CueArray>
+            <MasterLayer Sound="XGZM"/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+            <SlaveLayers/>
+        </CueArray>
+        <Delay value="10,10"/>
+        <Select value="Sequential"/>
+        <Next value="XGZM2"/>
+    </CSoundtrack>
+</Catalog>

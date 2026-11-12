@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<BankList>
+    <Bank Name="XSGF" Player="8"/>
+    <Bank Name="DSArchive" Player="4"/>
+    <Bank Name="XSGF" Player="10"/>
+    <Bank Name="XSGF" Player="9"/>
+    <Bank Name="XSGF" Player="1"/>
+    <Bank Name="DSArchive" Player="7"/>
+    <Bank Name="DSArchive" Player="5"/>
+    <Bank Name="XSGF" Player="3"/>
+    <Bank Name="DSArchive" Player="13"/>
+    <Bank Name="XSGF" Player="2"/>
+    <Bank Name="DSArchive" Player="12"/>
+    <Bank Name="DSArchive" Player="3"/>
+    <Bank Name="DSArchive" Player="10"/>
+    <Bank Name="XSGF" Player="14"/>
+    <Bank Name="DSArchive" Player="9"/>
+    <Bank Name="XSGF" Player="4"/>
+    <Bank Name="DSArchive" Player="14"/>
+    <Bank Name="DSArchive" Player="2"/>
+    <Bank Name="XSGF" Player="5"/>
+    <Bank Name="DSArchive" Player="8"/>
+    <Bank Name="XSGF" Player="13"/>
+    <Bank Name="XSGF" Player="12"/>
+    <Bank Name="DSArchive" Player="6"/>
+    <Bank Name="DSArchive" Player="1"/>
+    <Bank Name="XSGF" Player="11"/>
+    <Bank Name="DSArchive" Player="11"/>
+    <Bank Name="XSGF" Player="6"/>
+    <Bank Name="XSGF" Player="7"/>
+</BankList>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CTargetSortField id="AirTarget">
+        <Field value="PlaneArray[Air]"/>
+        <Value value="1"/>
+    </CTargetSortField>
+    <CTargetSortBehaviorCount id="Corruption3">
+        <Behavior value="Corruption3"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="Count0_VileAcidSlowFlatAmount">
+        <WhichUnit Value="Target"/>
+        <Descending value="1"/>
+        <Behavior value="VileAcidSlowFlatAmount"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="Count0_VileAcidSlowFlatAmountHeroic">
+        <WhichUnit Value="Target"/>
+        <Behavior value="VileAcidSlowFlatAmountHeroic"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="Count0_VileAcidSlowFlatAmountStructure">
+        <WhichUnit Value="Target"/>
+        <Behavior value="VileAcidSlowFlatAmountStructure"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="FS_Ray_CD_PX">
+        <Behavior value="FS_Ray_CD"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortField id="Food30UP">
+        <Field value="Food"/>
+        <Value value="30"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food1">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="1"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food2">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="2"/>
+    </CTargetSortField>
+    <CTargetSortField id="Attributes1">
+        <Field value="Attributes[1]"/>
+        <Value value="1"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food3">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="3"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food3UP">
+        <Field value="Food"/>
+        <Value value="3"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food2UP">
+        <Field value="Food"/>
+        <Value value="2"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food4">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="4"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food5">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="5"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food6">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="6"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food20">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="20"/>
+    </CTargetSortField>
+    <CTargetSortField id="Food30">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="30"/>
+    </CTargetSortField>
+    <CTargetSortField id="FoodDOWN">
+        <Field value="Food"/>
+    </CTargetSortField>
+    <CTargetSortField id="FoodUP">
+        <Descending value="1"/>
+        <Field value="Food"/>
+        <Value value="0"/>
+    </CTargetSortField>
+    <CTargetSortField id="GroundTarget">
+        <Field value="PlaneArray[Ground]"/>
+        <Value value="1"/>
+    </CTargetSortField>
+    <CTargetSortField id="HJ">
+        <Descending value="1"/>
+        <Field value="LifeArmor"/>
+    </CTargetSortField>
+    <CTargetSortBehaviorCount id="GDDCLXY">
+        <Behavior value="GDDCLXY_SS_FS_JH_YY"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortValidator id="IsArmord">
+        <Validator value="IsArmord"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="MothershipPreferNewTargets">
+        <Validator value="NotRecentMothershipTarget"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="MothershipTargetFire">
+        <Validator value="TargetFirePriority"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="MothershipTrackedTargetFire">
+        <Validator value="MothershipTargetFire"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TSGroundOrFiring">
+        <Validator value="TargetIsGroundorCasterIsFiringandNotMoving"/>
+    </CTargetSortValidator>
+    <CTargetSortMarker id="TSMarkerDesc">
+        <Descending value="1"/>
+    </CTargetSortMarker>
+    <CTargetSortPriority id="TSPriorityDesc">
+        <Descending value="1"/>
+    </CTargetSortPriority>
+    <CTargetSortVital id="TSShieldsLargestFirst">
+        <Descending value="1"/>
+        <Vital value="Shields"/>
+    </CTargetSortVital>
+    <CTargetSortValidator id="TSThreatenBattlecruiser">
+        <Validator value="ThreatensBattlecruiser"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TSThreatensCyclone">
+        <Validator value="ThreatensCyclone"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TSTrackedByBattlecruiser">
+        <Validator value="AttackTrackedByBattlecruiser"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TSTransientBattlecruiser">
+        <Validator value="TransientTrackedByBattlecruiser"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSortTargetInCombat">
+        <Validator value="TargetInCombat"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSortValidatorXslJKjgylc0">
+        <Validator value="ValidatorXslJKjgylc0"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSort_Range_HMZ">
+        <Validator value="Validator_Range_HMZ"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSort_ShieldGE130">
+        <Validator value="TargetShieldGE130"/>
+    </CTargetSortValidator>
+    <CTargetSortField id="TargetSort_KJ">
+        <Field value="PlaneArray[1]"/>
+        <Value value="1"/>
+    </CTargetSortField>
+    <CTargetSortBehaviorCount id="LaserDrill_Weapon_FS_YY">
+        <WhichUnit Value="Target"/>
+        <Behavior value="LaserDrill_Weapon_FS_YY"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="RavagerCorrosiveBileSearchSetAB">
+        <Behavior value="RavagerCorrosiveBileSearchSetAB"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortMarker id="TSMarker">
+        <WhichUnit Value="Target"/>
+    </CTargetSortMarker>
+    <CTargetSortBehaviorCount id="TargetSort00069">
+        <Behavior value="unitbuff000032"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="TargetSort0006901">
+        <Behavior value="unitbuff000032"/>
+        <Value value="1"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortBehaviorCount id="TargetSort_ImpalerDehakaTenderize"/>
+    <CTargetSortValidator id="TargetSort_LifeGE130">
+        <Validator value="TargetLifeGE130"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSort_YX_ZZLJ_54">
+        <Validator value="Validator_UNIT_54"/>
+    </CTargetSortValidator>
+    <CTargetSortValidator id="TargetSort_YX_ZZLJ_53">
+        <Validator value="Validator_UNIT_53"/>
+    </CTargetSortValidator>
+    <!--虚空之弥赛亚开始-->
+    <CTargetSortBehaviorCount id="XKZMSY_XKWM_DJ">
+        <Behavior value="XKZMSY_XKWM_DJ_Enemy"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortValidator id="XKZMSY_XKWM_DJ2">
+        <Validator value="TargetIsFiringWeapon"/>
+    </CTargetSortValidator>
+    <CTargetSortBehaviorCount id="NovaWeaponInvictusLongshotLockdown">
+        <Behavior value="NovaWeaponInvictusLongshotLockdown"/>
+    </CTargetSortBehaviorCount>
+    <CTargetSortValidator id="TargetSort_MBKDK">
+        <Validator value="Validator_MBKDK"/>
+    </CTargetSortValidator>
+    <CTargetSortBehaviorCount id="notinfire">
+        <Behavior value="ThermalLancesFireBeam"/>
+    </CTargetSortBehaviorCount>
+</Catalog>

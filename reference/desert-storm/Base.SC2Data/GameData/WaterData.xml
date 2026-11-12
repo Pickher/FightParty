@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Catalog>
+    <CWater id="Agria">
+        <State index="0" Height="23.850000"/>
+    </CWater>
+    <CWater id="Albion">
+        <State index="0" Height="21.650000"/>
+    </CWater>
+    <CWater id="Avernus">
+        <FramesPerSec value="0.000000"/>
+        <State index="0">
+            <Height value="6.000000"/>
+            <Color value="0.098039,0.349020,0.498039,0.300000"/>
+            <UvRate value="-0.000000,-0.001000,0.000000,0.000000"/>
+            <RefractionDistortion value="0.020000"/>
+        </State>
+    </CWater>
+    <CWater id="BraxisAlpha">
+        <State index="0" Height="21.650000"/>
+    </CWater>
+    <CWater id="MarSara">
+        <State index="0" Height="11.450000" Color="0.250980,0.501961,0.501961,0.382000" UvRate="0.214330,-0.026810,0.000000,0.000000"/>
+        <State>
+            <Name value="Alternate Setting"/>
+            <Height value="22.500000"/>
+            <Color value="0.247059,0.501961,0.501961,0.165000"/>
+            <ColorFallOff value="0.105000"/>
+            <CausticsFallOff value="0.200000"/>
+            <Specularity value="200.000000"/>
+            <SpecularScaler value="1.000000"/>
+            <UvRate value="0.000998,0.000063,0.000000,0.000000"/>
+            <MeshRoughness value="0.150000"/>
+            <TextureRoughness value="1.000000"/>
+            <ReflectionDistortion value="0.012000"/>
+            <RefractionDistortion value="0.002500"/>
+            <ShadowDistortion value="1.000000"/>
+            <MinReflection value="0.100000"/>
+            <ReflectivityPower value="8.000000"/>
+        </State>
+        <State>
+            <Name value="Alternate Setting 2"/>
+            <Height value="12.000000"/>
+            <Color value="0.250980,0.501961,0.501961,0.057000"/>
+            <ColorFallOff value="0.105000"/>
+            <CausticsFallOff value="0.200000"/>
+            <Specularity value="200.000000"/>
+            <SpecularScaler value="1.000000"/>
+            <UvRate value="0.130744,-0.008180,0.000000,0.000000"/>
+            <MeshRoughness value="0.150000"/>
+            <TextureRoughness value="1.000000"/>
+            <ReflectionDistortion value="0.012000"/>
+            <RefractionDistortion value="0.002500"/>
+            <ShadowDistortion value="1.000000"/>
+            <MinReflection value="0.100000"/>
+            <ReflectivityPower value="8.000000"/>
+        </State>
+    </CWater>
+    <CWater id="SENJDTY">
+        <State index="0" Height="23.600000"/>
+        <State>
+            <Name value="Alternate Setting"/>
+            <Height value="8.000000"/>
+            <Color value="0.094118,0.349020,0.494118,0.300000"/>
+            <ColorFallOff value="0.100000"/>
+            <Specularity value="100.000000"/>
+            <SpecularScaler value="3.000000"/>
+            <UvRate value="-0.000000,-0.001000,0.000000,0.000000"/>
+            <ReflectionDistortion value="0.012000"/>
+            <RefractionDistortion value="0.020000"/>
+            <ShadowDistortion value="1.000000"/>
+            <MinReflection value="0.300000"/>
+            <ReflectivityPower value="8.000000"/>
+        </State>
+    </CWater>
+    <CWater id="Xil">
+        <State index="0">
+            <Height value="19.000000"/>
+            <Color value="0.094118,0.349020,0.494118,0.300000"/>
+            <UvRate value="-0.000000,-0.001000,0.000000,0.000000"/>
+            <RefractionDistortion value="0.020000"/>
+        </State>
+        <FramesPerSec value="0.000000"/>
+    </CWater>
+    <CWater id="ZerusPool">
+        <State index="0" Height="15.299999"/>
+    </CWater>
+</Catalog>

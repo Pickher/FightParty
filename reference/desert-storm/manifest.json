@@ -1,0 +1,327 @@
+{
+  "map": "沙漠风暴",
+  "archive": "082b375e3f8d7d13456b183b6fd60a85350df3d332eccd022942458a3a47b228.s2ma",
+  "archive_sha256": "082b375e3f8d7d13456b183b6fd60a85350df3d332eccd022942458a3a47b228",
+  "files": [
+    {
+      "path": "BankList.xml",
+      "bytes": 1153,
+      "sha256": "72584c6b77f48bb4d7d37262ed4c0a919bef025fd0b9b38cb7dc0ae5bb6ce76f"
+    },
+    {
+      "path": "Base.SC2Data/GameData/AbilData.xml",
+      "bytes": 805681,
+      "sha256": "5e39e82b3ebcf2e35176bd8d0e7580d55d67b18403370ddbc52c3406e6884d43"
+    },
+    {
+      "path": "Base.SC2Data/GameData/AccumulatorData.xml",
+      "bytes": 1527,
+      "sha256": "c4ea73ec4f840b9530f78b7e5fd9d9bb356cddf3c2642dd3344305aa4e1c0eb9"
+    },
+    {
+      "path": "Base.SC2Data/GameData/ActorData.xml",
+      "bytes": 3004703,
+      "sha256": "666abc5341ae06997f9a00ea39eba6d567f26454d6fd154ba1a8b6b1ff7b8d48"
+    },
+    {
+      "path": "Base.SC2Data/GameData/AlertData.xml",
+      "bytes": 1308,
+      "sha256": "c0732298e8b3682e7ba6a44176ac2695df5f19f734ee2622f6b147d421217b4f"
+    },
+    {
+      "path": "Base.SC2Data/GameData/Assets.txt",
+      "bytes": 1344,
+      "sha256": "334f927ab2aff5be603a7e9d34e49868e60403b90b9a4690f6a3ab45134559ae"
+    },
+    {
+      "path": "Base.SC2Data/GameData/AttachMethodData.xml",
+      "bytes": 6623,
+      "sha256": "495d906fd0896950a42582e033927f45692ce7b33636dffd7c7d58687e49a77b"
+    },
+    {
+      "path": "Base.SC2Data/GameData/BehaviorData.xml",
+      "bytes": 709420,
+      "sha256": "53472e1f2b411a2f9927409268fbc400b697abd85ad4c02b3654c50c605216f6"
+    },
+    {
+      "path": "Base.SC2Data/GameData/ButtonData.xml",
+      "bytes": 418557,
+      "sha256": "5a4845242e2fca365692289686ed3f864987899febd6098a0a57643b0c65c5ad"
+    },
+    {
+      "path": "Base.SC2Data/GameData/CameraData.xml",
+      "bytes": 1691,
+      "sha256": "5e24b68122462a0e3fdc5feb61ca6baf7c475b11bc68ae7d8e93dd31fb7cbf27"
+    },
+    {
+      "path": "Base.SC2Data/GameData/EffectData.xml",
+      "bytes": 1141228,
+      "sha256": "789277a5340138b4b679fdd64206799bcf68fb8e093bda2d535171e9b0d7180b"
+    },
+    {
+      "path": "Base.SC2Data/GameData/FoWData.xml",
+      "bytes": 137,
+      "sha256": "e3d256f4ee2eb8110fabb44e0c3ea757726b1551206630934c2db2dd554d6b61"
+    },
+    {
+      "path": "Base.SC2Data/GameData/FootprintData.xml",
+      "bytes": 18187,
+      "sha256": "e02dc093b6ef6935d86a4bbe363c066f76cd63922e3f4fc3d15a60a6aeada8b5"
+    },
+    {
+      "path": "Base.SC2Data/GameData/GameData.xml",
+      "bytes": 187,
+      "sha256": "b2a877fa69d5322f612541e160cc8be5e50d695925b8b877767c21954850ceb9"
+    },
+    {
+      "path": "Base.SC2Data/GameData/GameUIData.xml",
+      "bytes": 5669,
+      "sha256": "550f4efaaa319b9d640cb4146a7f204928b10fcce12562ad4e0012817349e549"
+    },
+    {
+      "path": "Base.SC2Data/GameData/KineticData.xml",
+      "bytes": 372,
+      "sha256": "d46824b9ee95ee570b0133336fe566df9ed8f5789e4ad7c569c8f39067502c5e"
+    },
+    {
+      "path": "Base.SC2Data/GameData/LightData.xml",
+      "bytes": 18318,
+      "sha256": "ab73efc1b4b3f88f513f01734c297a10fef248e2e707657883c2fdbf55ecd428"
+    },
+    {
+      "path": "Base.SC2Data/GameData/ModelData.xml",
+      "bytes": 595837,
+      "sha256": "ea8e45cbc0d656d20ba5d099dc4f515f291572171b7b4d236e20639205131c03"
+    },
+    {
+      "path": "Base.SC2Data/GameData/MoverData.xml",
+      "bytes": 67825,
+      "sha256": "253efda47af3aa7b32f52b9685e3fd0d93f65d5c85359deb072bc3401ad86da8"
+    },
+    {
+      "path": "Base.SC2Data/GameData/RaceData.xml",
+      "bytes": 4322,
+      "sha256": "c2e400b6b597f29a7a024eb19a7bc8f46653549caecbb9d29eb91f8a15e0d344"
+    },
+    {
+      "path": "Base.SC2Data/GameData/RequirementData.xml",
+      "bytes": 77157,
+      "sha256": "3b22c71638c90705df8a7c4b37cd561e4cb6adbc8c70ab800c87ad609ed8d9da"
+    },
+    {
+      "path": "Base.SC2Data/GameData/RequirementNodeData.xml",
+      "bytes": 153158,
+      "sha256": "2a6c360c0a02917c5f33f57ef87f6f74b11f17819d342675e9bd46b5b26ea301"
+    },
+    {
+      "path": "Base.SC2Data/GameData/SkinData.xml",
+      "bytes": 14048,
+      "sha256": "b841b540282fc12030f9ff35f6b59a8f5ce215bd51b9ef960659d0f516c2a232"
+    },
+    {
+      "path": "Base.SC2Data/GameData/SoundData.xml",
+      "bytes": 878848,
+      "sha256": "f279b2cd5900c99a77b771cbbffc31db0643e44da8105518381e914b71d2e7f0"
+    },
+    {
+      "path": "Base.SC2Data/GameData/SoundtrackData.xml",
+      "bytes": 2599,
+      "sha256": "ba18e849572917d14e4aa752e5155b65b8e54e4b0a779c2f0312d8b9f5838468"
+    },
+    {
+      "path": "Base.SC2Data/GameData/TargetSortData.xml",
+      "bytes": 7634,
+      "sha256": "74d00fdb247f960cc23aa1c7fe5047ebad3c56e81e109fa70f1e2dec52f75ba0"
+    },
+    {
+      "path": "Base.SC2Data/GameData/TerrainData.xml",
+      "bytes": 506,
+      "sha256": "b31b9c8f71b35802f197af062049919a1213dffe58f79df3da0ff80322f06245"
+    },
+    {
+      "path": "Base.SC2Data/GameData/TurretData.xml",
+      "bytes": 4721,
+      "sha256": "7928622b59d70845d674c414465367bbed8a6d98ef81bee3697aa3885dbc8aec"
+    },
+    {
+      "path": "Base.SC2Data/GameData/UnitData.xml",
+      "bytes": 2405408,
+      "sha256": "2d083b4694b0f4c978c3192f921424578cb0421c0c7d859177504c5858f3e401"
+    },
+    {
+      "path": "Base.SC2Data/GameData/UpgradeData.xml",
+      "bytes": 290627,
+      "sha256": "a58516dc0326681bf654a619beb017b5f3b3aeee8671a2d24cbc01532b07969a"
+    },
+    {
+      "path": "Base.SC2Data/GameData/ValidatorData.xml",
+      "bytes": 253820,
+      "sha256": "6c4c9d711099a6459b4ab6734b1fd727a9749a1bf6a40ae6449b7be1f6dbf3de"
+    },
+    {
+      "path": "Base.SC2Data/GameData/WaterData.xml",
+      "bytes": 3658,
+      "sha256": "d4240a423656cdf856f798eed650c6487cecc88f20f04e0c336da6eff7793023"
+    },
+    {
+      "path": "Base.SC2Data/GameData/WeaponData.xml",
+      "bytes": 276312,
+      "sha256": "3ee22e99827fd6889d788fe669533f87d2880dcce9b3e7f560103363244ed8c2"
+    },
+    {
+      "path": "Base.SC2Data/GameData/filter_priority.py",
+      "bytes": 2310,
+      "sha256": "3d21ae93b2ad7a3ec380d02c452b569f801f235f839e9374afc365ed5472827a"
+    },
+    {
+      "path": "Base.SC2Data/GameData/priority_list.txt",
+      "bytes": 21286,
+      "sha256": "638ddd0d354e58865fa6c75ca88736dd35a79bd78a02d226674c1230f858ec99"
+    },
+    {
+      "path": "CellAttribute_Pnb",
+      "bytes": 43268,
+      "sha256": "d5d882f979e41295e79191a559c94d6fb239d5fa00762bc9fa438358f0527cf4"
+    },
+    {
+      "path": "CellAttribute_Pnp",
+      "bytes": 43268,
+      "sha256": "07277478344136e52810c9894cf13050816a9e2f83d6b1aa9461d536932462cd"
+    },
+    {
+      "path": "DocumentHeader",
+      "bytes": 14106,
+      "sha256": "857cafdfd33f14e9c0c86deda134c268408477dd499a535a2b25e4d6c0aa28b6"
+    },
+    {
+      "path": "DocumentInfo",
+      "bytes": 3732,
+      "sha256": "be42307d89688c191c0b6ad88d25ccbb9b1880c48786c965b1c46d68de671b47"
+    },
+    {
+      "path": "DocumentInfo2",
+      "bytes": 2100,
+      "sha256": "b040df945226c10e51247a1401931b08ad07a3cef0115702894065ab0c471e22"
+    },
+    {
+      "path": "MapInfo",
+      "bytes": 566,
+      "sha256": "e4f532abb9e7858763c6254cb038eeefb585b28acc73024e9510d7b3d56118b0"
+    },
+    {
+      "path": "MapScript.galaxy",
+      "bytes": 2857896,
+      "sha256": "ec4811b3e763f93ace33a2fa53800ec8d243f4a1e792075ec1b4e479595c1db2"
+    },
+    {
+      "path": "Objects",
+      "bytes": 312301,
+      "sha256": "b5ae9b5b5f705bd46580014a4527b358bad43f3beea56a02675a3b2839d63f00"
+    },
+    {
+      "path": "Preload.xml",
+      "bytes": 28353,
+      "sha256": "06a50d641e6c85d942f5f28c3a8d213eb77264d73d7f3c290e42cf2f285115e8"
+    },
+    {
+      "path": "Regions",
+      "bytes": 13518,
+      "sha256": "5c68e0a5679034d22d0720179ba51f7dde1c6d1e28f175a16796ce75dd4bd84c"
+    },
+    {
+      "path": "ai6F5014E0.galaxy",
+      "bytes": 4890,
+      "sha256": "97a8a874f57549dd6af4c7eca1844c00099cc879077b156aa862a36c4e8f7e2c"
+    },
+    {
+      "path": "t3CellFlags",
+      "bytes": 43296,
+      "sha256": "3507191628eabce984baab540607f7851987d9be49bf23b65ae25addfe8db768"
+    },
+    {
+      "path": "t3FluffDoodad",
+      "bytes": 28,
+      "sha256": "3f3f15b8480e7cf37d97bc9c4affe5af1348b352bbc1213a71da32195a88e937"
+    },
+    {
+      "path": "t3HardTile",
+      "bytes": 28,
+      "sha256": "12afa86368acf6158758ce235c2e3879d6edfab41cc2eef6738c939e746b745d"
+    },
+    {
+      "path": "t3HeightMap",
+      "bytes": 262118,
+      "sha256": "c7724dd9cb40b195e51478b9228f6ffe25cceaddd34189d46c7b61514a042610"
+    },
+    {
+      "path": "t3SyncCliffLevel",
+      "bytes": 86560,
+      "sha256": "104c98049b22ea0de4b41933968fc2e5594567de2264de41fb7f278b93ad4b08"
+    },
+    {
+      "path": "t3SyncHeightMap",
+      "bytes": 174788,
+      "sha256": "8a934704a8e0f6a44679bd8b54dbbf27b9fc0a17589b1699c7b325911b9a877e"
+    },
+    {
+      "path": "t3SyncTextureInfo",
+      "bytes": 346234,
+      "sha256": "7f27e5d3fedbea11af695d837483e024f1bfdc120fbf9c74b0ee60d2d9ce8646"
+    },
+    {
+      "path": "t3Terrain.version",
+      "bytes": 44,
+      "sha256": "2087a1edf0aac55dc30e6528700ee50176234b3d5a0cf3ad377319c7f755700d"
+    },
+    {
+      "path": "t3Terrain.xml",
+      "bytes": 192496,
+      "sha256": "8b62bc8b65688633536c70bb7042449bb12827ebf0ea189533597a889756e36a"
+    },
+    {
+      "path": "t3TextureMasks",
+      "bytes": 11075648,
+      "sha256": "3670cc8e8c786d9105b558656fa4c0f26b1031ac48e1c274d8d5833b19e1ac36"
+    },
+    {
+      "path": "t3VertCol",
+      "bytes": 401700,
+      "sha256": "58b3281d24a591e381820cd9a6f8237a5a6f9391870ee56d7f717c830a34e7bb"
+    },
+    {
+      "path": "t3Water",
+      "bytes": 88,
+      "sha256": "c2142a4fbf05cb510f000b2618511b0156a691dd0be77576e16c5df3709735b0"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/ConversationStrings.txt",
+      "bytes": 1240,
+      "sha256": "ca49dec909f5585f5be0202882f8124ce53d68b484ea4f58d29a7472068f5728"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/GameHotkeys.txt",
+      "bytes": 22591,
+      "sha256": "00aaf507123ca48651ab96e8397b898237787891a36b71b1fb046675436ab98b"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/GameStrings.txt",
+      "bytes": 1993642,
+      "sha256": "e270644f950dbce464925d25b17b3448b004834576977a34e2f21f5e0a002d90"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/GameStringsProduct.txt",
+      "bytes": 7808,
+      "sha256": "ea54c328382317194253b8ac9c74c8dfb175bbce1902425f7be6f2c5ec2f4058"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/ObjectStrings.txt",
+      "bytes": 1136843,
+      "sha256": "8a1e4cb905c9da99bb036e8552b652f3235c3e407c41d050f285275cf3f2e9d3"
+    },
+    {
+      "path": "zhCN.SC2Data/LocalizedData/TriggerStrings.txt",
+      "bytes": 177355,
+      "sha256": "57e1a627a8f630e4e9745c6f7ff0b648b7b67fc9e89939247afb1ea7e03d285b"
+    }
+  ]
+}
