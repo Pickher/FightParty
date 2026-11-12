@@ -465,7 +465,16 @@
           },
           "note": "基础射程7；没有高度地形系统"
         }
-      ]
+      ],
+      "project_overrides": {
+        "2026-11-12": {
+          "cost": 1350,
+          "sweep_length": 4.5,
+          "sweep_speed": 6,
+          "sweep_seconds": 0.75,
+          "source": "用户指定：横向扫射长度缩短30%，每束扫完0.75秒，1350矿/个；按新长度取整为4.5格。"
+        }
+      }
     },
     "disruptor": {
       "name": "干扰者",
@@ -659,20 +668,6 @@
       "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
       "kind": "待确认",
       "runtime_value": 0.5
-    },
-    {
-      "id": "colossus",
-      "path": "attack_modes/0/delivery/length",
-      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
-      "kind": "待确认",
-      "runtime_value": 6.4286
-    },
-    {
-      "id": "colossus",
-      "path": "attack_modes/0/delivery/speed",
-      "reason": "原版地刺/双束横扫几何与传播数据尚未可靠核对，保留现有项目参数待确认",
-      "kind": "待确认",
-      "runtime_value": 6.4286
     },
     {
       "id": "colossus",

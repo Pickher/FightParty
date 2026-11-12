@@ -4,7 +4,7 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.9.2，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.9.3，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
 
 0.9.2：三种攻击行为抽象为独立类，统一注册与调用。delivery.type选projectile（射弹）、beam（激光）或line（直线推进）；射弹用flight选择接触/固定延迟/距离飞行。数值与攻击节奏保持0.9.1，Excel已同步。新增兵种只需选类型填参数；扩展方法见[攻击行为抽象](docs/ATTACK_BEHAVIORS.md)。未运行模拟或打包。
 

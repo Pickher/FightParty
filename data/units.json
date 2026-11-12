@@ -1,5 +1,5 @@
 {
- "version": "0.9.2",
+ "version": "0.9.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -2567,7 +2567,7 @@
     "immortal"
    ],
    "sc2": "巨像 Colossus",
-   "cost": 250,
+   "cost": 1350,
    "hp": 250,
    "shield": 100,
    "armor_type": "heavy",
@@ -2638,8 +2638,8 @@
      "continue_on_target_death": false,
      "delivery": {
       "pattern": "transverse",
-      "length": 6.4286,
-      "speed": 6.4286,
+      "length": 4.5,
+      "speed": 6,
       "half_width": 0.5,
       "effect": "beam",
       "type": "line",
