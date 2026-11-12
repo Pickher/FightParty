@@ -1,5 +1,5 @@
 {
- "version": "0.9.1",
+ "version": "0.9.2",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -66,9 +66,10 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -146,7 +147,7 @@
       "speed": 15.0,
       "half_width": 0.3,
       "effect": "flame",
-      "type": "wave",
+      "type": "line",
       "tracking": false
      }
     }
@@ -229,9 +230,10 @@
      "attack_duration": 0.18,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -393,9 +395,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     },
     {
@@ -427,9 +430,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -510,9 +514,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -594,9 +599,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     },
     {
@@ -627,9 +633,10 @@
      "attack_duration": 0.3,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -699,9 +706,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -782,9 +790,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     },
     {
@@ -815,9 +824,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -903,9 +913,10 @@
      "attack_duration": 0.4,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0.1,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     },
     {
@@ -936,9 +947,10 @@
      "attack_duration": 0.5,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 25,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     },
     {
@@ -969,9 +981,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0.1,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -1063,9 +1076,10 @@
      "attack_duration": 0.08,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0.05,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     },
     {
@@ -1094,9 +1108,10 @@
      "attack_duration": 0.08,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0.05,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -1167,8 +1182,9 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -1248,8 +1264,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -1321,9 +1338,10 @@
      "attack_duration": 0.22,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -1395,9 +1413,10 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -1487,9 +1506,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -1580,7 +1600,7 @@
       "speed": 9.2857,
       "half_width": 0.5,
       "effect": "spike",
-      "type": "wave",
+      "type": "line",
       "tracking": false
      }
     }
@@ -1669,8 +1689,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -1750,9 +1771,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -1849,8 +1871,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -1926,8 +1949,9 @@
      "attack_duration": 0.35,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -2010,9 +2034,10 @@
      "attack_duration": 0.3,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -2089,8 +2114,9 @@
      "attack_duration": 0.3,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -2171,9 +2197,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -2345,9 +2372,10 @@
      "attack_duration": 0.25,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -2441,9 +2469,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0.05,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     }
    ]
@@ -2521,9 +2550,10 @@
      "attack_duration": 0.25,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -2612,7 +2642,7 @@
       "speed": 6.4286,
       "half_width": 0.5,
       "effect": "beam",
-      "type": "wave",
+      "type": "line",
       "tracking": false
      }
     }
@@ -2707,8 +2737,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -2886,8 +2917,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -2955,8 +2987,9 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3024,8 +3057,9 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3102,8 +3136,9 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3185,8 +3220,9 @@
      "attack_duration": 0.25,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3267,9 +3303,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -3341,9 +3378,10 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -3425,9 +3463,10 @@
      "attack_duration": 0.25,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -3500,8 +3539,9 @@
      "attack_duration": 0.35,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3580,8 +3620,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3662,8 +3703,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3747,8 +3789,9 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -3881,9 +3924,10 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -3948,9 +3992,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -4018,8 +4063,9 @@
      "attack_duration": 0.15,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "instant",
-      "tracking": true
+      "type": "projectile",
+      "tracking": true,
+      "flight": "contact"
      }
     }
    ]
@@ -4089,9 +4135,10 @@
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -4176,9 +4223,10 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "fixed",
+      "type": "projectile",
       "seconds": 0,
-      "tracking": true
+      "tracking": true,
+      "flight": "fixed"
      }
     },
     {
@@ -4209,9 +4257,10 @@
      "attack_duration": 0.18,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]
@@ -4283,9 +4332,10 @@
      "attack_duration": 0.1,
      "continue_on_target_death": false,
      "delivery": {
-      "type": "distance",
+      "type": "projectile",
       "speed": 20,
-      "tracking": true
+      "tracking": true,
+      "flight": "distance"
      }
     }
    ]

@@ -1,7 +1,7 @@
 extends "res://scripts/skills/skill.gd"
 const AttackCycle = preload("res://scripts/units/attack_cycle.gd")
 const Sequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
-const Beams = preload("res://scripts/skills/services/beam_service.gd")
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 
 ## 一组可复用的驻军炮位：count 决定独立炮位数量，weapon 决定每套武器。
 ## 不生成可走出建筑的友军实体；建筑被摧毁时全部炮位随组件回收。
@@ -52,13 +52,14 @@ func before_target(ctx: Dictionary) -> bool:
 			if not target.is_empty():assigned[target.id]=int(assigned.get(target.id,0))+1
 		var eligible: bool = target!=null and not target.is_empty() and float(weapon.damage)>0
 		var target_id: int = int(target.id) if eligible else 0
-		if weapon.delivery.type=="beam":
+		var attack_behavior := AttackTypes.for_weapon(weapon)
+		if attack_behavior.is_continuous():
 			if eligible:
 				var beam: Dictionary = ctx.duplicate()
 				beam.weapon=weapon
 				beam.target=target
 				beam.damage_multiplier=sim.skill_system.damage_multiplier(beam)
-				Beams.apply(beam,mount,weapon,target,target_id)
+				attack_behavior.tick(beam,mount,weapon,target,target_id)
 			continue
 		if not AttackCycle.ready_to_fire(mount,weapon,target_id,eligible):continue
 		mount.locked_target_id=target_id

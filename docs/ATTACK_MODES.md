@@ -1,5 +1,7 @@
 # 攻击模式与分段弹道（0.9.0）
 
+0.9.2更新：攻击类型已独立抽象为projectile/beam/line三类。旧instant/fixed/distance拆为projectile+flight（contact/fixed/distance），旧wave改为line；各模式数值与时序不变。复用和扩展说明见[攻击行为抽象](ATTACK_BEHAVIORS.md)。
+
 0.9.1更新：下方0.9.0初始表为历史快照，当前武器参数以JSON/Excel为准。特战队员电磁步枪、特工两种弹药、坦克机动/攻城炮、地堡驻军枪兵的delivery为fixed/seconds=0，发射即命中，出手持续时间保留；地堡劫掠者仍为飞行榴弹。
 
 医疗兵、哨兵、虚空辉光舰、基地防御改为delivery.type=beam，attack_duration=0.5、hit_count=1、interval=0、tick_interval=0.5、switch_delay=0.3。持续光束画面与周期结算分开：每0.5秒一次完整命中并扣一次护甲，不拆成0.05秒采样。例如虚空9对护甲3特战队员，每0.5秒结算6点生命伤害（无其他减伤时）。治疗使用模式healing=12，不回护盾；哨兵damage=9、shield_bonus=4，虚空damage=9、bonus.heavy=4，基地damage=300且保留true无视护甲。基础面板数值不因改表现而额外乘十。

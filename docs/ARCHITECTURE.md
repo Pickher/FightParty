@@ -138,3 +138,8 @@ UnitDefinition 新增 collision_radius 与 separate_when_stopped，前者供空�
 
 
 0.9.1：delivery.type=beam由BeamService处理，不创建AttackSequence/Projectile。每个持有者/炮位保存beam_state（目标、模式、切换截止时间、累计作用时间）；每0.5秒一次正常伤害/治疗，使用原有每命中护甲结算。active_beams仅用于连续画面并包含在快照中，重置不影响beam_state。医疗兵与基地也复用此服务；目标切换等0.3秒，不做0.05秒细分伤害计算。
+
+
+## 0.9.2 攻击行为接口
+
+新增scripts/attacks/attack_behavior.gd公共接口、projectile_attack/beam_attack/line_attack三类及attack_registry统一注册入口。BattleSim、基地、独立炮位与医疗兵调用行为接口，AttackSequence委托can_emit/emit，场上推进及目标死亡回调由注册器固定顺序分发。AI/DPS和简介通过行为获取段数、预估和名称，不再散落beam/wave等字符串判断。行为实例共享且无单位状态；模式和快照仍仅持有数据。底层服务与公共命中、护甲、溅射保持原逻辑。正式数据/Excel使用projectile+flight、beam、line；旧枚举在WeaponDefinition构造时兼容转换。详见ATTACK_BEHAVIORS.md。

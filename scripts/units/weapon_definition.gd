@@ -1,4 +1,5 @@
 extends RefCounted
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 ## 独立攻击模式。interval 是整轮出手结束后的等待时间，弹道另行推进。
 var id: String = "primary"
 var damage: float = 0.0
@@ -38,7 +39,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	healing = maxf(0.0,float(parameters.get("healing",0)))
 	hit_count = maxi(1,int(parameters.get("hit_count",1)))
 	attack_duration = maxf(0.001,float(parameters.get("attack_duration",0.1)))
-	delivery = parameters.get("delivery",{"type":"instant"}).duplicate(true)
+	delivery = AttackTypes.normalize_delivery(parameters.get("delivery",{"type":"instant"}))
 	continue_on_target_death = bool(parameters.get("continue_on_target_death",float(parameters.get("splash",0))>0))
 	shield_bonus = maxf(0.0,float(parameters.get("shield_bonus",0)))
 	range_from_edge = bool(parameters.get("range_from_edge",false))
@@ -49,7 +50,7 @@ func _init(parameters: Dictionary = {}, weapon_id: String = "primary") -> void:
 	range = maxf(0.0, float(parameters.get("range", 0)))
 	windup = maxf(0.0, float(parameters.get("windup", 0)))
 	backswing = maxf(0.0, float(parameters.get("backswing", 0)))
-	interval = maxf(0.0 if delivery.type=="beam" else 0.001, float(parameters.get("interval", 1)))
+	interval = maxf(0.0 if AttackTypes.for_delivery(delivery).is_continuous() else 0.001, float(parameters.get("interval", 1)))
 	splash = maxf(0.0, float(parameters.get("splash", 0)))
 	splash_multiplier = clampf(float(parameters.get("splash_multiplier",1.0)),0.0,1.0)
 	splash_inner_ratio = clampf(float(parameters.get("splash_inner_ratio",0.0)),0.0,1.0)

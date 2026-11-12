@@ -8,6 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WORKBOOK = ROOT / 'data' / 'units' / '兵种配置.xlsx'
+ATTACK_TYPES = ('projectile','beam','line')
+FLIGHT_TYPES = ('contact','fixed','distance')
 LABELS = dict(zip(
     'id name race cost spawn_count hp shield shield_armor energy initial_energy armor_type armor damage interval range speed splash splash_multiplier size collision_radius separate_when_stopped bonus target_layers targetable_layers layer tags unit_type damage_type windup backswing health_regen health_regen_delay shield_regen shield_regen_delay energy_regen energy_regen_delay attacks_base attacks_structures structure status symbol color role counter requires sc2'.split(),
     '内部ID 显示名称 种族 每组价格 每组数量 生命上限 护盾上限 护盾护甲 能量上限 初始能量 护甲类型 护甲值 基础伤害 攻击间隔秒 射程格 移速格每秒 溅射半径 次目标伤害倍率 模型尺寸宽高 碰撞半径 停步分散 对甲额外伤害 攻击目标层 可被攻击层 自身层级 单位标签 单位类型 伤害类型 前摇秒 后摇秒 每秒回血 回血延迟秒 每秒回盾 回盾延迟秒 每秒回能 回能延迟秒 可攻击基地 可攻击建筑 是否建筑 实装状态 符号 颜色 定位 特点 前置兵种 星际原型'.split()))
@@ -20,7 +22,7 @@ LABELS['collision_radius']='碰撞半径（最终值）'
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
-    'healing':'治疗量','tick_interval':'光束结算间隔（秒）','switch_delay':'切换目标等待（秒）','attack_duration':'本轮持续/光束面板周期（秒）','delivery':'弹道','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'弹道类型','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
+    'healing':'治疗量','tick_interval':'光束结算间隔（秒）','switch_delay':'切换目标等待（秒）','attack_duration':'本轮持续/光束面板周期（秒）','delivery':'攻击行为','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'攻击类型（projectile/beam/line）','flight':'射弹飞行方式（contact/fixed/distance）','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
     'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','range_from_edge':'按模型边缘量射程',
     'hit_count':'每轮命中次数', 'preferred_distance':'期望距离（格）', 'single_target_limit':'移动追击敌人数上限',
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
@@ -112,15 +114,17 @@ def validate(units):
                 layers=m.get('target_layers',[])
                 if not layers or any(x not in ('ground','air') for x in layers):raise ValueError(where+'攻击模式目标层无效。')
                 delivery=m.get('delivery',{}); typ=delivery.get('type')
-                if typ not in ('instant','fixed','distance','wave','beam'):raise ValueError(where+'弹道类型须为instant/fixed/distance/wave/beam。')
+                if typ not in ATTACK_TYPES:raise ValueError(where+'攻击类型须为projectile（射弹）、beam（激光）或line（直线推进）。')
                 if typ!='beam' and m['interval']<=0:raise ValueError(where+'非光束攻击的轮后间隔必须大于0。')
                 if typ=='beam':
                     if delivery.get('tick_interval',0)<=0 or delivery.get('switch_delay',0)<0:raise ValueError(where+'光束结算间隔或切换延时无效。')
                     if abs(m['attack_duration']-delivery['tick_interval'])>0.000001 or m.get('hit_count',1)!=1:raise ValueError(where+'光束每个面板周期完整结算一次，段数为1，结算间隔须等于面板周期。')
                     if m['interval']!=0:raise ValueError(where+'连续光束的轮后间隔为0，改用switch_delay控制切换目标等待。')
-                if typ=='fixed' and ('seconds' not in delivery or delivery['seconds']<0):raise ValueError(where+'固定弹道需要非负seconds。')
-                if typ in ('distance','wave') and delivery.get('speed',0)<=0:raise ValueError(where+'弹道速度必须大于0。')
-                if typ=='wave' and (delivery.get('length',0)<=0 or delivery.get('half_width',0)<=0 or delivery.get('pattern') not in ('forward','transverse')):raise ValueError(where+'传播弹道的长度、半宽或形状无效。')
+                flight=delivery.get('flight')
+                if typ=='projectile' and flight not in FLIGHT_TYPES:raise ValueError(where+'射弹飞行方式须为contact/fixed/distance。')
+                if typ=='projectile' and flight=='fixed' and ('seconds' not in delivery or delivery['seconds']<0):raise ValueError(where+'固定弹道需要非负seconds。')
+                if (typ=='line' or (typ=='projectile' and flight=='distance')) and delivery.get('speed',0)<=0:raise ValueError(where+'弹道速度必须大于0。')
+                if typ=='line' and (delivery.get('length',0)<=0 or delivery.get('half_width',0)<=0 or delivery.get('pattern') not in ('forward','transverse')):raise ValueError(where+'传播弹道的长度、半宽或形状无效。')
             skills=unit.get('skills',{})
             references=list(skills.get('weapon_switch',{}).get('mode_ids',[]))
             for key in ('deployment','defender_zone'):
@@ -277,7 +281,8 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。与玩家塔中心相距4.5格，位置在data/rules.json调整。'],
         ['连续光束','医疗兵、哨兵、虚空辉光舰、基地反击：面板总量按0.5秒，每0.5秒一次完整伤害/治疗结算，护甲按这次完整命中扣除；不拆0.05秒采样。光束画面持续，切换目标等待0.3秒并重新计结算周期，轮后间隔0。治疗用healing字段。'],
-        ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
+        ['攻击类型','三种独立实现：projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进。伤害与加成仍在武器模式内，类型负责投送，溅射/多段等共用公共结算。新兵种选类型并填参数即可复用。'],
+        ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
         ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
         ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],
         ['雷神','重炮射击2×(13+11重甲)，0.2秒打完/7格；高射炮击2×(23+15重甲)，0.4秒打完/10格；雷神之锤导弹4×(6+4轻甲)，0.5秒打完/10格/溅射1.2。三模式轮后均等待1秒，前两模式固定0.1秒弹道，导弹25格/秒。'],
@@ -295,6 +300,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
     tabs={}
     for name in ('武器模式','技能参数'):
         ws=wb.create_sheet(name);ws.append(['兵种ID','名称','参数说明','参数路径（勿改）','类型（勿改）','数值（编辑此列）']);ws.append(['id','name','label','path','type','value']);tabs[name]=ws
+    delivery_validations={}
     for uid,u in units.items():
         for key in ('attack_modes','skills'):
             if key not in u:continue
@@ -312,6 +318,15 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
                     if p[-1] in ('damage','healing','heavy','light','shield_bonus') or 'bonus' in p or 'bonus_tags' in p:label+='（每%s秒总量）'%period
                     if p[-1]=='hit_count':label=context+' · 面板周期内结算次数'
                 ws.append([uid,u['name'],label,'/'.join(p),kind(v),encode(v)])
+                if key=='attack_modes' and len(p)>2 and p[-2]=='delivery':
+                    options=ATTACK_TYPES if p[-1]=='type' else FLIGHT_TYPES if p[-1]=='flight' else None
+                    if options:
+                        validation_key=(ws.title,options)
+                        if validation_key not in delivery_validations:
+                            dv=DataValidation(type='list',formula1='"'+','.join(options)+'"')
+                            dv.showErrorMessage=True;dv.errorTitle='无效攻击类型';dv.error='请选择已有类型，并保留或补全相应参数。'
+                            ws.add_data_validation(dv);delivery_validations[validation_key]=dv
+                        delivery_validations[validation_key].add('F%d'%ws.max_row)
     if reviews:
         review_manifest=wb.create_sheet('待确认字段');review_manifest.append(['id','path'])
         todo=wb.create_sheet('待确认清单')

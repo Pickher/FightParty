@@ -9,13 +9,11 @@ const Unit = preload("res://scripts/units/unit.gd")
 const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
 const BaseDefense = preload("res://scripts/units/base_defense.gd")
 const AttackSequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
-const Projectiles = preload("res://scripts/skills/services/projectile_service.gd")
-const Beams = preload("res://scripts/skills/services/beam_service.gd")
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 const SkillSystem = preload("res://scripts/skills/skill_system.gd")
 const Shield = preload("res://scripts/skills/services/shield_service.gd")
 const StatusService = preload("res://scripts/skills/services/status_service.gd")
 const SlowService = preload("res://scripts/skills/services/slow_service.gd")
-const LineService = preload("res://scripts/skills/services/line_service.gd")
 const AreaService = preload("res://scripts/skills/services/area_service.gd")
 const SummonService = preload("res://scripts/skills/services/summon_service.gd")
 var skill_system = SkillSystem.new()
@@ -796,11 +794,12 @@ func step() -> Array:
 		var eligible: bool = ctx.armed and float(stats.damage) > 0.0 and distance <= reach and (not target.is_empty() or (attacking_base and bool(stats.get("attacks_base", true))))
 		# 基地用负编号，敌军用稳定正编号，未开火时不设置 locked_target_id。
 		var target_id: int = int(target.id) if not target.is_empty() else -enemy - 1
-		if stats.delivery.type=="beam":
+		var attack_behavior := AttackTypes.for_weapon(stats)
+		if attack_behavior.is_continuous():
 			if eligible:
 				ctx.damage_multiplier=skill_system.damage_multiplier(ctx) if not target.is_empty() else 1.0
 				var beam_target: Dictionary = target if not target.is_empty() else {"id":target_id,"pos":goal}
-				Beams.apply(ctx,unit,stats,beam_target,target_id)
+				attack_behavior.tick(ctx,unit,stats,beam_target,target_id)
 				skill_system.after_action(ctx)
 				continue
 		var fire: bool = unit_model(unit).ready_to_fire(stats, target_id, eligible)
@@ -823,8 +822,7 @@ func step() -> Array:
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 		skill_system.after_action(ctx)
 	AttackSequences.advance(self,frame)
-	Projectiles.advance(self,frame)
-	LineService.advance(self, dt, moves, hits, base_hits, pending_slows)
+	AttackTypes.advance(self,frame)
 	AreaService.advance(self,dt,moves,hits,base_hits)
 	StatusService.apply(self)
 	var deaths: Array = []
@@ -867,7 +865,8 @@ func step() -> Array:
 			kills[1 - int(unit.team)] += 1
 			events.append({"type":"death","id":unit.id,"pos":unit.pos,"team":unit.team})
 	for dead in deaths:
-		Projectiles.target_died(self,dead)
+		AttackSequences.target_died(self,dead)
+		AttackTypes.target_died(self,dead)
 		skill_system.death({"sim":self,"dead":dead})
 	units = alive
 	SummonService.flush(self)

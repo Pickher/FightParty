@@ -1,7 +1,6 @@
 extends RefCounted
 ## 出手时间表：仅保存纯数据。死亡/中断取消未发射部分，不回收已经发出的弹体。
-const Projectiles = preload("res://scripts/skills/services/projectile_service.gd")
-const Lines = preload("res://scripts/skills/services/line_service.gd")
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 
 static func launch(ctx: Dictionary, state: Dictionary, mount: int = -1, base_team: int = -1) -> void:
 	var sim = ctx.sim
@@ -43,6 +42,7 @@ static func advance(sim, frame: Dictionary) -> void:
 		var before: float = float(sequence.elapsed)
 		sequence.elapsed = before+maxf(0.0,float(frame.dt)-offset)*rate
 		var weapon: Dictionary = sequence.weapon
+		var behavior := AttackTypes.for_weapon(weapon)
 		var target = sim.by_id.get(int(sequence.target_id))
 		if target!=null and float(target.hp)>0:sequence.goal=target.pos
 		elif int(sequence.target_id)>0 and not bool(weapon.continue_on_target_death):continue
@@ -55,8 +55,7 @@ static func advance(sim, frame: Dictionary) -> void:
 			var start: Vector2 = source.pos.lerp(frame.moves.get(source.id,source.pos),fraction)
 			if target!=null and float(target.hp)>0:
 				sequence.goal=target.pos.lerp(frame.moves.get(target.id,target.pos),fraction)
-			# 接触武器在实际挥击时仍须碰到目标；远程已发射弹体不再检查射程。
-			if weapon.delivery.type=="instant" and target!=null and start.distance_to(sequence.goal)>sim.attack_reach(source,target,weapon):
+			if not behavior.can_emit(sim,source,target,weapon,start,sequence.goal):
 				sequence.next_strike=strike+1
 				continue
 			var shot: Dictionary = frame.duplicate()
@@ -69,11 +68,13 @@ static func advance(sim, frame: Dictionary) -> void:
 			shot.source_position=start
 			shot.damage_multiplier=sequence.damage_multiplier
 			shot.impact_skills=sequence.impact_skills
-			if weapon.delivery.type=="wave":
-				Lines.launch_strike(sim,source,sequence.goal,weapon.delivery,weapon,strike,float(sequence.damage_multiplier),start,fire_offset,sequence.impact_skills)
-			elif not sim.skill_system.attack(shot):Projectiles.launch(sim,sequence,start,sequence.goal,strike,fire_offset)
+			if not sim.skill_system.attack(shot):behavior.emit(shot,sequence)
 			current.state.attack_emitted=true
 			if target!=null:current.state.locked_target_id=int(target.id)
 			sequence.next_strike=strike+1
 		if int(sequence.next_strike)<int(sequence.count):active.append(sequence)
 	sim.attack_sequences=active
+
+static func target_died(sim, dead: Dictionary) -> void:
+	for sequence in sim.attack_sequences:
+		if int(sequence.target_id)==int(dead.id):sequence.goal=dead.pos

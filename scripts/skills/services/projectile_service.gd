@@ -6,8 +6,8 @@ static func launch(sim, sequence: Dictionary, origin: Vector2, goal: Vector2, st
 	var weapon: Dictionary = sequence.weapon
 	var delivery: Dictionary = weapon.delivery
 	var duration := 0.0
-	if delivery.type=="fixed":duration=float(delivery.seconds)
-	elif delivery.type=="distance":duration=origin.distance_to(goal)/maxf(0.001,float(delivery.speed))
+	if delivery.flight=="fixed":duration=float(delivery.seconds)
+	elif delivery.flight=="distance":duration=origin.distance_to(goal)/maxf(0.001,float(delivery.speed))
 	var now: float = float(sim.tick-1)/float(sim.rules.tick_rate)+offset
 	var projectile := {"source_id":sequence.source_id,"team":sequence.team,"kind":sequence.kind,
 		"id":sim.next_projectile_id,
@@ -64,7 +64,5 @@ static func advance(sim, frame: Dictionary) -> void:
 	sim.projectiles=active
 
 static func target_died(sim, dead: Dictionary) -> void:
-	for sequence in sim.attack_sequences:
-		if int(sequence.target_id)==int(dead.id):sequence.goal=dead.pos
 	for projectile in sim.projectiles:
 		if int(projectile.target_id)==int(dead.id) and bool(projectile.weapon.delivery.get("tracking",true)):projectile.goal=dead.pos

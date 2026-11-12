@@ -1,4 +1,5 @@
 extends RefCounted
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 ## 选中卡片下的紧凑资料；只展示现有配置，不在简介中解释技能效果。
 const ARMOR_NAMES := {"light":"轻甲","heavy":"重甲","none":"无分类","special":"特殊甲"}
 const SKILL_NAMES := {
@@ -46,13 +47,14 @@ static func skill_names(stats: Dictionary, modes: Array) -> Array:
 		elif key=="summon":name=str({"locust":"孵化蝗虫","broodling":"孵化巢虫","interceptor":"拦截机"}.get(str(config.get("kind","")),name))
 		elif key=="on_death":name="死亡分裂" if config.has("summon") else "死亡爆发"
 		if not names.has(name):names.append(name)
-	var count: int = 1 if stats.get("delivery",{}).get("type","")=="beam" else int(stats.get("hit_count",1))
+	var count: int = AttackTypes.for_weapon(stats).hit_count(stats)
 	for mode in modes:
-		if mode.data.get("delivery",{}).get("type","")=="beam":
-			var beam_name := "持续治疗" if float(mode.data.get("healing",0))>0 else "持续光束"
+		var behavior := AttackTypes.for_weapon(mode.data)
+		var attack_skill: String = behavior.skill_name(mode.data)
+		if not attack_skill.is_empty():
 			if float(mode.data.get("healing",0))>0:names.erase("治疗")
-			if not names.has(beam_name):names.append(beam_name)
-		else:count=maxi(count,int(mode.data.get("hit_count",1)))
+			if not names.has(attack_skill):names.append(attack_skill)
+		count=maxi(count,behavior.hit_count(mode.data))
 	if count>1:
 		var name := "双重攻击" if count==2 else "多重攻击"
 		if not names.has(name):names.append(name)

@@ -4,7 +4,9 @@ const Line = preload("res://scripts/skills/services/line_service.gd")
 func on_attack(ctx: Dictionary) -> bool:
 	# 当前运行由AttackSequence按模式delivery发出；保留旧调用的兼容入口。
 	if ctx.has("weapon") and ctx.weapon.has("delivery"):return false
-	Line.launch(ctx.sim,owner,ctx.goal,config,float(ctx.get("damage_multiplier",1.0)))
+	var weapon: Dictionary = ctx.sim._weapon_stats(owner)
+	var geometry: Dictionary = weapon.delivery if weapon.delivery.type=="line" else config
+	Line.launch(ctx.sim,owner,ctx.goal,geometry,float(ctx.get("damage_multiplier",1.0)))
 	return true
 
 ## 几何工具保留兼容入口，实际传播由场上实体服务负责。

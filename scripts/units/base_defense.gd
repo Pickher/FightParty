@@ -2,7 +2,7 @@ extends RefCounted
 ## 基地只用一份生命池；防御层、攻击周期均为可保存的纯字典状态。
 const AttackCycle = preload("res://scripts/units/attack_cycle.gd")
 const Sequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
-const Beams = preload("res://scripts/skills/services/beam_service.gd")
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 
 static func create(active: bool) -> Dictionary:
 	var state := AttackCycle.create()
@@ -32,6 +32,7 @@ static func valid_target(sim, source: Dictionary, target, weapon: Dictionary) ->
 
 static func fire(sim, frame: Dictionary) -> void:
 	var weapon: Dictionary = sim.definitions.gate_tower.primary_weapon_data
+	var attack_behavior := AttackTypes.for_weapon(weapon)
 	for team in range(2):
 		update_phase(sim, team)
 		if not sim.base_has_defense(team): continue
@@ -52,13 +53,13 @@ static func fire(sim, frame: Dictionary) -> void:
 					best_distance = distance
 		var eligible: bool = not target.is_empty()
 		var target_id: int = int(target.id) if eligible else 0
-		if weapon.delivery.type=="beam":
+		if attack_behavior.is_continuous():
 			if eligible:
 				var beam: Dictionary = frame.duplicate()
 				beam.unit=source
 				beam.weapon=weapon
 				beam.target=target
-				Beams.apply(beam,state,weapon,target,target_id)
+				attack_behavior.tick(beam,state,weapon,target,target_id)
 			continue
 		if not AttackCycle.ready_to_fire(state, weapon, target_id, eligible): continue
 		state.locked_target_id = target_id

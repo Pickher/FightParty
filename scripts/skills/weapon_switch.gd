@@ -1,4 +1,5 @@
 extends "res://scripts/skills/skill.gd"
+const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 
 func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
 	var weapons: Array = config.weapons
@@ -37,8 +38,7 @@ func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
 		var layers: Array = weapons[i].get("target_layers", sim.catalog[unit.kind].get("target_layers", ["ground"]))
 		if not layers.has(layer):
 			continue
-		var count: int = 1 if weapons[i].get("delivery",{}).get("type","")=="beam" else int(weapons[i].get("hit_count",1))
-		var score: float = sim.expected_damage(weapons[i], target)*count / (float(weapons[i].interval)+float(weapons[i].get("attack_duration",0)))
+		var score: float = AttackTypes.for_weapon(weapons[i]).expected_dps(sim,weapons[i],target)
 		if score > best_score + 0.00001 or (is_equal_approx(score, best_score) and i == current):
 			best = i
 			best_score = score
