@@ -43,6 +43,16 @@ func _draw() -> void:
 	draw_rect(Rect2(point(Vector2.ZERO),Vector2(pixels(sim.rules.world_width),pixels(sim.rules.world_height))),Color("3c4d60"),false,1)
 	var middle_x: float = point(Vector2(float(sim.rules.world_width)*0.5,0)).x
 	draw_line(Vector2(middle_x,0),Vector2(middle_x,AREA.y),Color("526579"),1)
+	# 原图中央战区40×40、环半径18；实际占领范围仅2.5格。
+	var center: Vector2 = sim.economy.center_pos()
+	var center_color: Color = game.MUTED if sim.economy.center_owner<0 else (game.MINT if sim.economy.center_owner==0 else game.CORAL)
+	draw_rect(Rect2(point(center-Vector2(20,20)),Vector2(pixels(40),pixels(40))),Color(center_color,0.035))
+	ring(center,float(sim.rules.map_reference.central_circle_radius),Color(center_color,0.18))
+	ring(center,float(sim.rules.economy.center_capture_radius),Color(center_color,0.8))
+	var cp := point(center)
+	var crystal := PackedVector2Array([cp+Vector2(0,-6),cp+Vector2(5,0),cp+Vector2(0,6),cp+Vector2(-5,0)])
+	draw_colored_polygon(crystal,center_color)
+	label(cp+Vector2(-35,-12),"中央资源井" if sim.economy.center_active(sim.wave) else "第10波开放",center_color,12)
 	for team in range(2):
 		var base: Vector2 = sim.base_pos(team)
 		var p := point(base)
@@ -63,7 +73,7 @@ func _draw() -> void:
 				draw_circle(p,r*0.23,defense_color)
 				draw_line(p,p+Vector2(r*0.9*(1 if team==0 else -1),0),defense_color,maxf(2.0,r*0.18))
 			label(p+Vector2(-14,-r-4),"基地",color)
-		var spawn_point := Vector2(sim.mirror_x(team,float(sim.rules.layout.spawn_x)),float(sim.rules.layout.spawn_y))
+		var spawn_point: Vector2 = sim.layout_pos(team,"spawn")
 		if view.grow(1.0).has_point(spawn_point):
 			var spawn_screen := point(spawn_point)
 			draw_arc(spawn_screen,pixels(0.4),0,TAU,16,Color(color,0.55),1)

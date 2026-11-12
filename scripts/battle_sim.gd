@@ -4,6 +4,7 @@
 # 当前每秒计算 20 次，每次 step() 是一个 tick；画面帧率不决定攻击速度。
 extends RefCounted
 ## 独立的固定步战斗模拟：不依赖场景节点或渲染器。
+const Economy = preload("res://scripts/economy/desert_storm_economy.gd")
 const Catalog = preload("res://scripts/catalog.gd")
 const Unit = preload("res://scripts/units/unit.gd")
 const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
@@ -38,8 +39,10 @@ var revealed_tick: int = -1
 var formations: Array = [[], []]
 # 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
 var last_formations: Array = [[], []]
-# 双方当前矿物；买兵立即扣除，出兵时各加 wave_income，摧毁对方宝库加 treasury_reward。
+# 双方当前矿物；收入和瓦斯分流由独立经济组件结算。
 var minerals: Array = [0, 0]
+var economy: Economy
+var next_wave_tick: int = 0
 # 双方已建造防御塔的次数（被摧毁不会归还次数）。
 var tower_builds: Array = [0, 0]
 var units: Array = []
@@ -78,6 +81,8 @@ var max_body_radius := 0.5
 ## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	rules.merge(overrides, true)
+	economy = Economy.new(rules.economy)
+	next_wave_tick = int(float(rules.first_wave_seconds)*float(rules.tick_rate))
 	definitions = Catalog.definitions(catalog, rules)
 	for kind in definitions:
 		catalog[kind] = definitions[kind].to_data()
@@ -88,15 +93,14 @@ func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	base_defenses = [BaseDefense.create(bool(rules.get("structures", true))), BaseDefense.create(bool(rules.get("structures", true)))]
 	bases = [base_max_hp(0), base_max_hp(1)]
 	minerals = [int(rules.start_minerals), int(rules.start_minerals)]
-	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[]}
+	journal = {"rules_version":rules.version,"seed":seed_value,"settings":overrides.duplicate(true),"actions":[],"waves":[],"economy_events":[],"economy_config":rules.economy.duplicate(true),"initial_minerals":minerals.duplicate()}
 	if bool(rules.get("structures", true)):
 		for team in range(2):
 			_place_structure(team, "treasury", "treasury")
 
 ## 宝库、玩家防御塔是 units 中的静止单位；基地防御层不是独立实体。
 func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
-	var layout: Dictionary = rules.layout
-	return spawn_unit(team, kind, Vector2(mirror_x(team, float(layout[slot + "_x"])), float(layout[slot + "_y"])))
+	return spawn_unit(team, kind, layout_pos(team,slot))
 
 func is_structure(unit: Dictionary) -> bool:
 	return bool(catalog[unit.kind].get("structure", false))
@@ -288,6 +292,10 @@ func apply_action(action: Dictionary) -> String:
 			return move(int(action.team), int(action.from), int(action.to))
 		"build_tower":
 			return build_tower(int(action.team))
+		"gasworks":
+			return economy.set_gasworks(self,int(action.team),int(action.count))
+		"exchange_gas":
+			return economy.exchange_gas(self,int(action.team))
 	return "未知操作"
 
 ## 某方当前在场、能造成伤害的部队数量（不含结构体与治疗等无攻击单位）。
@@ -342,9 +350,10 @@ func _prune_unit_instances() -> void:
 		if not living.has(id): unit_instances.erase(id)
 
 ## 双方整份兵营同时出场，标记为已部署，再发放每轮收入；不清空已有的残兵。
-## 此处没有随机偏置，双方出生点按水平方向镜像。
+## 此处没有随机偏置，双方出生点绕场地中心点对称。
 func _spawn_wave() -> void:
 	wave += 1
+	next_wave_tick = tick + wave_ticks()
 	if wave >= int(rules.wave_limit):
 		final_wave_tick = tick
 	for team in range(2):
@@ -352,7 +361,7 @@ func _spawn_wave() -> void:
 		for slot in formations[team]:
 			slot.deployed = true
 			last_formations[team].append({"kind":slot.kind,"cell":slot.cell})
-	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true)})
+	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true),"economy":economy.ledger()})
 	for team in range(2):
 		var layout: Dictionary = rules.layout
 		# 出兵点是队形中心。按已占用列保留前后顺序，稀疏阵容无需挤在相邻小格里。
@@ -385,16 +394,37 @@ func _spawn_wave() -> void:
 				var bounds: Dictionary = layout.bounds
 				point.x=clampf(point.x,float(bounds.left)+spacing.x*0.5,float(bounds.right)-spacing.x*0.5)
 				point.y=clampf(point.y,float(bounds.top)+spacing.y*0.5,float(bounds.bottom)-spacing.y*0.5)
-				spawn_unit(team,slot.kind,Vector2(mirror_x(team,point.x),point.y))
-		minerals[team] += int(rules.wave_income)
+				spawn_unit(team,slot.kind,mirror_point(team,point))
 	events.append({"type":"wave","wave":wave})
 
-## rules.layout 以我方（team 0）坐标填写，敌方按战场宽度水平镜像。
+## rules.layout 使用我方坐标，参考图采用绕场地中心旋转180度的点对称。
 func mirror_x(team: int, x: float) -> float:
 	return x if team == 0 else float(rules.world_width) - x
 
+func mirror_point(team: int, point: Vector2) -> Vector2:
+	if team==0: return point
+	return Vector2(float(rules.world_width)-point.x,float(rules.world_height)-point.y if bool(rules.layout.get("point_symmetry",true)) else point.y)
+
+func layout_pos(team: int, slot: String) -> Vector2:
+	return mirror_point(team,Vector2(float(rules.layout[slot+"_x"]),float(rules.layout[slot+"_y"])))
+
 func base_pos(team: int) -> Vector2:
-	return Vector2(mirror_x(team, float(rules.layout.base_x)), float(rules.layout.base_y))
+	return layout_pos(team,"base")
+
+## 点位不再共线：部队先穿越中央交战区，再经过敌方宝库，最后推进基地。
+## 仅改变无锁定目标时的行军方向；发现/锁定/攻击范围仍由原战斗框架处理。
+func march_goal(unit: Dictionary) -> Vector2:
+	var enemy := 1-int(unit.team)
+	if is_structure(unit): return base_pos(enemy)
+	var route: Array = [economy.center_pos(),layout_pos(enemy,"treasury"),base_pos(enemy)]
+	var stage: int = int(unit.get("march_stage",0))
+	var sign_x := 1.0 if int(unit.team)==0 else -1.0
+	while stage<route.size()-1:
+		var waypoint: Vector2 = route[stage]
+		if unit.pos.distance_to(waypoint)>2.0 and (unit.pos.x-waypoint.x)*sign_x<0: break
+		stage += 1
+	unit.march_stage = stage
+	return route[stage]
 
 func base_max_hp(team: int) -> float:
 	return float(rules.base_hp) + (float(catalog.gate_tower.hp) if bool(base_defenses[team].active) else 0.0)
@@ -739,7 +769,7 @@ func step() -> Array:
 	units = alive
 	skill_system.prune(self,units)
 	_prune_unit_instances()
-	if wave < int(rules.wave_limit) and tick % wave_ticks() == 0:
+	if wave < int(rules.wave_limit) and tick >= next_wave_tick:
 		_spawn_wave()
 	_build_buckets()
 	# 先把命中伤害和移动结果存下来，不立即改目标生命或位置，避免先处理的一方占便宜。
@@ -771,7 +801,7 @@ func step() -> Array:
 		ctx.weapon=stats
 		# 因为只有 0 和 1 两队，所以 1-team 正好得到敌方阵营。
 		var enemy: int = 1 - int(unit.team)
-		var goal := base_pos(enemy)
+		var goal := march_goal(unit)
 		if bool(unit.get("owner_dependent",false)):
 			var parent = by_id.get(int(unit.get("owner_id",0)))
 			if parent!=null and (not bool(catalog[parent.kind].get("attacks_base",true)) or parent.pos.distance_to(base_pos(enemy))>float(catalog[parent.kind].range)+float(rules.layout.base_radius)):goal=parent.pos
@@ -803,7 +833,7 @@ func step() -> Array:
 				skill_system.after_action(ctx)
 				continue
 		var fire: bool = unit_model(unit).ready_to_fire(stats, target_id, eligible)
-		if distance <= reach:
+		if distance <= reach and (not target.is_empty() or attacking_base):
 			if target.is_empty() and (not attacking_base or not bool(stats.get("attacks_base",true))):
 				continue
 			if fire:
@@ -857,9 +887,9 @@ func step() -> Array:
 			skill_system.survived({"sim":self,"unit":unit,"dt":dt})
 			alive.append(unit)
 		elif is_structure(unit):
-			# 结构体不计击杀；只有宝库给攻击方奖励，同一座宝库只会死亡一次。
+			# 结构体不计击杀；宝库奖励灵核，同一座宝库只会死亡一次。
 			if unit.kind == "treasury":
-				minerals[1 - int(unit.team)] += int(rules.treasury_reward)
+				economy.reward_outpost(self,1-int(unit.team))
 			events.append({"type":"structure_destroyed","id":unit.id,"kind":unit.kind,"pos":unit.pos,"team":unit.team})
 		else:
 			kills[1 - int(unit.team)] += 1
@@ -879,6 +909,7 @@ func step() -> Array:
 		revealed = true
 		revealed_tick = tick
 		events.append({"type":"revealed","races":races.duplicate()})
+	economy.step(self)
 	# 先结算双方基地伤害，再判断同一步双双归零。
 	# 最后一波出场后，先失去全部可攻击部队的一方判负；超过安全时限则比较基地剩余生命。
 	if bases[0] <= 0 or bases[1] <= 0:
@@ -891,6 +922,9 @@ func step() -> Array:
 			_end(-1 if is_equal_approx(bases[0], bases[1]) else (0 if bases[0] > bases[1] else 1))
 	return events
 
+func ticks_to_next_wave() -> int:
+	return maxi(0,next_wave_tick-tick) if wave<int(rules.wave_limit) else 0
+
 func wave_ticks() -> int:
 	return int(float(rules.wave_seconds) * float(rules.tick_rate))
 
@@ -898,7 +932,7 @@ func wave_ticks() -> int:
 func _end(result: int) -> void:
 	finished = true
 	winner = result
-	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),"kills":kills.duplicate()}
+	journal["result"] = {"winner":winner,"tick":tick,"bases":bases.duplicate(),"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),"kills":kills.duplicate(),"minerals":minerals.duplicate(),"economy":economy.ledger()}
 	events.append({"type":"ended","winner":winner})
 
 ## viewer 能看到的对方上一波阵容：首次交战前为空数组。电脑与敌情栏都只能用它。
@@ -915,7 +949,7 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	var public_formations: Array = [[], []]
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
-	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"bases":bases.duplicate(),
+	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"economy":economy.snapshot(viewer,wave),"next_wave_tick":next_wave_tick,"bases":bases.duplicate(),
 		"active_beams":active_beams.duplicate(true),
 		"attack_sequences":attack_sequences.duplicate(true),"projectiles":projectiles.duplicate(true),"next_projectile_id":next_projectile_id,
 		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),

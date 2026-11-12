@@ -6,13 +6,15 @@
 
 FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.9.3，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
 
+0.10.0：按参考地图调整为196×118交战区域与点对称布局；经济改为每3秒分档收入，加入中央井、气厂分流、瓦斯兑换和宝库灵核奖励，见[地图与经济说明](docs/DESERT_STORM_ECONOMY.md)。保持当前单人对战；未运行模拟或打包。
+
 0.9.2：三种攻击行为抽象为独立类，统一注册与调用。delivery.type选projectile（射弹）、beam（激光）或line（直线推进）；射弹用flight选择接触/固定延迟/距离飞行。数值与攻击节奏保持0.9.1，Excel已同步。新增兵种只需选类型填参数；扩展方法见[攻击行为抽象](docs/ATTACK_BEHAVIORS.md)。未运行模拟或打包。
 
 0.9.1：特战队员、特工、坦克双模式及地堡枪兵改为零弹道耗时（保留出手持续时间）。医疗兵、哨兵、虚空辉光舰与基地反击改为持续光束，每0.5秒完整结算一次伤害或治疗，护甲也按这次命中计算；切换目标等待0.3秒。画面持续显示光束，不做0.05秒细分伤害。Excel同步，未运行模拟或打包。
 
 0.9.0：所有兵种显式配置独立攻击模式，伤害与加成归模式所有；普通攻击按持续时间分段出手，再经过弹道结算。轮后才开始计算攻击间隔，雷神三模式按最新指定数值更新，详情见[攻击模式与弹道](docs/ATTACK_MODES.md)。配置表武器模式页已同步，未运行模拟或打包。
 
-当前世界尺度为 **长 90 × 宽 18 格**，相当于特战队员行走 40 秒 × 8 秒的距离。基地→出兵点→宝库→防御塔→中线的间隔依次为行走2、11、2、2.5秒的距离。特战队员一组 4 名、蜂群兵一组 5 名；“一格兵营”代表一组。旧迫击炮现显示为坦克（内部 ID 仍为 mortar）。全图/近景、缩放和拖动可查看长战场，详见 [统一格数与兵种变更](docs/WORLD_UNITS.md)。
+当前世界尺度为 **196×118格**，按参考地图交战区域等比例使用原始格数；点位见[地图与经济说明](docs/DESERT_STORM_ECONOMY.md)。特战队员一组4名、蜂群兵一组5名；兵营的一格仍代表一组。旧迫击炮显示为坦克（内部ID仍为mortar），兵种、武器和技能配置保持独立。
 
 0.5.0 已接入神族、虫族及腐族预留技能；机制、自动施法与原型取舍见 [兵种技能实现说明](docs/ROSTER_SKILLS.md)。本轮按要求未运行验证。
 
@@ -177,25 +179,26 @@ data/races.json 是种族表：每个种族的中文名、主题色、一句风�
 
 ## 八、rules.json：对局规则字段解释
 
-- wave_seconds：同时出兵间隔，默认 30 秒。
-- start_minerals：双方开局矿物，默认 600。
-- wave_income：每次出兵后双方各得的矿物，默认 300。
+- first_wave_seconds：首波准备时间，默认65秒。
+- wave_seconds：之后同时出兵间隔，默认45秒。
+- start_minerals：双方开局矿物，推荐200。
+- economy：周期收入、阶段、中央占领、气厂分流和灵核奖励配置，见[地图与经济](docs/DESERT_STORM_ECONOMY.md)。wave_income保留为0，不再发每波收入。
 - wave_limit：最后一波的编号，默认 64；之后不再出兵也不再发收入。
 - final_phase_max_seconds：最后一波后的安全时限，默认 600 秒；到时比较基地剩余生命，防止双方互相打不到时对局卡死。
 - base_hp：基地核心生命上限，默认10000。开局额外获得gate_tower.hp的5000生命，总计15000；降至10000及以下后永久失去额外上限与反击。
 - base_regen_per_second：仅剩核心时每秒回血，默认5；防御层存在时采用gate_tower.health_regen，同为整座基地5/秒，不叠加。回血不能复活基地或恢复失效的防御层。
 - structures：是否启用基地防御层和放置宝库，默认true；false时基地只有核心生命、不反击，供隔离单位行为使用。基地防御模块不生成独立单位，在基地中心以8格射程、每0.5秒造成300点无视护甲的光束伤害，可对地对空。
-- treasury_reward：摧毁对方宝库时攻击方获得的矿物，默认 400。
+- treasury_reward：旧矿物奖励保留为0；宝库现在按economy.outpost_core_reward奖励灵核。
 - tower_max_builds：每方每局可建造防御塔的次数，默认 1；被摧毁不归还次数。防御塔价格取 units.json 中 tower 的 cost（默认 500）。
 - unit_lifetime：单位最多存活秒数，默认 0 表示不撤离（0.1.8 为 90）。
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
 - columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
-- world_width、world_height：逻辑战场尺寸，当前90×18；敌方坐标按world_width镜像，画面映射也按这两个值缩放。
-- layout：战场布局，全部按我方（左侧）坐标填写，敌方自动镜像。base_x/base_y/base_radius是基地中心与判定半径，基地防御模块共用此位置；treasury_x/treasury_y、tower_x/tower_y是宝库与防御塔建造位；spawn_x/spawn_y是出兵中心，spawn_width/spawn_height是组中心展开跨度，spawn_column_spacing是最大列距；bounds是单位可移动的边界。医疗兵无掩护时退向spawn_x。
+- world_width、world_height：逻辑战场尺寸，当前196×118；敌方坐标绕场地中心点对称，画面映射也按这两个值缩放。
+- layout：战场布局，全部按我方（左侧）坐标填写，敌方按point_symmetry点对称。base_x/base_y/base_radius是基地中心与判定半径，基地防御模块共用此位置；treasury_x/treasury_y、tower_x/tower_y是宝库与防御塔建造位；spawn_x/spawn_y是出兵中心，spawn_width/spawn_height是组中心展开跨度，spawn_column_spacing是最大列距；bounds是单位可移动的边界。医疗兵无掩护时退向spawn_x。
 - races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。未知种族按 terran 处理。
 - race_setup：开局弹窗两行种族选择的标题 labels 与推荐值 recommended（默认我方 terran、电脑 random）。random 在建局时随机成具体种族，写入战报的是随机后的结果，所以重放不会再随机。
 - min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。
-- setup_options：开局设置弹窗的选项。每个字段（start_minerals、wave_income、wave_seconds）有 label、unit、choices 三个预设、recommended 推荐值（应等于同名默认值）、自定义的 step/min/max。
+- setup_options：开局设置弹窗的选项。每个字段（start_minerals、wave_seconds）有 label、unit、choices 三个预设、recommended 推荐值（应等于同名默认值）、自定义的 step/min/max。
 - version：战报采用的规则版本；规则改变后应同步考虑版本，避免混用旧战报。
 
 更改出兵间隔、最长时间和残兵寿命时，界面里的固定说明也要同步修改。更快出兵或更长寿命会增加同屏单位，需要重新检查性能。

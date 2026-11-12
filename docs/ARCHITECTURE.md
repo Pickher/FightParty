@@ -24,7 +24,7 @@
 
 ## 每步顺序与公平
 
-1. 增加 tick；若 `unit_lifetime` 大于 0 则撤离到期单位（默认 0 不撤离），保存上一位置。到达出兵时刻且未超过 `wave_limit` 时，整份兵营出场、标记为已部署，再给双方发 `wave_income`。
+1. 增加 tick；若 `unit_lifetime` 大于 0 则撤离到期单位（默认 0 不撤离），保存上一位置。到达出兵时刻且未超过 `wave_limit` 时，整份兵营出场、标记为已部署。首波与常规出兵使用独立倒计时；不再按出兵发钱，经济组件每3秒独立结算，见[地图与经济](DESERT_STORM_ECONOMY.md)。
 2. 到达波次边界且未达到总时限时，从双方阵容同时创建单位，并写入波次记录。
 3. 按 80×80 空间桶索引单位。发现半径为自身攻击距离的 150%，取最近敌人（0.3.0 删除了狙击手的低生命加权）。多武器单位用兵种顶层射程与目标层索敌（`_search_stats`），选定目标后再由 `weapon_switch` 选武器，切换期间不开火。尚未开火时每步重选；首次开火后持续锁定，直到目标死亡、撤离或离开攻击范围才重新索敌。暂不考虑迷雾。
 4. 以同一份步初状态决定所有单位的移动、治疗和攻击；技能模块累计治疗、伤害与基地伤害。移动决定后推进已发射的攻击波，按本步运动轨迹判断命中。
@@ -82,7 +82,7 @@ Godot `user://settings.cfg` 保存音量、每个种族各自的最近阵容（`
 
 ## 结构体（0.2.2）
 
-宝库和玩家建造的防御塔放在`units`中，`structure: true`，速度0，沿用普通索敌、伤害、溅射和传播攻击。`BattleSim.is_structure()`用于在治疗、击杀统计、最后阶段可攻击部队统计和防卫圈选目标中排除它们；`_can_hit_unit()`按武器的`attacks_structures`（缺省同`attacks_base`）过滤。宝库死亡时在统一结算阶段给另一方加`treasury_reward`。`build_tower(team)`校验次数与矿物后立即生成，并写入`actions`（`build_tower`），重放时同样执行。
+宝库和玩家建造的防御塔放在`units`中，`structure: true`，速度0，沿用普通索敌、伤害、溅射和传播攻击。`BattleSim.is_structure()`用于在治疗、击杀统计、最后阶段可攻击部队统计和防卫圈选目标中排除它们；`_can_hit_unit()`按武器的`attacks_structures`（缺省同`attacks_base`）过滤。宝库死亡时在统一结算阶段由经济组件给另一方增加灵核，不再奖励矿物。`build_tower(team)`校验次数与矿物后立即生成，并写入`actions`（`build_tower`），重放时同样执行。
 
 0.8.1：基地防御改由`units/base_defense.gd`维护。`bases`是唯一生命池，`base_defenses`保存每方不可逆的active标记及AttackCycle锁定/冷却状态；`gate_tower`仅提供防御层生命、武器和防御期回血配置，不生成单位。攻击共用空间索敌、AttackCycle、queue_direct_strike与真实伤害结算，在同一步统一结算。基地先扣血、永久撤销耗尽的防御层，再以当前上限回血；归零不回血。快照及最终战报包含base_max_hp、base_defenses，避免仅凭当前生命推断曾经失效的防御层。structures=false只生成核心、不反击。基地不新增可被溅射命中的重复实体。
 
@@ -143,3 +143,7 @@ UnitDefinition 新增 collision_radius 与 separate_when_stopped，前者供空�
 ## 0.9.2 攻击行为接口
 
 新增scripts/attacks/attack_behavior.gd公共接口、projectile_attack/beam_attack/line_attack三类及attack_registry统一注册入口。BattleSim、基地、独立炮位与医疗兵调用行为接口，AttackSequence委托can_emit/emit，场上推进及目标死亡回调由注册器固定顺序分发。AI/DPS和简介通过行为获取段数、预估和名称，不再散落beam/wave等字符串判断。行为实例共享且无单位状态；模式和快照仍仅持有数据。底层服务与公共命中、护甲、溅射保持原逻辑。正式数据/Excel使用projectile+flight、beam、line；旧枚举在WeaponDefinition构造时兼容转换。详见ATTACK_BEHAVIORS.md。
+
+## 周期经济
+
+`BattleSim`持有`DesertStormEconomy`组件，配置位于`rules.economy`。战斗移动、死亡和基地伤害统一结算后再扫描中央井与支付收入；因此死亡单位不能占领，基地被摧毁的当步不发钱。气厂/兑换动作通过`apply_action`进入日志，波次与结算记录双方资源，快照仅返回自己的钱包。UI不直接增减瓦斯或灵核。

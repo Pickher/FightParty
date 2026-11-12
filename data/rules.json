@@ -1,7 +1,7 @@
 {
-  "version": "0.9.3",
+  "version": "0.10.0",
   "tick_rate": 20,
-  "wave_seconds": 30,
+  "wave_seconds": 45,
   "races": [
     "terran",
     "terran"
@@ -9,56 +9,43 @@
   "min_damage": 0.5,
   "shield_regen_delay": 7.0,
   "shield_regen_per_second": 7.5,
-  "start_minerals": 600,
-  "wave_income": 300,
+  "start_minerals": 200,
+  "wave_income": 0,
   "wave_limit": 64,
   "final_phase_max_seconds": 600,
   "base_hp": 10000,
   "base_regen_per_second": 5,
   "unit_lifetime": 0,
   "structures": true,
-  "treasury_reward": 400,
+  "treasury_reward": 0,
   "tower_max_builds": 1,
   "columns": 18,
   "rows": 8,
-  "world_width": 90,
-  "world_height": 18,
+  "world_width": 196,
+  "world_height": 118,
   "setup_options": {
     "start_minerals": {
       "label": "开局资金",
       "unit": "矿",
       "choices": [
-        0,
+        200,
         600,
         1000
       ],
-      "recommended": 600,
+      "recommended": 200,
       "step": 100,
       "min": 0,
       "max": 5000
-    },
-    "wave_income": {
-      "label": "每轮收入（每次出兵后）",
-      "unit": "矿",
-      "choices": [
-        100,
-        300,
-        500
-      ],
-      "recommended": 300,
-      "step": 50,
-      "min": 0,
-      "max": 2000
     },
     "wave_seconds": {
       "label": "出兵间隔",
       "unit": "秒",
       "choices": [
-        20,
         30,
-        45
+        45,
+        60
       ],
-      "recommended": 30,
+      "recommended": 45,
       "step": 5,
       "min": 10,
       "max": 120
@@ -75,35 +62,84 @@
     ]
   },
   "layout": {
-    "base_x": 5.625,
-    "base_y": 9,
+    "base_x": 30,
+    "base_y": 41,
     "base_radius": 1.75,
-    "treasury_x": 34.875,
-    "treasury_y": 9,
-    "tower_x": 39.375,
-    "tower_y": 9,
-    "spawn_x": 10.125,
-    "spawn_y": 9,
-    "spawn_width": 4.5,
-    "spawn_height": 12.25,
-    "spawn_column_spacing": 2.0,
+    "treasury_x": 62,
+    "treasury_y": 59,
+    "tower_x": 35,
+    "tower_y": 46,
+    "spawn_x": 26.5,
+    "spawn_y": 59,
+    "spawn_width": 24,
+    "spawn_height": 24,
+    "spawn_column_spacing": 2,
     "bounds": {
       "left": 0.5,
       "top": 0.5,
-      "right": 89.5,
-      "bottom": 17.5
-    }
+      "right": 195.5,
+      "bottom": 117.5
+    },
+    "point_symmetry": true
   },
   "world_unit": "格",
-  "distance_schema": 3,
+  "distance_schema": 4,
   "map_reference": {
-    "unit_kind": "rifle",
-    "speed": 2.25,
-    "width_seconds": 40,
-    "height_seconds": 8,
-    "base_to_spawn_seconds": 2,
-    "spawn_to_treasury_seconds": 11,
-    "treasury_to_tower_seconds": 2,
-    "tower_to_midline_seconds": 2.5
+    "source": "reference/desert-storm",
+    "terrain_size": [
+      208,
+      208
+    ],
+    "combat_bounds": [
+      6,
+      39,
+      202,
+      157
+    ],
+    "coordinate_translation": [
+      -6,
+      -39
+    ],
+    "central_battle_zone": [
+      78,
+      39,
+      40,
+      40
+    ],
+    "central_circle_radius": 18,
+    "spawn_board_size": [
+      24,
+      24
+    ]
+  },
+  "first_wave_seconds": 65,
+  "economy": {
+    "income_seconds": 3,
+    "income_tiers": [
+      {
+        "wave": 0,
+        "minerals": 30
+      },
+      {
+        "wave": 11,
+        "minerals": 60
+      },
+      {
+        "wave": 41,
+        "minerals": 120
+      }
+    ],
+    "income_stop_wave": 64,
+    "gasworks_fraction": 0.1,
+    "gasworks_initial_limit": 3,
+    "gasworks_expanded_limit": 6,
+    "gasworks_unlock_wave": 32,
+    "center_unlock_wave": 10,
+    "center_scan_seconds": 3,
+    "center_capture_radius": 2.5,
+    "center_bonus": 3,
+    "center_x": 98,
+    "center_y": 59,
+    "outpost_core_reward": 1
   }
 }

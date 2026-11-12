@@ -36,6 +36,7 @@ var started := false
 var paused := false
 var backgrounded := false
 var help_open := false
+var economy_open := false
 # 累计还没有交给模拟器处理的真实时间，单位为秒。
 var accumulator := 0.0
 # 每次重绘重新生成的按钮点击区域。effects 保存短暂视觉特效，ttl 表示剩余显示秒数。
@@ -107,7 +108,8 @@ func _new_match() -> void:
 	var overrides: Dictionary = match_settings.duplicate()
 	overrides["races"] = [_resolve_race(race_choices[0]), _resolve_race(race_choices[1])]
 	sim = Sim.new(42, overrides)
-	camera_zoom=1.0
+	camera_zoom=2.0
+	economy_open=false
 	camera_center=Vector2(float(sim.rules.world_width)*0.5,float(sim.rules.world_height)*0.5)
 	ai = AI.new(42, sim.races[1])
 	var prior: Array = Catalog.starter(sim.races[0])
@@ -128,7 +130,7 @@ func _new_match() -> void:
 	effects.clear()
 	rifle_visual.reset()
 	bc_visual.reset()
-	messages = ["兵营永久保留，每波全部出场；每轮收入 +%d。" % int(sim.rules.wave_income)]
+	messages = ["兵营永久保留；每3秒收入，中央资源井第10波开放。"]
 	pending_formation = []
 	move_source = -1
 	journal_error = false
@@ -153,7 +155,7 @@ func _load_settings() -> void:
 	custom_fields.clear()
 	var options: Dictionary = Catalog.rules().setup_options
 	for field in options:
-		var value = config.get_value("match", field, match_settings[field])
+		var value = config.get_value("match", field, match_settings[field]) if int(config.get_value("match","economy_schema",0))==1 else match_settings[field]
 		if (value is int or value is float) and value >= options[field].min and value <= options[field].max:
 			match_settings[field] = int(value)
 			if not options[field].choices.has(int(value)):
@@ -183,6 +185,7 @@ func _save_settings() -> void:
 	if config.has_section_key("player","formation"):
 		config.erase_section_key("player","formation")
 	config.set_value("player","formation_"+str(sim.races[0]),formation)
+	config.set_value("match","economy_schema",1)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
 	for index in range(2):
@@ -215,14 +218,14 @@ func _notification(what: int) -> void:
 ## 累计够 0.05 秒才推进一步战斗；特效按画面时间更新，并请求重绘。
 func _process(delta: float) -> void:
 	elapsed_ui += delta
-	if started and not paused and not backgrounded and not help_open and not sim.finished:
+	if started and not paused and not backgrounded and not help_open and not economy_open and not sim.finished:
 		# 每帧最多积累 0.25 秒，防止卡顿后瞬间补算过多步。当前节拍固定 20 Hz。
 		# 如果修改 rules.json 的 tick_rate，必须同步这里的 0.05 和下面插值、时间显示等计算。
 		accumulator += minf(delta, 0.25)
 		while accumulator >= 0.05:
 			accumulator -= 0.05
 			advance_tick()
-	if not paused and not backgrounded and not help_open:
+	if not paused and not backgrounded and not help_open and not economy_open:
 		rifle_visual.update(delta)
 		bc_visual.update(delta)
 	for effect in effects:
@@ -253,6 +256,8 @@ func advance_tick() -> void:
 		if unit.kind == "rifle" and not rifle_before.has(unit.id):
 			rifle_before[unit.id] = unit.duplicate()
 			rifle_before[unit.id]["body_radius"] = sim.body_radius(unit)
+	var shop_due := false
+	var journal_due := false
 	for event in tick_events:
 		rifle_visual.event(event, rifle_before, sim.units, sim.revealed)
 		bc_visual.event(event, bc_before, sim.units, sim.revealed)
@@ -261,17 +266,23 @@ func advance_tick() -> void:
 			effects.append(event)
 		elif event.type == "wave":
 			_note("第 %d 波出兵 · 我方 %d / 敌方 %d" % [sim.wave,sim.last_formations[0].size(),sim.last_formations[1].size()])
-			_ai_shop()
-			_save_journal()
+			shop_due = true
+			journal_due = true
 			if volume > 0:
 				speaker.play()
+		elif event.type == "income":
+			shop_due = true
+		elif event.type == "center_captured":
+			_note("%s占领中央资源井 · 每3秒额外+3矿" % ("我方" if event.team==0 else "敌方"))
+		elif event.type == "income_tier" and sim.wave>0:
+			_note("基础收入提高至 %d 矿/3秒" % int(event.amount))
 		elif event.type == "base_defense_lost":
 			_note("%s基地防御失效 · 无法恢复" % ("我方" if event.team == 0 else "敌方"))
 		elif event.type == "structure_destroyed":
 			var names := {"treasury":"宝库","gate_tower":"基地防御模块","tower":"防御塔","terran_bunker":"地堡"}
 			var side: String = "我方" if event.team == 0 else "敌方"
 			if event.kind == "treasury":
-				_note("%s宝库被摧毁 · %s +%d 矿" % [side,"敌方" if event.team == 0 else "我方",int(sim.rules.treasury_reward)])
+				_note("%s宝库被摧毁 · %s +1 灵核" % [side,"敌方" if event.team == 0 else "我方"])
 			else:
 				_note("%s%s被摧毁" % [side,names.get(event.kind,"建筑")])
 		elif event.type == "revealed":
@@ -279,12 +290,16 @@ func advance_tick() -> void:
 		elif event.type == "tower_built" and event.team == 1:
 			_note("敌方建造了防御塔")
 		elif event.type == "ended":
-			_save_journal()
+			journal_due = true
 			speaker.play()
+	if shop_due and not sim.finished:
+		_ai_shop()
+	if journal_due:
+		_save_journal()
 	rifle_visual.observe(sim.units)
 	bc_visual.observe(sim.units)
 
-## 电脑在开局和每次出兵后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
+## 电脑在开局、出兵和每次收入后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
 ## 落后时先建防御塔，买不起就本轮攒矿不买兵。
 func _ai_shop() -> void:
 	var seen: Array = sim.visible_enemy_formation(1)
@@ -339,27 +354,29 @@ func _draw() -> void:
 	var limit: int = int(sim.rules.wave_limit)
 	if sim.wave < limit:
 		_text(Vector2(400,37),"下一波  %d / %d" % [sim.wave+1,limit],18,MUTED)
-		var countdown: int = int(ceil(float(sim.wave_ticks() - sim.tick % sim.wave_ticks()) / float(sim.rules.tick_rate)))
+		var countdown: int = int(ceil(float(sim.ticks_to_next_wave()) / float(sim.rules.tick_rate)))
 		_text(Vector2(400,74),"%02d 秒" % countdown,30,INK)
 	else:
 		_text(Vector2(400,37),"已出满 %d 波" % limit,18,MUTED)
 		_text(Vector2(400,74),"最终决战",30,CORAL)
-	_text(Vector2(577,37),"矿物 · 每轮 +%d" % int(sim.rules.wave_income),18,MUTED)
-	_text(Vector2(577,74),str(int(sim.minerals[0])),30,MINT)
-	_text(Vector2(800,37),"战局时间",18,MUTED)
-	var seconds: int = sim.tick / int(sim.rules.tick_rate)
-	_text(Vector2(800,74),"%02d:%02d" % [seconds/60,seconds%60],24)
+	var income: Dictionary = sim.economy.rates(0,sim.wave)
+	_text(Vector2(577,37),"矿物 +%d/3秒" % int(income.minerals),16,MUTED)
+	_text(Vector2(577,74),str(int(sim.minerals[0])),28,MINT)
+	_text(Vector2(745,37),"瓦斯 +%d/3秒" % int(income.gas),16,MUTED)
+	_text(Vector2(745,74),str(int(sim.economy.gas[0])),26,SHIELD)
+	_text(Vector2(895,37),"灵核",16,MUTED)
+	_text(Vector2(895,74),str(int(sim.economy.cores[0])),26,Color("ffcd70"))
 	_button(Rect2(1000,24,120,48),"音量 %d" % int(volume*100),"volume")
 	_button(Rect2(1132,24,120,48),"玩法说明","help")
 	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	_draw_editor()
-	_text(Vector2(34,882),"离线原型 v0.6.0  /  兵营永久保留  /  无击杀收入",16,MUTED)
+	_text(Vector2(34,882),"v%s  /  战局 %02d:%02d  /  无击杀收入" % [str(sim.rules.version),sim.tick/int(sim.rules.tick_rate)/60,sim.tick/int(sim.rules.tick_rate)%60],16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
 	if not started:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
 		_text(Vector2(475,308),"先布阵，再让军队替你战斗。",28,MINT)
-		_text(Vector2(475,346),"点击右上角「开始准备」，%d 秒后双方同时出兵。" % int(sim.rules.wave_seconds),18)
+		_text(Vector2(475,346),"点击右上角「开始准备」，%d 秒后双方同时出兵。" % int(sim.rules.first_wave_seconds),18)
 		_text(Vector2(475,373),"买下的单位每波都会出场；不能直接指挥场上单位。",18,MUTED)
 	if paused and not sim.finished:
 		_panel(Rect2(525,284,390,90))
@@ -372,11 +389,13 @@ func _draw() -> void:
 		_draw_setup()
 	if help_open:
 		_draw_help()
+	if economy_open:
+		_draw_economy()
 
 ## 把逻辑战场坐标（rules.world_width × world_height）转换成 1300×352 的屏幕战场区域坐标。
 ## 未来改 3D 时，这种位置映射应交给独立的 3D 战场表现层。
 func _camera_rect() -> Rect2:
-	var width: float = float(sim.rules.world_width)/camera_zoom
+	var width: float = maxf(float(sim.rules.world_width),float(sim.rules.world_height)*BATTLE_RECT.size.x/BATTLE_RECT.size.y)/camera_zoom
 	var span := Vector2(width,width*BATTLE_RECT.size.y/BATTLE_RECT.size.x)
 	var center := camera_center
 	for axis in range(2):
@@ -466,6 +485,7 @@ func _draw_editor() -> void:
 		_text(Vector2(454,839),"防御塔已建造",17,MUTED)
 	else:
 		_button(Rect2(440,816,180,32),"建造防御塔 %d" % tower_cost,"build_tower",int(sim.minerals[0]) >= tower_cost)
+	_button(Rect2(632,816,80,32),"经济","economy")
 	_panel(Rect2(746,573,452,287))
 	_text(Vector2(764,604),"选择兵种",23)
 	var kinds: Array = _shop_kinds()
@@ -531,7 +551,34 @@ func _draw_editor() -> void:
 func _shop_kinds() -> Array:
 	return Catalog.race_units(sim.catalog, str(sim.races[0]), true)
 
-## 绘制说明弹层，并清空底层点击区域，防止点说明时误操作后面的配兵格。
+## 经济面板暂停计时，所有资源修改仍经过模拟器并写入战报动作。
+func _draw_economy() -> void:
+	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.82))
+	_panel(Rect2(280,150,880,600),PANEL,MINT)
+	buttons.clear()
+	_text(Vector2(320,205),"经济与中央资源井",30,MINT)
+	var income: Dictionary = sim.economy.rates(0,sim.wave)
+	var owner: int = sim.economy.center_owner
+	var center_status: String = "第10波开放" if not sim.economy.center_active(sim.wave) else ("无人占领" if owner<0 else ("我方控制" if owner==0 else "敌方控制"))
+	var lines := [
+		"当前收入：%d 矿 / %d 瓦斯，每3秒结算" % [int(income.minerals),int(income.gas)],
+		"基础收入：30 → 第11波60 → 第41波120；第64波停止收入。",
+		"气厂免费，每座将基础收入的10%等额转为瓦斯；拆除后恢复矿物收入。",
+		"气厂上限初始3座，第32波扩至6座；分流只影响基础收入。",
+		"中央井：%s；2.5格内可占领，控制方每3秒额外+3矿。" % center_status,
+		"无人靠近时保留归属；摧毁敌方宝库获得1灵核，击杀单位不加钱。",
+		"瓦斯可按1:1全部换为矿物；灵核单独记录，当前不设额外消费。"]
+	for i in range(lines.size()):
+		_text(Vector2(320,250+i*40),lines[i],18,INK)
+	_text(Vector2(320,565),"气厂 %d / %d" % [int(sim.economy.gasworks[0]),sim.economy.gasworks_limit(sim.wave)],24,MINT)
+	_button(Rect2(530,530,110,48),"拆除一座","gas_remove")
+	_button(Rect2(655,530,110,48),"建造一座","gas_add",true)
+	_button(Rect2(800,530,300,48),"兑换全部瓦斯 %d" % int(sim.economy.gas[0]),"exchange_gas")
+	_text(Vector2(320,620),"矿物 %d   瓦斯 %d   灵核 %d" % [int(sim.minerals[0]),int(sim.economy.gas[0]),int(sim.economy.cores[0])],24)
+	_text(Vector2(320,660),messages[0].left(42),17,MUTED)
+	_button(Rect2(320,685,180,44),"返回战场","economy",true)
+
+## 绘制说明弹层，并清空底层点击区域，防止误操作兵营。
 func _draw_help() -> void:
 	draw_rect(Rect2(0,0,1440,900),Color(0,0,0,0.8))
 	_panel(Rect2(290,130,860,640))
@@ -539,16 +586,16 @@ func _draw_help() -> void:
 	_text(Vector2(335,188),"指挥官手册",32,MINT)
 	var lines := ["1. 选兵种，再点下方空格购买。右侧是前排，左侧是后排。",
 		"2. 买下的单位永久留在兵营，每 %d 秒全部出场一次。" % int(sim.rules.wave_seconds),
-		"3. 开局 %d 矿，每次出兵后双方各得 %d 矿；击杀不加钱。" % [int(sim.rules.start_minerals),int(sim.rules.wave_income)],
+		"3. 开局 %d 矿；每3秒获得30/60/120矿，第11/41波提升。" % int(sim.rules.start_minerals),
 		"4. 本轮新买、未出场的单位取消可全额退回；出场过的取消不退款。",
 		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
-		"   基地防御层耗尽后永久失去反击，每秒回血5；摧毁敌方宝库奖励 %d 矿。" % int(sim.rules.treasury_reward),
+		"   宝库被摧毁奖励对方1灵核；中央井第10波开放，控制方每3秒+3矿。",
 		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
 		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",
-		"提示：重甲怕穿甲加成，轻甲怕溅射；神族护盾脱战后会恢复。"]
+		"提示：点击兵营下方「经济」管理气厂分流与瓦斯兑换。"]
 	for i in range(lines.size()):
 		_text(Vector2(335,236+i*35),lines[i],20,INK if i<lines.size()-1 else MINT)
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
@@ -608,7 +655,7 @@ func _draw_setup() -> void:
 			_text(Vector2(1040,y+78),"%d" % value,22,MINT)
 			_button(Rect2(1090,y+44,48,50),"+","setup_step:%s:1" % field)
 		row += 1
-	var minutes: float = float(sim.rules.wave_limit) * float(match_settings.wave_seconds) / 60.0
+	var minutes: float = (float(sim.rules.first_wave_seconds)+(float(sim.rules.wave_limit)-1.0)*float(match_settings.wave_seconds)) / 60.0
 	_text(Vector2(335,700),"共 %d 波，出满约 %d 分钟；之后先没有可攻击部队的一方失败。" % [int(sim.rules.wave_limit),int(round(minutes))],17,MUTED)
 	_button(Rect2(335,728,180,56),"恢复推荐","setup_reset")
 	_button(Rect2(880,728,224,56),"确认，开始布阵","setup_confirm",true)
@@ -662,13 +709,13 @@ func _gui_input(event: InputEvent) -> void:
 					handle_action(button.action)
 					accept_event()
 					return
-			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and pending_message=="":
+			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and not economy_open and pending_message=="":
 				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,MAX_ZOOM)
 				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,MAX_ZOOM)
 				elif event.button_index==MOUSE_BUTTON_LEFT:battle_dragging=true
 				queue_redraw()
 				accept_event()
-	elif event is InputEventMouseMotion and battle_dragging and not setup_open and not help_open and pending_message=="":
+	elif event is InputEventMouseMotion and battle_dragging and not setup_open and not help_open and not economy_open and pending_message=="":
 		var motion: Vector2 = event.relative*Vector2(1440,900)/size
 		camera_center=_camera_rect().get_center()-motion*_camera_rect().size/BATTLE_RECT.size
 		queue_redraw()
@@ -677,10 +724,10 @@ func _gui_input(event: InputEvent) -> void:
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_SPACE and not help_open and not setup_open and not sim.finished:
+		if event.keycode == KEY_SPACE and not help_open and not economy_open and not setup_open and not sim.finished:
 			handle_action("start")
 		elif event.keycode == KEY_ESCAPE:
-			handle_action("help")
+			handle_action("economy" if economy_open else "help")
 
 ## 把动作字符串分发到具体操作；例如 select:rifle 选择特战队员，cell:5 编辑第 5 格。
 ## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
@@ -690,16 +737,32 @@ func handle_action(action: String) -> void:
 			_handle_setup(action)
 		queue_redraw()
 		return
+	if action == "economy":
+		economy_open = not economy_open
+		queue_redraw()
+		return
+	if economy_open:
+		var error := ""
+		if action=="gas_add" or action=="gas_remove":
+			error=sim.apply_action({"type":"gasworks","team":0,"count":int(sim.economy.gasworks[0])+(1 if action=="gas_add" else -1)})
+		elif action=="exchange_gas":
+			error=sim.apply_action({"type":"exchange_gas","team":0})
+		if not error.is_empty(): _note(error)
+		_save_journal()
+		queue_redraw()
+		return
 	if action.begins_with("camera_"):
-		if action=="camera_all":camera_zoom=1.0
+		if action=="camera_all":
+			camera_zoom=1.0
+			camera_center=Vector2(float(sim.rules.world_width)*.5,float(sim.rules.world_height)*.5)
 		elif action=="camera_close":camera_zoom=CLOSE_ZOOM
 		elif action=="camera_in":camera_zoom=clampf(camera_zoom*1.5,1,MAX_ZOOM)
 		elif action=="camera_out":camera_zoom=clampf(camera_zoom/1.5,1,MAX_ZOOM)
 		elif action=="camera_home":
-			camera_center=Vector2(float(sim.rules.layout.tower_x),float(sim.rules.layout.base_y))
+			camera_center=sim.layout_pos(0,"spawn")
 			camera_zoom=CLOSE_ZOOM
 		elif action=="camera_enemy":
-			camera_center=Vector2(sim.mirror_x(1,float(sim.rules.layout.tower_x)),float(sim.rules.layout.base_y))
+			camera_center=sim.layout_pos(1,"spawn")
 			camera_zoom=CLOSE_ZOOM
 		elif action=="camera_middle":camera_center=Vector2(float(sim.rules.world_width)*.5,float(sim.rules.world_height)*.5)
 	elif action == "help":
