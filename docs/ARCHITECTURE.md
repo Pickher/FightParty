@@ -82,7 +82,7 @@ Godot `user://settings.cfg` 保存音量、每个种族各自的最近阵容（`
 
 ## 结构体（0.2.2）
 
-宝库和玩家建造的防御塔放在`units`中，`structure: true`，速度0，沿用普通索敌、伤害、溅射和传播攻击。`BattleSim.is_structure()`用于在治疗、击杀统计、最后阶段可攻击部队统计和防卫圈选目标中排除它们；`_can_hit_unit()`按武器的`attacks_structures`（缺省同`attacks_base`）过滤。宝库死亡时在统一结算阶段由经济组件给另一方增加灵核，不再奖励矿物。`build_tower(team)`校验次数与矿物后立即生成，并写入`actions`（`build_tower`），重放时同样执行。
+宝库和玩家建造的防御塔放在`units`中，`structure: true`，速度0，沿用普通索敌、伤害、溅射和传播攻击。`BattleSim.is_structure()`用于在治疗、击杀统计、最后阶段可攻击部队统计和防卫圈选目标中排除它们；`_can_hit_unit()`按武器的`attacks_structures`（缺省同`attacks_base`）过滤。宝库死亡时在统一结算阶段由经济组件给另一方增加灵核，不再奖励矿物。`build_tower(team, position)`统一校验次数、矿物和选址后生成，玩家通过战场点选位置；塔身必须全部在己方半场和地图内，不能与基地、宝库或其他建筑重叠。成功才扣矿和次数。`actions`中的`build_tower`保存`position:[x,y]`，重放按实际坐标建造；没有坐标的旧战报兼容旧候选位。
 
 0.8.1：基地防御改由`units/base_defense.gd`维护。`bases`是唯一生命池，`base_defenses`保存每方不可逆的active标记及AttackCycle锁定/冷却状态；`gate_tower`仅提供防御层生命、武器和防御期回血配置，不生成单位。攻击共用空间索敌、AttackCycle、queue_direct_strike与真实伤害结算，在同一步统一结算。基地先扣血、永久撤销耗尽的防御层，再以当前上限回血；归零不回血。快照及最终战报包含base_max_hp、base_defenses，避免仅凭当前生命推断曾经失效的防御层。structures=false只生成核心、不反击。基地不新增可被溅射命中的重复实体。
 

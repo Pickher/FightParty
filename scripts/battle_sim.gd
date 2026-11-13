@@ -109,25 +109,58 @@ func is_structure(unit: Dictionary) -> bool:
 func tower_kind(team: int) -> String:
 	return "terran_bunker" if races[team]=="terran" else "tower"
 
-## 防御塔还能否建造：未达到 tower_max_builds，且矿物足够。返回空字符串表示可以。
-func tower_error(team: int) -> String:
+## 建造使用完整占地半径，模型和碰撞都必须留在己方半场。
+func tower_placement_radius(team: int) -> float:
+	var stats: Dictionary = catalog[tower_kind(team)]
+	var size: Array = stats.get("size",[1.0,1.0])
+	return maxf(float(stats.collision_radius),maxf(float(size[0]),float(size[1]))*0.5)
+
+func tower_position_error(team: int, position: Vector2) -> String:
+	if team<0 or team>1:return "无效阵营"
+	if not is_finite(position.x) or not is_finite(position.y):return "建造位置无效"
+	var bounds: Dictionary = rules.layout.bounds
+	var radius := tower_placement_radius(team)
+	if position.x-radius<float(bounds.left) or position.x+radius>float(bounds.right) or position.y-radius<float(bounds.top) or position.y+radius>float(bounds.bottom):
+		return "防御塔不能超出地图边界"
+	var middle := float(rules.world_width)*0.5
+	if (team==0 and position.x+radius>middle) or (team==1 and position.x-radius<middle):
+		return "只能在己方半场建造，塔身不能越过中线"
+	for side in range(2):
+		if position.distance_to(base_pos(side))<radius+float(rules.layout.base_radius):return "不能与基地重叠"
+	for unit in units:
+		if float(unit.hp)<=0 or not is_structure(unit):continue
+		if position.distance_to(unit.pos)<radius+body_radius(unit):return "不能与宝库或其他建筑重叠"
+	return ""
+
+## 未选位置时只校验资格；给出位置时，购买和预览使用完全相同的选址规则。
+func tower_error(team: int, position: Variant = null) -> String:
 	var error := _editable(team)
 	if error.is_empty() and int(tower_builds[team]) >= int(rules.tower_max_builds):
 		error = "防御塔已达建造上限"
 	if error.is_empty() and int(minerals[team]) < int(catalog[tower_kind(team)].cost):
 		error = "矿物不足"
+	if error.is_empty() and position!=null:
+		error=tower_position_error(team,position) if position is Vector2 else "建造位置无效"
 	return error
 
-## 在固定建造位立即建成一座防御塔并扣矿；被摧毁不给对方奖励，也不能重建。
-func build_tower(team: int) -> String:
-	var error := tower_error(team)
+## 在所选位置建造，全部校验通过后才扣矿。无坐标仅兼容旧调用与旧战报。
+func build_tower(team: int, position: Variant = null) -> String:
+	var error := _editable(team)
+	if not error.is_empty():return error
+	var point: Variant = layout_pos(team,"tower") if position==null else position
+	error=tower_error(team,point)
 	if error.is_empty():
 		minerals[team] -= int(catalog[tower_kind(team)].cost)
 		tower_builds[team] += 1
-		_place_structure(team, tower_kind(team), "tower")
-		events.append({"type":"tower_built","team":team})
-		_log(team, {"type":"build_tower"})
+		var built := spawn_unit(team,tower_kind(team),point)
+		events.append({"type":"tower_built","team":team,"id":built.id,"pos":point})
+		_log(team, {"type":"build_tower","position":[point.x,point.y]})
 	return error
+
+## 电脑使用相同选址校验，在己方宝库前方选择防守点；失败时回退旧候选位。
+func suggested_tower_position(team: int) -> Vector2:
+	var point := layout_pos(team,"treasury")+Vector2(6.0 if team==0 else -6.0,0)
+	return point if tower_position_error(team,point).is_empty() else layout_pos(team,"tower")
 
 ## 累计一份阵容的总价；未知兵种或错误元素返回 -1，由校验函数拒绝。
 func formation_cost(formation: Array) -> int:
@@ -317,7 +350,12 @@ func apply_action(action: Dictionary) -> String:
 		"move":
 			return move(int(action.team), int(action.from), int(action.to))
 		"build_tower":
-			return build_tower(int(action.team))
+			if not action.has("position"):return build_tower(int(action.team))
+			var position = action.position
+			if not position is Array or position.size()!=2:return "建造位置无效"
+			for coordinate in position:
+				if not (coordinate is int or coordinate is float):return "建造位置无效"
+			return build_tower(int(action.team),Vector2(float(position[0]),float(position[1])))
 		"gasworks":
 			return economy.set_gasworks(self,int(action.team),int(action.count))
 		"exchange_gas":

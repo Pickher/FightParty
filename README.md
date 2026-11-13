@@ -6,6 +6,8 @@
 
 FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型 v0.9.3，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。云端已构建 0.7.4 测试 APK，下载及验证范围见 docs/DEVELOPMENT.md。
 
+0.11.1：防御塔改为点选己方半场落点建造，支持可建区域/红绿落点预览和取消选址。塔身不能跨中线、出地图或与建筑重叠，成功后才扣矿；每局次数和价格保持。战报保存实际坐标。未运行模拟、测试或打包。
+
 0.11.0：现有35个单位/召唤物按沙漠风暴明确覆盖项接入，价格按组换算；新增交战机动、短时加速、临时护盾护甲，补充部署护甲、分段时间表和矿气购买。Excel同步来源和黄色待确认页，见[兵种接入与边界](docs/DESERT_STORM_UNITS.md)。尚未完整还原原版/独立依赖继承与部分技能效果链；未运行模拟或打包。
 
 0.10.0：按参考地图调整为196×118交战区域与点对称布局；经济改为每3秒分档收入，加入中央井、气厂分流、瓦斯兑换和宝库灵核奖励，见[地图与经济说明](docs/DESERT_STORM_ECONOMY.md)。保持当前单人对战；未运行模拟或打包。
@@ -196,7 +198,7 @@ data/races.json 是种族表：每个种族的中文名、主题色、一句风�
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
 - columns、rows：布阵列数和行数，当前 18×8（0.2.1 起，原为 6×4）。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生间距，并检查 catalog.gd 的默认阵容格子。
 - world_width、world_height：逻辑战场尺寸，当前196×118；敌方坐标绕场地中心点对称，画面映射也按这两个值缩放。
-- layout：战场布局，全部按我方（左侧）坐标填写，敌方按point_symmetry点对称。base_x/base_y/base_radius是基地中心与判定半径，基地防御模块共用此位置；treasury_x/treasury_y、tower_x/tower_y是宝库与防御塔建造位；spawn_x/spawn_y是出兵中心，spawn_width/spawn_height是组中心展开跨度，spawn_column_spacing是最大列距；bounds是单位可移动的边界。医疗兵无掩护时退向spawn_x。
+- layout：战场布局，全部按我方（左侧）坐标填写，敌方按point_symmetry点对称。base_x/base_y/base_radius是基地中心与判定半径，基地防御模块共用此位置；treasury_x/treasury_y、tower_x/tower_y是宝库与防御塔旧候选位；spawn_x/spawn_y是出兵中心，spawn_width/spawn_height是组中心展开跨度，spawn_column_spacing是最大列距；bounds是单位可移动的边界。医疗兵无掩护时退向spawn_x。
 - races：双方种族，默认 ["terran","terran"]；开局设置可以覆盖，整局固定并写入战报。未知种族按 terran 处理。
 - race_setup：开局弹窗两行种族选择的标题 labels 与推荐值 recommended（默认我方 terran、电脑 random）。random 在建局时随机成具体种族，写入战报的是随机后的结果，所以重放不会再随机。
 - min_damage：每发命中的最低伤害，默认 0.5。shield_regen_delay、shield_regen_per_second：护盾脱战多少秒后开始恢复、每秒恢复多少，默认 7 秒、7.5。

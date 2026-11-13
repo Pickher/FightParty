@@ -37,6 +37,9 @@ var paused := false
 var backgrounded := false
 var help_open := false
 var economy_open := false
+var placing_tower := false
+var tower_preview := Vector2.ZERO
+var tower_preview_visible := false
 # 累计还没有交给模拟器处理的真实时间，单位为秒。
 var accumulator := 0.0
 # 每次重绘重新生成的按钮点击区域。effects 保存短暂视觉特效，ttl 表示剩余显示秒数。
@@ -110,6 +113,8 @@ func _new_match() -> void:
 	sim = Sim.new(42, overrides)
 	camera_zoom=2.0
 	economy_open=false
+	placing_tower=false
+	tower_preview_visible=false
 	camera_center=Vector2(float(sim.rules.world_width)*0.5,float(sim.rules.world_height)*0.5)
 	ai = AI.new(42, sim.races[1])
 	var prior: Array = Catalog.starter(sim.races[0])
@@ -290,6 +295,8 @@ func advance_tick() -> void:
 		elif event.type == "tower_built" and event.team == 1:
 			_note("敌方建造了防御塔")
 		elif event.type == "ended":
+			placing_tower=false
+			tower_preview_visible=false
 			journal_due = true
 			speaker.play()
 	if shop_due and not sim.finished:
@@ -305,7 +312,7 @@ func _ai_shop() -> void:
 	var seen: Array = sim.visible_enemy_formation(1)
 	var plan: String = ai.tower_plan(seen, sim.formations[1], int(sim.minerals[1]), int(sim.tower_builds[1]))
 	if plan == "build":
-		sim.build_tower(1)
+		sim.build_tower(1,sim.suggested_tower_position(1))
 	elif plan == "save":
 		return
 	# 瓦斯兵种按同一分流规则攒气，不发额外资源；补齐后恢复矿物收入。
@@ -384,12 +391,12 @@ func _draw() -> void:
 	_draw_editor()
 	_text(Vector2(34,882),"v%s  /  战局 %02d:%02d  /  无击杀收入" % [str(sim.rules.version),sim.tick/int(sim.rules.tick_rate)/60,sim.tick/int(sim.rules.tick_rate)%60],16,MUTED)
 	_text(Vector2(1000,882),"%d FPS   ·   %d 个战场单位" % [Engine.get_frames_per_second(),sim.units.size()],16,MUTED)
-	if not started:
+	if not started and not placing_tower:
 		_panel(Rect2(440,263,560,130), Color("102d32"), MINT)
 		_text(Vector2(475,308),"先布阵，再让军队替你战斗。",28,MINT)
 		_text(Vector2(475,346),"点击右上角「开始准备」，%d 秒后双方同时出兵。" % int(sim.rules.first_wave_seconds),18)
 		_text(Vector2(475,373),"买下的单位每波都会出场；不能直接指挥场上单位。",18,MUTED)
-	if paused and not sim.finished:
+	if paused and not sim.finished and not placing_tower:
 		_panel(Rect2(525,284,390,90))
 		_text(Vector2(580,338),"已暂停 · 阵容仍可调整",25,MINT)
 	if sim.finished:
@@ -432,6 +439,10 @@ func _draw_battle() -> void:
 		_text(Vector2(x+344,130),str(int(sim.bases[team])),16,color)
 	if battle_viewport!=null:
 		draw_texture_rect(battle_viewport.get_texture(),BATTLE_RECT,false)
+	if placing_tower:
+		draw_rect(Rect2(BATTLE_RECT.position,Vector2(BATTLE_RECT.size.x,38)),Color(0.03,0.09,0.12,0.92))
+		_text(BATTLE_RECT.position+Vector2(12,26),"选择己方半场落点建塔 · 绿色可建，红色不可建 · 右键 / Esc取消",17,MINT)
+		_button(Rect2(BATTLE_RECT.end.x-130,BATTLE_RECT.position.y+3,120,32),"取消选址","cancel_tower")
 	_text(Vector2(56,539),"%s × %s 格 · 拖动战场平移 · 滚轮缩放" % [sim.rules.world_width,sim.rules.world_height],15,MUTED)
 	_button(Rect2(590,517,70,30),"全图","camera_all")
 	_button(Rect2(668,517,70,30),"近景","camera_close")
@@ -495,7 +506,7 @@ func _draw_editor() -> void:
 		_panel(Rect2(440,816,180,32),Color("142233"),Color("2b3b50"))
 		_text(Vector2(454,839),"防御塔已建造",17,MUTED)
 	else:
-		_button(Rect2(440,816,180,32),"建造防御塔 %d" % tower_cost,"build_tower",int(sim.minerals[0]) >= tower_cost)
+		_button(Rect2(440,816,180,32),"取消选址" if placing_tower else "建造防御塔 %d" % tower_cost,"build_tower",placing_tower or int(sim.minerals[0]) >= tower_cost)
 	_button(Rect2(632,816,80,32),"经济","economy")
 	_panel(Rect2(746,573,452,287))
 	_text(Vector2(764,604),"选择兵种",23)
@@ -602,7 +613,7 @@ func _draw_help() -> void:
 		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
 		"   宝库被摧毁奖励对方1灵核；中央井第10波开放，控制方每3秒+3矿。",
-		"   可花 %d 矿建造一座防御塔，前期火力强，被摧毁无奖励、不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
+		"   花 %d 矿点选己方半场建塔；不能重叠建筑，被摧毁不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
 		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
 		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",
@@ -709,28 +720,63 @@ func _draw_confirm() -> void:
 	_button(Rect2(690,430,200,56),"保留单位","confirm_no")
 
 ## 处理左键/模拟鼠标的触摸点击：先还原设计坐标，再寻找命中的按钮矩形。
+func _battle_point(design_position: Vector2) -> Vector2:
+	var view := _camera_rect()
+	return view.position+(design_position-BATTLE_RECT.position)*view.size/BATTLE_RECT.size
+
+func _cancel_tower_placement() -> void:
+	placing_tower=false
+	tower_preview_visible=false
+	battle_dragging=false
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var p: Vector2 = event.position*Vector2(1440,900)/size
 		if event.button_index==MOUSE_BUTTON_LEFT and not event.pressed:
 			battle_dragging=false
 		if event.pressed:
-			for button in buttons:
-				if button.rect.has_point(p):
-					handle_action(button.action)
-					accept_event()
-					return
-			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and not economy_open and pending_message=="":
-				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,MAX_ZOOM)
-				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,MAX_ZOOM)
-				elif event.button_index==MOUSE_BUTTON_LEFT:battle_dragging=true
+			if placing_tower and event.button_index==MOUSE_BUTTON_RIGHT:
+				_cancel_tower_placement()
 				queue_redraw()
 				accept_event()
-	elif event is InputEventMouseMotion and battle_dragging and not setup_open and not help_open and not economy_open and pending_message=="":
-		var motion: Vector2 = event.relative*Vector2(1440,900)/size
-		camera_center=_camera_rect().get_center()-motion*_camera_rect().size/BATTLE_RECT.size
-		queue_redraw()
-		accept_event()
+				return
+			# 只有左键/触摸会触发按钮，滚轮仍能在选址时缩放。
+			if event.button_index==MOUSE_BUTTON_LEFT:
+				for button in buttons:
+					if button.rect.has_point(p):
+						handle_action(button.action)
+						accept_event()
+						return
+			if BATTLE_RECT.has_point(p) and not setup_open and not help_open and not economy_open and pending_message=="":
+				if placing_tower and event.button_index==MOUSE_BUTTON_LEFT and p.y<BATTLE_RECT.position.y+38:
+					accept_event()
+					return
+				if event.button_index==MOUSE_BUTTON_WHEEL_UP:camera_zoom=clampf(camera_zoom*1.25,1,MAX_ZOOM)
+				elif event.button_index==MOUSE_BUTTON_WHEEL_DOWN:camera_zoom=clampf(camera_zoom/1.25,1,MAX_ZOOM)
+				elif event.button_index==MOUSE_BUTTON_LEFT:
+					if placing_tower:
+						tower_preview=_battle_point(p)
+						tower_preview_visible=true
+						var error: String = sim.build_tower(0,tower_preview)
+						if error.is_empty():
+							_cancel_tower_placement()
+							_note("防御塔已建成，一局只能建造一座。")
+							_save_journal()
+						else:_note(error)
+					else:battle_dragging=true
+				queue_redraw()
+				accept_event()
+	elif event is InputEventMouseMotion and not setup_open and not help_open and not economy_open and pending_message=="":
+		var p: Vector2 = event.position*Vector2(1440,900)/size
+		if placing_tower:
+			tower_preview_visible=BATTLE_RECT.has_point(p)
+			if tower_preview_visible:tower_preview=_battle_point(p)
+			queue_redraw()
+		elif battle_dragging:
+			var motion: Vector2 = event.relative*Vector2(1440,900)/size
+			camera_center=_camera_rect().get_center()-motion*_camera_rect().size/BATTLE_RECT.size
+			queue_redraw()
+			accept_event()
 
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -738,11 +784,17 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		if event.keycode == KEY_SPACE and not help_open and not economy_open and not setup_open and not sim.finished:
 			handle_action("start")
 		elif event.keycode == KEY_ESCAPE:
-			handle_action("economy" if economy_open else "help")
+			handle_action("cancel_tower" if placing_tower else ("economy" if economy_open else "help"))
 
 ## 把动作字符串分发到具体操作；例如 select:rifle 选择特战队员，cell:5 编辑第 5 格。
 ## 绘制按钮和处理操作通过动作名连接，添加按钮时要在这里增加对应逻辑。
 func handle_action(action: String) -> void:
+	if action=="cancel_tower":
+		_cancel_tower_placement()
+		queue_redraw()
+		return
+	if action in ["help","economy","clear","erase","move"] or action.begins_with("select:") or action.begins_with("cell:"):
+		_cancel_tower_placement()
 	if setup_open:
 		if action.begins_with("setup"):
 			_handle_setup(action)
@@ -812,8 +864,15 @@ func handle_action(action: String) -> void:
 		elif action == "clear":
 			_commit([])
 		elif action == "build_tower":
-			var error: String = sim.build_tower(0)
-			_note(error if error != "" else "防御塔已建成，一局只能建造一座。")
+			if placing_tower:_cancel_tower_placement()
+			else:
+				var error: String = sim.tower_error(0)
+				if not error.is_empty():_note(error)
+				else:
+					placing_tower=true
+					battle_dragging=false
+					tower_preview_visible=false
+					_note("请在己方半场选择防御塔落点；可以取消重新选。")
 		elif action.begins_with("cell:"):
 			_edit_cell(int(action.get_slice(":",1)))
 	queue_redraw()

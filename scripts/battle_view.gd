@@ -223,3 +223,33 @@ func _draw() -> void:
 		if unit.has("weapon_index") and game.camera_zoom>=6:
 			var config: Dictionary = stats.skills.weapon_switch
 			label(p+Vector2(-15,dimensions.y*.5+16),str(config.weapons[int(unit.weapon_index)].label),color,10)
+
+	_draw_tower_placement()
+
+## 与鼠标和触摸共用的选址覆盖层，判定完全由模拟器负责。
+func _draw_tower_placement() -> void:
+	if not game.placing_tower:return
+	var sim = game.sim
+	var bounds: Dictionary = sim.rules.layout.bounds
+	var middle: float = float(sim.rules.world_width)*0.5
+	var own_origin := Vector2(float(bounds.left),float(bounds.top))
+	var own_size := Vector2(middle-float(bounds.left),float(bounds.bottom)-float(bounds.top))
+	draw_rect(Rect2(point(own_origin),Vector2(pixels(own_size.x),pixels(own_size.y))),Color(game.MINT,0.09))
+	var enemy_origin := Vector2(middle,float(bounds.top))
+	var enemy_size := Vector2(float(bounds.right)-middle,own_size.y)
+	draw_rect(Rect2(point(enemy_origin),Vector2(pixels(enemy_size.x),pixels(enemy_size.y))),Color(game.CORAL,0.07))
+	if not game.tower_preview_visible:return
+	var location: Vector2 = game.tower_preview
+	var error: String = sim.tower_error(0,location)
+	var color: Color = game.MINT if error.is_empty() else game.CORAL
+	var stats: Dictionary = sim.catalog[sim.tower_kind(0)]
+	var reach := 0.0
+	for mode in stats.attack_modes:reach=maxf(reach,float(mode.range))
+	ring(location,reach,Color(color,0.45))
+	var radius: float = sim.tower_placement_radius(0)
+	var center := point(location)
+	draw_circle(center,pixels(radius),Color(color,0.25))
+	ring(location,radius,color)
+	draw_line(center-Vector2(5,0),center+Vector2(5,0),color,2)
+	draw_line(center-Vector2(0,5),center+Vector2(0,5),color,2)
+	label(center+Vector2(10,-10),"可建造" if error.is_empty() else error,color,13)
