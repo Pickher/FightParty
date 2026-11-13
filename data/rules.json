@@ -1,5 +1,5 @@
 {
-  "version": "0.11.1",
+  "version": "0.11.2",
   "tick_rate": 20,
   "wave_seconds": 45,
   "races": [
@@ -62,15 +62,15 @@
     ]
   },
   "layout": {
-    "base_x": 30,
-    "base_y": 41,
+    "base_x": 26.5,
+    "base_y": 59,
     "base_radius": 1.75,
     "treasury_x": 62,
     "treasury_y": 59,
     "tower_x": 35,
     "tower_y": 46,
-    "spawn_x": 26.5,
-    "spawn_y": 59,
+    "spawn_x": 30,
+    "spawn_y": 41,
     "spawn_width": 24,
     "spawn_height": 24,
     "spawn_column_spacing": 2,
@@ -110,7 +110,8 @@
     "spawn_board_size": [
       24,
       24
-    ]
+    ],
+    "layout_adjustment": "0.11.2：按用户要求对调基地与出兵点，其余点位保持"
   },
   "first_wave_seconds": 65,
   "economy": {

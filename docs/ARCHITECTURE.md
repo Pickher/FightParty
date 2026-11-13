@@ -147,3 +147,5 @@ UnitDefinition 新增 collision_radius 与 separate_when_stopped，前者供空�
 ## 周期经济
 
 `BattleSim`持有`DesertStormEconomy`组件，配置位于`rules.economy`。战斗移动、死亡和基地伤害统一结算后再扫描中央井与支付收入；因此死亡单位不能占领，基地被摧毁的当步不发钱。气厂/兑换动作通过`apply_action`进入日志，波次与结算记录双方资源，快照仅返回自己的钱包。UI不直接增减瓦斯或灵核。
+
+0.11.2起，Catalog.tower_kind(race)统一供玩家建造与电脑预算使用：人族terran_bunker、神族protoss_photon_cannon、虫族zerg_tower_cluster，腐族tower。爬虫防御群通过独立武器组件count=2+2，整个实体被摧毁时4个炮位一起消失。

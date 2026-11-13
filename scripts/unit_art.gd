@@ -13,9 +13,16 @@ static func structure(canvas: CanvasItem, p: Vector2, kind: String, race: String
 				var angle: float = -PI*0.5 + TAU*i/spikes
 				var dir := Vector2(cos(angle),sin(angle))
 				var side := Vector2(-dir.y,dir.x)
-				canvas.draw_colored_polygon(PackedVector2Array([p+dir*radius*0.7+side*radius*0.25,p+dir*radius*1.45,p+dir*radius*0.7-side*radius*0.25]),tint)
+				canvas.draw_colored_polygon(PackedVector2Array([p+dir*radius*0.7+side*radius*0.25,p+dir*radius*(1.0 if kind=="zerg_tower_cluster" else 1.45),p+dir*radius*0.7-side*radius*0.25]),tint)
 			canvas.draw_circle(p,radius*0.4,dark)
-			if kind == "tower":
+			if kind == "zerg_tower_cluster":
+				# 四个炮位共用建筑；下方脊针、上方孢子以不同外形区分。
+				for side in [-1,1]:
+					var spore: Vector2 = p+Vector2(side*radius*0.55,-radius*0.45)
+					canvas.draw_circle(spore,radius*0.28,Color("a5ce85"))
+					var spine: Vector2 = p+Vector2(side*radius*0.55,radius*0.4)
+					canvas.draw_colored_polygon(PackedVector2Array([spine+Vector2(-radius*.25,radius*.2),spine+Vector2(0,-radius*.4),spine+Vector2(radius*.25,radius*.2)]),INK)
+			elif kind == "tower":
 				canvas.draw_circle(p,radius*0.2,tint)
 		"protoss":
 			if kind == "treasury":
@@ -24,7 +31,7 @@ static func structure(canvas: CanvasItem, p: Vector2, kind: String, race: String
 					hexagon.append(p+Vector2(cos(TAU*i/6.0),sin(TAU*i/6.0))*radius)
 				canvas.draw_colored_polygon(hexagon,tint)
 			else:
-				canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.35),p+Vector2(radius*0.7,0),p+Vector2(0,radius*1.1),p+Vector2(-radius*0.7,0)]),tint)
+				canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*(1.0 if kind=="protoss_photon_cannon" else 1.35)),p+Vector2(radius*0.7,0),p+Vector2(0,radius*(1.0 if kind=="protoss_photon_cannon" else 1.1)),p+Vector2(-radius*0.7,0)]),tint)
 			canvas.draw_arc(p,radius*0.55,0,TAU,20,INK,2)
 			if kind != "treasury":
 				canvas.draw_circle(p,radius*0.25,INK)
@@ -55,7 +62,7 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"treasury":
 			canvas.draw_circle(p,radius,color)
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.6),p+Vector2(radius*0.6,0),p+Vector2(0,radius*0.6),p+Vector2(-radius*0.6,0)]),Color("6b4f10"))
-		"tower", "terran_bunker":
+		"tower", "terran_bunker", "protoss_photon_cannon", "zerg_tower_cluster":
 			canvas.draw_rect(Rect2(p-Vector2(radius*0.8,radius*0.3),Vector2(radius*1.6,radius*1.1)),color)
 			canvas.draw_circle(p+Vector2(0,-radius*0.3),radius*0.55,color)
 			canvas.draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),INK,3)

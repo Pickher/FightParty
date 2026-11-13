@@ -91,9 +91,12 @@ def set_path(node, path, value):
 
 def apply():
  cat=Catalog();path=ROOT/'data/units.json';data=json.loads(path.read_text(encoding='utf-8'));units=data['units']
+ extension_path=ROOT/'data/units/defense_reference.json'
+ extension=json.loads(extension_path.read_text(encoding='utf-8')) if extension_path.exists() else {}
+ profile_version=extension.get('version','0.11.0')
  previous_path=ROOT/'data/units/desert_storm_reference.json'
  previous=json.loads(previous_path.read_text(encoding='utf-8')) if previous_path.exists() else {}
- audit={'version':'0.11.0','source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。',
+ audit={'version':profile_version,'source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。',
         'units':{},'changes':[],'unresolved':[]}
  def write(uid,path,value,source):
   unit=units[uid];old=unit
@@ -251,7 +254,9 @@ def apply():
   units[uid]['source_profile']={'map_unit':entry['source_unit'],'source':'desert-storm','status':'explicit_overrides'}
  for unit in units.values():
   unit.setdefault('gas_cost',0);unit.setdefault('core_cost',0)
- data['version']='0.11.0'
+ audit['units'].update(extension.get('units',{}))
+ audit['unresolved'].extend(extension.get('unresolved',[]))
+ data['version']=profile_version
  path.write_text(json.dumps(data,ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
  # Preserve original before-values when a developer reapplies the same profile.
  if previous.get('version')==audit['version']:

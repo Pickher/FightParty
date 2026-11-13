@@ -1,5 +1,5 @@
 {
-  "version": "0.11.0",
+  "version": "0.11.2",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。",
   "units": {
@@ -645,6 +645,32 @@
         "InterceptorAutoAttack"
       ],
       "behaviors": []
+    },
+    "protoss_photon_cannon": {
+      "source_unit": "PhotonCannon",
+      "fields": {
+        "hp": "UnitData/PhotonCannon/LifeMax=1500",
+        "shield": "UnitData/PhotonCannon/ShieldsMax=1500",
+        "shield_armor": "UnitData/PhotonCannon/ShieldArmor=3",
+        "shield_regen": "UnitData/PhotonCannon/ShieldRegenRate=18",
+        "cost": "UnitData/PhotonCannon/CostResource[Minerals]=600",
+        "attack_modes/0/range": "WeaponData/PhotonCannon/Range=9",
+        "attack_modes/0/interval": "WeaponData/PhotonCannon/Period=0.125，减0.001秒出手",
+        "attack_modes/0/strike_offsets": "WeaponData/PhotonCannon/DamagePoint=0；发射当步开始弹道"
+      }
+    },
+    "zerg_tower_cluster": {
+      "source_unit": "SpineCrawler + SporeCrawler（2+2合并）",
+      "fields": {
+        "hp": "2×UnitData/SpineCrawler/LifeMax1500 + 2×SporeCrawler/LifeMax2000",
+        "health_regen": "四座原图LifeRegenRate1.3671相加",
+        "skills/independent_weapons/weapons/0/count": "用户要求：2座对地脊针爬虫",
+        "skills/independent_weapons/weapons/1/count": "用户要求：2座对空孢子爬虫",
+        "attack_modes/0/interval": "WeaponData/ImpalerTentacle/Period=0.37，减0.001秒出手",
+        "attack_modes/1/interval": "WeaponData/AcidSpew/Period=0.172，减0.001秒出手",
+        "attack_modes/0/target_layers": "WeaponData/ImpalerTentacle/TargetFilters=Ground",
+        "attack_modes/1/target_layers": "WeaponData/AcidSpew/TargetFilters=Air"
+      }
     }
   },
   "changes": [
@@ -2929,6 +2955,81 @@
       "id": "stalker",
       "path": "skill_semantics",
       "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "protoss_photon_cannon",
+      "path": "armor",
+      "reason": "地图未显式写LifeArmor。光子用原版1；合并虫塔用较低的1，未逐塔分开减甲。"
+    },
+    {
+      "id": "protoss_photon_cannon",
+      "path": "attack_modes/0/damage",
+      "reason": "伤害效果继承原版，地图未写完整Amount；光子采用原版20，脊针25+5重甲，孢子采用当前原版20+10生物回退，未将Weapon.Level当实际伤害。"
+    },
+    {
+      "id": "protoss_photon_cannon",
+      "path": "attack_modes/0/delivery",
+      "reason": "弹速未完整还原原版依赖；沿用项目20格/秒弹道，攻击周期采用地图明确值。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "armor",
+      "reason": "地图未显式写LifeArmor。光子用原版1；合并虫塔用较低的1，未逐塔分开减甲。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/0/damage",
+      "reason": "伤害效果继承原版，地图未写完整Amount；光子采用原版20，脊针25+5重甲，孢子采用当前原版20+10生物回退，未将Weapon.Level当实际伤害。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/0/delivery",
+      "reason": "弹速未完整还原原版依赖；沿用项目20格/秒弹道，攻击周期采用地图明确值。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/damage",
+      "reason": "伤害效果继承原版，地图未写完整Amount；光子采用原版20，脊针25+5重甲，孢子采用当前原版20+10生物回退，未将Weapon.Level当实际伤害。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/delivery",
+      "reason": "弹速未完整还原原版依赖；沿用项目20格/秒弹道，攻击周期采用地图明确值。"
+    },
+    {
+      "id": "protoss_photon_cannon",
+      "path": "shield_regen_delay",
+      "reason": "脱战回盾延迟未在地图覆盖，采用项目/原版7秒回退。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/0/range",
+      "reason": "ImpalerTentacle射程继承原版，采用7格回退。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/range",
+      "reason": "AcidSpew射程继承原版，采用7格回退。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/0/bonus",
+      "reason": "脊针加成继承原版，采用对重甲+5回退。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/bonus_tags",
+      "reason": "孢子生物加成继承版本不齐，采用当前原版+10生物；地图Level45不作为加成证明。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "cost",
+      "reason": "两座孢子明确150/座，脊针采用原版100/座回退，合并价格500。"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "hp",
+      "reason": "7000为四座生命之和的合并设计，共用生命，不模拟四座逐一被摧毁。"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
- "version": "0.11.0",
+ "version": "0.11.2",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -4790,6 +4790,230 @@
    },
    "gas_cost": 0,
    "core_cost": 0
+  },
+  "protoss_photon_cannon": {
+   "name": "光子炮台",
+   "symbol": "D",
+   "race": "protoss",
+   "cost": 600,
+   "structure": true,
+   "hp": 1500,
+   "armor_type": "heavy",
+   "armor": 1,
+   "speed": 0.0,
+   "color": "8bc9ff",
+   "role": "高速光子炮 · 对空对地",
+   "counter": "射程9，完整攻击周期0.125秒；具有护盾",
+   "size": [
+    2,
+    2
+   ],
+   "spawn_count": 1,
+   "shield": 1500,
+   "shield_armor": 3,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 18,
+   "shield_regen_delay": 7,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [
+    "mechanical",
+    "structure",
+    "heroic"
+   ],
+   "collision_radius": 1.0,
+   "primary_mode": "photon_cannon",
+   "attack_modes": [
+    {
+     "damage": 20,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 9,
+     "interval": 0.124,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "photon_cannon",
+     "label": "光子炮",
+     "attack_duration": 0.001,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "flight": "distance",
+      "speed": 20,
+      "tracking": true
+     },
+     "strike_offsets": [
+      0
+     ]
+    }
+   ],
+   "gas_cost": 0,
+   "core_cost": 0,
+   "source_profile": {
+    "map_unit": "PhotonCannon",
+    "source": "desert-storm",
+    "status": "explicit_with_native_fallbacks"
+   }
+  },
+  "zerg_tower_cluster": {
+   "name": "爬虫防御群",
+   "symbol": "D",
+   "race": "zerg",
+   "cost": 500,
+   "structure": true,
+   "hp": 7000,
+   "armor_type": "heavy",
+   "armor": 1,
+   "speed": 0.0,
+   "color": "c3a079",
+   "role": "双脊针双孢子 · 独立索敌",
+   "counter": "合并两座脊针爬虫、两座孢子爬虫；四套独立火力共用生命",
+   "size": [
+    2.5,
+    2.5
+   ],
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 5.4684,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "structure",
+   "tags": [
+    "biological",
+    "structure",
+    "heroic"
+   ],
+   "collision_radius": 1.25,
+   "primary_mode": "spine_battery",
+   "attack_modes": [
+    {
+     "damage": 25,
+     "hit_count": 1,
+     "bonus": {
+      "heavy": 5
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 0.369,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "spine_battery",
+     "label": "脊针爬虫",
+     "attack_duration": 0.001,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "flight": "distance",
+      "speed": 20,
+      "tracking": true
+     },
+     "strike_offsets": [
+      0
+     ]
+    },
+    {
+     "damage": 20,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {
+      "biological": 10
+     },
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 0.171,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "spore_battery",
+     "label": "孢子爬虫",
+     "attack_duration": 0.001,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "flight": "distance",
+      "speed": 20,
+      "tracking": true
+     },
+     "strike_offsets": [
+      0
+     ]
+    }
+   ],
+   "gas_cost": 0,
+   "core_cost": 0,
+   "skills": {
+    "independent_weapons": {
+     "weapons": [
+      {
+       "id": "spine_battery",
+       "label": "脊针爬虫",
+       "count": 2,
+       "mode_id": "spine_battery"
+      },
+      {
+       "id": "spore_battery",
+       "label": "孢子爬虫",
+       "count": 2,
+       "mode_id": "spore_battery"
+      }
+     ],
+     "display_name": "独立火力"
+    }
+   },
+   "source_profile": {
+    "map_units": [
+     "SpineCrawler",
+     "SporeCrawler"
+    ],
+    "source": "desert-storm",
+    "status": "two_ground_two_air_composite"
+   }
   }
  }
 }

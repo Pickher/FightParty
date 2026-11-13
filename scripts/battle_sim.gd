@@ -105,9 +105,9 @@ func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
 func is_structure(unit: Dictionary) -> bool:
 	return bool(catalog[unit.kind].get("structure", false))
 
-## 人族建造驻军地堡，其余种族沿用各族外观的普通防御塔。
+## 建造种族专用防御建筑，选址、扣费和次数校验仍使用同一入口。
 func tower_kind(team: int) -> String:
-	return "terran_bunker" if races[team]=="terran" else "tower"
+	return Catalog.tower_kind(str(races[team]))
 
 ## 建造使用完整占地半径，模型和碰撞都必须留在己方半场。
 func tower_placement_radius(team: int) -> float:

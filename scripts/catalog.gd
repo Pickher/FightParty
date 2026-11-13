@@ -8,6 +8,10 @@ const RACES := ["terran","zerg","protoss","blight"]
 ## 仅供测试脚本注入额外兵种（例如训练假人）；游戏运行时始终为空。
 static var extra_units: Dictionary = {}
 
+## 不同种族使用各自的建造塔；虫族为2脊针+2孢子的单个聚合实体。
+static func tower_kind(race: String) -> String:
+	return str({"terran":"terran_bunker","protoss":"protoss_photon_cannon","zerg":"zerg_tower_cluster"}.get(race,"tower"))
+
 ## 读取 data/rules.json，把 JSON 文本转换成 Dictionary（键值对字典）。
 static func rules() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string("res://data/rules.json"))

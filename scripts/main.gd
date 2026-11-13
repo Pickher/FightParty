@@ -284,7 +284,7 @@ func advance_tick() -> void:
 		elif event.type == "base_defense_lost":
 			_note("%s基地防御失效 · 无法恢复" % ("我方" if event.team == 0 else "敌方"))
 		elif event.type == "structure_destroyed":
-			var names := {"treasury":"宝库","gate_tower":"基地防御模块","tower":"防御塔","terran_bunker":"地堡"}
+			var names := {"treasury":"宝库","gate_tower":"基地防御模块","tower":"防御塔","terran_bunker":"地堡","protoss_photon_cannon":"光子炮台","zerg_tower_cluster":"爬虫防御群"}
 			var side: String = "我方" if event.team == 0 else "敌方"
 			if event.kind == "treasury":
 				_note("%s宝库被摧毁 · %s +1 灵核" % [side,"敌方" if event.team == 0 else "我方"])

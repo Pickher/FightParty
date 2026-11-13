@@ -100,7 +100,7 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int, gas: int = 0, cor
 func tower_plan(last_enemy: Array, roster: Array, minerals: int, builds: int) -> String:
 	if builds >= int(rules.tower_max_builds) or _roster_value(last_enemy) <= _roster_value(roster):
 		return ""
-	var tower: String = "terran_bunker" if race=="terran" else "tower"
+	var tower: String = Catalog.tower_kind(race)
 	return "build" if minerals >= int(catalog[tower].cost) else "save"
 
 func wants_tower(last_enemy: Array, roster: Array, minerals: int, builds: int) -> bool:
