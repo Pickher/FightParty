@@ -8,13 +8,14 @@ func _init() -> void:
 ## 敌人进入射程且允许攻击时自动使用；只记自身扣血，最后与本步伤害统一结算。
 func activate(sim, unit: Dictionary, costs: Dictionary) -> void:
 	var stats: Dictionary = sim.catalog[unit.kind]
-	if config.is_empty() or active_at(sim.tick):
+	if config.is_empty() or active_at(sim.tick) or sim.tick<int(state.get("stim_ready_tick",0)):
 		return
-	var cost: float = float(stats.hp) * float(config.health_cost_ratio)
+	var cost: float = float(config.get("health_cost",float(stats.hp)*float(config.get("health_cost_ratio",0))))
 	if float(unit.hp) <= cost:
 		return
 	if not pay_energy(sim): return
 	costs[unit.id] = cost
+	state.stim_ready_tick=sim.tick+ceili(float(config.get("cooldown",0))*float(sim.rules.tick_rate))
 	state.stim_until_tick = sim.tick + ceili(float(config.duration) * float(sim.rules.tick_rate))
 	state.stim_attack_multiplier = float(config.attack_multiplier)
 	state.stim_speed_multiplier = float(config.speed_multiplier)

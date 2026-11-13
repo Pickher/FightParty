@@ -126,3 +126,7 @@ interval 是两次攻击启动的最短间隔，包含前后摇，不是三者�
 
 
 2026-11-12 0.9.2：WeaponDefinition通过AttackRegistry规范化delivery，并根据行为接口决定是否允许连续攻击的零轮后间隔。模式只保存行为类型ID和参数，行为实例不进入Unit/state/snapshot。已有数值和激光首次0.5秒、换目标0.8秒首结算规则保持不变。
+
+## 0.11.0参考配置扩展
+
+单位可配置gas_cost/core_cost；三种资源统一预算与退款，旧单位缺省为0。武器可配置strike_offsets独立出手时刻、armor_multiplier护甲倍率、splash_rings多圈溅射。临时护甲通过技能armor_bonus/shield_armor_bonus钩子参与实际命中结算和预估，不修改只读单位模板。来源与继承边界见[沙漠风暴兵种接入](DESERT_STORM_UNITS.md)。

@@ -19,9 +19,13 @@ LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
 LABELS['primary_mode']='默认攻击模式ID'
 LABELS['collision_radius']='碰撞半径（最终值）'
+LABELS.update(gas_cost='每组瓦斯价格',core_cost='每组灵核价格',source_profile='参考配置来源')
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
+    'strike_offsets':'各段出手时刻（秒）','armor_multiplier':'护甲减免倍率','splash_rings':'溅射分圈',
+    'speed_maximum':'交战速度上限','health_cost':'固定扣血量','shield_threshold':'触发护盾阈值','armor_override':'部署后生命护甲',
+    'shield_armor_buff':'临时护盾护甲','damage_trigger':'仅受伤后触发','initial_cooldown':'初始冷却',
     'healing':'治疗量','tick_interval':'光束结算间隔（秒）','switch_delay':'切换目标等待（秒）','attack_duration':'本轮持续/光束面板周期（秒）','delivery':'攻击行为','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'攻击类型（projectile/beam/line）','flight':'射弹飞行方式（contact/fixed/distance）','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
     'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','range_from_edge':'按模型边缘量射程',
     'hit_count':'每轮命中次数', 'preferred_distance':'期望距离（格）', 'single_target_limit':'移动追击敌人数上限',
@@ -92,9 +96,9 @@ def validate(units):
         where = uid + '：'
         for key in ('hp',):
             if not isinstance(unit.get(key), (int, float)) or unit[key] <= 0: raise ValueError(where + key + ' 必须大于 0。')
-        for key in ('cost', 'spawn_count'):
-            val = unit.get(key, 1)
-            if not isinstance(val, (int, float)) or isinstance(val, bool) or int(val) != val or val < (0 if key == 'cost' and (unit.get('structure') or unit.get('status')=='summoned') else 1):
+        for key in ('cost', 'spawn_count', 'gas_cost', 'core_cost'):
+            val = unit.get(key, 0 if key in ('gas_cost','core_cost') else 1)
+            if not isinstance(val, (int, float)) or isinstance(val, bool) or int(val) != val or val < (0 if key in ('gas_cost','core_cost') or (key == 'cost' and (unit.get('structure') or unit.get('status')=='summoned')) else 1):
                 raise ValueError(where + key + ' 必须为整数，兵种价格/数量须为正。')
         modes=unit.get('attack_modes',[])
         if 'attack_modes' in unit and (not isinstance(modes,list) or not modes or any(not isinstance(m,dict) for m in modes)):
@@ -110,6 +114,8 @@ def validate(units):
                     if not isinstance(m.get(field),(int,float)) or isinstance(m[field],bool):raise ValueError(where+'模式'+field+'须为数值。')
                 for field in ('bonus','bonus_tags'):
                     if any(not isinstance(v,(int,float)) or isinstance(v,bool) for v in m.get(field,{}).values()):raise ValueError(where+'模式加成须为数值对象。')
+                if any(not isinstance(t,(int,float)) or t<0 or t>m['attack_duration'] for t in m.get('strike_offsets',[])):raise ValueError(where+'分段出手时刻须在本轮持续时间以内。')
+                if m.get('strike_offsets') and (len(m['strike_offsets'])!=m.get('hit_count',1) or m['strike_offsets']!=sorted(m['strike_offsets'])):raise ValueError(where+'分段时间表须按顺序排列且数量等于段数。')
                 if m.get('damage_type') not in ('physical','spell','true'):raise ValueError(where+'攻击模式伤害类型无效。')
                 layers=m.get('target_layers',[])
                 if not layers or any(x not in ('ground','air') for x in layers):raise ValueError(where+'攻击模式目标层无效。')
@@ -261,8 +267,8 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
     notes=[['FightParty 兵种数值表', '源码版本 '+data.get('version','')],
         ['编辑流程','修改下方三页并保存 → 在项目根目录执行 python tools/import_units.py；或把文件交给 AI 导入。'],
         ['审核标记','黄色空白=待确认，灰色空白=不适用。批注记录当前游戏兼容值，空白导入不会写0。可在原页或待确认清单D列填写，勿填两个不同值。'],
-        ['原版口径','虫族/神族按5.0.17正式服三攻三防；神族含三盾。独立专属科技未全部点满，详情见技能核对。价格/每组数量保持项目原值。'],
-        ['技能核对','该页仅列参考能力及支持状态，待实现能力不会因为填数字而自动生效。待确认清单D列可导入，确认后请同步sc2_reference.json审核状态。'],
+        ['数据口径','0.11.0起按沙漠风暴明确配置覆盖旧数值。价格=原图单体价格×现有组数；未覆盖项保留项目回退值，不代表已还原原版继承。详见沙漠风暴来源/待确认页。'],
+        ['技能核对','该页保留旧原版原型资料；本版实际覆盖和未齐效果链见沙漠风暴来源/待确认。填数字不会自动实现技能。'],
         ['兵种属性','一行一个单位；价格按组，生命/伤害按单体；间隔单位秒，射程单位格。'],
         ['武器模式','每个兵种均显式列出攻击模式；伤害、加成、目标层、射程、每轮段数、出手持续时间、轮后间隔和弹道属于模式，单位属性不再重复保存武器值。技能通过mode_id引用。'],
         ['技能参数','一行一个参数；布尔填 true/false；倍率 1.3 表示增加30%，0.5 表示一半。'],
@@ -275,17 +281,17 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['刷新表格','python tools/unit_workbook.py --output 新文件.xlsx；生成需安装 openpyxl，导入仅需 Python 标准库。请先保存并导入已有编辑。'],
         ['恶火','开火距离4.5格，火焰固定传播5格，总宽0.6格（half_width为0.3）。'],
         ['特工弹药','使用穿甲弹/狙击弹模式内的单段伤害30，移除旧顶层未使用的40；各模式伤害和加成独立。'],
-        ['解放者 / 大和','解放者架设65+30重甲/1.14秒；大和720且目标门槛300。'],
+        ['明确覆盖与回退','原图明确值已导入单位和武器；旧的额外加成、缺失的原版间隔等以待确认页为准。不得把Weapon.Level当伤害、MinScanRange当射程。'],
         ['人族防御塔','1200生命/重甲/建筑/不自然回血；驻军8名特战队员、2名劫掠者。武器模式页count是独立炮位数，hit_count是每炮位每轮段数。'],
         ['基地防御模块','gate_tower不再生成独立单位；hp为基地额外生命5000，射程8，每0.5秒300真实伤害，0.5秒结算一次；health_regen为防御层存在时整座基地的回血5/秒。'],
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
-        ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。与玩家塔中心相距4.5格，位置在data/rules.json调整。'],
+        ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。地图点位见data/rules.json。'],
         ['连续光束','医疗兵、哨兵、虚空辉光舰、基地反击：面板总量按0.5秒，每0.5秒一次完整伤害/治疗结算，护甲按这次完整命中扣除；不拆0.05秒采样。光束画面持续，切换目标等待0.3秒并重新计结算周期，轮后间隔0。治疗用healing字段。'],
         ['攻击类型','三种独立实现：projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进。伤害与加成仍在武器模式内，类型负责投送，溅射/多段等共用公共结算。新兵种选类型并填参数即可复用。'],
         ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
         ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
         ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],
-        ['雷神','重炮射击2×(13+11重甲)，0.2秒打完/7格；高射炮击2×(23+15重甲)，0.4秒打完/10格；雷神之锤导弹4×(6+4轻甲)，0.5秒打完/10格/溅射1.2。三模式轮后均等待1秒，前两模式固定0.1秒弹道，导弹25格/秒。'],
+        ['雷神','各模式伤害和射程以武器模式页实际数据为准；原图没有明确覆盖的另一对空模式保留回退并标记，未用Level推算伤害。'],
         ['技能能力','填参数仅能调整已实现机制；填写文字不会自动产生新的技能效果。']]
     for row in notes: guide.append(row)
     fields=['id']+[k for k in LABELS if k!='id' and any(k in u for u in units.values())]
@@ -342,10 +348,26 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         inventory.append(['id','name','ability','status','parameters','note','source'])
         for uid,entry in reference.get('units',{}).items():
             for ability in entry.get('abilities',[]):
-                inventory.append([uid,units[uid]['name'],ability['name'],ability['status'],json.dumps(ability['parameters'],ensure_ascii=False),ability.get('note',''),entry['source']])
+                inventory.append([uid,units[uid]['name'],ability['name'],('旧原型记录：'+ability['status']) if units[uid].get('source_profile') else ability['status'],json.dumps(ability['parameters'],ensure_ascii=False),ability.get('note',''),entry['source']])
     baseline=wb.create_sheet('源数据');baseline.append(['id','json'])
     for uid,u in units.items(): baseline.append([uid,json.dumps(u,ensure_ascii=False)])
     baseline.sheet_state='hidden'
+    ds_path=source.parent/'units'/'desert_storm_reference.json'
+    ds=json.loads(ds_path.read_text(encoding='utf-8')) if ds_path.exists() else {}
+    if ds:
+        provenance=wb.create_sheet('沙漠风暴来源')
+        provenance.append(['明确覆盖项（只读说明，编辑数值仍在兵种/武器/技能页）'])
+        provenance.append(['兵种ID','名称','参数路径','实际写入值','参考原型ID','来源'])
+        for uid,entry in ds.get('units',{}).items():
+            for parameter,origin in entry.get('fields',{}).items():
+                value=units[uid]
+                for part in parameter.split('/'):value=value[int(part)] if isinstance(value,list) else value[part]
+                provenance.append([uid,units[uid]['name'],parameter,encode(value),entry['source_unit'],origin])
+        unresolved=wb.create_sheet('沙漠风暴待确认')
+        unresolved.append(['黄色条目表示保留回退，未宣称还原；原始脚本的能力名称不等于该能力已完整实现'])
+        unresolved.append(['兵种ID','名称','字段/技能','原因'])
+        for item in ds.get('unresolved',[]):
+            unresolved.append([item['id'],units[item['id']]['name'],item['path'],item['reason']])
     for ws in wb:
         if ws==baseline: continue
         ws.freeze_panes='D3' if ws==basic else 'F3' if ws in tabs.values() else 'B2'
@@ -396,6 +418,29 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
                 row[4].fill=PatternFill('solid',fgColor='FFF2CC')
                 row[4].comment=Comment('该能力的完整参数尚未核对，待人工补充；此页不直接导入技能实现。','FightParty')
         for col,width in [('C',36),('D',20),('E',80),('F',70),('G',72)]:inventory.column_dimensions[col].width=width
+    if ds:
+        for ws in [provenance,unresolved]:
+            ws.freeze_panes='D3'
+            ws.column_dimensions['C'].width=60
+            ws.column_dimensions['D'].width=85
+            ws.row_dimensions[1].height=35
+        provenance.column_dimensions['F'].width=100
+        for row in unresolved.iter_rows(min_row=3):
+            for cell in row:cell.fill=PatternFill('solid',fgColor='FFF2CC')
+        # Mark unresolved source fields without erasing their compatible runtime value.
+        source_reviews={(r['id'],r['path']):r['reason'] for r in ds.get('unresolved',[]) if not r['path'].startswith('ability:')}
+        for row in basic.iter_rows(min_row=3):
+            for column,key in enumerate(fields,1):
+                reason=source_reviews.get((row[0].value,key))
+                if reason:
+                    row[column-1].fill=PatternFill('solid',fgColor='FFF2CC')
+                    row[column-1].comment=Comment(reason+'；此格保留项目回退值，可正常编辑。','FightParty')
+        for ws in tabs.values():
+            for row in ws.iter_rows(min_row=3):
+                reason=next((source_reviews[(row[0].value,'/'.join(str(row[3].value).split('/')[:i]))] for i in range(len(str(row[3].value).split('/')),0,-1) if (row[0].value,'/'.join(str(row[3].value).split('/')[:i])) in source_reviews),None)
+                if reason:
+                    row[5].fill=PatternFill('solid',fgColor='FFF2CC')
+                    row[5].comment=Comment(reason+'；此格为现有回退值。','FightParty')
     destination.parent.mkdir(parents=True,exist_ok=True)
     wb.save(destination)
     print('已生成 %s（%d 个单位，保留源码原值）'%(destination,len(units)))

@@ -1,6 +1,9 @@
 extends RefCounted
 ## 配置键 → 独立组件类。新增技能只注册一次，兵种只需挂参数。
 const TYPES := {
+	"combat_mobility":preload("res://scripts/skills/combat_mobility.gd"),
+	"mobility_burst":preload("res://scripts/skills/mobility_burst.gd"),
+	"shield_armor_buff":preload("res://scripts/skills/shield_armor_buff.gd"),
 	"weapon_buff":preload("res://scripts/skills/weapon_buff.gd"),
 	"mobile_attack":preload("res://scripts/skills/mobile_attack.gd"),
 	"independent_weapons":preload("res://scripts/skills/independent_weapons.gd"),
@@ -46,7 +49,7 @@ func attach(sim, unit: Dictionary) -> void:
 	instances[unit.id]=attached
 	publish(unit)
 
-func components(unit: Dictionary) -> Array: return instances.get(unit.id,[])
+func components(unit: Dictionary) -> Array: return instances.get(int(unit.get("id",0)),[])
 func publish(unit: Dictionary) -> void:
 	var snapshots: Dictionary = {}
 	for component in components(unit):
@@ -199,3 +202,13 @@ func get_component(unit: Dictionary, key: String):
 	for component in components(unit):
 		if component.id==key:return component
 	return null
+
+func armor_bonus(sim, unit: Dictionary) -> float:
+	var value := 0.0
+	for component in components(unit): value+=component.armor_bonus(sim)
+	return value
+
+func shield_armor_bonus(sim, unit: Dictionary) -> float:
+	var value := 0.0
+	for component in components(unit): value+=component.shield_armor_bonus(sim)
+	return value

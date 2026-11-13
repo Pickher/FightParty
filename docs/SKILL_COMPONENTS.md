@@ -133,3 +133,7 @@ services 下放的是所有组件可以复用的世界机制：
 
 
 2026-11-12 0.9.2：三类攻击行为独立于兵种技能，统一接口与注册点见ATTACK_BEHAVIORS.md。挂载技能继续负责部署、增益、索敌等，普通武器delivery.type选择projectile/beam/line。原line_attack技能保留显示标记和兼容入口，实际轨迹由直线攻击行为调度，新兵种不需要复制此组件的发射逻辑。
+
+## 0.11.0扩展
+
+新增combat_mobility（交战机动）、mobility_burst（短时加速）、shield_armor_buff（临时护盾护甲）。技能基类增加armor_bonus与shield_armor_bonus，默认0；部署可以用armor_override改变部署后的生命护甲，强化剂可用health_cost扣固定生命并用cooldown单独约束重用。实际配置与未齐效果链见[沙漠风暴兵种接入](DESERT_STORM_UNITS.md)。

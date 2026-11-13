@@ -42,6 +42,8 @@ func attack_rate(_sim) -> float: return 1.0
 func attack_count(_sim, value: int) -> int: return value
 func damage_multiplier(_ctx: Dictionary) -> float: return 1.0
 func absorb(_ctx: Dictionary, raw: float) -> float: return raw
+func armor_bonus(_sim) -> float: return 0.0
+func shield_armor_bonus(_sim) -> float: return 0.0
 
 ## 兼容当前画面读取的平面字段；逻辑状态以组件 state 为准，投影为深拷贝。
 func publish() -> void:

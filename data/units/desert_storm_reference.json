@@ -1,0 +1,2934 @@
+{
+  "version": "0.11.0",
+  "source": "reference/desert-storm",
+  "policy": "仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。",
+  "units": {
+    "rifle": {
+      "source_unit": "Marine",
+      "fields": {
+        "armor": "UnitData/Marine/LifeArmor",
+        "cost": "UnitData/Marine/CostResource[Minerals] × spawn_count",
+        "attack_modes/0/damage": "EffectData/GuassRifle/Amount",
+        "skills/stimulant": "AbilData/DSStimpack/Cost"
+      },
+      "abilities": [
+        "DSStimpack",
+        "wanttoattackGA",
+        "wanttoattackCGA2"
+      ],
+      "behaviors": []
+    },
+    "hellbat": {
+      "source_unit": "Hellion",
+      "fields": {
+        "armor": "UnitData/Hellion/LifeArmor",
+        "cost": "UnitData/Hellion/CostResource[Minerals] × spawn_count",
+        "attack_modes/0/damage": "EffectData/InfernalFlameThrower/Amount",
+        "attack_modes/0/bonus/light": "EffectData/InfernalFlameThrower/AttributeBonus[Light]",
+        "sc2": "UnitData/Hellion 对应关系（内部ID保留hellbat）"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
+    },
+    "marauder": {
+      "source_unit": "Marauder",
+      "fields": {
+        "armor": "UnitData/Marauder/LifeArmor",
+        "cost": "UnitData/Marauder/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Marauder/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/PunisherGrenadesU/Amount",
+        "attack_modes/0/bonus/heavy": "EffectData/PunisherGrenadesU/AttributeBonus[Armored]",
+        "skills/stimulant": "AbilData/DSStimpackMarauder/Cost"
+      },
+      "abilities": [
+        "DSStimpackMarauder",
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
+    },
+    "medic": {
+      "source_unit": "Medic",
+      "fields": {
+        "hp": "UnitData/Medic/LifeMax",
+        "armor": "UnitData/Medic/LifeArmor",
+        "cost": "UnitData/Medic/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Medic/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/range": "AbilData/heal/Range",
+        "skills/healing/follow_distance": "项目后排治疗AI保留"
+      },
+      "abilities": [
+        "move",
+        "heal"
+      ],
+      "behaviors": []
+    },
+    "agent": {
+      "source_unit": "Ghost",
+      "fields": {
+        "hp": "UnitData/Ghost/LifeMax",
+        "armor": "UnitData/Ghost/LifeArmor",
+        "initial_energy": "UnitData/Ghost/EnergyStart",
+        "speed": "UnitData/Ghost/Speed",
+        "cost": "UnitData/Ghost/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Ghost/CostResource[Vespene] × spawn_count",
+        "armor_type": "UnitData/Ghost/Attributes[Light]",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel",
+        "attack_modes/0/range": "WeaponData/C10CanisterRifleFake/Range",
+        "attack_modes/0/windup": "WeaponData/C10CanisterRifleFake/DamagePoint",
+        "attack_modes/0/backswing": "WeaponData/C10CanisterRifleFake/Backswing",
+        "attack_modes/0/damage": "EffectData/C10CanisterRifle/Amount",
+        "attack_modes/0/bonus/light": "EffectData/C10CanisterRifle/AttributeBonus[Light]",
+        "attack_modes/0/interval": "WeaponData/C10CanisterRifleFake/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA",
+        "EMP",
+        "ChannelSnipe"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "widow_mine": {
+      "source_unit": "WidowMine",
+      "fields": {
+        "armor": "UnitData/WidowMine/LifeArmor",
+        "cost": "UnitData/WidowMine/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/WidowMine/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+      },
+      "abilities": [
+        "attack",
+        "wanttoattackGA",
+        "wanttoattackCGA",
+        "WidowMineBurrow"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "mortar": {
+      "source_unit": "SiegeTank",
+      "fields": {
+        "hp": "UnitData/SiegeTank/LifeMax",
+        "armor": "UnitData/SiegeTank/LifeArmor",
+        "cost": "UnitData/SiegeTank/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/SiegeTank/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/90mmCannons/Amount",
+        "attack_modes/0/bonus/heavy": "EffectData/90mmCannons/AttributeBonus[Armored]",
+        "attack_modes/1/damage": "EffectData/CrucioShockCannonDirected/Amount",
+        "attack_modes/1/bonus/heavy": "EffectData/CrucioShockCannonDirected/AttributeBonus[Armored]",
+        "skills/deployment/armor_override": "UnitData/SiegeTankSieged/LifeArmor"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG",
+        "SiegeMode"
+      ],
+      "behaviors": []
+    },
+    "viking": {
+      "source_unit": "VikingFighter",
+      "fields": {
+        "hp": "UnitData/VikingFighter/LifeMax",
+        "armor": "UnitData/VikingFighter/LifeArmor",
+        "cost": "UnitData/VikingFighter/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/VikingFighter/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+      },
+      "abilities": [
+        "wanttoattackA",
+        "wanttoattackCA"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "liberator": {
+      "source_unit": "Liberator",
+      "fields": {
+        "armor": "UnitData/Liberator/LifeArmor",
+        "cost": "UnitData/Liberator/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Liberator/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/LiberatorMissileDamage/Amount",
+        "attack_modes/1/range": "WeaponData/LiberatorAGWeapon/Range",
+        "attack_modes/1/damage": "EffectData/LiberatorAGDamage/Amount",
+        "attack_modes/1/interval": "WeaponData/LiberatorAGWeapon/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "LiberatorAttackLandOrderNormal",
+        "wanttoattackA",
+        "wanttoattackCA"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "thor": {
+      "source_unit": "Thor",
+      "fields": {
+        "armor": "UnitData/Thor/LifeArmor",
+        "cost": "UnitData/Thor/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Thor/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel",
+        "attack_modes/2/damage": "EffectData/ThorsHammerDamage/Amount",
+        "attack_modes/1/range": "WeaponData/JavelinMissileLaunchers/Range",
+        "attack_modes/1/damage": "EffectData/JavelinMissileLaunchersDamage/Amount",
+        "attack_modes/1/bonus/light": "EffectData/JavelinMissileLaunchersDamage/AttributeBonus[Light]",
+        "attack_modes/1/interval": "WeaponData/JavelinMissileLaunchers/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "battlecruiser": {
+      "source_unit": "Battlecruiser",
+      "fields": {
+        "hp": "UnitData/Battlecruiser/LifeMax",
+        "armor": "UnitData/Battlecruiser/LifeArmor",
+        "energy": "UnitData/Battlecruiser/EnergyMax",
+        "initial_energy": "UnitData/Battlecruiser/EnergyStart",
+        "cost": "UnitData/Battlecruiser/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Battlecruiser/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/ATSLaserBatteryU/Amount",
+        "attack_modes/1/damage": "EffectData/ATALaserBatteryU/Amount"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA"
+      ],
+      "behaviors": [
+        "speed225"
+      ]
+    },
+    "zergling": {
+      "source_unit": "Zergling",
+      "fields": {
+        "hp": "UnitData/Zergling/LifeMax",
+        "armor": "UnitData/Zergling/LifeArmor",
+        "speed": "UnitData/Zergling/Speed",
+        "cost": "UnitData/Zergling/CostResource[Minerals] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed295land; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/PrimalZergling/Amount"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": [
+        "speed295land"
+      ]
+    },
+    "baneling": {
+      "source_unit": "Baneling",
+      "fields": {
+        "hp": "UnitData/Baneling/LifeMax",
+        "armor": "UnitData/Baneling/LifeArmor",
+        "cost": "UnitData/Baneling/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Baneling/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/VolatileBurstU/Amount"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": [
+        "BanelingExplodebase"
+      ]
+    },
+    "roach": {
+      "source_unit": "Roach",
+      "fields": {
+        "hp": "UnitData/Roach/LifeMax",
+        "armor": "UnitData/Roach/LifeArmor",
+        "speed": "UnitData/Roach/Speed",
+        "cost": "UnitData/Roach/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Roach/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/AcidSalivaU/Amount"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
+    },
+    "hydralisk": {
+      "source_unit": "Hydralisk",
+      "fields": {
+        "hp": "UnitData/Hydralisk/LifeMax",
+        "armor": "UnitData/Hydralisk/LifeArmor",
+        "cost": "UnitData/Hydralisk/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Hydralisk/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/NeedleSpinesDamage/Amount",
+        "skills/mobility_burst": "AbilData/HydraliskFrenzynormal → BehaviorData/HydraliskFrenzynormal; ValidatorData/NoEnemiesNearbyWidowRange7"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA2",
+        "HydraliskFrenzynormal"
+      ],
+      "behaviors": []
+    },
+    "ravager": {
+      "source_unit": "Ravager",
+      "fields": {
+        "hp": "UnitData/Ravager/LifeMax",
+        "armor": "UnitData/Ravager/LifeArmor",
+        "cost": "UnitData/Ravager/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Ravager/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/RavagerWeaponDamage/Amount",
+        "attack_modes/0/interval": "WeaponData/RavagerWeapon/Period（完整周期减出手与前后摇）",
+        "skills/delayed_area/range": "AbilData/RavagerCorrosiveBile/AutoCastRange（自动施法范围）"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG",
+        "RavagerCorrosiveBile"
+      ],
+      "behaviors": []
+    },
+    "piercer": {
+      "source_unit": "LurkerMP",
+      "fields": {
+        "armor": "UnitData/LurkerMP/LifeArmor",
+        "cost": "UnitData/LurkerMP/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/LurkerMP/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/range": "WeaponData/Lurker/Range",
+        "attack_modes/0/damage": "EffectData/LurkerMPDamage/Amount",
+        "attack_modes/0/bonus/heavy": "EffectData/LurkerMPDamage/AttributeBonus[Armored]",
+        "attack_modes/0/interval": "WeaponData/Lurker/Period（完整周期减出手与前后摇）",
+        "skills/deployment/deploy_seconds": "AbilData/BurrowLurkerMPDown/InfoArray/SectionArray/DurationArray[Delay]",
+        "attack_modes/0/delivery/length": "WeaponData/Lurker/Range（固定地刺总长）"
+      },
+      "abilities": [
+        "attack",
+        "wanttoattackG",
+        "wanttoattackCG",
+        "BurrowLurkerMPDown"
+      ],
+      "behaviors": []
+    },
+    "tunneler": {
+      "source_unit": "SwarmHostMP",
+      "fields": {
+        "armor": "UnitData/SwarmHostMP/LifeArmor",
+        "speed": "UnitData/SwarmHostMP/Speed",
+        "cost": "UnitData/SwarmHostMP/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/SwarmHostMP/CostResource[Vespene] × spawn_count",
+        "skills/summon/interval": "AbilData/SpawnLocustsTargeted/Cost/Cooldown@TimeUse"
+      },
+      "abilities": [
+        "SpawnLocustsTargeted",
+        "attack",
+        "wanttoattackGA",
+        "wanttoattackCGA"
+      ],
+      "behaviors": []
+    },
+    "mutalisk": {
+      "source_unit": "Mutalisk",
+      "fields": {
+        "armor": "UnitData/Mutalisk/LifeArmor",
+        "cost": "UnitData/Mutalisk/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Mutalisk/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/MutaliskGlaiveWurmDamage/Amount"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA2"
+      ],
+      "behaviors": []
+    },
+    "infestor": {
+      "source_unit": "Infestor",
+      "fields": {
+        "armor": "UnitData/Infestor/LifeArmor",
+        "initial_energy": "UnitData/Infestor/EnergyStart",
+        "cost": "UnitData/Infestor/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Infestor/CostResource[Vespene] × spawn_count"
+      },
+      "abilities": [
+        "attack",
+        "wanttoattackGA",
+        "wanttoattackCGA",
+        "NeuralParasite"
+      ],
+      "behaviors": []
+    },
+    "ultralisk": {
+      "source_unit": "Ultralisk",
+      "fields": {
+        "armor": "UnitData/Ultralisk/LifeArmor",
+        "cost": "UnitData/Ultralisk/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Ultralisk/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/speed295land; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/KaiserBladesDamage/Amount"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": [
+        "speed295land"
+      ]
+    },
+    "brood_lord": {
+      "source_unit": "BroodLord",
+      "fields": {
+        "armor": "UnitData/BroodLord/LifeArmor",
+        "speed": "UnitData/BroodLord/Speed",
+        "cost": "UnitData/BroodLord/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/BroodLord/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/BroodlingEscortDamage/Amount"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG"
+      ],
+      "behaviors": []
+    },
+    "vanguard": {
+      "source_unit": "Zealot",
+      "fields": {
+        "hp": "UnitData/Zealot/LifeMax",
+        "armor": "UnitData/Zealot/LifeArmor",
+        "shield": "UnitData/Zealot/ShieldsMax",
+        "shield_armor": "UnitData/Zealot/ShieldArmor",
+        "speed": "UnitData/Zealot/Speed",
+        "cost": "UnitData/Zealot/CostResource[Minerals] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel",
+        "attack_modes/0/range": "WeaponData/Weapon_LNLR/Range",
+        "attack_modes/0/hit_count": "WeaponData/Weapon_LNLR/DisplayAttackCount",
+        "attack_modes/0/damage": "EffectData/Effect_SH_LNLR/Amount",
+        "attack_modes/0/interval": "WeaponData/Weapon_LNLR/Period=1.2 减0.28秒出手",
+        "attack_modes/0/strike_offsets": "EffectData/Weapon_LNLR/PeriodicPeriodArray",
+        "attack_modes/0/attack_duration": "EffectData/Weapon_LNLR/PeriodicPeriodArray"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "stalker": {
+      "source_unit": "Stalker",
+      "fields": {
+        "armor": "UnitData/Stalker/LifeArmor",
+        "shield_armor": "UnitData/Stalker/ShieldArmor",
+        "cost": "UnitData/Stalker/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Stalker/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/ParticleDisruptorsU/Amount",
+        "attack_modes/0/bonus/heavy": "EffectData/ParticleDisruptorsU/AttributeBonus[Armored]",
+        "skills/blink/distance": "EffectData/StalkerAutoBlinkCP/InitialOffset",
+        "skills/blink/cooldown": "EffectData/StalkerBlinkSetCooldown/Cost@CooldownTimeUse",
+        "skills/blink/shield_threshold": "ValidatorData/CasterShieldLT30（原图自动闪烁）",
+        "skills/blink/damage_trigger": "BehaviorData/StalkerAutoBlink/DamageResponse",
+        "skills/blink/invulnerable_seconds": "BehaviorData/StalkerBlink0625/Duration 与 StateFlags[Invulnerable]"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA2",
+        "Blink"
+      ],
+      "behaviors": [
+        "StalkerAutoBlink"
+      ]
+    },
+    "sentry": {
+      "source_unit": "Sentry",
+      "fields": {
+        "attack_modes/0/damage": "EffectData/DisruptionBeamDamage/Amount",
+        "attack_modes/0/shield_bonus": "EffectData/DisruptionBeamDamage/ShieldBonus"
+      },
+      "abilities": [],
+      "behaviors": []
+    },
+    "immortal": {
+      "source_unit": "Immortal",
+      "fields": {
+        "armor": "UnitData/Immortal/LifeArmor",
+        "shield_armor": "UnitData/Immortal/ShieldArmor",
+        "cost": "UnitData/Immortal/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Immortal/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/PhaseDisruptors/Amount",
+        "attack_modes/0/bonus/heavy": "EffectData/PhaseDisruptors/AttributeBonus[Armored]",
+        "skills/shield_armor_buff": "AbilData/ImmortalBarrierArmor → EffectData/ImmortalBarrierBaseABArmor → BehaviorData/ImmortalBarrierBase3",
+        "role": "BehaviorData/ImmortalBarrierBase3",
+        "counter": "BehaviorData/ImmortalBarrierBase3"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG",
+        "ImmortalBarrierArmor"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "high_templar": {
+      "source_unit": "HighTemplar",
+      "fields": {
+        "armor": "UnitData/HighTemplar/LifeArmor",
+        "shield_armor": "UnitData/HighTemplar/ShieldArmor",
+        "initial_energy": "UnitData/HighTemplar/EnergyStart",
+        "cost": "UnitData/HighTemplar/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/HighTemplar/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel",
+        "skills/delayed_area/cooldown": "AbilData/PsiStorm/Cost/Cooldown@TimeUse",
+        "skills/delayed_area/range": "AbilData/PsiStorm/AutoCastRange（只用于自动施法触发）"
+      },
+      "abilities": [
+        "attack",
+        "wanttoattackG",
+        "PsiStorm",
+        "ArchonWarp",
+        "Warpable",
+        "Feedback",
+        "ArchonWarp_RHZL",
+        "wanttoattackCG"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "archon": {
+      "source_unit": "Archon",
+      "fields": {
+        "armor": "UnitData/Archon/LifeArmor",
+        "shield_armor": "UnitData/Archon/ShieldArmor",
+        "cost": "UnitData/Archon/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Archon/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/PsionicShockwaveDamage/Amount",
+        "attack_modes/0/bonus_tags/biological": "EffectData/PsionicShockwaveDamage/AttributeBonus[Biological]"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA2"
+      ],
+      "behaviors": [
+        "Frenzy"
+      ]
+    },
+    "colossus": {
+      "source_unit": "Colossus",
+      "fields": {
+        "hp": "UnitData/Colossus/LifeMax",
+        "armor": "UnitData/Colossus/LifeArmor",
+        "shield": "UnitData/Colossus/ShieldsMax",
+        "shield_armor": "UnitData/Colossus/ShieldArmor",
+        "cost": "UnitData/Colossus/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Colossus/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/ThermalLancesMU/Amount",
+        "attack_modes/0/bonus/light": "EffectData/ThermalLancesMU/AttributeBonus[Light]",
+        "attack_modes/0/interval": "WeaponData/ThermalLances/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG",
+        "Colossus_KYSS"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "disruptor": {
+      "source_unit": "Disruptor",
+      "fields": {
+        "armor": "UnitData/Disruptor/LifeArmor",
+        "shield": "UnitData/Disruptor/ShieldsMax",
+        "shield_armor": "UnitData/Disruptor/ShieldArmor",
+        "cost": "UnitData/Disruptor/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Disruptor/CostResource[Vespene] × spawn_count",
+        "armor_type": "UnitData/Disruptor/Attributes[Armored]",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+      },
+      "abilities": [
+        "attack",
+        "wanttoattackG",
+        "wanttoattackCG"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "void_ray": {
+      "source_unit": "VoidRay",
+      "fields": {
+        "armor": "UnitData/VoidRay/LifeArmor",
+        "shield_armor": "UnitData/VoidRay/ShieldArmor",
+        "speed": "UnitData/VoidRay/Speed",
+        "cost": "UnitData/VoidRay/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/VoidRay/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel",
+        "attack_modes/0/damage": "EffectData/VoidRaySwarmDamage/Amount",
+        "skills/weapon_buff/cooldown": "AbilData/DSVoidRaySwarmDamageBoost/Cost/Cooldown@TimeUse"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "DSVoidRaySwarmDamageBoost",
+        "wanttoattackCGA"
+      ],
+      "behaviors": [
+        "slowprotoss275"
+      ]
+    },
+    "carrier": {
+      "source_unit": "Carrier",
+      "fields": {
+        "armor": "UnitData/Carrier/LifeArmor",
+        "shield_armor": "UnitData/Carrier/ShieldArmor",
+        "cost": "UnitData/Carrier/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/Carrier/CostResource[Vespene] × spawn_count",
+        "skills/combat_mobility": "BehaviorData/slowprotoss275,CarrierSearchforAttack; ValidatorData/Speedfixcancel"
+      },
+      "abilities": [
+        "wanttoattackGA",
+        "wanttoattackCGA3",
+        "ReleaseInterceptors"
+      ],
+      "behaviors": [
+        "slowprotoss275",
+        "CarrierSearchforAttack"
+      ]
+    },
+    "broodling": {
+      "source_unit": "Broodling",
+      "fields": {
+        "hp": "UnitData/Broodling/LifeMax",
+        "tags": "UnitData/Broodling/Attributes[Summoned]"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
+    },
+    "locust": {
+      "source_unit": "LocustMP",
+      "fields": {
+        "hp": "UnitData/LocustMP/LifeMax",
+        "armor": "UnitData/LocustMP/LifeArmor",
+        "tags": "UnitData/LocustMP/Attributes[Summoned]",
+        "attack_modes/0/damage": "EffectData/LocustMPDamage/Amount",
+        "attack_modes/0/interval": "WeaponData/LocustMP/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
+    },
+    "interceptor": {
+      "source_unit": "Interceptor",
+      "fields": {
+        "armor": "UnitData/Interceptor/LifeArmor",
+        "shield_armor": "UnitData/Interceptor/ShieldArmor",
+        "tags": "UnitData/Interceptor/Attributes[Summoned]",
+        "attack_modes/0/damage": "EffectData/InterceptorBeamDamage/Amount"
+      },
+      "abilities": [
+        "InterceptorAutoAttack"
+      ],
+      "behaviors": []
+    }
+  },
+  "changes": [
+    {
+      "id": "vanguard",
+      "path": "attack_modes/0/strike_offsets",
+      "before": null,
+      "after": [
+        0,
+        0.28
+      ],
+      "source": "EffectData/Weapon_LNLR/PeriodicPeriodArray"
+    },
+    {
+      "id": "vanguard",
+      "path": "attack_modes/0/attack_duration",
+      "before": 0.3,
+      "after": 0.28,
+      "source": "EffectData/Weapon_LNLR/PeriodicPeriodArray"
+    },
+    {
+      "id": "vanguard",
+      "path": "attack_modes/0/interval",
+      "before": 0.9,
+      "after": 0.92,
+      "source": "WeaponData/Weapon_LNLR/Period=1.2 减0.28秒出手"
+    },
+    {
+      "id": "stalker",
+      "path": "skills/blink/distance",
+      "before": 8,
+      "after": 14,
+      "source": "EffectData/StalkerAutoBlinkCP/InitialOffset"
+    },
+    {
+      "id": "stalker",
+      "path": "skills/blink/cooldown",
+      "before": 7.14,
+      "after": 8,
+      "source": "EffectData/StalkerBlinkSetCooldown/Cost@CooldownTimeUse"
+    },
+    {
+      "id": "stalker",
+      "path": "skills/blink/shield_threshold",
+      "before": null,
+      "after": 30,
+      "source": "ValidatorData/CasterShieldLT30（原图自动闪烁）"
+    },
+    {
+      "id": "stalker",
+      "path": "skills/blink/damage_trigger",
+      "before": null,
+      "after": true,
+      "source": "BehaviorData/StalkerAutoBlink/DamageResponse"
+    },
+    {
+      "id": "void_ray",
+      "path": "skills/weapon_buff/cooldown",
+      "before": 42.9,
+      "after": 60,
+      "source": "AbilData/DSVoidRaySwarmDamageBoost/Cost/Cooldown@TimeUse"
+    },
+    {
+      "id": "hellbat",
+      "path": "cost",
+      "before": 125,
+      "after": 130,
+      "source": "UnitData/Hellion/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "marauder",
+      "path": "cost",
+      "before": 540,
+      "after": 560,
+      "source": "UnitData/Marauder/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "marauder",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Marauder/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "medic",
+      "path": "hp",
+      "before": 95,
+      "after": 78,
+      "source": "UnitData/Medic/LifeMax"
+    },
+    {
+      "id": "medic",
+      "path": "armor",
+      "before": 3,
+      "after": 4,
+      "source": "UnitData/Medic/LifeArmor"
+    },
+    {
+      "id": "medic",
+      "path": "cost",
+      "before": 125,
+      "after": 380,
+      "source": "UnitData/Medic/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "medic",
+      "path": "gas_cost",
+      "before": null,
+      "after": 380,
+      "source": "UnitData/Medic/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "agent",
+      "path": "initial_energy",
+      "before": 0,
+      "after": 200,
+      "source": "UnitData/Ghost/EnergyStart"
+    },
+    {
+      "id": "agent",
+      "path": "speed",
+      "before": 2.25,
+      "after": 2.75,
+      "source": "UnitData/Ghost/Speed"
+    },
+    {
+      "id": "agent",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Ghost/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "agent",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "widow_mine",
+      "path": "cost",
+      "before": 400,
+      "after": 360,
+      "source": "UnitData/WidowMine/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "widow_mine",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/WidowMine/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "widow_mine",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "mortar",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/SiegeTank/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "viking",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/VikingFighter/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "viking",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "liberator",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Liberator/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "liberator",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "thor",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Thor/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "thor",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Battlecruiser/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.25,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "zergling",
+      "path": "hp",
+      "before": 35,
+      "after": 90,
+      "source": "UnitData/Zergling/LifeMax"
+    },
+    {
+      "id": "zergling",
+      "path": "speed",
+      "before": 4.13,
+      "after": 3.5,
+      "source": "UnitData/Zergling/Speed"
+    },
+    {
+      "id": "zergling",
+      "path": "cost",
+      "before": 50,
+      "after": 75,
+      "source": "UnitData/Zergling/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "zergling",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_bonus": -0.5507
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed295land; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "baneling",
+      "path": "hp",
+      "before": 30,
+      "after": 35,
+      "source": "UnitData/Baneling/LifeMax"
+    },
+    {
+      "id": "baneling",
+      "path": "cost",
+      "before": 75,
+      "after": 110,
+      "source": "UnitData/Baneling/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "baneling",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Baneling/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "roach",
+      "path": "hp",
+      "before": 145,
+      "after": 150,
+      "source": "UnitData/Roach/LifeMax"
+    },
+    {
+      "id": "roach",
+      "path": "speed",
+      "before": 3.15,
+      "after": 3,
+      "source": "UnitData/Roach/Speed"
+    },
+    {
+      "id": "roach",
+      "path": "cost",
+      "before": 100,
+      "after": 120,
+      "source": "UnitData/Roach/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "roach",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Roach/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "hydralisk",
+      "path": "hp",
+      "before": 90,
+      "after": 100,
+      "source": "UnitData/Hydralisk/LifeMax"
+    },
+    {
+      "id": "hydralisk",
+      "path": "cost",
+      "before": 150,
+      "after": 130,
+      "source": "UnitData/Hydralisk/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "hydralisk",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Hydralisk/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "ravager",
+      "path": "hp",
+      "before": 120,
+      "after": 160,
+      "source": "UnitData/Ravager/LifeMax"
+    },
+    {
+      "id": "ravager",
+      "path": "cost",
+      "before": 150,
+      "after": 260,
+      "source": "UnitData/Ravager/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "ravager",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Ravager/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "piercer",
+      "path": "cost",
+      "before": 175,
+      "after": 850,
+      "source": "UnitData/LurkerMP/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "piercer",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/LurkerMP/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "tunneler",
+      "path": "speed",
+      "before": 3.15,
+      "after": 2.9531,
+      "source": "UnitData/SwarmHostMP/Speed"
+    },
+    {
+      "id": "tunneler",
+      "path": "cost",
+      "before": 150,
+      "after": 800,
+      "source": "UnitData/SwarmHostMP/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "tunneler",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/SwarmHostMP/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "mutalisk",
+      "path": "cost",
+      "before": 175,
+      "after": 120,
+      "source": "UnitData/Mutalisk/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "mutalisk",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Mutalisk/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "infestor",
+      "path": "initial_energy",
+      "before": 75,
+      "after": 200,
+      "source": "UnitData/Infestor/EnergyStart"
+    },
+    {
+      "id": "infestor",
+      "path": "cost",
+      "before": 200,
+      "after": 400,
+      "source": "UnitData/Infestor/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "infestor",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Infestor/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "ultralisk",
+      "path": "armor",
+      "before": 5,
+      "after": 6,
+      "source": "UnitData/Ultralisk/LifeArmor"
+    },
+    {
+      "id": "ultralisk",
+      "path": "cost",
+      "before": 350,
+      "after": 700,
+      "source": "UnitData/Ultralisk/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "ultralisk",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Ultralisk/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "ultralisk",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_bonus": -0.5507
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/speed295land; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "brood_lord",
+      "path": "speed",
+      "before": 2.24,
+      "after": 2.5,
+      "source": "UnitData/BroodLord/Speed"
+    },
+    {
+      "id": "brood_lord",
+      "path": "cost",
+      "before": 350,
+      "after": 1450,
+      "source": "UnitData/BroodLord/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "brood_lord",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/BroodLord/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "vanguard",
+      "path": "hp",
+      "before": 100,
+      "after": 200,
+      "source": "UnitData/Zealot/LifeMax"
+    },
+    {
+      "id": "vanguard",
+      "path": "shield",
+      "before": 50,
+      "after": 100,
+      "source": "UnitData/Zealot/ShieldsMax"
+    },
+    {
+      "id": "vanguard",
+      "path": "speed",
+      "before": 4.725,
+      "after": 3.125,
+      "source": "UnitData/Zealot/Speed"
+    },
+    {
+      "id": "vanguard",
+      "path": "cost",
+      "before": 100,
+      "after": 250,
+      "source": "UnitData/Zealot/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "vanguard",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "stalker",
+      "path": "cost",
+      "before": 150,
+      "after": 180,
+      "source": "UnitData/Stalker/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "stalker",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Stalker/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "immortal",
+      "path": "cost",
+      "before": 250,
+      "after": 470,
+      "source": "UnitData/Immortal/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "immortal",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Immortal/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "immortal",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "high_templar",
+      "path": "initial_energy",
+      "before": 50,
+      "after": 200,
+      "source": "UnitData/HighTemplar/EnergyStart"
+    },
+    {
+      "id": "high_templar",
+      "path": "cost",
+      "before": 200,
+      "after": 780,
+      "source": "UnitData/HighTemplar/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "high_templar",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/HighTemplar/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "high_templar",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "archon",
+      "path": "cost",
+      "before": 350,
+      "after": 450,
+      "source": "UnitData/Archon/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "archon",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Archon/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "colossus",
+      "path": "cost",
+      "before": 1350,
+      "after": 1250,
+      "source": "UnitData/Colossus/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "colossus",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Colossus/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "colossus",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "disruptor",
+      "path": "cost",
+      "before": 300,
+      "after": 1250,
+      "source": "UnitData/Disruptor/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "disruptor",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Disruptor/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "disruptor",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "void_ray",
+      "path": "speed",
+      "before": 3.85,
+      "after": 3.3203,
+      "source": "UnitData/VoidRay/Speed"
+    },
+    {
+      "id": "void_ray",
+      "path": "cost",
+      "before": 250,
+      "after": 300,
+      "source": "UnitData/VoidRay/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "void_ray",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/VoidRay/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "void_ray",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "carrier",
+      "path": "cost",
+      "before": 450,
+      "after": 1600,
+      "source": "UnitData/Carrier/CostResource[Minerals] × spawn_count"
+    },
+    {
+      "id": "carrier",
+      "path": "gas_cost",
+      "before": null,
+      "after": 0,
+      "source": "UnitData/Carrier/CostResource[Vespene] × spawn_count"
+    },
+    {
+      "id": "carrier",
+      "path": "skills/combat_mobility",
+      "before": null,
+      "after": {
+        "modifiers": [
+          {
+            "speed_maximum": 2.75,
+            "speed_multiplier": 2.0
+          }
+        ],
+        "display_name": "交战机动"
+      },
+      "source": "BehaviorData/slowprotoss275,CarrierSearchforAttack; ValidatorData/Speedfixcancel"
+    },
+    {
+      "id": "broodling",
+      "path": "tags",
+      "before": [
+        "biological"
+      ],
+      "after": [
+        "biological",
+        "summoned"
+      ],
+      "source": "UnitData/Broodling/Attributes[Summoned]"
+    },
+    {
+      "id": "locust",
+      "path": "hp",
+      "before": 50,
+      "after": 130,
+      "source": "UnitData/LocustMP/LifeMax"
+    },
+    {
+      "id": "locust",
+      "path": "tags",
+      "before": [
+        "biological"
+      ],
+      "after": [
+        "biological",
+        "summoned"
+      ],
+      "source": "UnitData/LocustMP/Attributes[Summoned]"
+    },
+    {
+      "id": "interceptor",
+      "path": "tags",
+      "before": [
+        "mechanical"
+      ],
+      "after": [
+        "mechanical",
+        "summoned"
+      ],
+      "source": "UnitData/Interceptor/Attributes[Summoned]"
+    },
+    {
+      "id": "hellbat",
+      "path": "attack_modes/0/bonus/light",
+      "before": 19,
+      "after": 14,
+      "source": "EffectData/InfernalFlameThrower/AttributeBonus[Light]"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/range",
+      "before": 8.0,
+      "after": 7,
+      "source": "WeaponData/C10CanisterRifleFake/Range"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/windup",
+      "before": 0,
+      "after": 0.083,
+      "source": "WeaponData/C10CanisterRifleFake/DamagePoint"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/backswing",
+      "before": 0,
+      "after": 1.167,
+      "source": "WeaponData/C10CanisterRifleFake/Backswing"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/damage",
+      "before": 30,
+      "after": 13,
+      "source": "EffectData/C10CanisterRifle/Amount"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/bonus/light",
+      "before": null,
+      "after": 13,
+      "source": "EffectData/C10CanisterRifle/AttributeBonus[Light]"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/interval",
+      "before": 1.5,
+      "after": 0.05,
+      "source": "WeaponData/C10CanisterRifleFake/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/0/damage",
+      "before": 30,
+      "after": 10,
+      "source": "EffectData/LiberatorMissileDamage/Amount"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/1/range",
+      "before": 8,
+      "after": 17,
+      "source": "WeaponData/LiberatorAGWeapon/Range"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/1/damage",
+      "before": 65,
+      "after": 160,
+      "source": "EffectData/LiberatorAGDamage/Amount"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/1/interval",
+      "before": 1.14,
+      "after": 2.36,
+      "source": "WeaponData/LiberatorAGWeapon/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/2/damage",
+      "before": 13,
+      "after": 39,
+      "source": "EffectData/ThorsHammerDamage/Amount"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/1/range",
+      "before": 10,
+      "after": 14,
+      "source": "WeaponData/JavelinMissileLaunchers/Range"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/1/damage",
+      "before": 6,
+      "after": 9,
+      "source": "EffectData/JavelinMissileLaunchersDamage/Amount"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/1/bonus/light",
+      "before": 4,
+      "after": 9,
+      "source": "EffectData/JavelinMissileLaunchersDamage/AttributeBonus[Light]"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/1/interval",
+      "before": 1,
+      "after": 1.9,
+      "source": "WeaponData/JavelinMissileLaunchers/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/0/damage",
+      "before": 24,
+      "after": 11,
+      "source": "EffectData/ATSLaserBatteryU/Amount"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/1/damage",
+      "before": 15,
+      "after": 9,
+      "source": "EffectData/ATALaserBatteryU/Amount"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/damage",
+      "before": 8,
+      "after": 13,
+      "source": "EffectData/PrimalZergling/Amount"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/damage",
+      "before": 22,
+      "after": 52,
+      "source": "EffectData/VolatileBurstU/Amount"
+    },
+    {
+      "id": "ravager",
+      "path": "attack_modes/0/interval",
+      "before": 1.14,
+      "after": 1.4,
+      "source": "WeaponData/RavagerWeapon/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "piercer",
+      "path": "attack_modes/0/range",
+      "before": 8,
+      "after": 12,
+      "source": "WeaponData/Lurker/Range"
+    },
+    {
+      "id": "piercer",
+      "path": "attack_modes/0/interval",
+      "before": 1.43,
+      "after": 1.75,
+      "source": "WeaponData/Lurker/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "vanguard",
+      "path": "attack_modes/0/damage",
+      "before": 11,
+      "after": 22,
+      "source": "EffectData/Effect_SH_LNLR/Amount"
+    },
+    {
+      "id": "colossus",
+      "path": "attack_modes/0/damage",
+      "before": 13,
+      "after": 21,
+      "source": "EffectData/ThermalLancesMU/Amount"
+    },
+    {
+      "id": "colossus",
+      "path": "attack_modes/0/bonus/light",
+      "before": 8,
+      "after": 11,
+      "source": "EffectData/ThermalLancesMU/AttributeBonus[Light]"
+    },
+    {
+      "id": "colossus",
+      "path": "attack_modes/0/interval",
+      "before": 1.07,
+      "after": 1.1,
+      "source": "WeaponData/ThermalLances/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "locust",
+      "path": "attack_modes/0/interval",
+      "before": 0.43,
+      "after": 0.5,
+      "source": "WeaponData/LocustMP/Period（完整周期减出手与前后摇）"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant",
+      "before": null,
+      "after": {
+        "health_cost_ratio": 0,
+        "duration": 15,
+        "attack_multiplier": 1.5,
+        "speed_multiplier": 1.5,
+        "health_cost": 10.0,
+        "cooldown": 15.0
+      },
+      "source": "AbilData/DSStimpack/Cost"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant",
+      "before": {
+        "health_cost_ratio": 0.15,
+        "duration": 20,
+        "attack_multiplier": 1.3,
+        "speed_multiplier": 1.5
+      },
+      "after": {
+        "health_cost_ratio": 0,
+        "duration": 20,
+        "attack_multiplier": 1.3,
+        "speed_multiplier": 1.5,
+        "health_cost": 20.0,
+        "cooldown": 15.0
+      },
+      "source": "AbilData/DSStimpackMarauder/Cost"
+    },
+    {
+      "id": "mortar",
+      "path": "skills/deployment/armor_override",
+      "before": null,
+      "after": 7,
+      "source": "UnitData/SiegeTankSieged/LifeArmor"
+    },
+    {
+      "id": "immortal",
+      "path": "skills/shield_armor_buff",
+      "before": null,
+      "after": {
+        "display_name": "刚毅护盾",
+        "amount": 40.0,
+        "duration": 3.0,
+        "cooldown": 45,
+        "requires_damaged_shields": true
+      },
+      "source": "AbilData/ImmortalBarrierArmor → EffectData/ImmortalBarrierBaseABArmor → BehaviorData/ImmortalBarrierBase3"
+    },
+    {
+      "id": "immortal",
+      "path": "skills/barrier",
+      "before": {
+        "amount": 100,
+        "duration": 2,
+        "cooldown": 32,
+        "block_trigger_hit": true
+      },
+      "after": null,
+      "source": "替换为原图护盾护甲机制"
+    },
+    {
+      "id": "hydralisk",
+      "path": "skills/mobility_burst",
+      "before": null,
+      "after": {
+        "display_name": "狂暴机动",
+        "duration": 1,
+        "cooldown": 14,
+        "initial_cooldown": 1,
+        "enemy_radius": 7,
+        "speed_multiplier": 2,
+        "only_out_of_combat": true
+      },
+      "source": "AbilData/HydraliskFrenzynormal → BehaviorData/HydraliskFrenzynormal; ValidatorData/NoEnemiesNearbyWidowRange7"
+    },
+    {
+      "id": "tunneler",
+      "path": "skills/summon/interval",
+      "before": 43,
+      "after": 30,
+      "source": "AbilData/SpawnLocustsTargeted/Cost/Cooldown@TimeUse"
+    },
+    {
+      "id": "medic",
+      "path": "attack_modes/0/range",
+      "before": 5.7143,
+      "after": 4,
+      "source": "AbilData/heal/Range"
+    },
+    {
+      "id": "high_templar",
+      "path": "skills/delayed_area/cooldown",
+      "before": 1.43,
+      "after": 5,
+      "source": "AbilData/PsiStorm/Cost/Cooldown@TimeUse"
+    },
+    {
+      "id": "high_templar",
+      "path": "skills/delayed_area/range",
+      "before": 8,
+      "after": 9,
+      "source": "AbilData/PsiStorm/AutoCastRange（只用于自动施法触发）"
+    },
+    {
+      "id": "ravager",
+      "path": "skills/delayed_area/range",
+      "before": 9,
+      "after": 10,
+      "source": "AbilData/RavagerCorrosiveBile/AutoCastRange（自动施法范围）"
+    },
+    {
+      "id": "piercer",
+      "path": "skills/deployment/deploy_seconds",
+      "before": 1.0,
+      "after": 2.5,
+      "source": "AbilData/BurrowLurkerMPDown/InfoArray/SectionArray/DurationArray[Delay]"
+    },
+    {
+      "id": "piercer",
+      "path": "attack_modes/0/delivery/length",
+      "before": null,
+      "after": 12,
+      "source": "WeaponData/Lurker/Range（固定地刺总长）"
+    },
+    {
+      "id": "stalker",
+      "path": "skills/blink/invulnerable_seconds",
+      "before": null,
+      "after": 0.07,
+      "source": "BehaviorData/StalkerBlink0625/Duration 与 StateFlags[Invulnerable]"
+    },
+    {
+      "id": "hellbat",
+      "path": "sc2",
+      "before": "恶蝠 Hellbat",
+      "after": "恶火 Hellion",
+      "source": "UnitData/Hellion 对应关系（内部ID保留hellbat）"
+    },
+    {
+      "id": "immortal",
+      "path": "role",
+      "before": "反重甲 · 坚固前排",
+      "after": "刚毅护盾 · 前排抗压",
+      "source": "BehaviorData/ImmortalBarrierBase3"
+    },
+    {
+      "id": "immortal",
+      "path": "counter",
+      "before": "重击重甲单位；怕轻甲海与空军",
+      "after": "护盾受损时短时增加40护盾护甲；不生成吸收盾",
+      "source": "BehaviorData/ImmortalBarrierBase3"
+    }
+  ],
+  "unresolved": [
+    {
+      "id": "rifle",
+      "path": "hp",
+      "reason": "Marine/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "rifle",
+      "path": "speed",
+      "reason": "Marine/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "rifle",
+      "path": "energy",
+      "reason": "Marine/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "hellbat",
+      "path": "hp",
+      "reason": "Hellion/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "hellbat",
+      "path": "speed",
+      "reason": "Hellion/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "hellbat",
+      "path": "energy",
+      "reason": "Hellion/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "marauder",
+      "path": "hp",
+      "reason": "Marauder/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "marauder",
+      "path": "speed",
+      "reason": "Marauder/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "marauder",
+      "path": "energy",
+      "reason": "Marauder/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "medic",
+      "path": "speed",
+      "reason": "Medic/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "medic",
+      "path": "energy",
+      "reason": "Medic/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "agent",
+      "path": "energy",
+      "reason": "地图明确写出初始能量，但能量上限继承原版；保留现有上限"
+    },
+    {
+      "id": "agent",
+      "path": "energy",
+      "reason": "Ghost/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "widow_mine",
+      "path": "hp",
+      "reason": "WidowMine/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "widow_mine",
+      "path": "speed",
+      "reason": "WidowMine/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "widow_mine",
+      "path": "energy",
+      "reason": "WidowMine/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "mortar",
+      "path": "speed",
+      "reason": "SiegeTank/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "mortar",
+      "path": "energy",
+      "reason": "SiegeTank/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "viking",
+      "path": "speed",
+      "reason": "VikingFighter/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "viking",
+      "path": "energy",
+      "reason": "VikingFighter/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "liberator",
+      "path": "hp",
+      "reason": "Liberator/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "liberator",
+      "path": "speed",
+      "reason": "Liberator/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "liberator",
+      "path": "energy",
+      "reason": "Liberator/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "thor",
+      "path": "hp",
+      "reason": "Thor/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "thor",
+      "path": "speed",
+      "reason": "Thor/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "thor",
+      "path": "energy",
+      "reason": "Thor/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "speed",
+      "reason": "Battlecruiser/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "zergling",
+      "path": "energy",
+      "reason": "Zergling/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "baneling",
+      "path": "speed",
+      "reason": "Baneling/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "baneling",
+      "path": "energy",
+      "reason": "Baneling/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "baneling",
+      "path": "behavior:BanelingExplodebase",
+      "reason": "行为挂载已识别；继承的修改器、触发效果尚未完整还原，不以名字推断功能"
+    },
+    {
+      "id": "roach",
+      "path": "energy",
+      "reason": "Roach/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "hydralisk",
+      "path": "speed",
+      "reason": "Hydralisk/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "hydralisk",
+      "path": "energy",
+      "reason": "Hydralisk/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "ravager",
+      "path": "speed",
+      "reason": "Ravager/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "ravager",
+      "path": "energy",
+      "reason": "Ravager/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "piercer",
+      "path": "hp",
+      "reason": "LurkerMP/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "piercer",
+      "path": "speed",
+      "reason": "LurkerMP/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "piercer",
+      "path": "energy",
+      "reason": "LurkerMP/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "tunneler",
+      "path": "hp",
+      "reason": "SwarmHostMP/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "tunneler",
+      "path": "energy",
+      "reason": "SwarmHostMP/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "mutalisk",
+      "path": "hp",
+      "reason": "Mutalisk/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "mutalisk",
+      "path": "speed",
+      "reason": "Mutalisk/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "mutalisk",
+      "path": "energy",
+      "reason": "Mutalisk/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "infestor",
+      "path": "hp",
+      "reason": "Infestor/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "infestor",
+      "path": "speed",
+      "reason": "Infestor/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "infestor",
+      "path": "energy",
+      "reason": "Infestor/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "ultralisk",
+      "path": "hp",
+      "reason": "Ultralisk/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "ultralisk",
+      "path": "speed",
+      "reason": "Ultralisk/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "ultralisk",
+      "path": "energy",
+      "reason": "Ultralisk/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "brood_lord",
+      "path": "hp",
+      "reason": "BroodLord/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "brood_lord",
+      "path": "energy",
+      "reason": "BroodLord/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "vanguard",
+      "path": "energy",
+      "reason": "Zealot/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "stalker",
+      "path": "hp",
+      "reason": "Stalker/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "stalker",
+      "path": "speed",
+      "reason": "Stalker/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "stalker",
+      "path": "energy",
+      "reason": "Stalker/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "sentry",
+      "path": "hp",
+      "reason": "Sentry/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "sentry",
+      "path": "speed",
+      "reason": "Sentry/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "sentry",
+      "path": "energy",
+      "reason": "Sentry/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "immortal",
+      "path": "hp",
+      "reason": "Immortal/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "immortal",
+      "path": "speed",
+      "reason": "Immortal/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "immortal",
+      "path": "energy",
+      "reason": "Immortal/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "high_templar",
+      "path": "hp",
+      "reason": "HighTemplar/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "high_templar",
+      "path": "speed",
+      "reason": "HighTemplar/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "high_templar",
+      "path": "energy",
+      "reason": "HighTemplar/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "archon",
+      "path": "hp",
+      "reason": "Archon/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "archon",
+      "path": "speed",
+      "reason": "Archon/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "archon",
+      "path": "energy",
+      "reason": "Archon/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "archon",
+      "path": "behavior:Frenzy",
+      "reason": "行为挂载已识别；继承的修改器、触发效果尚未完整还原，不以名字推断功能"
+    },
+    {
+      "id": "colossus",
+      "path": "speed",
+      "reason": "Colossus/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "colossus",
+      "path": "energy",
+      "reason": "Colossus/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "disruptor",
+      "path": "hp",
+      "reason": "Disruptor/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "disruptor",
+      "path": "speed",
+      "reason": "Disruptor/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "disruptor",
+      "path": "energy",
+      "reason": "Disruptor/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "void_ray",
+      "path": "hp",
+      "reason": "VoidRay/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "void_ray",
+      "path": "energy",
+      "reason": "VoidRay/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "carrier",
+      "path": "hp",
+      "reason": "Carrier/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "carrier",
+      "path": "speed",
+      "reason": "Carrier/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "carrier",
+      "path": "energy",
+      "reason": "Carrier/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "carrier",
+      "path": "behavior:CarrierSearchforAttack",
+      "reason": "行为挂载已识别；继承的修改器、触发效果尚未完整还原，不以名字推断功能"
+    },
+    {
+      "id": "broodling",
+      "path": "speed",
+      "reason": "Broodling/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "broodling",
+      "path": "energy",
+      "reason": "Broodling/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "locust",
+      "path": "speed",
+      "reason": "LocustMP/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "locust",
+      "path": "energy",
+      "reason": "LocustMP/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "interceptor",
+      "path": "hp",
+      "reason": "Interceptor/LifeMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "interceptor",
+      "path": "speed",
+      "reason": "Interceptor/Speed未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "interceptor",
+      "path": "energy",
+      "reason": "Interceptor/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
+    },
+    {
+      "id": "rifle",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/GuassRifle/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "rifle",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/GuassRifle/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "rifle",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "rifle",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "hellbat",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/InfernalFlameThrower/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "hellbat",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/InfernalFlameThrower/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "hellbat",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "marauder",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/PunisherGrenades/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "marauder",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/PunisherGrenades/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "marauder",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/90mmCannons/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/90mmCannons/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/1/range",
+      "reason": "WeaponData/CrucioShockCannon/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/1/interval",
+      "reason": "WeaponData/CrucioShockCannon/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "mortar",
+      "path": "attack_modes/1/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "viking",
+      "path": "attack_modes/0/damage",
+      "reason": "EffectData/LanzerTorpedoesU未定义可直接读取的Damage，保留现值"
+    },
+    {
+      "id": "viking",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/LanzerTorpedoes/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "viking",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/LanzerTorpedoes/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "viking",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "viking",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/LiberatorMissileLaunchers/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/LiberatorMissileLaunchers/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/1/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "liberator",
+      "path": "attack_modes/1/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/2/range",
+      "reason": "WeaponData/ThorsHammer/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/2/interval",
+      "reason": "WeaponData/ThorsHammer/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/2/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/2/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/1/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/ATSLaserBattery/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/ATSLaserBattery/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/1/range",
+      "reason": "WeaponData/ATALaserBattery/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/1/interval",
+      "reason": "WeaponData/ATALaserBattery/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/1/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "battlecruiser",
+      "path": "attack_modes/1/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/PrimalZergling/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/PrimalZergling/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/None/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/None/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "roach",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/AcidSaliva/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "roach",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/AcidSaliva/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "roach",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "roach",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "hydralisk",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/NeedleSpines/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "hydralisk",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/NeedleSpines/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "hydralisk",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "hydralisk",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "ravager",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/RavagerWeapon/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "ravager",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "ravager",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "piercer",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "mutalisk",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/MutaliskGlaiveWurm/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "mutalisk",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/MutaliskGlaiveWurm/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "mutalisk",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "mutalisk",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/KaiserBlades2/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/KaiserBlades2/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "brood_lord",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/BroodLord/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "brood_lord",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/BroodLord/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "brood_lord",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "brood_lord",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "vanguard",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "stalker",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/ParticleDisruptors/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "stalker",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/ParticleDisruptors/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "stalker",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "sentry",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/DisruptionBeam/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "sentry",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/DisruptionBeam/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "sentry",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "sentry",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "immortal",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/PhaseDisruptors/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "immortal",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/PhaseDisruptors/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "immortal",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "archon",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/PsionicShockwave/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "archon",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/PsionicShockwave/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "archon",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "colossus",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/ThermalLances/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "colossus",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "void_ray",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/VoidRaySwarm/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "void_ray",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/VoidRaySwarm/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "void_ray",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "void_ray",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "locust",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/LocustMP/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "locust",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "locust",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "interceptor",
+      "path": "attack_modes/0/range",
+      "reason": "WeaponData/InterceptorBeam/Range继承原版，不把MinScanRange当成射程"
+    },
+    {
+      "id": "interceptor",
+      "path": "attack_modes/0/interval",
+      "reason": "WeaponData/InterceptorBeam/Period继承原版，保留当前轮后间隔"
+    },
+    {
+      "id": "interceptor",
+      "path": "attack_modes/0/hit_count",
+      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
+    },
+    {
+      "id": "interceptor",
+      "path": "attack_modes/0/bonus",
+      "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant/duration",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant/attack_multiplier",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant/speed_multiplier",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/duration",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/attack_multiplier",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/speed_multiplier",
+      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
+    },
+    {
+      "id": "agent",
+      "path": "attack_modes/1",
+      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
+    },
+    {
+      "id": "agent",
+      "path": "ability:EMP",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "agent",
+      "path": "ability:ChannelSnipe",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "widow_mine",
+      "path": "attack_modes/0",
+      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
+    },
+    {
+      "id": "widow_mine",
+      "path": "ability:WidowMineBurrow",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "liberator",
+      "path": "ability:LiberatorAttackLandOrderNormal",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "thor",
+      "path": "attack_modes/0",
+      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
+    },
+    {
+      "id": "ravager",
+      "path": "ability:RavagerCorrosiveBile",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "infestor",
+      "path": "ability:NeuralParasite",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "stalker",
+      "path": "ability:Blink",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "high_templar",
+      "path": "attack_modes/0",
+      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
+    },
+    {
+      "id": "high_templar",
+      "path": "ability:PsiStorm",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "high_templar",
+      "path": "ability:ArchonWarp",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "high_templar",
+      "path": "ability:Warpable",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "high_templar",
+      "path": "ability:Feedback",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "high_templar",
+      "path": "ability:ArchonWarp_RHZL",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "colossus",
+      "path": "ability:Colossus_KYSS",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "void_ray",
+      "path": "ability:DSVoidRaySwarmDamageBoost",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "carrier",
+      "path": "ability:ReleaseInterceptors",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "broodling",
+      "path": "attack_modes/0",
+      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
+    },
+    {
+      "id": "interceptor",
+      "path": "ability:InterceptorAutoAttack",
+      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
+    },
+    {
+      "id": "agent",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "infestor",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "carrier",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "disruptor",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "colossus",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "void_ray",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    },
+    {
+      "id": "stalker",
+      "path": "skill_semantics",
+      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
+    }
+  ]
+}

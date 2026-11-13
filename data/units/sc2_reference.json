@@ -2,7 +2,7 @@
   "checked_on": "2026-11-09",
   "patch": "5.0.17 live / Legacy of the Void Versus",
   "official_patch": "https://news.blizzard.com/en-us/article/24309308/starcraft-ii-5-0-17-patch-notes",
-  "policy": "普通武器=基础伤害+3×每级增量；生命护甲=基础护甲+3；神族护盾护甲3。独立专属科技不自动点满；原来已挂载的冲锋、闪烁、风暴等技能仍启用。射程/速度为非菌毯；模型、价格、每组数量保留。",
+  "policy": "0.11.0起以沙漠风暴明确覆盖项为准；此文件保留原版继承回退与尚未确认的旧标记。详见desert_storm_reference.json。",
   "units": {
     "zergling": {
       "name": "跳虫",
@@ -710,13 +710,6 @@
       "reason": "当前即时自动落点尚未复刻真菌弹道时间",
       "kind": "待确认",
       "runtime_value": 0
-    },
-    {
-      "id": "ultralisk",
-      "path": "armor",
-      "reason": "当前只按基础2+三防3=5；是否默认甲壳强化再+2需确认",
-      "kind": "待确认",
-      "runtime_value": 5
     },
     {
       "id": "vanguard",

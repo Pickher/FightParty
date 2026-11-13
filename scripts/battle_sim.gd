@@ -204,6 +204,30 @@ func _log(team: int, action: Dictionary) -> void:
 	action.team = team
 	journal.actions.append(action)
 
+## 所有购买入口共用矿/气/灵核钱包；价格按当前组配置，校验完成后一次性扣费。
+func unit_price(kind: String) -> Dictionary:
+	var stats: Dictionary = catalog[kind]
+	return {"minerals":int(stats.cost),"gas":int(stats.get("gas_cost",0)),"cores":int(stats.get("core_cost",0))}
+
+func wallet(team: int) -> Dictionary:
+	return {"minerals":int(minerals[team]),"gas":int(economy.gas[team]),"cores":int(economy.cores[team])}
+
+func resource_error(price: Dictionary, available: Dictionary) -> String:
+	for key in ["minerals","gas","cores"]:
+		if int(price.get(key,0))>int(available.get(key,0)):
+			return str({"minerals":"矿物","gas":"瓦斯","cores":"灵核"}[key])+"不足"
+	return ""
+
+func change_wallet(team: int, price: Dictionary, direction: int) -> void:
+	minerals[team]+=int(price.get("minerals",0))*direction
+	economy.gas[team]+=int(price.get("gas",0))*direction
+	economy.cores[team]+=int(price.get("cores",0))*direction
+
+func refund_resources(team: int, cell: int) -> Dictionary:
+	var index := _slot_index(team,cell)
+	if index<0 or bool(formations[team][index].deployed):return {"minerals":0,"gas":0,"cores":0}
+	return unit_price(str(formations[team][index].kind))
+
 ## 在空格购买一名永久单位，立即扣矿。
 func buy(team: int, kind: String, cell: int) -> String:
 	var error := _editable(team)
@@ -213,10 +237,10 @@ func buy(team: int, kind: String, cell: int) -> String:
 		error = _cell_error(cell)
 	if error.is_empty() and _slot_index(team, cell) >= 0:
 		error = "该格已有单位"
-	if error.is_empty() and int(catalog[kind].cost) > int(minerals[team]):
-		error = "矿物不足"
 	if error.is_empty():
-		minerals[team] -= int(catalog[kind].cost)
+		error = resource_error(unit_price(kind),wallet(team))
+	if error.is_empty():
+		change_wallet(team,unit_price(kind),-1)
 		formations[team].append({"kind":kind,"cell":cell,"deployed":false})
 		_log(team, {"type":"buy","kind":kind,"cell":cell})
 	return error
@@ -228,7 +252,7 @@ func sell(team: int, cell: int) -> String:
 	if error.is_empty() and index < 0:
 		error = "该格没有单位"
 	if error.is_empty():
-		minerals[team] += refund_value(team, cell)
+		change_wallet(team,refund_resources(team,cell),1)
 		formations[team].remove_at(index)
 		_log(team, {"type":"sell","cell":cell})
 	return error
@@ -261,20 +285,22 @@ func submit_formation(team: int, formation: Array) -> String:
 	for slot in formation:
 		wanted[int(slot.cell)] = slot.kind
 	var sells: Array = []
-	var available: int = int(minerals[team])
+	var available: Dictionary = wallet(team)
 	for slot in formations[team]:
 		if wanted.get(int(slot.cell), "") != slot.kind:
 			sells.append(int(slot.cell))
-			available += refund_value(team, int(slot.cell))
+			var refund := refund_resources(team,int(slot.cell))
+			for key in available:available[key]+=int(refund[key])
 	var buys: Array = []
-	var cost := 0
+	var cost := {"minerals":0,"gas":0,"cores":0}
 	for cell in wanted:
 		var index := _slot_index(team, cell)
 		if index < 0 or formations[team][index].kind != wanted[cell]:
 			buys.append(cell)
-			cost += int(catalog[wanted[cell]].cost)
-	if cost > available:
-		return "矿物不足，请先移除其他单位"
+			var price := unit_price(str(wanted[cell]))
+			for key in cost:cost[key]+=int(price[key])
+	var budget_error := resource_error(cost,available)
+	if not budget_error.is_empty():return budget_error
 	for cell in sells:
 		sell(team, cell)
 	for cell in buys:
@@ -547,8 +573,8 @@ func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
 		return 0.0
 	if WeaponDefinition.ignores_armor(weapon): return raw
 	if float(victim.get("shield", 0.0)) > 0.0:
-		return maxf(raw - float(catalog[victim.kind].get("shield_armor", 0)), float(rules.min_damage))+minf(float(weapon.get("shield_bonus",0)),float(victim.shield))
-	return maxf(raw - float(catalog[victim.kind].get("armor", 0)), float(rules.min_damage))
+		return maxf(raw - (float(catalog[victim.kind].get("shield_armor", 0))+skill_system.shield_armor_bonus(self,victim))*float(weapon.get("armor_multiplier",1)), float(rules.min_damage))+minf(float(weapon.get("shield_bonus",0)),float(victim.shield))
+	return maxf(raw - (float(catalog[victim.kind].get("armor", 0))+skill_system.armor_bonus(self,victim))*float(weapon.get("armor_multiplier",1)), float(rules.min_damage))
 
 ## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
 func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
@@ -697,17 +723,17 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 	return found
 
 ## 把一次命中的原始伤害（含穿甲加成）排入本步待结算列表；hits 是 id → 原始伤害数组。
-func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0) -> void:
+func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0, armor_multiplier: float = 1.0) -> void:
 	if raw<=0:return
 	if ranged:
 		raw=maxf(float(rules.min_damage),raw-float(aura_modifiers.get(victim.id,{}).get("reduction",0)))
 	if not hits.has(victim.id):
 		hits[victim.id] = []
-	hits[victim.id].append({"raw":raw,"ignore_armor":ignore_armor,"shield_bonus":shield_bonus} if ignore_armor or shield_bonus>0 else raw)
+	hits[victim.id].append({"raw":raw,"ignore_armor":ignore_armor,"shield_bonus":shield_bonus,"armor_multiplier":armor_multiplier} if ignore_armor or shield_bonus>0 or armor_multiplier!=1.0 else raw)
 
 ## 普通、传播、弹射武器共用伤害属性。true 额外跳过远程光环减伤。
 func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false, bonus_multiplier: float = 1.0) -> void:
-	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier)
+	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier,float(weapon.get("armor_multiplier",1)))
 
 ## 普通武器的一段命中；独立炮位也经过相同的溅射、护甲、护盾和命中技能结算。
 func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary, strike: int) -> void:
@@ -875,7 +901,8 @@ func step() -> Array:
 				var ignore_armor: bool = bool(hit.ignore_armor) if hit is Dictionary else false
 				raw=skill_system.absorb(self,unit,raw)
 				var shield_bonus: float = float(hit.get("shield_bonus",0)) if hit is Dictionary and raw>0 else 0.0
-				hp_loss += Shield.absorb(self, unit, raw, ignore_armor,shield_bonus)
+				var armor_multiplier: float = float(hit.get("armor_multiplier",1)) if hit is Dictionary else 1.0
+				hp_loss += Shield.absorb(self, unit, raw, ignore_armor,shield_bonus,armor_multiplier)
 			lost += hp_loss
 			unit.last_hit_tick = tick
 			events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})

@@ -308,7 +308,18 @@ func _ai_shop() -> void:
 		sim.build_tower(1)
 	elif plan == "save":
 		return
-	for slot in ai.buy_list(seen, sim.formations[1], int(sim.minerals[1])):
+	# 瓦斯兵种按同一分流规则攒气，不发额外资源；补齐后恢复矿物收入。
+	var needs_gas := false
+	for kind in ai.pool:
+		if int(sim.catalog[kind].get("gas_cost",0))<=0:continue
+		var owned := false
+		for entry in sim.formations[1]:
+			if entry.kind==kind:owned=true;break
+		if not owned:needs_gas=true;break
+	var gasworks := 2 if needs_gas else 0
+	if int(sim.economy.gasworks[1])!=gasworks:
+		sim.economy.set_gasworks(sim,1,gasworks)
+	for slot in ai.buy_list(seen, sim.formations[1], int(sim.minerals[1]),int(sim.economy.gas[1]),int(sim.economy.cores[1])):
 		sim.buy(1, slot.kind, slot.cell)
 
 ## 将最新提示放在消息列表最前面，最多保留五条；界面显示最新一条。
@@ -511,7 +522,7 @@ func _draw_editor() -> void:
 		_draw_unit(rect.position+Vector2(20,20),kind,Color(stats.color),9)
 		_text(rect.position+Vector2(37,25),stats.name,19 if stats.name.length() <= 3 else (15 if stats.name.length() == 4 else 12))
 		_text(rect.position+Vector2(102,24),str(int(stats.cost)),16,MINT)
-		_text(rect.position+Vector2(10,44),"%d/组 · %s" % [int(stats.get("spawn_count",1)),str(stats.role)],11,MUTED)
+		_text(rect.position+Vector2(10,44),"%d/组 · %s" % [int(stats.get("spawn_count",1)),("另需%d瓦斯" % int(stats.get("gas_cost",0))) if int(stats.get("gas_cost",0))>0 else str(stats.role)],11,MUTED)
 		buttons.append({"rect":rect,"action":"select:"+kind})
 		i += 1
 	if sim.catalog.has(selected):
@@ -567,7 +578,7 @@ func _draw_economy() -> void:
 		"气厂上限初始3座，第32波扩至6座；分流只影响基础收入。",
 		"中央井：%s；2.5格内可占领，控制方每3秒额外+3矿。" % center_status,
 		"无人靠近时保留归属；摧毁敌方宝库获得1灵核，击杀单位不加钱。",
-		"瓦斯可按1:1全部换为矿物；灵核单独记录，当前不设额外消费。"]
+		"瓦斯可购买需气兵种，也可按1:1换矿；灵核独立记录。"]
 	for i in range(lines.size()):
 		_text(Vector2(320,250+i*40),lines[i],18,INK)
 	_text(Vector2(320,565),"气厂 %d / %d" % [int(sim.economy.gasworks[0]),sim.economy.gasworks_limit(sim.wave)],24,MINT)

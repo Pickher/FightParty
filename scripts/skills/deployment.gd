@@ -35,3 +35,7 @@ func modify_search(_sim, weapon: Dictionary) -> Dictionary:
 
 func movement_multiplier(_sim) -> float:
 	return 1.0 if state.get("siege_state","mobile")=="mobile" else 0.0
+
+func armor_bonus(sim) -> float:
+	if not config.has("armor_override") or state.get("siege_state","mobile")!="deployed": return 0.0
+	return float(config.armor_override)-float(sim.catalog[owner.kind].armor)

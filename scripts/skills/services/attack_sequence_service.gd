@@ -48,7 +48,9 @@ static func advance(sim, frame: Dictionary) -> void:
 		elif int(sequence.target_id)>0 and not bool(weapon.continue_on_target_death):continue
 		while int(sequence.next_strike)<int(sequence.count):
 			var strike: int = int(sequence.next_strike)
-			var due: float = float(weapon.windup)+float(weapon.attack_duration)*float(strike+1)/float(sequence.count)
+			var offsets: Array = weapon.get("strike_offsets",[])
+			var strike_time: float = float(offsets[strike]) if strike<offsets.size() else float(weapon.attack_duration)*float(strike+1)/float(sequence.count)
+			var due: float = float(weapon.windup)+strike_time
 			if due>float(sequence.elapsed)+0.000001:break
 			var fire_offset: float = clampf(offset+(due-before)/rate,0.0,float(frame.dt))
 			var fraction: float = fire_offset/float(frame.dt)

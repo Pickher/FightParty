@@ -1,5 +1,5 @@
 {
- "version": "0.9.3",
+ "version": "0.11.0",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -72,15 +72,32 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "skills": {
+    "stimulant": {
+     "health_cost_ratio": 0,
+     "duration": 15,
+     "attack_multiplier": 1.5,
+     "speed_multiplier": 1.5,
+     "health_cost": 10.0,
+     "cooldown": 15.0
+    }
+   },
+   "source_profile": {
+    "map_unit": "Marine",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "hellbat": {
    "name": "恶火",
    "symbol": "F",
    "race": "terran",
    "status": "ready",
-   "sc2": "恶蝠 Hellbat",
-   "cost": 125,
+   "sc2": "恶火 Hellion",
+   "cost": 130,
    "hp": 90,
    "armor_type": "light",
    "armor": 5,
@@ -118,7 +135,7 @@
      "damage": 11,
      "hit_count": 1,
      "bonus": {
-      "light": 19
+      "light": 14
      },
      "bonus_tags": {},
      "damage_type": "physical",
@@ -151,7 +168,14 @@
       "tracking": false
      }
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "Hellion",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "marauder": {
    "name": "劫掠者",
@@ -159,7 +183,7 @@
    "race": "terran",
    "status": "ready",
    "sc2": "掠夺者 Marauder",
-   "cost": 540,
+   "cost": 560,
    "hp": 125,
    "armor_type": "heavy",
    "armor": 4,
@@ -169,10 +193,12 @@
    "counter": "克重甲；强化剂消耗生命；怕轻甲海",
    "skills": {
     "stimulant": {
-     "health_cost_ratio": 0.15,
+     "health_cost_ratio": 0,
      "duration": 20,
      "attack_multiplier": 1.3,
-     "speed_multiplier": 1.5
+     "speed_multiplier": 1.5,
+     "health_cost": 20.0,
+     "cooldown": 15.0
     },
     "on_hit_slow": {
      "speed_multiplier": 0.5,
@@ -236,7 +262,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Marauder",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "medic": {
    "name": "医疗兵",
@@ -244,10 +277,10 @@
    "race": "terran",
    "status": "ready",
    "sc2": "医疗兵 Medic（母巢之战）",
-   "cost": 125,
-   "hp": 95,
+   "cost": 380,
+   "hp": 78,
    "armor_type": "light",
-   "armor": 3,
+   "armor": 4,
    "speed": 2.25,
    "color": "85efd9",
    "role": "后排治疗 · 跟随友军",
@@ -290,7 +323,7 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 5.7143,
+     "range": 4,
      "interval": 0,
      "windup": 0,
      "backswing": 0,
@@ -316,7 +349,14 @@
      },
      "healing": 12
     }
-   ]
+   ],
+   "gas_cost": 380,
+   "source_profile": {
+    "map_unit": "Medic",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "agent": {
    "name": "特工",
@@ -328,7 +368,7 @@
    "hp": 125,
    "armor_type": "light",
    "armor": 3,
-   "speed": 2.25,
+   "speed": 2.75,
    "color": "a8b5ff",
    "role": "远程狙击 · 按护甲换弹",
    "counter": "穿甲弹打重甲、狙击弹打轻甲；换弹 1.5 秒不能开火",
@@ -339,6 +379,15 @@
       "armor_piercing",
       "precision"
      ]
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "ground",
@@ -350,7 +399,7 @@
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
-   "initial_energy": 0,
+   "initial_energy": 200,
    "health_regen": 0,
    "health_regen_delay": 0,
    "shield_regen": 0,
@@ -367,19 +416,20 @@
    "primary_mode": "armor_piercing",
    "attack_modes": [
     {
-     "damage": 30,
+     "damage": 13,
      "hit_count": 1,
      "bonus": {
-      "heavy": 60
+      "heavy": 60,
+      "light": 13
      },
      "bonus_tags": {},
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 8.0,
-     "interval": 1.5,
-     "windup": 0,
-     "backswing": 0,
+     "range": 7,
+     "interval": 0.05,
+     "windup": 0.083,
+     "backswing": 1.167,
      "splash": 0.0,
      "splash_multiplier": 1,
      "splash_inner_ratio": 0,
@@ -436,7 +486,14 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Ghost",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "widow_mine": {
    "name": "寡妇雷",
@@ -444,7 +501,7 @@
    "race": "terran",
    "status": "ready",
    "sc2": "寡妇雷 Widow Mine",
-   "cost": 400,
+   "cost": 360,
    "hp": 90,
    "armor_type": "light",
    "armor": 3,
@@ -460,6 +517,15 @@
      "scan_seconds": 0.5,
      "hold_range_multiplier": 1.2,
      "mode": "burrow"
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "ground",
@@ -520,7 +586,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "WidowMine",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "mortar": {
    "name": "坦克",
@@ -545,7 +618,8 @@
      "hold_range_multiplier": 1.2,
      "mode": "siege",
      "mobile_can_attack": true,
-     "mode_id": "siege_cannon"
+     "mode_id": "siege_cannon",
+     "armor_override": 7
     }
    },
    "layer": "ground",
@@ -639,7 +713,14 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "SiegeTank",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "viking": {
    "name": "维京",
@@ -712,7 +793,25 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "skills": {
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
+    }
+   },
+   "source_profile": {
+    "map_unit": "VikingFighter",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "liberator": {
    "name": "解放者",
@@ -740,6 +839,15 @@
      "shape": "sector",
      "angle_degrees": 40,
      "mode_id": "defender_cannon"
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "size": [
@@ -765,7 +873,7 @@
    "primary_mode": "anti_air_burst",
    "attack_modes": [
     {
-     "damage": 30,
+     "damage": 10,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
@@ -797,7 +905,7 @@
      }
     },
     {
-     "damage": 65,
+     "damage": 160,
      "hit_count": 1,
      "bonus": {
       "heavy": 30
@@ -806,8 +914,8 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 8,
-     "interval": 1.14,
+     "range": 17,
+     "interval": 2.36,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -830,7 +938,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Liberator",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "thor": {
    "name": "雷神",
@@ -859,6 +974,15 @@
       "javelin",
       "hammer"
      ]
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "ground",
@@ -920,17 +1044,17 @@
      }
     },
     {
-     "damage": 6,
+     "damage": 9,
      "hit_count": 4,
      "bonus": {
-      "light": 4
+      "light": 9
      },
      "bonus_tags": {},
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 10,
-     "interval": 1,
+     "range": 14,
+     "interval": 1.9,
      "windup": 0,
      "backswing": 0,
      "splash": 1.2,
@@ -954,7 +1078,7 @@
      }
     },
     {
-     "damage": 13,
+     "damage": 39,
      "hit_count": 2,
      "bonus": {
       "heavy": 11
@@ -987,7 +1111,14 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Thor",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "battlecruiser": {
    "name": "大和舰",
@@ -1024,6 +1155,15 @@
     "mobile_attack": {
      "preferred_distance": 5.5,
      "single_target_limit": 1
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.25,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "air",
@@ -1051,7 +1191,7 @@
    "primary_mode": "ats_laser",
    "attack_modes": [
     {
-     "damage": 24,
+     "damage": 11,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
@@ -1083,7 +1223,7 @@
      }
     },
     {
-     "damage": 15,
+     "damage": 9,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
@@ -1114,7 +1254,14 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Battlecruiser",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "zergling": {
    "name": "跳虫",
@@ -1122,11 +1269,11 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "跳虫 Zergling",
-   "cost": 50,
-   "hp": 35,
+   "cost": 75,
+   "hp": 90,
    "armor_type": "light",
    "armor": 3,
-   "speed": 4.13,
+   "speed": 3.5,
    "color": "e39bd0",
    "role": "高速近战 · 数量包围",
    "counter": "便宜快速，包围后排；怕溅射与喷火",
@@ -1157,7 +1304,7 @@
    "primary_mode": "claw_strike",
    "attack_modes": [
     {
-     "damage": 8,
+     "damage": 13,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
@@ -1187,7 +1334,24 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "skills": {
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_bonus": -0.5507
+      }
+     ],
+     "display_name": "交战机动"
+    }
+   },
+   "source_profile": {
+    "map_unit": "Zergling",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "baneling": {
    "name": "毒爆虫",
@@ -1198,8 +1362,8 @@
     "zergling"
    ],
    "sc2": "毒爆虫 Baneling",
-   "cost": 75,
-   "hp": 30,
+   "cost": 110,
+   "hp": 35,
    "armor_type": "none",
    "armor": 3,
    "speed": 3.5,
@@ -1239,7 +1403,7 @@
    "primary_mode": "volatile_burst",
    "attack_modes": [
     {
-     "damage": 22,
+     "damage": 52,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
@@ -1269,7 +1433,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Baneling",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "roach": {
    "name": "蟑螂",
@@ -1277,11 +1448,11 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "蟑螂 Roach",
-   "cost": 100,
-   "hp": 145,
+   "cost": 120,
+   "hp": 150,
    "armor_type": "heavy",
    "armor": 4,
-   "speed": 3.15,
+   "speed": 3,
    "color": "c98a5e",
    "role": "耐打前排 · 脱战回血",
    "counter": "自然回血；埋地加速回血与埋地移动待实现",
@@ -1344,7 +1515,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Roach",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "hydralisk": {
    "name": "刺蛇",
@@ -1352,8 +1530,8 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "刺蛇 Hydralisk",
-   "cost": 150,
-   "hp": 90,
+   "cost": 130,
+   "hp": 100,
    "armor_type": "light",
    "armor": 3,
    "speed": 3.15,
@@ -1419,7 +1597,25 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "skills": {
+    "mobility_burst": {
+     "display_name": "狂暴机动",
+     "duration": 1,
+     "cooldown": 14,
+     "initial_cooldown": 1,
+     "enemy_radius": 7,
+     "speed_multiplier": 2,
+     "only_out_of_combat": true
+    }
+   },
+   "source_profile": {
+    "map_unit": "Hydralisk",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "ravager": {
    "name": "破坏者",
@@ -1430,8 +1626,8 @@
     "roach"
    ],
    "sc2": "破坏者 Ravager",
-   "cost": 150,
-   "hp": 120,
+   "cost": 260,
+   "hp": 160,
    "armor_type": "none",
    "armor": 4,
    "speed": 3.85,
@@ -1444,7 +1640,7 @@
      "delay": 2.5,
      "radius": 0.5,
      "cooldown": 7.14,
-     "range": 9,
+     "range": 10,
      "effect": "bile",
      "target_layers": [
       "ground",
@@ -1489,7 +1685,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 6,
-     "interval": 1.14,
+     "interval": 1.4,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -1512,7 +1708,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Ravager",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "piercer": {
    "name": "穿刺者",
@@ -1523,7 +1726,7 @@
     "hydralisk"
    ],
    "sc2": "潜伏者 Lurker",
-   "cost": 175,
+   "cost": 850,
    "hp": 190,
    "armor_type": "heavy",
    "armor": 4,
@@ -1533,7 +1736,7 @@
    "counter": "克制纵列敌军；怕分散与远程炮击",
    "skills": {
     "deployment": {
-     "deploy_seconds": 1.0,
+     "deploy_seconds": 2.5,
      "pack_seconds": 0.75,
      "deploy_enemy_threshold": 2,
      "scan_seconds": 0.5,
@@ -1578,8 +1781,8 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 8,
-     "interval": 1.43,
+     "range": 12,
+     "interval": 1.75,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -1601,10 +1804,18 @@
       "half_width": 0.5,
       "effect": "spike",
       "type": "line",
-      "tracking": false
+      "tracking": false,
+      "length": 12
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "LurkerMP",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "tunneler": {
    "name": "虫群宿主",
@@ -1615,11 +1826,11 @@
     "roach"
    ],
    "sc2": "虫群宿主 Swarm Host",
-   "cost": 150,
+   "cost": 800,
    "hp": 160,
    "armor_type": "heavy",
    "armor": 4,
-   "speed": 3.15,
+   "speed": 2.9531,
    "color": "b07850",
    "role": "召唤蝗虫 · 远程消耗",
    "counter": "每43秒从自身附近产生2只限时蝗虫；本体无普通攻击",
@@ -1634,7 +1845,7 @@
      "kind": "locust",
      "on": "timer",
      "count": 2,
-     "interval": 43,
+     "interval": 30,
      "lifetime": 18,
      "max_count": 2,
      "requires_combat": true,
@@ -1694,7 +1905,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "SwarmHostMP",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "mutalisk": {
    "name": "飞龙",
@@ -1705,7 +1923,7 @@
     "hydralisk"
    ],
    "sc2": "飞龙 Mutalisk",
-   "cost": 175,
+   "cost": 120,
    "hp": 120,
    "armor_type": "light",
    "armor": 3,
@@ -1777,7 +1995,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Mutalisk",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "infestor": {
    "name": "感染虫",
@@ -1788,7 +2013,7 @@
     "hydralisk"
    ],
    "sc2": "感染虫 Infestor",
-   "cost": 200,
+   "cost": 400,
    "hp": 90,
    "armor_type": "heavy",
    "armor": 3,
@@ -1824,7 +2049,7 @@
    "shield": 0,
    "shield_armor": 0,
    "energy": 200,
-   "initial_energy": 75,
+   "initial_energy": 200,
    "health_regen": 0.38,
    "health_regen_delay": 0,
    "shield_regen": 0,
@@ -1876,7 +2101,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Infestor",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "ultralisk": {
    "name": "雷兽",
@@ -1887,10 +2119,10 @@
     "roach"
    ],
    "sc2": "雷兽 Ultralisk",
-   "cost": 350,
+   "cost": 700,
    "hp": 500,
    "armor_type": "heavy",
-   "armor": 5,
+   "armor": 6,
    "speed": 4.13,
    "color": "e0b8a0",
    "role": "巨型前排 · 顺劈",
@@ -1954,7 +2186,24 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "skills": {
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_bonus": -0.5507
+      }
+     ],
+     "display_name": "交战机动"
+    }
+   },
+   "source_profile": {
+    "map_unit": "Ultralisk",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "brood_lord": {
    "name": "巢虫领主",
@@ -1965,12 +2214,12 @@
     "mutalisk"
    ],
    "sc2": "巢虫领主 Brood Lord",
-   "cost": 350,
+   "cost": 1450,
    "hp": 225,
    "armor_type": "heavy",
    "armor": 4,
    "layer": "air",
-   "speed": 2.24,
+   "speed": 2.5,
    "color": "a080d0",
    "role": "远程空投 · 召唤巢虫",
    "counter": "每次命中生成临时巢虫；怕对空",
@@ -2040,7 +2289,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "BroodLord",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "vanguard": {
    "name": "先锋",
@@ -2048,12 +2304,12 @@
    "race": "protoss",
    "status": "ready",
    "sc2": "狂热者 Zealot",
-   "cost": 100,
-   "hp": 100,
-   "shield": 50,
+   "cost": 250,
+   "hp": 200,
+   "shield": 100,
    "armor_type": "light",
    "armor": 4,
-   "speed": 4.725,
+   "speed": 3.125,
    "color": "7ed8ed",
    "role": "护盾近战 · 前排冲锋",
    "counter": "参考狂热者；每轮两段伤害，具有冲锋",
@@ -2069,6 +2325,15 @@
      "duration": 2.5,
      "cooldown": 7.14,
      "speed_multiplier": 2.2010582010582014
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "shield_armor": 3,
@@ -2089,7 +2354,7 @@
    "primary_mode": "psi_blades",
    "attack_modes": [
     {
-     "damage": 11,
+     "damage": 22,
      "hit_count": 2,
      "bonus": {},
      "bonus_tags": {},
@@ -2097,7 +2362,7 @@
      "shield_bonus": 0,
      "range_from_edge": true,
      "range": 0.1,
-     "interval": 0.86,
+     "interval": 0.92,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -2111,15 +2376,26 @@
      "attacks_structures": true,
      "id": "psi_blades",
      "label": "双刃斩击",
-     "attack_duration": 0.3,
+     "attack_duration": 0.28,
      "continue_on_target_death": false,
      "delivery": {
       "type": "projectile",
       "tracking": true,
       "flight": "contact"
-     }
+     },
+     "strike_offsets": [
+      0,
+      0.28
+     ]
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "Zealot",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "stalker": {
    "name": "追猎者",
@@ -2127,7 +2403,7 @@
    "race": "protoss",
    "status": "ready",
    "sc2": "追猎者 Stalker",
-   "cost": 150,
+   "cost": 180,
    "hp": 80,
    "shield": 80,
    "armor_type": "heavy",
@@ -2144,9 +2420,12 @@
    "spawn_count": 1,
    "skills": {
     "blink": {
-     "distance": 8,
-     "cooldown": 7.14,
-     "shield_ratio": 0.25
+     "distance": 14,
+     "cooldown": 8,
+     "shield_ratio": 0.25,
+     "shield_threshold": 30,
+     "damage_trigger": true,
+     "invulnerable_seconds": 0.07
     }
    },
    "shield_armor": 3,
@@ -2203,7 +2482,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Stalker",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "sentry": {
    "name": "哨兵",
@@ -2293,7 +2579,14 @@
       "tracking": true
      }
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "Sentry",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "immortal": {
    "name": "不朽者",
@@ -2304,15 +2597,15 @@
     "stalker"
    ],
    "sc2": "不朽者 Immortal",
-   "cost": 250,
+   "cost": 470,
    "hp": 200,
    "shield": 100,
    "armor_type": "heavy",
    "armor": 4,
    "speed": 3.15,
    "color": "f0d070",
-   "role": "反重甲 · 坚固前排",
-   "counter": "重击重甲单位；怕轻甲海与空军",
+   "role": "刚毅护盾 · 前排抗压",
+   "counter": "护盾受损时短时增加40护盾护甲；不生成吸收盾",
    "layer": "ground",
    "size": [
     1.8,
@@ -2320,11 +2613,21 @@
    ],
    "spawn_count": 1,
    "skills": {
-    "barrier": {
-     "amount": 100,
-     "duration": 2,
-     "cooldown": 32,
-     "block_trigger_hit": true
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
+    },
+    "shield_armor_buff": {
+     "display_name": "刚毅护盾",
+     "amount": 40.0,
+     "duration": 3.0,
+     "cooldown": 45,
+     "requires_damaged_shields": true
     }
    },
    "shield_armor": 3,
@@ -2378,7 +2681,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Immortal",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "high_templar": {
    "name": "高阶圣堂武士",
@@ -2389,7 +2699,7 @@
     "sentry"
    ],
    "sc2": "高阶圣堂武士 High Templar",
-   "cost": 200,
+   "cost": 780,
    "hp": 40,
    "shield": 40,
    "armor_type": "light",
@@ -2404,9 +2714,9 @@
      "delay": 0,
      "duration": 6,
      "radius": 2,
-     "cooldown": 1.43,
+     "cooldown": 5,
      "effect": "storm",
-     "range": 8,
+     "range": 9,
      "target_layers": [
       "ground",
       "air"
@@ -2414,6 +2724,15 @@
      "attacks_structures": false,
      "friendly_fire": true,
      "energy_cost": 75
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "ground",
@@ -2424,7 +2743,7 @@
    "spawn_count": 1,
    "shield_armor": 3,
    "energy": 200,
-   "initial_energy": 50,
+   "initial_energy": 200,
    "health_regen": 0,
    "health_regen_delay": 0,
    "shield_regen": 7.5,
@@ -2475,7 +2794,14 @@
       "flight": "fixed"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "HighTemplar",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "archon": {
    "name": "执政官",
@@ -2486,7 +2812,7 @@
     "high_templar"
    ],
    "sc2": "执政官 Archon",
-   "cost": 350,
+   "cost": 450,
    "hp": 10,
    "shield": 350,
    "armor_type": "none",
@@ -2556,7 +2882,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Archon",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "colossus": {
    "name": "巨像",
@@ -2567,7 +2900,7 @@
     "immortal"
    ],
    "sc2": "巨像 Colossus",
-   "cost": 1350,
+   "cost": 1250,
    "hp": 250,
    "shield": 100,
    "armor_type": "heavy",
@@ -2577,7 +2910,16 @@
    "role": "双束扫射 · 横向伤害",
    "counter": "克制横排轻甲；怕反重甲与对空武器",
    "skills": {
-    "line_attack": {}
+    "line_attack": {},
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
+    }
    },
    "layer": "ground",
    "size": [
@@ -2610,17 +2952,17 @@
    "primary_mode": "thermal_lances",
    "attack_modes": [
     {
-     "damage": 13,
+     "damage": 21,
      "hit_count": 2,
      "bonus": {
-      "light": 8
+      "light": 11
      },
      "bonus_tags": {},
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 7,
-     "interval": 1.07,
+     "interval": 1.1,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -2646,7 +2988,14 @@
       "tracking": false
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Colossus",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "disruptor": {
    "name": "干扰者",
@@ -2657,7 +3006,7 @@
     "immortal"
    ],
    "sc2": "干扰者 Disruptor",
-   "cost": 300,
+   "cost": 1250,
    "hp": 100,
    "shield": 100,
    "armor_type": "heavy",
@@ -2684,6 +3033,15 @@
      "immune_same_kind": true,
      "shield_bonus": 100,
      "channel_seconds": 2.1
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "layer": "ground",
@@ -2742,7 +3100,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Disruptor",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "void_ray": {
    "name": "虚空辉光舰",
@@ -2753,25 +3118,34 @@
     "stalker"
    ],
    "sc2": "虚空辉光舰 Void Ray",
-   "cost": 250,
+   "cost": 300,
    "hp": 150,
    "shield": 100,
    "armor_type": "heavy",
    "armor": 3,
    "layer": "air",
-   "speed": 3.85,
+   "speed": 3.3203,
    "color": "c8b0ff",
    "role": "棱镜光束 · 反重甲",
    "counter": "棱镜校准暂时提高对重甲伤害并降低自身移速",
    "skills": {
     "weapon_buff": {
      "duration": 14.3,
-     "cooldown": 42.9,
+     "cooldown": 60,
      "bonus": {
       "heavy": 6
      },
      "speed_multiplier": 0.75,
      "required_armor": "heavy"
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "size": [
@@ -2831,7 +3205,14 @@
       "tracking": true
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "VoidRay",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "carrier": {
    "name": "航母",
@@ -2842,7 +3223,7 @@
     "void_ray"
    ],
    "sc2": "航母 Carrier",
-   "cost": 450,
+   "cost": 1600,
    "hp": 300,
    "shield": 150,
    "armor_type": "heavy",
@@ -2863,6 +3244,15 @@
      "leash": 10,
      "requires_combat": true,
      "allow_base": true
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
     }
    },
    "size": [
@@ -2922,7 +3312,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Carrier",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0
   },
   "swarm": {
    "name": "蜂群兵",
@@ -2992,7 +3389,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "rotling": {
    "name": "腐仆",
@@ -3062,7 +3461,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "splitter": {
    "name": "分裂尸",
@@ -3141,7 +3542,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "bloater": {
    "name": "膨胀者",
@@ -3225,7 +3628,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "spitter": {
    "name": "喷吐者",
@@ -3309,7 +3714,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "fly_swarm": {
    "name": "腐蝇群",
@@ -3384,7 +3791,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "spore_drifter": {
    "name": "孢子漂浮体",
@@ -3469,7 +3878,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "abomination": {
    "name": "缝合巨尸",
@@ -3544,7 +3955,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "plague_herald": {
    "name": "瘟疫使者",
@@ -3625,7 +4038,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "gravedigger": {
    "name": "掘墓人",
@@ -3708,7 +4123,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "brood_mother": {
    "name": "腐化之母",
@@ -3794,7 +4211,9 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "gate_tower": {
    "name": "基地防御模块",
@@ -3862,7 +4281,9 @@
       "tracking": true
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "treasury": {
    "name": "宝库",
@@ -3930,7 +4351,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "tower": {
    "name": "防御塔",
@@ -3998,7 +4421,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "broodling": {
    "cost": 0,
@@ -4031,7 +4456,8 @@
    "energy_regen_delay": 0,
    "unit_type": "summon",
    "tags": [
-    "biological"
+    "biological",
+    "summoned"
    ],
    "collision_radius": 0.25,
    "pending": [],
@@ -4068,7 +4494,14 @@
       "flight": "contact"
      }
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "Broodling",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "interceptor": {
    "cost": 0,
@@ -4102,7 +4535,8 @@
    "energy_regen_delay": 0,
    "unit_type": "summon",
    "tags": [
-    "mechanical"
+    "mechanical",
+    "summoned"
    ],
    "collision_radius": 0.25,
    "pending": [],
@@ -4141,7 +4575,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "Interceptor",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "terran_bunker": {
    "name": "防御塔",
@@ -4263,7 +4704,9 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "gas_cost": 0,
+   "core_cost": 0
   },
   "locust": {
    "cost": 0,
@@ -4281,7 +4724,7 @@
    "name": "蝗虫",
    "symbol": "l",
    "race": "zerg",
-   "hp": 50,
+   "hp": 130,
    "speed": 2.62,
    "layer": "ground",
    "shield": 0,
@@ -4296,7 +4739,8 @@
    "energy_regen_delay": 0,
    "unit_type": "summon",
    "tags": [
-    "biological"
+    "biological",
+    "summoned"
    ],
    "collision_radius": 0.25,
    "pending": [
@@ -4315,7 +4759,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 3,
-     "interval": 0.43,
+     "interval": 0.5,
      "windup": 0,
      "backswing": 0,
      "splash": 0,
@@ -4338,7 +4782,14 @@
       "flight": "distance"
      }
     }
-   ]
+   ],
+   "source_profile": {
+    "map_unit": "LocustMP",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
   }
  }
 }

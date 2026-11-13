@@ -47,7 +47,7 @@ func counter_for(enemy_kind: String) -> String:
 
 ## 公平约束：只接收敌方上一波的公开阵容、自己的兵营和矿物，不接收模拟器对象。
 ## 返回准备购买的 [{kind, cell}]，只使用空格，总价不超过 minerals；仍由 BattleSim.buy() 校验。
-func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
+func buy_list(last_enemy: Array, roster: Array, minerals: int, gas: int = 0, cores: int = 0) -> Array:
 	if pool.is_empty():
 		return []
 	var front: String = str(config.get("front", ""))
@@ -59,10 +59,6 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 			var answer := counter_for(slot.kind)
 			if answer != "" and answer != support:
 				choices.append(answer)
-	var cheapest: String = pool[0]
-	for kind in pool:
-		if int(catalog[kind].cost) < int(catalog[cheapest].cost):
-			cheapest = kind
 	var taken: Dictionary = {}
 	var fronts := 0
 	var has_support := false
@@ -72,6 +68,8 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 		has_support = has_support or slot.kind == support
 	var result: Array = []
 	var left := minerals
+	var gas_left := gas
+	var cores_left := cores
 	while true:
 		# 兵营里先保证 front_min 个前排；配置了辅助兵种时，兵营总价加可用矿物达到 support_value 就带一个。
 		var kind: String = str(choices[rng.randi_range(0, choices.size()-1)])
@@ -79,10 +77,12 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 			kind = front
 		elif support != "" and not has_support and _roster_value(roster) + minerals >= int(config.get("support_value", 0)):
 			kind = support
-		if int(catalog[kind].cost) > left:
-			kind = cheapest
-		if int(catalog[kind].cost) > left:
-			break
+		if int(catalog[kind].cost)>left or int(catalog[kind].get("gas_cost",0))>gas_left or int(catalog[kind].get("core_cost",0))>cores_left:
+			var affordable: Array = pool.filter(func(candidate):return int(catalog[candidate].cost)<=left and int(catalog[candidate].get("gas_cost",0))<=gas_left and int(catalog[candidate].get("core_cost",0))<=cores_left)
+			if affordable.is_empty():break
+			kind=str(affordable[0])
+			for candidate in affordable:
+				if int(catalog[candidate].cost)<int(catalog[kind].cost):kind=str(candidate)
 		var cell := _free_cell(taken, float(catalog[kind].range) < FRONT_RANGE and kind != support)
 		if cell < 0:
 			break
@@ -91,6 +91,8 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int) -> Array:
 		has_support = has_support or kind == support
 		result.append({"kind":kind,"cell":cell})
 		left -= int(catalog[kind].cost)
+		gas_left-=int(catalog[kind].get("gas_cost",0))
+		cores_left-=int(catalog[kind].get("core_cost",0))
 	return result
 
 ## 防御塔策略：对方上一波总价高于自己兵营（落后）且还能建塔时，买得起就建（"build"），
