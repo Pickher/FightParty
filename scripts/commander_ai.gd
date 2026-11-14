@@ -75,10 +75,11 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int, gas: int = 0, cor
 		var kind: String = str(choices[rng.randi_range(0, choices.size()-1)])
 		if front != "" and fronts < int(config.get("front_min", 0)):
 			kind = front
-		elif support != "" and not has_support and _roster_value(roster) + minerals >= int(config.get("support_value", 0)):
+		elif support != "" and not has_support and _roster_value(roster) + minerals >= int(config.get("support_value", 0)) and _affordable(support, left, gas_left, cores_left):
+			# 辅助兵种需要瓦斯等资源；买不起时照常随机选兵，否则每次都会退回最便宜的兵种。
 			kind = support
-		if int(catalog[kind].cost)>left or int(catalog[kind].get("gas_cost",0))>gas_left or int(catalog[kind].get("core_cost",0))>cores_left:
-			var affordable: Array = pool.filter(func(candidate):return int(catalog[candidate].cost)<=left and int(catalog[candidate].get("gas_cost",0))<=gas_left and int(catalog[candidate].get("core_cost",0))<=cores_left)
+		if not _affordable(kind, left, gas_left, cores_left):
+			var affordable: Array = pool.filter(func(candidate):return _affordable(candidate, left, gas_left, cores_left))
 			if affordable.is_empty():break
 			kind=str(affordable[0])
 			for candidate in affordable:
@@ -109,6 +110,9 @@ func wants_tower(last_enemy: Array, roster: Array, minerals: int, builds: int) -
 ## 从空兵营开始的一整份阵容，供测试与旧接口使用。
 func choose(last_enemy: Array, budget: int) -> Array:
 	return buy_list(last_enemy, [], budget)
+
+func _affordable(kind: String, minerals: int, gas: int, cores: int) -> bool:
+	return int(catalog[kind].cost)<=minerals and int(catalog[kind].get("gas_cost",0))<=gas and int(catalog[kind].get("core_cost",0))<=cores
 
 func _roster_value(roster: Array) -> int:
 	var total := 0

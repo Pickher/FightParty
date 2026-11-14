@@ -10,7 +10,7 @@ func on_attack(ctx: Dictionary) -> bool:
 	return true
 
 ## 几何工具保留兼容入口，实际传播由场上实体服务负责。
-func crosses(wave: Dictionary, start: Vector2, finish: Vector2, distance: float) -> bool:
+static func crosses(wave: Dictionary, start: Vector2, finish: Vector2, distance: float) -> bool:
 	return Line.crosses(wave,start,finish,distance)
 
 static func launch(sim, unit: Dictionary, goal: Vector2) -> void:
