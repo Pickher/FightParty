@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKBOOK = ROOT / 'data/units/兵种配置.xlsx'
 sys.path.insert(0, str(ROOT / 'tools'))
 import import_units as importer
+import unit_workbook
 
 TAG = '{' + importer.NS['s'] + '}'
 
@@ -29,29 +30,38 @@ class ImportTests(unittest.TestCase):
         self.current = json.loads(self.original.decode('utf-8-sig'))
 
     def workbook(self, changes=None, delete=False):
-        """按工作表关系、字段键和兵种ID定位单元格，不依赖固定列号/页序。"""
+        """按工作表关系、字段键和兵种ID定位单元格，不依赖固定列号/页序。
+        字段名含 / 时视为武器模式或技能参数页的参数路径，修改该行 F 列“数值”。"""
+        edits = {}
         rows = importer.read_rows(WORKBOOK, '兵种属性')
         columns = {field: col for col, field in rows[2].items()}
         row_ids = {cells[columns['id']]: n for n, cells in rows.items() if n > 2}
-        changes = {columns[field] + str(row_ids[uid]): value
-                   for (uid, field), value in (changes or {}).items()}
+        for (uid, field), value in (changes or {}).items():
+            if '/' in field:
+                sheet = '武器模式' if unit_workbook.is_weapon(field.split('/')) else '技能参数'
+                params = importer.read_rows(WORKBOOK, sheet)
+                row = next(n for n, cells in params.items() if n > 2 and cells.get('A') == uid and cells.get('D') == field)
+                edits.setdefault(sheet, {})['F' + str(row)] = value
+            else:
+                edits.setdefault('兵种属性', {})[columns[field] + str(row_ids[uid])] = value
         path = self.folder / 'test.xlsx'
         with ZipFile(WORKBOOK) as source, ZipFile(path, 'w') as output:
             book = ET.fromstring(source.read('xl/workbook.xml'))
-            sheet = next(s for s in book.findall('s:sheets/s:sheet', importer.NS)
-                         if s.get('name') == '兵种属性')
-            relation = sheet.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
             relations = ET.fromstring(source.read('xl/_rels/workbook.xml.rels'))
-            target = next(r.get('Target') for r in relations if r.get('Id') == relation)
-            member = target.lstrip('/') if target.startswith('/') else posixpath.normpath('xl/' + target)
+            members = {}
+            for sheet in book.findall('s:sheets/s:sheet', importer.NS):
+                relation = sheet.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+                target = next(r.get('Target') for r in relations if r.get('Id') == relation)
+                members[target.lstrip('/') if target.startswith('/') else posixpath.normpath('xl/' + target)] = sheet.get('name')
             for info in source.infolist():
                 data = source.read(info.filename)
-                if info.filename == member:
+                name = members.get(info.filename)
+                if name in edits or (delete and name == '兵种属性'):
                     tree = ET.fromstring(data)
                     row_nodes = tree.find(TAG + 'sheetData')
-                    if delete:
+                    if delete and name == '兵种属性':
                         row_nodes.remove(next(r for r in row_nodes if r.get('r') == str(row_ids['rifle'])))
-                    for address, value in changes.items():
+                    for address, value in edits.get(name, {}).items():
                         cell = next(c for c in tree.iter(TAG + 'c') if c.get('r') == address)
                         for child in list(cell): cell.remove(child)
                         if isinstance(value, str) and value.startswith('='):
@@ -98,14 +108,28 @@ class ImportTests(unittest.TestCase):
         self.assertFalse((self.folder / 'backups').exists())
 
     def test_invalid_input_never_writes(self):
-        for field, value in [('interval', 0), ('cost', 1.5), ('hp', -1), ('interval', 'NaN'),
-                             ('damage', 'inf'), ('armor_type', 'medium'), ('color', 'zzz'),
-                             ('id', 'move'), ('damage', '=2*8'), ('hp', ''), ('hit_count', 0)]:
+        # 武器数值只保存在 attack_modes 内；特战队员第 0 个模式是 projectile，间隔必须大于 0。
+        weapon = 'attack_modes/0/'
+        for field, value in [(weapon + 'interval', 0), ('cost', 1.5), ('hp', -1), (weapon + 'interval', 'NaN'),
+                             (weapon + 'damage', 'inf'), ('armor_type', 'medium'), ('color', 'zzz'),
+                             ('id', 'move'), (weapon + 'damage', '=2*8'), ('hp', ''), (weapon + 'hit_count', 0),
+                             (weapon + 'damage', -1), (weapon + 'range', -2)]:
             with self.subTest(field=field, value=value):
                 with self.assertRaises(ValueError):
                     importer.import_units(self.workbook({('rifle', field): value}), self.destination)
                 self.assertEqual(self.destination.read_bytes(), self.original)
                 self.assertFalse((self.folder / 'backups').exists())
+
+    def test_signed_speed_bonus(self):
+        """交战机动的 speed_bonus 是加减量，允许为负；其他数值仍须非负。"""
+        path = 'skills/combat_mobility/modifiers/0/speed_bonus'
+        importer.import_units(self.workbook({('zergling', path): -0.75}), self.destination)
+        result = json.loads(self.destination.read_text(encoding='utf-8'))
+        self.assertEqual(result['units']['zergling']['skills']['combat_mobility']['modifiers'][0]['speed_bonus'], -0.75)
+        self.destination.write_bytes(self.original)
+        with self.assertRaises(ValueError):
+            importer.import_units(self.workbook({('vanguard', 'skills/combat_mobility/modifiers/0/speed_multiplier'): -1}), self.destination)
+        self.assertEqual(self.destination.read_bytes(), self.original)
 
     def test_delete_rejected(self):
         with self.assertRaises(ValueError):

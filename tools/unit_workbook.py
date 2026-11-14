@@ -44,6 +44,10 @@ PARAM_LABELS = {
 }
 
 
+# 加减量字段可以为负（如跳虫交战机动 speed_bonus -0.5507）；运行时由 combat_mobility 把最终速度钳到 0 以上。
+SIGNED_KEYS = {'speed_bonus'}
+
+
 def kind(value):
     if isinstance(value, bool): return 'bool'
     if isinstance(value, (int, float)): return 'number'
@@ -55,7 +59,7 @@ def encode(value):
     return json.dumps(value, ensure_ascii=False) if kind(value) in ('bool', 'json') else value
 
 
-def decode(raw, expected, where):
+def decode(raw, expected, where, signed=False):
     if isinstance(raw, tuple): raise ValueError(where + '：不支持公式、日期或错误值，请粘贴为值。')
     text = str(raw).strip()
     if expected == 'text': return str(raw)
@@ -63,13 +67,21 @@ def decode(raw, expected, where):
     if expected == 'number':
         try: value = float(text)
         except ValueError: raise ValueError(where + '：请填数字。')
-        if not math.isfinite(value) or value < 0: raise ValueError(where + '：须为非负有限数。')
+        if not math.isfinite(value): raise ValueError(where + '：须为有限数。')
+        if value < 0 and not signed: raise ValueError(where + '：须为非负有限数。')
         return int(value) if value.is_integer() else value
     if expected == 'bool':
         if text.lower() not in ('true', 'false'): raise ValueError(where + '：填 true 或 false。')
         return text.lower() == 'true'
     try: return json.loads(text, parse_constant=lambda s: (_ for _ in ()).throw(ValueError(s)))
     except ValueError: raise ValueError(where + '：请填合法 JSON。')
+
+
+def keep_precision(value, original):
+    """Excel 只保留约 15 位有效数字；与快照仅差舍入误差的数值保留原值，避免未编辑的格子产生变更。"""
+    if kind(value) == kind(original) == 'number' and value != original and math.isclose(value, original, rel_tol=1e-12, abs_tol=0.0):
+        return original
+    return value
 
 
 def leaves(value, path=()):
@@ -144,7 +156,7 @@ def validate(units):
         if not isinstance(unit.get('skills',{}), dict): raise ValueError(where + 'skills 须为对象。')
         for path, value in leaves(unit):
             key = path[-1]
-            if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or value < 0): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
+            if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
             if key in ('interval','speed','scan_seconds','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
             if key in ('hit_count','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
@@ -214,7 +226,7 @@ def parse_workbook(path, current, read_rows):
                     edited[uid][key]=value
                 continue
             if raw=='' and (uid,key) in review_keys:continue
-            value=decode(raw,kind(base[uid][key]),'兵种属性第%d行 %s'%(n,key))
+            value=keep_precision(decode(raw,kind(base[uid][key]),'兵种属性第%d行 %s'%(n,key)),base[uid][key])
             if type(value)!=type(base[uid][key]) and not (kind(value)==kind(base[uid][key])=='number'): raise ValueError(uid+'：'+key+' 类型错误。')
             edited[uid][key]=value
             touched[(uid,key)]=value
@@ -229,7 +241,7 @@ def parse_workbook(path, current, read_rows):
             if key not in expected or key in seen: raise ValueError(sheet+'：未知或重复参数 '+uid+'/'+p)
             seen.add(key)
             if cells.get('F','')=='' and key in review_keys:continue
-            value=decode(cells.get('F',''),kind(expected[key]),sheet+'第%d行 %s/%s'%(n,uid,p))
+            value=keep_precision(decode(cells.get('F',''),kind(expected[key]),sheet+'第%d行 %s/%s'%(n,uid,p),p.split('/')[-1] in SIGNED_KEYS),expected[key])
             if type(value)!=type(expected[key]) and not (kind(value)==kind(expected[key])=='number'): raise ValueError(uid+'/'+p+' 类型错误。')
             set_path(edited[uid],p.split('/'),value)
             touched[key]=value
@@ -241,7 +253,7 @@ def parse_workbook(path, current, read_rows):
             if (uid,p) not in review_keys:raise ValueError('待确认清单：未知字段 '+uid+'/'+p)
             original=base[uid]
             for part in p.split('/'):original=original[int(part)] if isinstance(original,list) else original[part]
-            value=decode(cells['D'],kind(original),'待确认清单第%d行 %s/%s'%(n,uid,p))
+            value=keep_precision(decode(cells['D'],kind(original),'待确认清单第%d行 %s/%s'%(n,uid,p),p.split('/')[-1] in SIGNED_KEYS),original)
             if type(value)!=type(original) and not (kind(value)==kind(original)=='number'):raise ValueError('待确认清单：类型错误 '+uid+'/'+p)
             if (uid,p) in touched and touched[(uid,p)]!=value:raise ValueError('同一字段在属性/技能页和待确认清单填了不同值：'+uid+'/'+p)
             set_path(edited[uid],p.split('/'),value)
