@@ -1,171 +1,97 @@
-# 开发与打包
+# 开发、测试与打包
+
+各版本的构建与“未运行验证”记录见 [历史归档](archive/DEVELOPMENT_HISTORY.md)。
 
 ## 环境
 
-已验证 Godot 4.7.2.stable.official.ed1daf0bf 标准版，使用对应 4.7.2.stable 导出模板。Python 不参与游戏运行；仅重新生成字体子集时需要 fonttools。运行 Godot 导入工程即可重建 `.godot` 缓存。
+- **Godot**：用户本机为 4.7.2 标准版；云端验证使用 4.6.3（`Godot_v4.6.3-stable_linux.x86_64`）。导出需要对应版本的导出模板。首次打开或命令行导入会重建 `.godot` 缓存。
+- **Python 3.8+**：只用于工具与测试（Excel 导入、兵种总表、导入器测试），游戏运行不需要。导入器只用标准库；重新生成 Excel 需要 `openpyxl`，重新裁剪字体需要 `fonttools`。
+- **Android**：JDK 21、Android SDK Build Tools 36.0.0；在 Godot 编辑器设置中配置 Java SDK、Android SDK 和调试 keystore，无需 Gradle 自定义构建。导出产生 minSdk 24、targetSdk 36，含 arm64-v8a 与 x86_64。
+- **渲染器**：Windows 使用 Compatibility；Android 使用 Mobile/Vulkan（`rendering_method.mobile="mobile"`）。最低 API 24 不代表所有 Android 7 设备都能运行，需要支持 Vulkan 的真机验证。
 
-Android 构建环境：JDK 21.0.10、Android SDK Build Tools 36.0.0。Godot 的编辑器设置中配置 Java SDK、Android SDK 和调试 keystore。APK 原生打包不需要启用 Gradle 自定义构建。导出模板产生 minSdk 24、targetSdk 36；用户安装测试包时按操作系统提示允许对应来源安装。
+## 一条命令运行全部检查
 
-项目设置开启 ETC2/ASTC 导入以支持 Android 导出。Windows 使用 S3TC/BPTC。无 3D 模型或大纹理依赖，不使用动态灯光。所有项目路径均为 res:// 或 user://；仓库不保存本机 SDK 路径。
+Windows（PowerShell）：
 
-渲染器适配：Windows 保持 Compatibility；Android 用 `rendering/renderer/rendering_method.mobile="mobile"` 选择 Mobile/Vulkan。初版模拟器的 GLES 后端在 Godot 4.7.2 上报 `GL_MAX_FRAGMENT_UNIFORM_VECTORS (261)` 着色器链接错误，故调整 Android 渲染器。APK 的 minSdk 不能单独代表 GPU 兼容性，需要支持 Mobile 渲染器的 Vulkan 设备。不要将模拟器图形后端的问题误记为已验证的所有真机问题。
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\路径\Godot_v4.7.2-stable_win64_console.exe'
+powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\路径\Godot_v4.7.2-stable_win64_console.exe' -Perf
+```
+
+Linux / macOS：
+
+```bash
+GODOT=/path/to/godot tools/check.sh
+GODOT=/path/to/godot tools/check.sh --perf
+```
+
+Godot 请用**控制台版** exe，否则看不到输出。也可以先设置环境变量 `GODOT`（以及可选的 `PYTHON`）。脚本依次运行下表各项，每项有超时，日志写到 `build/check-logs/<名称>.log`，最后打印汇总；任一项失败时退出码为 1，并列出失败项。退出码非零、日志出现 `SCRIPT ERROR`，或出现以 `FAIL`/`UI FAIL` 开头的行，都算失败。
+
+| 名称 | 内容 | 通过标志 |
+| --- | --- | --- |
+| `import` | `--editor --import --quit` 导入资源、解析全部脚本 | 无脚本错误 |
+| `test_sim` | `tests/test_sim.gd` 规则模拟测试 | `RESULT N checks, 0 failures` |
+| `unit_editor` | `tests/test_unit_editor.gd` 兵种卡片、翻页与简介 | `Unit editor failures: 0` |
+| `ui_smoke` | `tests/ui_smoke.gd` 真实主场景程序化操作与完整对局 | `UI SMOKE: PASS` |
+| `replay` | `tests/replay.gd` 重放 ui_smoke 刚写出的战报 | `REPLAY: PASS` |
+| `importer` | `python -m unittest discover -s tests -p 'test_*.py'` Excel 导入器测试 | `OK` |
+| `unit_table` | `python tools/unit_table.py --check` 兵种总表与数据同步 | 一致 |
+| `crowd_perf`（`-Perf`） | 满兵营纯模拟基准，默认 3 波 | 只输出数据 |
+| `render_perf`（`-Perf`） | 打开渲染窗口采样 10 秒帧率 | 只输出数据 |
+
+注意：`ui_smoke` 会覆盖本机 `user://` 下的最近阵容（`settings.cfg`）与战报（`last_match.json`）；需要保留时先备份。Windows 的 `user://` 通常在 `%APPDATA%\Godot\app_userdata\FightParty`。`check.ps1` 尚未在 Windows 上实际运行过，首次使用若有问题请反馈。
+
+## 单项运行
+
+```bash
+godot --headless --path . --editor --import --quit
+godot --headless --path . --script res://tests/test_sim.gd
+godot --headless --path . --script res://tests/test_unit_editor.gd
+godot --headless --path . --script res://tests/ui_smoke.gd -- --capture=/tmp/fightparty.png
+godot --headless --path . --script res://tests/replay.gd -- /path/to/last_match.json
+godot --headless --path . --script res://tests/crowd_perf.gd -- --waves=3
+godot --path . --script res://tests/render_perf.gd
+python tools/import_units.py --check
+python tools/unit_table.py --check
+```
+
+- `test_sim.gd`：约 840 项检查，覆盖买卖退款与多资源、无效输入、波次与 64 波结束规则、安全时限、永久兵营、同时击杀与同时基地摧毁、基地防御层、宝库与灵核、防御塔选址与种族塔、周期经济/中央井/气厂/兑换、护甲/护盾/溅射/多段、攻击模式与投送、各技能组件、召唤物、种族与公开、电脑购买与建塔、镜像公平、确定性、战报重放、空间查询等价与等预算克制。运行时脚本错误也计为失败。约 1 分钟。
+- `ui_smoke.gd`：通过真实主场景验证开局设置与自定义值、种族选择与商店过滤、多兵种放置/移动/删除与翻页、暂停与后台通知、首次交战公开、已出场单位取消确认与不退款、点选建塔、完整对局（缩短为 3 波）、结算与重开、按种族保存兵营；有显示服务时输出截图，无界面时跳过截图。它用程序调用界面动作，不代替实机触摸验证。
+- `replay.gd` 默认读取最近一局战报；规则版本不一致或未完成的日志会拒绝。
+- `render_perf.gd` 需要真实显示环境才能代表画面帧率；headless 下的数字只说明脚本能运行。
+
+## 修改兵种数值后
+
+1. 改 `data/units.json`，或改 Excel 后运行 `python tools/import_units.py`（见 README 第十三节）。
+2. 运行 `python tools/unit_table.py` 重新生成 [兵种数值总表](UNIT_TABLE.md)。
+3. 运行一键检查。平衡调整可能让克制测试失败：先判断是否属于预期变化，再更新测试预期，不要直接删除测试。
+4. 价格变化后检查 `races.json` 的默认阵容是否仍买得起（`test_sim` 会打印 WARN）。
 
 ## 构建
 
-先在 Godot 中安装相同版本的导出模板；配置好 SDK 后执行：
-
 ```powershell
 ./tools/build.ps1 -Godot 'C:/Tools/Godot/Godot_v4.7.2-stable_win64_console.exe'
+./tools/build.ps1 -Godot '...' -SkipAndroid
 ```
 
-脚本导入资源、运行模拟测试，然后生成 Windows EXE、ZIP 和 Android 调试 APK。可使用 `-SkipAndroid` 只构建 Windows，或用 `-OutputDirectory` 指定输出目录。
+脚本导入资源、运行 `test_sim.gd`，再生成 Windows EXE、ZIP 和 Android 调试 APK；`-OutputDirectory` 可指定输出目录。打包前建议先跑一键检查。也可以直接导出：
 
-也可直接运行：
-
-```powershell
+```bash
 godot --headless --path . --export-release 'Windows Desktop' build/windows/FightParty.exe
 godot --headless --path . --export-debug Android build/FightParty-android-test.apk
+godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-cloud-test.apk
 ```
 
-提前创建输出目录。Android 安装包包含 arm64-v8a 与 x86_64，后者用于模拟器。密钥只在本机生成和保存，绝不上传仓库。正式发行需要另行准备发布签名；此项目不包含商店发布流程。
+导出预设：`Windows Desktop`；`Android`（包名 `org.pickher.fightparty`）；`Android Cloud Test`（包名 `org.pickher.fightparty.cloudtest`，显示名 FightParty Test，可与原包并存）。当前两个 Android 预设均为 versionName 0.11.3 / versionCode 40。签名 keystore 只保存在本机或云端编辑器设置中，绝不提交；同包名升级必须使用同一签名。产物放在已忽略的 `build/` 目录。
 
-Windows 将 PCK 嵌入 EXE，无需引擎安装。发行模板本身约 104 MiB，因此原型 EXE 不等同于源码体积；ZIP 和 APK 的实测体积以交付文件为准。
-
-## 测试与复现
-
-`test_sim.gd` 覆盖矿物与买卖退款、无效输入、波次边界、永久兵营重生、残兵、可选寿命、同时击杀、同时基地摧毁、64 波结束规则与安全时限、操作日志重放、AI 增量购买、镜像对局、确定性及等预算克制。失败时退出码非零。
-
-`ui_smoke.gd` 通过真实主场景验证放置、移动、删除、暂停、后台通知、完整对局、结果和重开，并输出战场与结算截图。它使用程序调用界面动作，并不替代实机手指操作验证。截图路径可指定：
-
-```powershell
-godot --path . --script res://tests/ui_smoke.gd -- --capture=C:/Temp/fightparty.png
-```
-
-`render_perf.gd` 在真实渲染窗口里生成 200 个高生命单位，采样 10 秒实际帧数，同时运行 20 Hz 模拟。`test_sim.gd` 还分别测量纯模拟耗时，两者不能混为一谈。
-
-`crowd_perf.gd` 是 18×8 满兵营的纯模拟基准：双方由 AI 各买满 144 格、连续出兵，输出每步平均/最慢耗时和峰值单位数。默认 8 波，可用 `-- --waves=12` 调整：
-
-```powershell
-godot --headless --path . --script res://tests/crowd_perf.gd -- --waves=12
-```
-
-`replay.gd` 默认读取最近完成的对局，也可以显式指定 JSON 路径：
-
-```powershell
-godot --headless --path . --script res://tests/replay.gd -- C:/Temp/last_match.json
-```
-
-规则版本不一致或未完成的日志会拒绝重放。输入文件属于本地开发工具，不是网络接口。测试保存的位置与实际游戏一致，运行测试前请自行保留需要的个人战报。
+最近一次实际构建并发布的测试 APK 是 0.7.4（versionCode 24），之后的源码改动没有重新打包；手机上的安装包不会随源码更新。
 
 ## 字体与许可
 
-`assets/NotoSansSC.ttf` 是 Noto Sans SC 变量字体的 wght=500 静态 UI 子集，覆盖 scripts/data/tests 中的文本与基本 ASCII。增加中文提示后，下载 Google Fonts 仓库的原始 NotoSansSC[wght].ttf，在安装 fonttools 的 Python 环境运行：
-
-```powershell
-python tools/subset_font.py C:/Temp/NotoSansSC-original.ttf
-```
-
-原字体来源：https://github.com/google/fonts/tree/main/ofl/notosanssc 。许可证位于 `assets/OFL.txt`。Godot MIT 声明位于 `assets/GODOT-LICENSE.txt`，同时保留 https://godotengine.org/license/ 的引用以查看引擎第三方组件声明。
-
-## 云端安卓测试包（2026-11-03）
-
-当前云端使用 Godot 4.6.3.stable.official.7d41c59c4 及匹配的 4.6.3.stable Android debug 模板、OpenJDK 21、Android SDK Build Tools 36.0.0、platforms;android-36 和 platform-tools。Android SDK 位于 `/home/agent/android-sdk`，Java SDK 位于 `/usr/lib/jvm/java-21-openjdk-amd64`；路径通过云端 Godot 编辑器设置配置，不写入项目导出预设。
-
-本机生成的开发测试签名保存在项目外的 Godot keystores 目录，不能提交到仓库。后续生成同包名更新包应继续使用同一签名；云端环境重建前需妥善保存签名才能保留升级兼容性。
-
-新增 `Android Cloud Test` 预设，包名 `org.pickher.fightparty.cloudtest`、显示名称 `FightParty Test`、当前预设 versionCode 16 / versionName 0.3.1，可以与原包并存。原 Android 预设仍保留原包名。两者存档独立。
+`assets/NotoSansSC.ttf` 是 Noto Sans SC 变量字体 wght=500 的静态子集，覆盖 scripts、data、tests 中出现的文字与基本 ASCII。新增界面中文后，下载 Google Fonts 的原始 `NotoSansSC[wght].ttf`，在装有 fonttools 的环境运行：
 
 ```bash
-mkdir -p build
-godot --headless --path . --editor --import --quit
-godot --headless --path . --script res://tests/test_sim.gd
-godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-0.3.1-cloud-test.apk
-/home/agent/android-sdk/build-tools/36.0.0/apksigner verify --verbose build/FightParty-0.3.1-cloud-test.apk
-/home/agent/android-sdk/build-tools/36.0.0/zipalign -c -P 16 4 build/FightParty-0.3.1-cloud-test.apk
+python tools/subset_font.py /path/to/NotoSansSC-original.ttf
 ```
 
-产物在已忽略的 build 目录，不提交到源码仓库。安装只需要 APK，不需要旁边的 idsig 文件。此包保持 Mobile/Vulkan，最低 Android API 24 不等同于所有 Android 7.0 手机都能运行，仍需要实际设备验证。
-
-以上命令用于重新构建当前源码；本轮未执行 0.3.1 导出，已有下载页仍为 0.1.4。
-
-当前源码 0.4.0 / Android versionCode 17。本轮未导出 APK，旧战报与旧测试尺度不兼容；验证前先阅读 docs/WORLD_UNITS.md。
-
-## 0.5.0 预留技能实现
-
-本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。
-
-当前导出版本 0.5.0 / Android versionCode 18，未生成 APK。
-
-当前源码与导出预设为 0.6.0 / Android versionCode 19。技能组件化未执行运行验证，测试夹具中的状态写入须改用实例 state。见 docs/SKILL_COMPONENTS.md。
-
-当前源码与导出预设更新为 0.7.0 / Android versionCode 20，未打包。新兵种优先配置公共属性与技能组合，参考 [UNIT_MODEL.md](UNIT_MODEL.md)。实例通过 sim.unit_model(unit) 取得，模板构造后只读使用；spawn_unit() 返回实例共享状态的兼容字典。按用户要求没有运行导入或测试。
-
-
-当前地图改版为 0.7.1 / Android versionCode 21，未打包或运行验证。出生参数与参考距离见 WORLD_UNITS.md，新增地图参数集中在 data/rules.json，不要再改旧像素比例或旧 spawn_dx/spawn_dy。
-
-
-当前源码为 0.7.2 / Android versionCode 22。坦克与特战队员参数变更见 WORLD_UNITS.md，未运行验证或打包。
-
-
-当前源码为 0.7.3 / Android versionCode 23，坦克双模式武器参数见 WORLD_UNITS.md，复用接口见 SKILL_COMPONENTS.md；未运行验证或打包。
-
-2026-11-08：新增当前兵种工作簿 data/units/兵种配置.xlsx（48 个单位），分为兵种属性、独立武器模式、技能参数。tools/unit_workbook.py 负责生成，新版 tools/import_units.py 默认导入此表，仍兼容历史格式。导入以隐藏的导出快照识别编辑，保留未编辑字段的远程变更并拒绝同字段冲突。没有更改游戏数值；按用户约定未运行导入校验、测试、模拟、Godot 导入或打包。
-
-
-2026-11-08 0.7.4：医疗兵95生命；解放者架设65+30重甲；雷神按模式2/2/4段。引入武器 hit_count 并同步Excel，内部伤害类型保留；版本0.7.4，Android versionCode24。
-
-
-2026-11-09：移除已停用的朋友 Windows 调试包工作流：tools/friend_package 的启动/编辑/导入脚本模板、专用操作说明和交付验证记录，以及 README 对应入口。保留当前 Excel 编辑及导入、兵种分页、游戏与技能框架；没有回退共享历史提交或改动游戏数值。未运行导入校验、Godot 导入、模拟、测试或打包。
-
-
-## 2026-11-09 当前安卓测试构建
-
-由 cloud/test 源码提交 `317600d` 构建 0.7.4（versionCode 24），使用现有 Godot 4.6.3 Android debug 模板、SDK 36.0.0 和项目外原测试签名。导出预设 Android Cloud Test，包名 `org.pickher.fightparty.cloudtest`，名称 FightParty Test；包含 arm64-v8a 与 x86_64，minSdk 24 / targetSdk 36，保持当前 Mobile/Vulkan 渲染。
-
-产物：`build/FightParty-0.7.4-cloud-test.apk`，58,400,095 字节。
-SHA-256：`d8eef78f483fbf000237859609a6e8f265bc7872a1c0df229f2928fbc7af2592`。
-
-已完成资源导入/脚本解析、Android 导出、APK v2/v3 签名校验和 16 KiB 页对齐校验。没有运行对局模拟、战报重放或安卓真机/模拟器安装。导入/导出日志中的 ADB daemon 未连接不影响 APK 产物；aapt 旧版 badging 读取某些 required 属性报错，使用 aapt2 可读取包版本和架构。aapt2 另提示引擎模板引用的 themed_icon.xml 缺失，未将此视为真机通过。
-
-新版私人下载页已发布：https://fightparty-apk-014.wangzeyu2495.chatgpt.site （网址保留旧版本命名，页面内为0.7.4），下载重组代码已校验 APK 的完整大小和 SHA-256。需要使用有权访问此页的 ChatGPT 账号；无需 GitHub 登录。安装包、签名和 SDK 不上传到游戏源码仓库。
-
-
-2026-11-09：继续清理朋友调试流程遗留：删除根目录导入兵种.cmd及过期的data/兵种配置.xlsx；当前配置表只保留data/units/兵种配置.xlsx。同步README、表内填写说明和生成工具，导入入口改为python tools/import_units.py。旧导入器测试源码迁移到当前表格，避免依赖被删除的旧文件；按用户约定未运行导入校验、测试、模拟或打包。
-
-
-## 2026-11-09 0.7.5
-
-当前源码0.7.5、Android versionCode25；恶火4.5格开火/5格火焰；人族可建造防御塔1200HP及8+2独立驻军火力；Excel更新至49条。代码、表格和文档更新，未运行Godot导入、模拟、测试或打包；当前已发布APK仍0.7.4。
-
-
-2026-11-09：源码更新为0.7.6 / Android versionCode26，大和舰行为通过独立mobile_attack组件配置，Excel已同步。按用户要求未增加索敌机制说明。未运行导入校验、Godot导入、模拟、测试或打包；下载页APK仍0.7.4。
-
-
-2026-11-09 0.7.7：当前源码0.7.7、Android versionCode27；更新火焰宽度、模型及显式碰撞配置，同步Excel和大和舰图集缩放。没有修改其他战斗数值；未运行导入校验、Godot导入、模拟、测试或打包，下载页APK仍0.7.4。
-
-
-2026-11-09 0.8.0：当前源码0.8.0 / Android versionCode28，虫/神三攻三防参考及未完成项见SC2_BALANCE_REFERENCE.md。Excel新增待确认清单、技能核对和隐藏审核字段；未运行导入、测试、模拟或打包。原0.7.4下载APK没有更新。
-
-
-2026-11-11：选中兵种简介改为射程、移速、护甲类型、按模式区分的伤害加成和技能名称。移除模型尺寸与长描述；数字最多两位小数，按416像素宽度自动换行和调整字号，最多四行。界面逻辑集中于unit_summary.gd；未改数值/Excel，未运行Godot导入、模拟、UI或打包。
-
-
-2026-11-11 0.8.1：基地与原门口守卫塔合并，初始15000生命（10000核心+5000防御层）；达到10000及以下永久撤销防御层、反击及额外上限。存活时整池每秒回血5，不复活、不恢复失效防御层。防御武器8格/300真实伤害/0.2秒，可对地对空。独立BaseDefense复用AttackCycle及公共命中结算；快照/最终战报记录防御层及动态上限。基地中心绘制核心和炮台，额外血量为金色，失效发出提示。宝库旁玩家塔和地堡不变。Excel与字体同步，源码0.8.1 / Android versionCode29；遵照用户要求，未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-11 0.8.2：玩家防御塔位置不变，宝库向己方基地后移2.25格，左右坐标为(34.875,9)/(55.125,9)，与塔中心相距4.5格，大于坦克2.5格溅射半径。宝库改为5000生命/1000护盾，health_regen=2、health_regen_delay=0、shield_regen=10、shield_regen_delay=15；复用Unit.restore的独立回血/回盾，不等待生命回满。布局参考、Excel同步；源码0.8.2 / Android versionCode30。按用户要求未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-11 0.8.3：坦克架设炮主目标全伤，半径2.5格内，≤1.25格次目标60%，外圈次目标30%。通过通用WeaponDefinition分圈字段与queue_direct_strike实现，按比例缩放护甲前基础伤害及加成，不影响移动炮和未配置分圈的兵种。Excel参数、导入字段范围规则与文档同步；源码0.8.3 / Android versionCode31。按用户要求未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-11 0.9.0：50个兵种/建筑/召唤单位均显式定义attack_modes与primary_mode（含无普通攻击的支援模式）。移除源码JSON顶层武器真值，技能通过mode_id/mode_ids引用，运行时兼容投影供旧UI/技能读取。新增AttackSequence与Projectile服务，逐段调度、独立飞行及命中，固定步内偏移处理0.125秒，快照保存序列/弹体及ID。目标死亡时保留范围弹与后续范围段，射手死亡取消未发射段；已发弹体继续，命中效果使用配置快照。地堡/基地复用相同序列，地刺/巨像每段单独传播，飞龙弹射移到命中。雷神三模式及仅对空切换见ATTACK_MODES.md。Excel导出/导入支持独立模式，待确认路径已迁移；模型、经济与腐族预留能力不变。源码0.9.0 / Android versionCode32；未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-12 0.9.1：指定枪炮的fixed/seconds设为0（出手持续不变），新增通用BeamService。医疗兵、哨兵、虚空与基地反击使用连续光束，面板/实际均每0.5秒完整结算一次，护甲每周期扣一次，切换目标等待0.3秒并重置周期；无0.05秒伤害细分。医疗兵heal迁入武器模式healing=12并保持治疗对象；既有地面/空中友军治疗范围保留。绘制持续光束；AI/DPS与简介区分光束周期和多段攻击。Excel增加光束周期/切换等待/治疗量参数，普通模式伤害和坦克分圈不变。源码0.9.1 / Android versionCode33。按用户要求未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-12 0.9.2：统一攻击行为抽象，新增AttackBehavior及射弹/激光/直线推进三类和注册器；主循环、出手序列、医疗兵、地堡、基地、AI预估和简介改走公共接口。底层服务和命中结算继续复用，三类对象无单位状态，快照不保存对象。迁移50项兵种/建筑的delivery类型和射弹flight子方式，不改数值、经济、时序或已有激光切换规则。Excel和扩展说明同步。源码0.9.2 / Android versionCode34；遵照用户要求，未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
-
-
-2026-11-12 0.9.3：巨像价格250→1350矿/个，每组1个；横向扫射长度6.4286→4.5格（缩短30%），速度改6格/秒，使每束扫完全长为0.75秒。射程、判定半宽0.5、两段伤害、0.4秒出手和1.07秒轮后等待不变。用户已确认的长度/速度从待确认清单移除，半宽及护盾恢复待确认项保留，Excel同步。源码0.9.3 / Android versionCode35；未运行导入校验、Godot导入、模拟、测试、UI或打包，下载APK仍0.7.4。
+字体来源 https://github.com/google/fonts/tree/main/ofl/notosanssc ，许可证在 `assets/OFL.txt`；Godot MIT 声明在 `assets/GODOT-LICENSE.txt`（另见 https://godotengine.org/license/ ）。

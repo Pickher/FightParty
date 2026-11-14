@@ -1,5 +1,7 @@
 # 可复用技能配置（0.6.0）
 
+> 当前规则 0.11.3：本文说明的机制仍是现行实现，文中数值是写作时的版本；当前数值以 `data/units.json` 与 [兵种数值总表](UNIT_TABLE.md) 为准。自动测试已迁移到当前规则并全部通过，见 [测试报告](TEST_REPORT.md)。
+
 每个 `data/units.json` 兵种可添加 `skills` 字典。未配置技能时使用普通移动、索敌和攻击。技能实现位于 `scripts/skills/`；状态与计算属于模拟层，外观由 `main.gd` 绘制。
 
 ## 已支持的技能
@@ -160,9 +162,9 @@ weapon_switch.policy=air_superiority 用于雷神，preferred_layer=air 控制�
 
 spawn_count 与 size 是单位基础字段，而不是需要单独调度的技能；各个个体仍独立使用自己的技能和状态。
 
-## 0.5.0 预留技能实现
+## 兵种技能实现
 
-本轮技能模块、兵种行为、状态和召唤时序，以 [ROSTER_SKILLS.md](ROSTER_SKILLS.md) 为准。新增实现未运行验证；旧文中的 stub 清单为历史状态。
+各兵种技能的行为、状态和召唤时序见 [ROSTER_SKILLS.md](ROSTER_SKILLS.md)。当前所有可购买兵种均为 ready，已没有 stub 兵种。
 
 ## 当前组件接口
 

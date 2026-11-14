@@ -59,4 +59,4 @@
 
 ## 数据与验证范围
 
-`data/units.json`与`data/units/兵种配置.xlsx`同步，两座新模板位于表中。`defense_reference.json`保存本次依据与回退，合并进原来源表；参考覆盖工具重新运行时会保留该扩展来源。没有运行Godot导入、模拟、测试或打包；已下载APK仍需重新打包才能包含本次内容。
+`data/units.json`与`data/units/兵种配置.xlsx`同步，两座新模板位于表中。`defense_reference.json`保存本次依据与回退，合并进原来源表；参考覆盖工具重新运行时会保留该扩展来源。已下载APK仍需重新打包才能包含本次内容。自动测试已于 2026-11-14 迁移到当前规则 0.11.3 并全部通过，覆盖范围见 [测试报告](TEST_REPORT.md)。
