@@ -692,14 +692,22 @@ func _target(unit: Dictionary) -> Dictionary:
 
 ## 沙漠风暴 wanttoattackG/GA：空闲单位对 AutoCastRange 30 内的敌人下攻击移动。
 ## 没有发现目标时，向交战半径内最近的可攻击敌人推进，而不是沿行军路线离开交战；
-## 远程溅射射程都在半径内，被打后也会压向攻击者。结果每 ENGAGE_RESCAN 步按 ID 错开重扫一次。
+## 远程溅射射程都在半径内，被打后也会压向攻击者。结果每 ENGAGE_RESCAN 步重扫一次，按出生 tick 对齐，镜像双方同步重扫。
 const ENGAGE_RESCAN := 10
+## 敌人偏离行军方向超过 45° 才改走向敌人；正前方的敌人沿原路线接近，保持队形不向一点收拢。
+const ENGAGE_ROUTE_COS := 0.7071
 var engage_radius := 0.0
+
+func _route_misses(unit: Dictionary, goal: Vector2, enemy_pos: Vector2) -> bool:
+	var to_goal: Vector2 = goal-unit.pos
+	if to_goal.length_squared()<0.0001:return true
+	return to_goal.normalized().dot((enemy_pos-unit.pos).normalized())<ENGAGE_ROUTE_COS
+
 func engage_target(unit: Dictionary) -> Dictionary:
 	if engage_radius<=0.0 or unit.has("defender_goal") or bool(unit.get("owner_dependent",false)):return {}
 	var radius := engage_radius
 	# 两次重扫之间沿用上次结果：0 表示半径内没有可攻击敌人；缓存目标死亡或离开半径时立即重扫。
-	if unit.has("engage_id") and (tick+int(unit.id))%ENGAGE_RESCAN!=0:
+	if unit.has("engage_id") and (tick-int(unit.born))%ENGAGE_RESCAN!=0:
 		if int(unit.engage_id)==0:return {}
 		var cached = by_id.get(int(unit.engage_id))
 		if cached!=null and cached.hp>0 and unit.pos.distance_to(cached.pos)<=radius:return cached
@@ -915,7 +923,7 @@ func step() -> Array:
 			goal = target.pos
 		else:
 			var engaged := engage_target(unit)
-			if not engaged.is_empty():goal = engaged.pos
+			if not engaged.is_empty() and _route_misses(unit,goal,engaged.pos):goal = engaged.pos
 		var distance: float = unit.pos.distance_to(goal)
 		# 攻击基地时加上基地半径，相当于允许攻击到基地边缘。
 		var attacking_base: bool = target.is_empty() and not unit.has("defender_goal") and goal.is_equal_approx(base_pos(enemy))
