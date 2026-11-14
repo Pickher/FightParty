@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_final_phase"]
+const SECTIONS := ["_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -1160,6 +1160,86 @@ func _economy() -> void:
 			ok = ok and shop.buy(1,slot.kind,slot.cell)==""
 		shop.minerals[1] += 1000
 	check(ok and shop.formations[1].size()==int(shop.rules.columns*shop.rules.rows),"AI buys incrementally within minerals until grid is full")
+
+## 沙漠风暴周期经济：分档收入、停薪、气厂分流与上限、瓦斯兑换、中央井占领。预期值从 rules.economy 读取。
+## 直接改 sim.wave 只为跳到指定阶段；测试期间始终早于首波出兵时刻，不会触发出兵。
+func _desert_economy() -> void:
+	var config: Dictionary = Catalog.rules().economy
+	var tiers: Array = config.income_tiers
+	var probe = bare(42,{"start_minerals":0})
+	var tier_ok := true
+	for index in range(tiers.size()):
+		var tier: Dictionary = tiers[index]
+		tier_ok = tier_ok and probe.economy.base_income(int(tier.wave))==int(tier.minerals)
+		if index>0:tier_ok = tier_ok and probe.economy.base_income(int(tier.wave)-1)==int(tiers[index-1].minerals)
+	check(tier_ok,"income tiers switch exactly at configured waves")
+	var income_ticks: int = int(float(config.income_seconds)*float(probe.rules.tick_rate))
+	var base: int = probe.economy.base_income(0)
+	ticks(probe,income_ticks-1)
+	check(probe.minerals==[0,0],"no income before the first income interval")
+	ticks(probe,1)
+	check(probe.minerals==[base,base],"both sides receive the same timed income")
+	ticks(probe,income_ticks)
+	check(probe.minerals==[2*base,2*base],"income repeats every income interval")
+	var halted = bare(42,{"start_minerals":0,"wave_limit":int(config.income_stop_wave)+10})
+	halted.wave = int(config.income_stop_wave)
+	ticks(halted,income_ticks*2)
+	check(halted.minerals==[0,0] and halted.economy.set_gasworks(halted,0,1)!="","income and gasworks stop at income_stop_wave")
+	# 气厂：按当前阶段上限建造；每座把基础收入的固定比例转为瓦斯，矿物相应减少，不额外生成资源。
+	var works = bare(42,{"start_minerals":0})
+	var initial_limit: int = int(config.gasworks_initial_limit)
+	var expanded_limit: int = int(config.gasworks_expanded_limit)
+	check(works.economy.set_gasworks(works,0,initial_limit+1)!="" and works.economy.set_gasworks(works,0,-1)!="","gasworks above the initial limit are rejected")
+	works.wave = int(config.gasworks_unlock_wave)
+	check(works.economy.set_gasworks(works,0,expanded_limit)=="" and works.economy.set_gasworks(works,0,expanded_limit+1)!="","gasworks limit expands at the unlock wave")
+	var split = bare(42,{"start_minerals":0})
+	split.wave = int(tiers[1].wave)
+	var count := 2
+	check(split.economy.set_gasworks(split,0,count)=="","gasworks can be built within the limit")
+	var tier_income: int = split.economy.base_income(split.wave)
+	var diverted: int = int(round(tier_income*float(config.gasworks_fraction)*count))
+	ticks(split,income_ticks)
+	check(diverted>0 and split.minerals[0]==tier_income-diverted and split.economy.gas[0]==diverted,"gasworks divert part of base income into gas")
+	check(split.minerals[1]==tier_income and split.economy.gas[1]==0,"opponent income is unaffected by our gasworks")
+	check(split.economy.exchange_gas(split,0)=="" and split.minerals[0]==tier_income and split.economy.gas[0]==0,"gas exchanges back to minerals one to one")
+	check(split.economy.exchange_gas(split,0)!="","exchange needs gas")
+	var logged: Array = split.journal.actions.map(func(action): return str(action.type))
+	check(logged.has("gasworks") and logged.has("exchange_gas"),"economy actions are journaled")
+	# 中央井：开放前不占领；开放后最近的一方占领；无人或等距时保持原归属；结构体不能占领；控制方获得额外矿物。
+	var well = bare(42,{"start_minerals":0})
+	var runner = well.spawn_unit(0,"rifle",field(0,0))
+	ticks(well,1)
+	check(well.economy.center_owner==-1,"center cannot be captured before it opens")
+	well.wave = int(config.center_unlock_wave)
+	well.economy.last_scan_tick = -1
+	runner.pos = field(0,0)
+	runner.prev = runner.pos
+	ticks(well,1)
+	check(well.economy.center_owner==0 and well.journal.economy_events.any(func(event): return event.type=="center_captured" and int(event.team)==0),"nearest side captures the open center and it is journaled")
+	var rates: Array = [well.economy.rates(0,well.wave),well.economy.rates(1,well.wave)]
+	var open_income: int = well.economy.base_income(well.wave)
+	check(int(rates[0].minerals)==open_income+int(config.center_bonus) and int(rates[1].minerals)==open_income,"center owner gets the bonus minerals")
+	well.units.clear()
+	well.spawn_unit(1,"rifle",field(0,0))
+	well.economy.last_scan_tick = -1
+	ticks(well,1)
+	check(well.economy.center_owner==1,"the other side can take the center")
+	well.units.clear()
+	well.spawn_unit(0,"treasury",field(0,0))
+	well.economy.last_scan_tick = -1
+	ticks(well,1)
+	check(well.economy.center_owner==1,"structures cannot capture and an empty center keeps its owner")
+	# 等距判定若落到“否则归后者”，会把归属交给 1；先让 0 占领，才能检出这种偏向。
+	well.units.clear()
+	well.spawn_unit(0,"rifle",field(0,0))
+	well.economy.last_scan_tick = -1
+	ticks(well,1)
+	well.units.clear()
+	well.spawn_unit(0,"rifle",field(-1,0))
+	well.spawn_unit(1,"rifle",field(1,0))
+	well.economy.last_scan_tick = -1
+	ticks(well,1)
+	check(well.economy.center_owner==0,"equal distance keeps the previous owner")
 
 ## 最后一波后的胜负：先失去可攻击部队的一方失败；治疗单位不算；双方同时失去为平局；安全时限比较基地。
 func _final_phase() -> void:
