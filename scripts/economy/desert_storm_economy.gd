@@ -28,7 +28,7 @@ func rates(team: int, wave: int) -> Dictionary:
 
 func set_gasworks(sim, team: int, count: int) -> String:
 	if team < 0 or team > 1: return "无效阵营"
-	if sim.finished or sim.wave >= int(config.income_stop_wave): return "经济已停止"
+	if sim.finished or stopped(sim): return "经济已停止"
 	if count < 0 or count > gasworks_limit(sim.wave): return "超出当前气厂上限"
 	gasworks[team] = count
 	sim._log(team,{"type":"gasworks", "count":count})
@@ -78,7 +78,7 @@ func step(sim) -> void:
 	if last_tier != tier:
 		last_tier = tier
 		sim.events.append({"type":"income_tier", "amount":tier})
-	if sim.wave >= int(config.income_stop_wave): return
+	if stopped(sim): return
 	if center_active(sim.wave) and (last_scan_tick<0 or sim.tick-last_scan_tick>=int(float(config.center_scan_seconds)*rate)):
 		last_scan_tick = sim.tick
 		_capture(sim)
@@ -89,6 +89,10 @@ func step(sim) -> void:
 		sim.minerals[team] += int(income.minerals)
 		gas[team] += int(income.gas)
 	sim.events.append({"type":"income"})
+
+## 收入在 income_stop_wave 或最后一波（wave_limit）出场后停止，取先到者。
+func stopped(sim) -> bool:
+	return sim.wave >= mini(int(config.income_stop_wave), int(sim.rules.wave_limit))
 
 func snapshot(team: int, wave: int) -> Dictionary:
 	return {"gas":gas[team],"cores":cores[team],"gasworks":gasworks[team],"gasworks_limit":gasworks_limit(wave),
