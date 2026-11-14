@@ -1,5 +1,5 @@
 {
-  "version": "0.11.2",
+  "version": "0.11.3",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。",
   "units": {
@@ -660,16 +660,18 @@
       }
     },
     "zerg_tower_cluster": {
-      "source_unit": "SpineCrawler + SporeCrawler（2+2合并）",
+      "source_unit": "SpineCrawler + SporeCrawler（0.11.3平衡后的2+2合并）",
       "fields": {
-        "hp": "2×UnitData/SpineCrawler/LifeMax1500 + 2×SporeCrawler/LifeMax2000",
-        "health_regen": "四座原图LifeRegenRate1.3671相加",
+        "hp": "0.11.3跨种族平衡：2400；取消四座原图塔生命直接相加",
+        "health_regen": "0.11.3跨种族平衡：单个合并建筑回血2/秒",
         "skills/independent_weapons/weapons/0/count": "用户要求：2座对地脊针爬虫",
         "skills/independent_weapons/weapons/1/count": "用户要求：2座对空孢子爬虫",
-        "attack_modes/0/interval": "WeaponData/ImpalerTentacle/Period=0.37，减0.001秒出手",
-        "attack_modes/1/interval": "WeaponData/AcidSpew/Period=0.172，减0.001秒出手",
+        "attack_modes/0/interval": "0.11.3平衡完整周期0.4秒，减0.001秒出手；原图脊针周期0.37秒",
+        "attack_modes/1/interval": "0.11.3平衡完整周期0.25秒，减0.001秒出手；原图孢子周期0.172秒",
         "attack_modes/0/target_layers": "WeaponData/ImpalerTentacle/TargetFilters=Ground",
-        "attack_modes/1/target_layers": "WeaponData/AcidSpew/TargetFilters=Air"
+        "attack_modes/1/target_layers": "WeaponData/AcidSpew/TargetFilters=Air",
+        "attack_modes/1/damage": "0.11.3主动平衡：孢子每发15伤害，非原图覆盖值",
+        "attack_modes/1/bonus_tags/biological": "0.11.3主动平衡：对生物额外5伤害，非原图覆盖值"
       }
     }
   },
@@ -1848,6 +1850,48 @@
       "before": "重击重甲单位；怕轻甲海与空军",
       "after": "护盾受损时短时增加40护盾护甲；不生成吸收盾",
       "source": "BehaviorData/ImmortalBarrierBase3"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "hp",
+      "before": 7000,
+      "after": 2400,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "health_regen",
+      "before": 5.4684,
+      "after": 2,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/0/interval",
+      "before": 0.369,
+      "after": 0.399,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/interval",
+      "before": 0.171,
+      "after": 0.249,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/damage",
+      "before": 20,
+      "after": 15,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "attack_modes/1/bonus_tags/biological",
+      "before": 10,
+      "after": 5,
+      "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
     }
   ],
   "unresolved": [
@@ -2972,6 +3016,11 @@
       "reason": "弹速未完整还原原版依赖；沿用项目20格/秒弹道，攻击周期采用地图明确值。"
     },
     {
+      "id": "protoss_photon_cannon",
+      "path": "shield_regen_delay",
+      "reason": "脱战回盾延迟未在地图覆盖，采用项目/原版7秒回退。"
+    },
+    {
       "id": "zerg_tower_cluster",
       "path": "armor",
       "reason": "地图未显式写LifeArmor。光子用原版1；合并虫塔用较低的1，未逐塔分开减甲。"
@@ -2988,18 +3037,8 @@
     },
     {
       "id": "zerg_tower_cluster",
-      "path": "attack_modes/1/damage",
-      "reason": "伤害效果继承原版，地图未写完整Amount；光子采用原版20，脊针25+5重甲，孢子采用当前原版20+10生物回退，未将Weapon.Level当实际伤害。"
-    },
-    {
-      "id": "zerg_tower_cluster",
       "path": "attack_modes/1/delivery",
       "reason": "弹速未完整还原原版依赖；沿用项目20格/秒弹道，攻击周期采用地图明确值。"
-    },
-    {
-      "id": "protoss_photon_cannon",
-      "path": "shield_regen_delay",
-      "reason": "脱战回盾延迟未在地图覆盖，采用项目/原版7秒回退。"
     },
     {
       "id": "zerg_tower_cluster",
@@ -3018,18 +3057,8 @@
     },
     {
       "id": "zerg_tower_cluster",
-      "path": "attack_modes/1/bonus_tags",
-      "reason": "孢子生物加成继承版本不齐，采用当前原版+10生物；地图Level45不作为加成证明。"
-    },
-    {
-      "id": "zerg_tower_cluster",
       "path": "cost",
       "reason": "两座孢子明确150/座，脊针采用原版100/座回退，合并价格500。"
-    },
-    {
-      "id": "zerg_tower_cluster",
-      "path": "hp",
-      "reason": "7000为四座生命之和的合并设计，共用生命，不模拟四座逐一被摧毁。"
     }
   ]
 }

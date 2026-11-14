@@ -1,5 +1,5 @@
 {
- "version": "0.11.2",
+ "version": "0.11.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -4879,13 +4879,13 @@
    "race": "zerg",
    "cost": 500,
    "structure": true,
-   "hp": 7000,
+   "hp": 2400,
    "armor_type": "heavy",
    "armor": 1,
    "speed": 0.0,
    "color": "c3a079",
-   "role": "双脊针双孢子 · 独立索敌",
-   "counter": "合并两座脊针爬虫、两座孢子爬虫；四套独立火力共用生命",
+   "role": "分层火力 · 均衡防御",
+   "counter": "2门对地、2门对空；射程7，耐久高于地堡，单层输出较低",
    "size": [
     2.5,
     2.5
@@ -4895,7 +4895,7 @@
    "shield_armor": 0,
    "energy": 0,
    "initial_energy": 0,
-   "health_regen": 5.4684,
+   "health_regen": 2,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
@@ -4921,7 +4921,7 @@
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 7,
-     "interval": 0.369,
+     "interval": 0.399,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -4948,17 +4948,17 @@
      ]
     },
     {
-     "damage": 20,
+     "damage": 15,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {
-      "biological": 10
+      "biological": 5
      },
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
      "range": 7,
-     "interval": 0.171,
+     "interval": 0.249,
      "windup": 0,
      "backswing": 0,
      "splash": 0.0,
@@ -5012,7 +5012,7 @@
      "SporeCrawler"
     ],
     "source": "desert-storm",
-    "status": "two_ground_two_air_composite"
+    "status": "balanced_two_ground_two_air_composite"
    }
   }
  }
