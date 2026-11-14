@@ -34,11 +34,12 @@ func run() -> void:
 	verify(game.setup_open,"setup popup shown before match")
 	game.handle_action("start")
 	verify(not game.started,"setup blocks start")
+	var options: Dictionary = game.sim.rules.setup_options
+	var wave_option: Dictionary = options.wave_seconds
 	game.handle_action("setup_pick:start_minerals:1000")
 	game.handle_action("setup_step:wave_seconds:1")
-	game.handle_action("setup_step:wave_income:-1")
 	game.handle_action("setup_confirm")
-	verify(not game.setup_open and game.sim.rules.wave_seconds==35 and game.sim.rules.wave_income==250,"custom settings applied")
+	verify(not game.setup_open and int(game.sim.rules.wave_seconds)==int(wave_option.recommended)+int(wave_option.step) and int(game.sim.rules.start_minerals)==1000,"custom settings applied")
 	verify(game.sim.minerals[1]<=1000 and game.sim.journal.settings.start_minerals==1000,"chosen start funds recorded")
 	game.handle_action("restart")
 	verify(game.setup_open and game.custom_fields.has("wave_seconds"),"restart reopens setup with previous custom values")
@@ -46,11 +47,14 @@ func run() -> void:
 	verify(game.race_choices==["terran","random"],"reset restores recommended races")
 	game.handle_action("setup_race:1:zerg")
 	game.handle_action("setup_confirm")
-	verify(game.sim.rules.wave_seconds==30 and game.sim.rules.wave_income==300 and game.sim.journal.settings.start_minerals==600,"reset restores recommended settings")
+	verify(int(game.sim.rules.wave_seconds)==int(wave_option.recommended) and int(game.sim.journal.settings.start_minerals)==int(options.start_minerals.recommended),"reset restores recommended settings")
 	verify(game.sim.races==["terran","zerg"] and game.sim.journal.settings.races==["terran","zerg"],"chosen races applied and journaled")
 	verify(game._shop_kinds().all(func(k): return game.sim.catalog[k].race=="terran"),"shop lists own race only")
 	verify(game.sim.formations[1].all(func(s): return game.sim.catalog[s.kind].race=="zerg"),"computer buys its own race")
 	game.handle_action("clear")
+	# 推荐开局资金买不起医疗兵（含瓦斯）、特工、雷神、大和舰；编辑器路径测试直接补足资源。
+	game.sim.minerals[0] = 20000
+	game.sim.economy.gas[0] = 2000
 	game.handle_action("select:hellbat")
 	game.handle_action("cell:5")
 	verify(game.sim.formations[0].size()==1,"place")
@@ -115,7 +119,15 @@ func run() -> void:
 	verify(game.unit_page==1,"unit pages wrap backward")
 	game.handle_action("select:rifle")
 	verify(game.unit_page==0,"select keeps chosen card visible")
-	# 390 预算混编，覆盖劫掠者、喷火直线攻击与特工换弹的完整对局。
+	# 完整对局只用会写入战报的设置：开局资金来自设置，缩短的波数与终局上限进入 settings，
+	# 因此 tests/replay.gd 能逐 tick 复现这一局。默认 64 波整局与终局规则由 test_sim 的 _final_phase 覆盖。
+	game.handle_action("restart")
+	game.handle_action("setup_pick:start_minerals:%d" % int(options.start_minerals.max))
+	game.match_settings.wave_limit = 3
+	game.match_settings.final_phase_max_seconds = 120
+	game.handle_action("setup_confirm")
+	verify(game.sim.races==["terran","zerg"] and int(game.sim.journal.settings.wave_limit)==3,"replayable match settings journaled")
+	# 混编覆盖劫掠者、喷火直线攻击与特工换弹的完整对局。
 	game._commit([{"kind":"marauder","cell":5},{"kind":"hellbat","cell":8},{"kind":"agent","cell":6}])
 	game.handle_action("start")
 	game.handle_action("start")
@@ -152,13 +164,20 @@ func run() -> void:
 	verify(game.sim.formations[0].size()==2 and game.sim.minerals[0]==minerals_before,"confirmed deployed cancel gives no refund")
 	game.handle_action("select:rifle")
 	game.handle_action("cell:%d" % deployed_cell)
-	verify(game.sim.formations[0].size()==3 and game.sim.minerals[0]==minerals_before-75,"buy into freed cell")
-	# 防御塔：矿物足够时建成一座，再按一次被拒绝。
-	var affordable: bool=int(game.sim.minerals[0])>=int(game.sim.catalog.tower.cost)
+	verify(game.sim.formations[0].size()==3 and game.sim.minerals[0]==minerals_before-int(game.sim.catalog.rifle.cost),"buy into freed cell")
+	# 防御塔：按钮进入选址，在己方半场点击落点建成一座；再按一次被拒绝。
+	var affordable: bool=int(game.sim.minerals[0])>=int(game.sim.catalog[game.sim.tower_kind(0)].cost)
 	game.handle_action("build_tower")
-	verify(game.sim.tower_builds[0]==(1 if affordable else 0),"build tower button")
+	verify(game.placing_tower==affordable,"build tower button enters placement")
+	if affordable:
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.pressed = true
+		click.position = game._world(game.sim.suggested_tower_position(0))*game.size/Vector2(1440,900)
+		game._gui_input(click)
+	verify(game.sim.tower_builds[0]==(1 if affordable else 0) and not game.placing_tower,"tower built at clicked site")
 	game.handle_action("build_tower")
-	verify(game.sim.tower_builds[0]<=1,"only one tower")
+	verify(game.sim.tower_builds[0]<=1 and not game.placing_tower,"only one tower")
 	game.effects.clear()
 	game.selected="rifle"
 	game.queue_redraw()
