@@ -6,13 +6,15 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.11.3**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.11.4**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
 
 当前玩法规则见 [游戏设计](docs/DESIGN.md)，兵种数值见 [兵种数值总表](docs/UNIT_TABLE.md)，最新测试结果见 [测试报告](docs/TEST_REPORT.md)。改完代码或数值后，用一条命令跑完全部检查（见第十一节）：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_win64_console.exe'
 ```
+
+0.11.4：恶火碰撞/分离半径0.6→0.75（取原图恶火变体SeparationRadius）并在攻击冷却中散开，降低坦克溅射叠伤；新增规则`engage_radius`=30（原图wanttoattack自动施法范围）：没有目标的单位会转向30格内偏离行军方向超过45°的最近可攻击敌人，近战被远程溅射后不再沿路线脱离部队。旧战报重放结果会变化。`tools/check.sh`全部通过。
 
 0.5～0.11.3 各版本的改动摘要已移到 [README 版本说明（历史）](docs/archive/README_VERSION_NOTES.md)；其中的旧数值和“未运行验证”说明不代表当前状态。
 
