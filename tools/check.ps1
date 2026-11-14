@@ -1,4 +1,4 @@
-# 中文导读：一条命令跑完全部自动测试：资源导入、规则模拟、兵种编辑器、界面冒烟、战报重放与 Excel 导入器。
+# 中文导读：一条命令跑完全部自动测试：资源导入、规则模拟、兵种编辑器、界面冒烟、战报重放、Excel 导入器与兵种总表同步检查。
 # 用法：powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Godot\Godot_v4.7.2-stable_win64_console.exe' [-Perf]
 # 也可先设置环境变量 GODOT。-Perf 额外运行 crowd_perf（满兵营 3 波，约 3 分钟）与 render_perf（打开渲染窗口采样 10 秒）。
 # 每项日志写到 build\check-logs\；ui_smoke 会覆盖本机 user:// 下的最近阵容与战报，replay 随后重放这份战报。
@@ -53,6 +53,7 @@ Invoke-Suite 'unit_editor' 300 $Godot @('--headless', '--path', $projectPath, '-
 Invoke-Suite 'ui_smoke' 600 $Godot @('--headless', '--path', $projectPath, '--script', 'res://tests/ui_smoke.gd')
 Invoke-Suite 'replay' 600 $Godot @('--headless', '--path', $projectPath, '--script', 'res://tests/replay.gd')
 Invoke-Suite 'importer' 300 $Python ($pythonArgs + @('-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py'))
+Invoke-Suite 'unit_table' 60 $Python ($pythonArgs + @('tools/unit_table.py', '--check'))
 if ($Perf) {
     Invoke-Suite 'crowd_perf' 900 $Godot @('--headless', '--path', $projectPath, '--script', 'res://tests/crowd_perf.gd')
     Invoke-Suite 'render_perf' 300 $Godot @('--path', $projectPath, '--script', 'res://tests/render_perf.gd')

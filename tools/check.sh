@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 中文导读：一条命令跑完全部自动测试：资源导入、规则模拟、兵种编辑器、界面冒烟、战报重放与 Excel 导入器。
+# 中文导读：一条命令跑完全部自动测试：资源导入、规则模拟、兵种编辑器、界面冒烟、战报重放、Excel 导入器与兵种总表同步检查。
 # 用法：tools/check.sh [--perf]。Godot 路径用环境变量 GODOT 指定，默认在 PATH 中找 godot / godot4。
 # --perf 额外运行 crowd_perf（满兵营 3 波，约 3 分钟）与 render_perf（打开渲染窗口采样 10 秒）。
 # 每项日志写到 build/check-logs/；ui_smoke 会覆盖本机 user:// 下的最近阵容与战报，replay 随后重放这份战报。
@@ -47,6 +47,7 @@ run unit_editor 300 "$GODOT" --headless --path . --script res://tests/test_unit_
 run ui_smoke 600 "$GODOT" --headless --path . --script res://tests/ui_smoke.gd
 run replay 600 "$GODOT" --headless --path . --script res://tests/replay.gd
 run importer 300 "$PYTHON" -m unittest discover -s tests -p 'test_*.py'
+run unit_table 60 "$PYTHON" tools/unit_table.py --check
 if [ $PERF -eq 1 ]; then
 	run crowd_perf 900 "$GODOT" --headless --path . --script res://tests/crowd_perf.gd
 	run render_perf 300 "$GODOT" --path . --script res://tests/render_perf.gd
