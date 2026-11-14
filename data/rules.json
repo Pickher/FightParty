@@ -7,6 +7,7 @@
     "terran"
   ],
   "min_damage": 0.5,
+  "engage_radius": 30,
   "shield_regen_delay": 7.0,
   "shield_regen_per_second": 7.5,
   "start_minerals": 200,

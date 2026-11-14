@@ -25,6 +25,8 @@
         "cost": "UnitData/Hellion/CostResource[Minerals] × spawn_count",
         "attack_modes/0/damage": "EffectData/InfernalFlameThrower/Amount",
         "attack_modes/0/bonus/light": "EffectData/InfernalFlameThrower/AttributeBonus[Light]",
+        "collision_radius": "UnitData/HellionBlackOps、HHHellionTank/SeparationRadius=0.75（Hellion本体未覆盖，取图内恶火变体的分离半径）",
+        "separate_when_stopped": "试玩反馈：同特战队员在攻击冷却中散开，降低溅射叠伤",
         "sc2": "UnitData/Hellion 对应关系（内部ID保留hellbat）"
       },
       "abilities": [

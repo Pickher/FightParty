@@ -81,6 +81,7 @@ var max_body_radius := 0.5
 ## 创建一局新的战斗数据。overrides 覆盖 rules 中的同名字段（开局设置），并写入战报以便重放。
 func _init(seed_value: int = 42, overrides: Dictionary = {}) -> void:
 	rules.merge(overrides, true)
+	engage_radius = float(rules.get("engage_radius",0.0))
 	economy = Economy.new(rules.economy)
 	next_wave_tick = int(float(rules.first_wave_seconds)*float(rules.tick_rate))
 	definitions = Catalog.definitions(catalog, rules)
@@ -689,6 +690,45 @@ func _target(unit: Dictionary) -> Dictionary:
 					best_score = score
 	return best
 
+## 沙漠风暴 wanttoattackG/GA：空闲单位对 AutoCastRange 30 内的敌人下攻击移动。
+## 没有发现目标时，向交战半径内最近的可攻击敌人推进，而不是沿行军路线离开交战；
+## 远程溅射射程都在半径内，被打后也会压向攻击者。结果每 ENGAGE_RESCAN 步按 ID 错开重扫一次。
+const ENGAGE_RESCAN := 10
+var engage_radius := 0.0
+func engage_target(unit: Dictionary) -> Dictionary:
+	if engage_radius<=0.0 or unit.has("defender_goal") or bool(unit.get("owner_dependent",false)):return {}
+	var radius := engage_radius
+	# 两次重扫之间沿用上次结果：0 表示半径内没有可攻击敌人；缓存目标死亡或离开半径时立即重扫。
+	if unit.has("engage_id") and (tick+int(unit.id))%ENGAGE_RESCAN!=0:
+		if int(unit.engage_id)==0:return {}
+		var cached = by_id.get(int(unit.engage_id))
+		if cached!=null and cached.hp>0 and unit.pos.distance_to(cached.pos)<=radius:return cached
+	unit.engage_id = 0
+	if is_structure(unit) or (float(catalog[unit.kind].damage)<=0.0 and not skill_system.contributes_damage(unit)):return {}
+	var weapon := _search_stats(unit)
+	var best: Dictionary = {}
+	var best_distance := INF
+	var enemies: Dictionary = team_buckets[1 - int(unit.team)]
+	var area := _search_area(unit.pos, radius)
+	for ring in range(int(area.rings)):
+		if best_distance < float(ring - 1) * BUCKET:
+			break
+		for key in _ring_cells(area, ring):
+			var bucket = enemies.get(key)
+			if bucket == null or _cell_distance(unit.pos, key) > minf(best_distance, radius):
+				continue
+			for other in bucket:
+				if other.hp <= 0:
+					continue
+				var distance: float = unit.pos.distance_to(other.pos)
+				if distance > radius or not _can_hit_unit(unit,other,weapon):
+					continue
+				if distance < best_distance or (is_equal_approx(distance,best_distance) and int(other.id) < int(best.get("id",2147483647))):
+					best = other
+					best_distance = distance
+	unit.engage_id = int(best.get("id",0))
+	return best
+
 ## 距离最近（同距按 ID）的存活敌方地面单位（不含结构体），供防卫圈选择圈地方向。
 func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 	var best: Dictionary = {}
@@ -873,6 +913,9 @@ func step() -> Array:
 			goal = unit.defender_goal
 		if not target.is_empty():
 			goal = target.pos
+		else:
+			var engaged := engage_target(unit)
+			if not engaged.is_empty():goal = engaged.pos
 		var distance: float = unit.pos.distance_to(goal)
 		# 攻击基地时加上基地半径，相当于允许攻击到基地边缘。
 		var attacking_base: bool = target.is_empty() and not unit.has("defender_goal") and goal.is_equal_approx(base_pos(enemy))

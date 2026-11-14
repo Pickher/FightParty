@@ -128,7 +128,8 @@
    "tags": [
     "mechanical"
    ],
-   "collision_radius": 0.6,
+   "collision_radius": 0.75,
+   "separate_when_stopped": true,
    "primary_mode": "flame_jet",
    "attack_modes": [
     {
