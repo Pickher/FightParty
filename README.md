@@ -2,6 +2,8 @@
 
 项目后续安排见 [项目规划](docs/PROJECT_PLAN.md) 和 [待完成任务清单](docs/PROJECT_BACKLOG.md)。两份文档以 v0.11.3 为评估基线，区分已有功能、待验证内容与后续工作。
 
+V01 特性分支新增战斗大视图、近景、小地图导航与交战跟随，操作和待验收项见 [V01 交付说明](docs/V01_BATTLEFIELD_CAMERA.md)。保留原战斗规则；本次未运行游戏、测试、模拟或打包。
+
 本机工程目录：D:\MyCode\FightParty
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
