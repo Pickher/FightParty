@@ -7,6 +7,8 @@ extends Control
 const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 const BattleView = preload("res://scripts/battle_view.gd")
+const FormationPanel = preload("res://scripts/formation_panel.gd")
+var formation_panel = FormationPanel.new()
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
 const Sim = preload("res://scripts/battle_sim.gd")
 const RifleVisual = preload("res://scripts/rifle_visual.gd")
@@ -96,6 +98,7 @@ func _reset_pointer() -> void:
 	battle_dragging=false
 	minimap_dragging=false
 	tower_preview_visible=false
+	formation_panel.cancel_drag()
 
 func _invalidate_interaction() -> void:
 	interaction_ready=false
@@ -113,6 +116,7 @@ func _set_battle_expanded(expanded: bool) -> void:
 	_invalidate_interaction()
 
 func _ready() -> void:
+	formation_panel.game=self
 	battle_viewport=SubViewport.new()
 	battle_viewport.size=Vector2i(_battle_rect().size)
 	battle_viewport.disable_3d=true
@@ -150,7 +154,8 @@ func _new_match() -> void:
 	var overrides: Dictionary = match_settings.duplicate()
 	overrides["races"] = [_resolve_race(race_choices[0]), _resolve_race(race_choices[1])]
 	sim = Sim.new(42, overrides)
-	_set_battle_expanded(false)
+	formation_panel.reset()
+	_set_battle_expanded(true)
 	_set_camera_scale(CLOSE_PIXELS_PER_CELL)
 	camera_follow=false
 	combat_focus_tick=-1000
@@ -166,8 +171,11 @@ func _new_match() -> void:
 		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
 		if saved is Array:
 			prior = saved
+	var saved_layout_error := ""
 	if sim.submit_formation(0, prior) != "":
 		sim.submit_formation(0, Catalog.starter(sim.races[0]))
+	else:
+		saved_layout_error=_restore_deployment(prior)
 	if not sim.catalog.has(selected) or sim.kind_error(0, selected) != "":
 		selected = _shop_kinds()[0]
 	_ai_shop()
@@ -178,6 +186,7 @@ func _new_match() -> void:
 	rifle_visual.reset()
 	bc_visual.reset()
 	messages = ["兵营永久保留；每3秒收入，中央资源井第10波开放。"]
+	if not saved_layout_error.is_empty():_note("保存的排布不可用，已保留部队并使用默认阵型。")
 	pending_formation = []
 	move_source = -1
 	journal_error = false
@@ -222,6 +231,18 @@ func _recommended_settings() -> Dictionary:
 		result[field] = int(options[field].recommended)
 	return result
 
+## 旧阵容没有单兵位置时仍可用；布局不参与买兵、退款或费用计算。
+func _restore_deployment(formation: Array) -> String:
+	var placements: Array = []
+	for slot in formation:
+		if not slot is Dictionary or not slot.has("member_positions"):continue
+		if not slot.member_positions is Array:return "排布数据无效"
+		if not sim.catalog.has(str(slot.kind)):return "排布兵种无效"
+		if slot.member_positions.size()!=maxi(1,int(sim.catalog[slot.kind].get("spawn_count",1))):return "排布人数已改变"
+		for member in range(slot.member_positions.size()):
+			placements.append({"cell":slot.cell,"member":member,"position":slot.member_positions[member]})
+	return sim.restore_deployment(0,placements) if not placements.is_empty() else ""
+
 ## 保存当前音量、开局设置和本方种族的下一波阵容；先读入旧文件，保留其他种族的兵营。失败只给提示，不影响继续战斗。
 func _save_settings() -> void:
 	var config := ConfigFile.new()
@@ -229,7 +250,9 @@ func _save_settings() -> void:
 	config.set_value("audio","volume",volume)
 	var formation: Array = []
 	for slot in sim.formations[0]:
-		formation.append({"kind":slot.kind,"cell":slot.cell})
+		var saved_slot: Dictionary = {"kind":slot.kind,"cell":slot.cell}
+		if slot.has("member_positions"):saved_slot.member_positions=slot.member_positions.duplicate(true)
+		formation.append(saved_slot)
 	if config.has_section_key("player","formation"):
 		config.erase_section_key("player","formation")
 	config.set_value("player","formation_"+str(sim.races[0]),formation)
@@ -270,7 +293,7 @@ func _notification(what: int) -> void:
 ## 累计够 0.05 秒才推进一步战斗；特效按画面时间更新，并请求重绘。
 func _process(delta: float) -> void:
 	elapsed_ui += delta
-	if started and not paused and not backgrounded and not help_open and not economy_open and not sim.finished:
+	if started and not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened and not sim.finished:
 		# 每帧最多积累 0.25 秒，防止卡顿后瞬间补算过多步。当前节拍固定 20 Hz。
 		# 如果修改 rules.json 的 tick_rate，必须同步这里的 0.05 和下面插值、时间显示等计算。
 		accumulator += minf(delta, 0.25)
@@ -279,11 +302,12 @@ func _process(delta: float) -> void:
 			advance_tick()
 	if camera_follow and not placing_tower and not paused and not backgrounded and not _navigation_blocked():
 		camera_center=_camera_rect().get_center().lerp(_frontline_point(),1.0-exp(-minf(delta,0.25)*6.0))
-	if not paused and not backgrounded and not help_open and not economy_open:
+	if not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened:
 		rifle_visual.update(delta)
 		bc_visual.update(delta)
-	for effect in effects:
-		effect.ttl -= delta
+	if not formation_panel.opened:
+		for effect in effects:
+			effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
 	queue_redraw()
 
@@ -344,6 +368,7 @@ func advance_tick() -> void:
 		elif event.type == "tower_built" and event.team == 1:
 			_note("敌方建造了防御塔")
 		elif event.type == "ended":
+			formation_panel.close_panel()
 			placing_tower=false
 			tower_preview_visible=false
 			pending_formation=[]
@@ -440,9 +465,12 @@ func _draw() -> void:
 	_text(Vector2(745,74),str(int(sim.economy.gas[0])),26,SHIELD)
 	_text(Vector2(895,37),"灵核",16,MUTED)
 	_text(Vector2(895,74),str(int(sim.economy.cores[0])),26,Color("ffcd70"))
-	_button(Rect2(1000,24,120,48),"音量 %d" % int(volume*100),"volume")
-	_button(Rect2(1132,24,120,48),"玩法说明","help")
-	_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
+	if formation_panel.opened:
+		_text(Vector2(1040,55),"配置中 · 战斗与倒计时已暂停",21,MINT)
+	else:
+		_button(Rect2(1000,24,120,48),"音量 %d" % int(volume*100),"volume")
+		_button(Rect2(1132,24,120,48),"玩法说明","help")
+		_button(Rect2(1264,24,144,48),"开始准备" if not started else ("继续战斗" if paused else "暂停战斗"),"start",true)
 	_draw_battle()
 	if not battle_expanded:_draw_editor()
 	_text(Vector2(34,882),"v%s  /  战局 %02d:%02d  /  无击杀收入" % [str(sim.rules.version),sim.tick/int(sim.rules.tick_rate)/60,sim.tick/int(sim.rules.tick_rate)%60],16,MUTED)
@@ -451,12 +479,13 @@ func _draw() -> void:
 		var intro: Vector2 = _battle_rect().get_center()-Vector2(280,65)
 		_panel(Rect2(intro,Vector2(560,130)), Color("102d32"), MINT)
 		_text(intro+Vector2(35,45),"先布阵，再让军队替你战斗。",28,MINT)
-		_text(intro+Vector2(35,83),"点击右上角「开始准备」，%d 秒后双方同时出兵。" % int(sim.rules.first_wave_seconds),18)
-		_text(intro+Vector2(35,110),"买下的单位每波都会出场；不能直接指挥场上单位。",18,MUTED)
+		_text(intro+Vector2(35,83),"点下方「部队配置」招募、自动排布或拖线布阵。",18)
+		_text(intro+Vector2(35,110),"配置好后点「开始准备」；已有部队每波出场。",18,MUTED)
 	if paused and not sim.finished and not placing_tower:
 		var pause_box: Vector2 = _battle_rect().get_center()-Vector2(195,45)
 		_panel(Rect2(pause_box,Vector2(390,90)))
-		_text(pause_box+Vector2(55,54),"已暂停 · 可点「布阵」调整" if battle_expanded else "已暂停 · 阵容仍可调整",23,MINT)
+		_text(pause_box+Vector2(36,54),"已暂停 · 可打开部队配置",23,MINT)
+	if formation_panel.opened:formation_panel.draw()
 	if sim.finished:
 		_draw_result()
 	if pending_message != "":
@@ -595,7 +624,7 @@ func _draw_battle() -> void:
 		_text(rect.position+Vector2(12,26),"选择己方半场落点建塔 · 可用小地图导航 · 右键 / Esc取消",17,MINT)
 		_button(Rect2(rect.end.x-130,rect.position.y+3,120,32),"取消选址","cancel_tower")
 	var y: float = rect.end.y+8
-	_button(Rect2(56,y,134,38),"布阵" if battle_expanded else "战斗大视图","battle_layout",battle_expanded)
+	_button(Rect2(56,y,134,38),"部队配置","battle_layout",formation_panel.opened)
 	_button(Rect2(198,y,70,38),"全图","camera_all")
 	_button(Rect2(276,y,70,38),"近景","camera_close")
 	_button(Rect2(354,y,70,38),"己方","camera_home")
@@ -766,18 +795,18 @@ func _draw_help() -> void:
 	_panel(Rect2(290,130,860,640))
 	buttons.clear()
 	_text(Vector2(335,188),"指挥官手册",32,MINT)
-	var lines := ["1. 选兵种，再点下方空格购买。右侧是前排，左侧是后排。",
+	var lines := ["1. 打开「部队配置」招募；选人数后点放、拖线或一键自动排布。",
 		"2. 买下的单位永久留在兵营，每 %d 秒全部出场一次。" % int(sim.rules.wave_seconds),
 		"3. 开局 %d 矿；每3秒获得30/60/120矿，第11/41波提升。" % int(sim.rules.start_minerals),
 		"4. 本轮新买、未出场的单位取消可全额退回；出场过的取消不退款。",
-		"5. 部队一直战斗到阵亡；移动兵营里的单位免费。",
+		"5. 排布免费，只影响下一波；删除/退款进入配置中的「格阵管理」。",
 		"6. 观察敌方上一波，选择克制组合。AI 不偷看你的新阵容。",
 		"   宝库被摧毁奖励对方1灵核；中央井第10波开放，控制方每3秒+3矿。",
 		"   花 %d 矿点选己方半场建塔；不能重叠建筑，被摧毁不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
-		"8. 空格键暂停，Esc 打开说明；手机切后台会自动暂停。",
+		"8. 打开配置时暂停计时，收起后返回战斗；手机切后台也会暂停。",
 		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",
-		"提示：点击兵营下方「经济」管理气厂分流与瓦斯兑换。"]
+		"提示：战场下方「经济」管理气厂分流与瓦斯兑换。"]
 	for i in range(lines.size()):
 		_text(Vector2(335,236+i*35),lines[i],20,INK if i<lines.size()-1 else MINT)
 	_button(Rect2(335,675,170,52),"明白了，返回","help",true)
@@ -886,7 +915,7 @@ func _battle_point(design_position: Vector2) -> Vector2:
 	return view.position+(design_position-rect.position)*view.size/rect.size
 
 func _navigation_blocked() -> bool:
-	return setup_open or help_open or economy_open or pending_message!="" or sim.finished
+	return setup_open or help_open or economy_open or formation_panel.opened or pending_message!="" or sim.finished
 
 func _tower_pointer_allowed(point: Vector2) -> bool:
 	return _battle_rect().has_point(point) and not _minimap_panel().has_point(point) and point.y>=_battle_rect().position.y+38
@@ -896,6 +925,22 @@ func _cancel_tower_placement() -> void:
 	_reset_pointer()
 
 func _gui_input(event: InputEvent) -> void:
+	if formation_panel.opened and not setup_open and not help_open and not economy_open and pending_message=="" and not sim.finished:
+		if not interaction_ready:
+			formation_panel.cancel_drag()
+			accept_event()
+			return
+		if event is InputEventMouseButton or event is InputEventMouseMotion:
+			var p := _design_point(event.position)
+			if event is InputEventMouseButton and event.pressed and event.button_index==MOUSE_BUTTON_LEFT:
+				for button in buttons:
+					if button.rect.has_point(p):
+						handle_action(button.action)
+						accept_event()
+						return
+			formation_panel.pointer(event,p)
+		accept_event()
+		return
 	if event is InputEventMouseButton:
 		if event.button_index==MOUSE_BUTTON_LEFT and not event.pressed:
 			battle_dragging=false
@@ -971,6 +1016,10 @@ func _gui_input(event: InputEvent) -> void:
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
 func _unhandled_key_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
+		if formation_panel.opened and not help_open and not economy_open and pending_message=="":
+			if event.keycode==KEY_ESCAPE:handle_action("formation:close")
+			get_viewport().set_input_as_handled()
+			return
 		if event.keycode == KEY_SPACE and not help_open and not economy_open and not setup_open and not sim.finished:
 			handle_action("start")
 		elif event.keycode == KEY_ESCAPE:
@@ -1010,8 +1059,18 @@ func handle_action(action: String) -> void:
 		_save_journal()
 		queue_redraw()
 		return
+	if action.begins_with("formation:"):
+		if formation_panel.opened:formation_panel.handle_action(action)
+		return
+	if formation_panel.opened and action!="legacy_editor":return
 	if action=="battle_layout":
-		_set_battle_expanded(not battle_expanded)
+		_cancel_tower_placement()
+		_set_battle_expanded(true)
+		formation_panel.open_panel()
+		accumulator=0.0
+	elif action=="legacy_editor":
+		formation_panel.close_panel()
+		_set_battle_expanded(false)
 	elif action.begins_with("camera_"):
 		var was_following := camera_follow
 		camera_follow=false
