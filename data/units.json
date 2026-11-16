@@ -1,5 +1,5 @@
 {
- "version": "0.11.4",
+ "version": "0.11.5",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -2500,16 +2500,16 @@
    "requires": [
     "stalker"
    ],
-   "sc2": "哨兵 Sentry（守护盾）",
-   "cost": 125,
+   "sc2": "哨兵 Sentry（防御护盾）",
+   "cost": 500,
    "hp": 40,
    "shield": 40,
    "armor_type": "none",
    "armor": 4,
    "speed": 3.5,
    "color": "a0f0f0",
-   "role": "守护光环 · 远程减伤",
-   "counter": "附近友军受远程伤害降低",
+   "role": "护盾支援 · 防御护盾",
+   "counter": "优先回复友军护盾；附近护盾满且有友军才攻击",
    "skills": {
     "aura": {
      "radius": 4.5,
@@ -2517,7 +2517,17 @@
      "duration": 12.86,
      "cooldown": 12.86,
      "requires_combat": true,
-     "energy_cost": 75
+     "energy_cost": 100
+    },
+    "shield_restore": {
+     "max_targets": 2,
+     "range": 5,
+     "nearby_radius": 7.5,
+     "shield_per_pulse": 5,
+     "pulse_seconds": 0.5,
+     "energy_per_pulse": 2,
+     "follow_distance": 3.2143,
+     "danger_distance": 3.5714
     }
    },
    "layer": "ground",
@@ -2525,7 +2535,7 @@
     1,
     1
    ],
-   "spawn_count": 1,
+   "spawn_count": 2,
    "shield_armor": 3,
    "energy": 200,
    "initial_energy": 50,
@@ -2548,7 +2558,7 @@
    "primary_mode": "disruption_beam",
    "attack_modes": [
     {
-     "damage": 9,
+     "damage": 4.5,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},

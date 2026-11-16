@@ -8,7 +8,7 @@ const SKILL_NAMES := {
 	"stimulant":"强化剂", "on_hit_slow":"命中减速", "multi_attack":"多重攻击",
 	"line_attack":"直线攻击", "weapon_switch":"武器切换", "yamato":"大和炮",
 	"regen":"再生", "suicide":"自爆", "delayed_area":"范围攻击",
-	"charge":"冲锋", "blink":"闪烁", "dive":"钻地突进", "aura":"光环",
+	"charge":"冲锋", "blink":"闪烁", "dive":"钻地突进", "aura":"光环", "shield_restore":"回盾",
 	"barrier":"屏障", "dot":"毒素", "ramp_damage":"蓄能",
 	"chain_attack":"弹射", "summon":"召唤", "on_death":"死亡触发",
 	"corpse_raise":"尸体复生", "mobile_attack":"移动攻击", "weapon_buff":"棱镜校准",

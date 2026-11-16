@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes"]
+const SECTIONS := ["_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -1906,3 +1906,153 @@ func _engage_respects_layers_and_radius() -> void:
 	sim.spawn_unit(1, "post", field(-38.0, float(sim.rules.engage_radius) + 6.0))
 	ticks(sim, 40)
 	check(ling.pos.x > field(-33.0, 0.0).x and absf(ling.pos.y - field(0, 0).y) < 2.0, "ground melee ignores air and out-of-radius enemies and keeps marching")
+
+## 哨兵：500 矿一组 2 名；防御护盾不叠开；回盾优先于攻击，并在前线消失后后撤。
+func _sentry() -> void:
+	_sentry_pack()
+	_sentry_shield_not_doubled()
+	_sentry_shield_opens_after_cover_ends()
+	_sentry_restore_rules()
+	_sentry_attack_and_retreat()
+
+func _sentry_quiet():
+	var sim = bare()
+	tune(sim, "sentry", {"speed":0, "energy_regen":0, "shield_regen":0})
+	tune(sim, "vanguard", {"speed":0, "shield_regen":0, "skills":{}})
+	tune(sim, "dummy", {"speed":0, "damage":0, "hp":100000})
+	return sim
+
+func _sentry_pack() -> void:
+	var stats: Dictionary = Catalog.units().sentry
+	check(int(stats.cost)==500 and int(stats.spawn_count)==2 and int(stats.gas_cost)==0 and int(stats.core_cost)==0, "sentry pack is 500 minerals for 2")
+	check(is_equal_approx(float(stats.attack_modes[0].damage), 4.5) and is_equal_approx(float(stats.attack_modes[0].shield_bonus), 4.0), "sentry damage is half of 9; shield bonus stays 4")
+	check(is_equal_approx(float(stats.skills.aura.energy_cost), 100.0) and is_equal_approx(float(stats.skills.aura.radius), 4.5) and is_equal_approx(float(stats.skills.aura.duration), 12.86), "guardian shield keeps radius 4.5 and duration 12.86, costs 100")
+	check(int(stats.energy)==200 and is_equal_approx(float(stats.initial_energy), 50.0), "sentry energy pool stays 200 / 50")
+	var restore: Dictionary = stats.skills.shield_restore
+	check(int(restore.max_targets)==2 and is_equal_approx(float(restore.shield_per_pulse), 5.0) and is_equal_approx(float(restore.energy_per_pulse), 2.0) and is_equal_approx(float(restore.pulse_seconds), 0.5), "restore is +5 shield and -2 energy per 0.5s")
+	var sim = bare(42, {"races":["protoss","protoss"], "start_minerals":500})
+	check(sim.formation_cost([{"kind":"sentry","cell":0}])==500, "one sentry slot costs the pack price")
+	check(sim.buy(0, "sentry", 4)=="" and sim.minerals[0]==0, "buying one sentry pack spends 500")
+	check(sim.refund_value(0, 4)==500 and sim.sell(0, 4)=="" and sim.minerals[0]==500, "undeployed sentry pack refunds 500")
+	check(sim.buy(0, "sentry", 4)=="", "rebuy sentry pack")
+	sim.tick=sim.next_wave_tick-1
+	sim.step()
+	var born := 0
+	for unit in sim.units:
+		if unit.team==0 and unit.kind=="sentry":born+=1
+	check(born==2, "one pack spawns two sentries")
+	var held: int = sim.minerals[0]
+	check(sim.refund_value(0, 4)==0 and sim.sell(0, 4)=="" and sim.minerals[0]==held, "deployed sentry pack refunds nothing")
+	var ai = AI.new(2, "protoss")
+	check(not ai._affordable("sentry", 499, 0, 0) and ai._affordable("sentry", 500, 0, 0), "AI prices a sentry pack at 500")
+	var poor: Array = ai.buy_list([], [], 499)
+	check(poor.size()>0 and not poor.any(func(slot): return slot.kind=="sentry"), "AI does not buy a sentry pack below 500")
+
+func _sentry_shield_not_doubled() -> void:
+	var sim = _sentry_quiet()
+	var radius: float = float(sim.catalog.sentry.skills.aura.radius)
+	var reduction: float = float(sim.catalog.sentry.skills.aura.ranged_damage_reduction)
+	var opener = sim.spawn_unit(0, "sentry", field(0, 0))
+	opener.energy=100
+	var ally = sim.spawn_unit(0, "vanguard", field(1, 0))
+	sim.spawn_unit(1, "dummy", field(4, 0))
+	sim.step()
+	check(is_equal_approx(float(opener.energy), 0.0) and sim.tick<int(opener.aura_until_tick), "sentry spends 100 energy to open guardian shield")
+	var inside = sim.spawn_unit(0, "sentry", field(2, 0))
+	inside.energy=200
+	var outside = sim.spawn_unit(0, "sentry", field(radius+2.5, 0))
+	outside.energy=200
+	sim.step()
+	check(is_equal_approx(float(inside.energy), 200.0) and int(inside.get("aura_until_tick", 0))==0, "sentry inside an open shield does not open its own")
+	check(is_equal_approx(float(outside.energy), 100.0) and sim.tick<int(outside.aura_until_tick), "sentry outside that shield still opens its own")
+	check(is_equal_approx(float(sim.aura_modifiers[ally.id].reduction), reduction) and reduction<reduction*2.0, "overlapping sentries do not double the shield reduction")
+
+func _sentry_shield_opens_after_cover_ends() -> void:
+	var sim = _sentry_quiet()
+	var skills: Dictionary = sim.catalog.sentry.skills.duplicate(true)
+	skills.aura.duration=0.5
+	skills.aura.cooldown=0.5
+	tune(sim, "sentry", {"speed":0, "energy_regen":0, "shield_regen":0, "skills":skills})
+	var opener = sim.spawn_unit(0, "sentry", field(0, 0))
+	opener.energy=100
+	var covered = sim.spawn_unit(0, "sentry", field(2, 0))
+	covered.energy=200
+	sim.spawn_unit(1, "dummy", field(4, 0))
+	sim.step()
+	var until: int = int(opener.aura_until_tick)
+	check(is_equal_approx(float(covered.energy), 200.0) and sim.tick<until, "covered sentry waits while the first shield is up")
+	while sim.tick<until:
+		sim.step()
+	check(is_equal_approx(float(covered.energy), 100.0) and sim.tick<int(covered.aura_until_tick), "covered sentry opens its shield once the other shield disappears")
+
+func _sentry_restore_rules() -> void:
+	var sim = _sentry_quiet()
+	var pulse: int = ceili(float(sim.catalog.sentry.skills.shield_restore.pulse_seconds)*float(sim.rules.tick_rate))
+	var sentry = sim.spawn_unit(0, "sentry", field(0, 0))
+	sentry.energy=40
+	var shields: Array = [40.0, 60.0, 80.0]
+	var allies: Array = []
+	for i in range(3):
+		var ally = sim.spawn_unit(0, "vanguard", field(-2.0-float(i), 0))
+		ally.shield=shields[i]
+		allies.append(ally)
+	var enemy = sim.spawn_unit(1, "dummy", field(4, 0))
+	var enemy_hp: float = enemy.hp
+	ticks(sim, pulse-1)
+	check(is_equal_approx(float(allies[0].shield), 40.0) and is_equal_approx(float(sentry.energy), 40.0) and is_equal_approx(enemy.hp, enemy_hp), "restore waits until the 0.5s settlement")
+	sim.step()
+	check(is_equal_approx(float(allies[0].shield), 45.0) and is_equal_approx(float(allies[1].shield), 65.0) and is_equal_approx(float(allies[2].shield), 80.0), "one sentry restores its two lowest shields and leaves the third")
+	check(is_equal_approx(float(sentry.energy), 38.0), "two restores still spend 2 energy per 0.5s")
+	check(is_equal_approx(enemy.hp, enemy_hp), "restore takes priority over attacking")
+	var other = _sentry_quiet()
+	var first = other.spawn_unit(0, "sentry", field(0, 0))
+	var second = other.spawn_unit(0, "sentry", field(0.4, 0))
+	first.energy=40
+	second.energy=40
+	var shared = other.spawn_unit(0, "vanguard", field(-1.5, 0))
+	shared.shield=50
+	other.spawn_unit(1, "dummy", field(4, 0))
+	ticks(other, pulse)
+	check(is_equal_approx(float(shared.shield), 55.0), "two sentries do not restore the same unit")
+	check(is_equal_approx(float(first.energy), 38.0) and is_equal_approx(float(second.energy), 40.0), "only the sentry that locked the target spends energy")
+
+func _sentry_attack_and_retreat() -> void:
+	var sim = _sentry_quiet()
+	var pulse: int = ceili(float(sim.catalog.sentry.skills.shield_restore.pulse_seconds)*float(sim.rules.tick_rate))
+	var sentry = sim.spawn_unit(0, "sentry", field(0, 0))
+	sentry.energy=0
+	var ally = sim.spawn_unit(0, "vanguard", field(-3, 0))
+	var enemy = sim.spawn_unit(1, "dummy", field(4, 0))
+	var before: float = enemy.hp
+	ticks(sim, pulse-1)
+	check(is_equal_approx(enemy.hp, before), "sentry beam waits a full 0.5s")
+	sim.step()
+	check(is_equal_approx(before-enemy.hp, 4.5), "full nearby shields let the sentry attack for half its old damage")
+	var moving = bare()
+	tune(moving, "vanguard", {"speed":0, "shield_regen":0, "skills":{}})
+	tune(moving, "dummy", {"speed":0, "damage":0, "hp":100000})
+	var runner = moving.spawn_unit(0, "sentry", field(0, 0))
+	runner.energy=0
+	var foe = moving.spawn_unit(1, "dummy", field(4, 0))
+	var x0: float = runner.pos.x
+	ticks(moving, 20)
+	check(runner.pos.x<x0 and is_equal_approx(foe.hp, float(moving.catalog.dummy.hp)), "lone sentry retreats and does not push into the enemy")
+	var wave = moving.spawn_unit(0, "vanguard", field(-30, 0))
+	var gap: float = runner.pos.distance_to(wave.pos)
+	var x1: float = runner.pos.x
+	ticks(moving, 30)
+	check(runner.pos.x<x1 and runner.pos.distance_to(wave.pos)<gap and is_equal_approx(foe.hp, float(moving.catalog.dummy.hp)), "sentry follows the next wave instead of the enemy")
+	var falling = bare()
+	tune(falling, "vanguard", {"speed":0, "shield_regen":0, "skills":{}})
+	tune(falling, "dummy", {"speed":0, "damage":0, "hp":100000})
+	var fighter = falling.spawn_unit(0, "sentry", field(0, 0))
+	fighter.energy=0
+	var front = falling.spawn_unit(0, "vanguard", field(-3, 0))
+	var target = falling.spawn_unit(1, "dummy", field(4, 0))
+	ticks(falling, pulse)
+	check(target.hp<100000.0, "sentry attacks while a nearby attacker still has a full shield")
+	var left: float = target.hp
+	var x2: float = fighter.pos.x
+	front.hp=0
+	ticks(falling, 20)
+	check(fighter.pos.x<x2-0.5 and is_equal_approx(target.hp, left), "sentry retreats once nearby attackers are dead and stops shooting")

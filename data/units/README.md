@@ -1,4 +1,6 @@
-当前为 **0.11.4**，共52个单位/建筑。恶火`collision_radius`由0.6改为0.75（原图HellionBlackOps/HHHellionTank的SeparationRadius），并启用`separate_when_stopped`；来源已记入`desert_storm_reference.json`，Excel已同步。下文是前版历史记录。
+当前为 **0.11.5**，共52个单位/建筑。哨兵改为护盾支援：防御护盾一次 100 能量，回盾每 0.5 秒 +5 护盾 / -2 能量，裂解光束伤害 9→4.5；售价改为 500 矿一组 2 名。下文是前版历史记录。
+
+0.11.4：共52个单位/建筑。恶火`collision_radius`由0.6改为0.75（原图HellionBlackOps/HHHellionTank的SeparationRadius），并启用`separate_when_stopped`；来源已记入`desert_storm_reference.json`，Excel已同步。
 
 0.11.3：共52个单位/建筑。虫族防御群已降至2400生命、回血2/秒；对地每门射程7/0.4秒一发/25+5重甲，对空每门射程7/0.25秒一发/15+5生物，均2门。此为主动平衡值，在来源页注明，不再假称原图逐项原值，详见[防御塔平衡](../../docs/DEFENSE_BALANCE.md)。下文是前版历史记录。
 
