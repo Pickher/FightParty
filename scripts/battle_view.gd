@@ -109,7 +109,8 @@ func _draw() -> void:
 		if source!=null:from=source.pos
 		if target!=null:to=target.pos
 		var tint: Color = game.MINT if int(beam.team)==0 else game.CORAL
-		if bool(beam.healing):tint=Color("85efd9") if int(beam.team)==0 else game.CORAL
+		if bool(beam.get("shield_restore",false)):tint=game.SHIELD
+		elif bool(beam.healing):tint=Color("85efd9") if int(beam.team)==0 else game.CORAL
 		draw_line(point(from),point(to),Color(tint,0.25),maxf(3,pixels(0.16)))
 		draw_line(point(from),point(to),tint,maxf(1.5,pixels(0.06)))
 	for projectile in sim.projectiles:

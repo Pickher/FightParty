@@ -1008,12 +1008,13 @@ func step() -> Array:
 	# 先把命中伤害和移动结果存下来，不立即改目标生命或位置，避免先处理的一方占便宜。
 	var hits: Dictionary = {}
 	var heals: Dictionary = {}
+	var shield_gains: Dictionary = {}
 	var moves: Dictionary = {}
 	var self_costs: Dictionary = {}
 	var pending_slows: Dictionary = {}
 	var base_hits: Array = [0.0, 0.0]
 	skill_system.incoming_slows=pending_slows
-	var frame := {"sim":self,"dt":dt,"hits":hits,"heals":heals,"moves":moves,"self_costs":self_costs,"base_hits":base_hits,"pending_slows":pending_slows,"motion":motion}
+	var frame := {"sim":self,"dt":dt,"hits":hits,"heals":heals,"shield_gains":shield_gains,"moves":moves,"self_costs":self_costs,"base_hits":base_hits,"pending_slows":pending_slows,"motion":motion}
 	skill_system.frame(frame)
 	StatusService.tick(self,dt,hits)
 	BaseDefense.fire(self, frame)
@@ -1101,6 +1102,9 @@ func step() -> Array:
 		# 治疗按步初缺血量封顶后再承受本步伤害，过量治疗不能充当护盾。
 		if heals.has(unit.id):
 			unit.hp = minf(float(catalog[unit.kind].hp), float(unit.hp) + float(heals[unit.id]))
+		# 回盾按步初缺口封顶，再承受本步伤害；超额不提高护盾上限。
+		if shield_gains.has(unit.id):
+			unit.shield = minf(float(catalog[unit.kind].get("shield", 0.0)), float(unit.shield) + float(shield_gains[unit.id]))
 		# 同一步的多次命中按发生顺序逐发结算：先扣护盾，再按生命护甲减免（见 shield.gd）。
 		var lost: float = float(self_costs.get(unit.id,0.0))
 		if hits.has(unit.id):

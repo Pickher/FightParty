@@ -534,9 +534,9 @@ func _remember_combat(events: Array) -> void:
 		if distance<best:
 			best=distance
 			combat_focus=point
-	# 持续光束不会重复发出普通 attack 事件；治疗不作为交火焦点。
+	# 持续光束不会重复发出普通 attack 事件；治疗和回盾不作为交火焦点。
 	for beam in sim.active_beams:
-		if bool(beam.healing):continue
+		if bool(beam.healing) or bool(beam.get("shield_restore",false)):continue
 		var point: Vector2 = (beam.from+beam.to)*0.5
 		var distance: float = point.distance_squared_to(camera_center)
 		if distance<best:
