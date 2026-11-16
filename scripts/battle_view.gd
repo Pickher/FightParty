@@ -3,17 +3,18 @@ const Yamato = preload("res://scripts/skills/yamato.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 ## 独立的战场画布由 SubViewport 裁剪；缩放只影响显示，不改模拟单位。
 var game
-const AREA := Vector2(1300,352)
+func viewport_size() -> Vector2:
+	return game._battle_rect().size
 
 func _process(_delta: float) -> void:
 	queue_redraw()
 
 func point(pos: Vector2) -> Vector2:
 	var view: Rect2 = game._camera_rect()
-	return (pos-view.position)*AREA/view.size
+	return (pos-view.position)*viewport_size()/view.size
 
 func pixels(value: float) -> float:
-	return value*AREA.x/game._camera_rect().size.x
+	return value*viewport_size().x/game._camera_rect().size.x
 
 func label(pos: Vector2, content: String, color: Color, font_size: int = 12) -> void:
 	draw_string(game.FONT,pos,content,HORIZONTAL_ALIGNMENT_LEFT,-1,font_size,color)
@@ -32,17 +33,17 @@ func _draw() -> void:
 	var bc_body: Array = sim.catalog["battlecruiser"].get("size",[3.0,3.0])
 	var bc_cell: float = pixels(maxf(float(bc_body[0]),float(bc_body[1]))/3.0)
 	var view: Rect2 = game._camera_rect()
-	draw_rect(Rect2(Vector2.ZERO,AREA),Color("0d1c2b"))
+	draw_rect(Rect2(Vector2.ZERO,viewport_size()),Color("0d1c2b"))
 	var spacing: float = 1.0 if pixels(1.0)>=12.0 else 5.0
 	for x in range(floori(view.position.x/spacing),ceili(view.end.x/spacing)+1):
 		var px: float = point(Vector2(x*spacing,0)).x
-		draw_line(Vector2(px,0),Vector2(px,AREA.y),Color("172a3a"))
+		draw_line(Vector2(px,0),Vector2(px,viewport_size().y),Color("172a3a"))
 	for y in range(floori(view.position.y/spacing),ceili(view.end.y/spacing)+1):
 		var py: float = point(Vector2(0,y*spacing)).y
-		draw_line(Vector2(0,py),Vector2(AREA.x,py),Color("172a3a"))
+		draw_line(Vector2(0,py),Vector2(viewport_size().x,py),Color("172a3a"))
 	draw_rect(Rect2(point(Vector2.ZERO),Vector2(pixels(sim.rules.world_width),pixels(sim.rules.world_height))),Color("3c4d60"),false,1)
 	var middle_x: float = point(Vector2(float(sim.rules.world_width)*0.5,0)).x
-	draw_line(Vector2(middle_x,0),Vector2(middle_x,AREA.y),Color("526579"),1)
+	draw_line(Vector2(middle_x,0),Vector2(middle_x,viewport_size().y),Color("526579"),1)
 	# 原图中央战区40×40、环半径18；实际占领范围仅2.5格。
 	var center: Vector2 = sim.economy.center_pos()
 	var center_color: Color = game.MUTED if sim.economy.center_owner<0 else (game.MINT if sim.economy.center_owner==0 else game.CORAL)
@@ -172,7 +173,7 @@ func _draw() -> void:
 			draw_rect(Rect2(p-dimensions*0.5,dimensions),Color(color,0.3))
 			draw_rect(Rect2(p-dimensions*0.5,dimensions),color,false,1)
 			UnitArt.structure(self,p,unit.kind,game.sim.visible_race(0,int(unit.team)),minf(dimensions.x,dimensions.y)/3.0,game._race_color(game.sim.visible_race(0,int(unit.team))))
-			if game.camera_zoom>=2:label(p+Vector2(-16,-dimensions.y*0.5-5),str(stats.name),color)
+			if pixels(1.0)>=8.0:label(p+Vector2(-16,-dimensions.y*0.5-5),"?" if hidden else str(stats.name),color)
 		else:
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color(tint,0.14))
 			if hidden:draw_rect(Rect2(p-dimensions*.5,dimensions),tint)
@@ -185,7 +186,7 @@ func _draw() -> void:
 				game.bc_visual.draw_unit(self,p,unit,bc_cell)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
-		if game.camera_zoom<3:continue
+		if pixels(1.0)<12.0:continue
 		if hidden:
 			label(p+Vector2(-3,4),"?",color)
 			continue
@@ -221,7 +222,7 @@ func _draw() -> void:
 				bar(p+Vector2(-dimensions.x*.5,dimensions.y*.5+5),dimensions.x,progress,Color("f5b66e"))
 			elif state=="deployed":
 				draw_rect(Rect2(p-dimensions*.5-Vector2.ONE,dimensions+Vector2.ONE*2),color,false,1)
-		if unit.has("weapon_index") and game.camera_zoom>=6:
+		if unit.has("weapon_index") and pixels(1.0)>=24.0:
 			var config: Dictionary = stats.skills.weapon_switch
 			label(p+Vector2(-15,dimensions.y*.5+16),str(config.weapons[int(unit.weapon_index)].label),color,10)
 

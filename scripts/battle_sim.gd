@@ -5,6 +5,7 @@
 extends RefCounted
 ## 独立的固定步战斗模拟：不依赖场景节点或渲染器。
 const Economy = preload("res://scripts/economy/desert_storm_economy.gd")
+const FormationLayout = preload("res://scripts/formation_layout.gd")
 const Catalog = preload("res://scripts/catalog.gd")
 const Unit = preload("res://scripts/units/unit.gd")
 const WeaponDefinition = preload("res://scripts/units/weapon_definition.gd")
@@ -35,9 +36,10 @@ var races: Array = ["terran", "terran"]
 # 第一次交战（任何单位、结构体或基地首次受到敌方伤害）之后才公开双方种族与上一波阵容。
 var revealed: bool = false
 var revealed_tick: int = -1
-# 双方的永久兵营：每格 {kind, cell, deployed}；每波整份生成一次。deployed 表示已至少出场一次。
+# 双方的永久兵营：每格 {kind, cell, deployed, member_positions?}；每波整份生成一次。
+# deployed 表示已出场；member_positions 为组内各成员相对出兵中心的坐标，不改变购买归属。
 var formations: Array = [[], []]
-# 上一波已经出兵的阵容（只含 kind/cell），是双方都能查看的信息。
+# 上一波已出兵阵容（kind/cell及可选member_positions），按原公开时机供双方查看。
 var last_formations: Array = [[], []]
 # 双方当前矿物；收入和瓦斯分流由独立经济组件结算。
 var minerals: Array = [0, 0]
@@ -307,6 +309,114 @@ func move(team: int, from_cell: int, to_cell: int) -> String:
 		_log(team, {"type":"move","from":from_cell,"to":to_cell})
 	return error
 
+## 部署范围包含旧组中心区与组内展开留白，坐标相对我方出兵中心。
+func deployment_bounds() -> Rect2:
+	var layout: Dictionary = rules.layout
+	var margin := 1.0
+	for kind in catalog:
+		var stats: Dictionary = catalog[kind]
+		if not Catalog.is_ready(stats):continue
+		var count := maxi(1,int(stats.get("spawn_count",1)))
+		var columns := ceili(sqrt(float(count)))
+		var rows := ceili(float(count)/columns)
+		var body: Array = stats.get("size",[1.0,1.0])
+		var diameter := maxf(float(stats.collision_radius)*2.0,maxf(float(body[0]),float(body[1])))
+		margin=maxf(margin,float(maxi(columns,rows)-1)*0.5*(diameter+0.1)+diameter*0.5)
+	margin=ceil(margin)
+	var size := Vector2(float(layout.spawn_width),float(layout.spawn_height))+Vector2.ONE*margin*2.0
+	var requested := Rect2(-size*0.5,size)
+	var origin := Vector2(float(layout.spawn_x),float(layout.spawn_y))
+	var field: Dictionary = layout.bounds
+	var minimum := Vector2(float(field.left),float(field.top))-origin
+	var maximum := Vector2(minf(float(field.right),float(rules.world_width)*0.5),float(field.bottom))-origin
+	return requested.intersection(Rect2(minimum,maximum-minimum))
+
+## 只读展开购买组，旧格位的默认位置与 _spawn_wave 一致，不改变价格、数量或出场标记。
+func deployment_members(team: int) -> Array:
+	if team<0 or team>1:return []
+	var result: Array = []
+	var layout: Dictionary = rules.layout
+	var origin := Vector2(float(layout.spawn_x),float(layout.spawn_y))
+	var first_col := int(rules.columns)-1
+	var last_col := 0
+	for slot in formations[team]:
+		var column := int(slot.cell)%int(rules.columns)
+		first_col=mini(first_col,column)
+		last_col=maxi(last_col,column)
+	var center_col := float(first_col+last_col)*0.5
+	var column_spacing := minf(float(layout.spawn_column_spacing),float(layout.spawn_width)/maxi(1,last_col-first_col))
+	var row_spacing := float(layout.spawn_height)/maxi(1,int(rules.rows)-1)
+	for slot in formations[team]:
+		var stats: Dictionary = catalog[slot.kind]
+		var count := maxi(1,int(stats.get("spawn_count",1)))
+		var pack_columns := ceili(sqrt(float(count)))
+		var pack_rows := ceili(float(count)/pack_columns)
+		var body: Array = stats.get("size",[1.0,1.0])
+		var diameter := float(stats.collision_radius)*2.0
+		var spacing := Vector2(maxf(float(body[0]),diameter),maxf(float(body[1]),diameter))
+		var center := origin+Vector2((float(int(slot.cell)%int(rules.columns))-center_col)*column_spacing,(float(int(slot.cell)/int(rules.columns))-float(int(rules.rows)-1)*0.5)*row_spacing)
+		var stored = slot.get("member_positions",[])
+		for member in range(count):
+			var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(spacing.x+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(spacing.y+0.1))
+			var point := center+offset
+			if stored is Array and stored.size()==count and FormationLayout.valid_position(stored[member]):
+				point=origin+Vector2(float(stored[member][0]),float(stored[member][1]))
+			var field: Dictionary = layout.bounds
+			point.x=clampf(point.x,float(field.left)+spacing.x*0.5,float(field.right)-spacing.x*0.5)
+			point.y=clampf(point.y,float(field.top)+spacing.y*0.5,float(field.bottom)-spacing.y*0.5)
+			result.append({"cell":int(slot.cell),"member":member,"kind":str(slot.kind),"position":point-origin,
+				"radius":maxf(spacing.x,spacing.y)*0.5,"layer":str(stats.get("layer","ground"))})
+	return result
+
+## 免费重排已有成员；全部合法才写入，不通过购买/出售，不改其他组或当前战场部队。
+func arrange_members(team: int, placements: Array) -> String:
+	var error := _editable(team)
+	if not error.is_empty():return error
+	if placements.is_empty():return ""
+	var members := deployment_members(team)
+	error=FormationLayout.placement_error(members,placements,deployment_bounds())
+	if not error.is_empty():return error
+	_write_member_positions(team,members,placements,"arrange_members")
+	return ""
+
+## 只在开局恢复已保存的完整购买组；旧格阵的重叠不应导致合法存档被整份丢弃。
+## 与拖动排布分开记录，重放也走相同入口；战斗开始后不能借此绕过碰撞校验。
+func restore_deployment(team: int, placements: Array) -> String:
+	var error := _editable(team)
+	if not error.is_empty():return error
+	if tick!=0 or wave!=0:return "只能在开局恢复排布"
+	if placements.is_empty():return ""
+	var members := deployment_members(team)
+	error=FormationLayout.placement_error(members,placements,deployment_bounds(),false)
+	if not error.is_empty():return error
+	var supplied: Dictionary = {}
+	for placement in placements:
+		var cell := int(placement.cell)
+		supplied[cell]=int(supplied.get(cell,0))+1
+	for slot in formations[team]:
+		var cell := int(slot.cell)
+		if supplied.has(cell) and int(supplied[cell])!=maxi(1,int(catalog[slot.kind].get("spawn_count",1))):
+			return "保存的排布缺少组内成员"
+	_write_member_positions(team,members,placements,"restore_deployment")
+	return ""
+
+## 调用方已完成整份校验；一次写入，不改变组的归属、费用或出场状态。
+func _write_member_positions(team: int, members: Array, placements: Array, action_type: String) -> void:
+	var updates: Dictionary = {}
+	for slot in formations[team]:updates[int(slot.cell)]=[]
+	# 冻结所有现有成员当前位置：后续购买改变格阵中心列时，不会挪动已排好的部队。
+	# 未选成员只写入当前位置，不发生移动；全组保存便于退款与存档仍按原购买组管理。
+	for unit in members:
+		updates[int(unit.cell)].append([float(unit.position.x),float(unit.position.y)])
+	var normalized: Array = []
+	for placement in placements:
+		var point := [float(placement.position[0]),float(placement.position[1])]
+		updates[int(placement.cell)][int(placement.member)]=point
+		normalized.append({"cell":int(placement.cell),"member":int(placement.member),"position":point.duplicate()})
+	for slot in formations[team]:
+		if updates.has(int(slot.cell)):slot.member_positions=updates[int(slot.cell)]
+	_log(team,{"type":action_type,"placements":normalized})
+
 ## 便捷入口：把兵营改成指定阵容。按格比较，同格同兵种保留，其余先卖后买；
 ## 只有整份合法且矿物足够才执行，否则原兵营不变。UI 移动单位请用 move() 以保留出场状态。
 func submit_formation(team: int, formation: Array) -> String:
@@ -350,6 +460,12 @@ func apply_action(action: Dictionary) -> String:
 			return sell(int(action.team), int(action.cell))
 		"move":
 			return move(int(action.team), int(action.from), int(action.to))
+		"arrange_members":
+			if not action.get("placements") is Array:return "排布数据无效"
+			return arrange_members(int(action.get("team",-1)),action.placements)
+		"restore_deployment":
+			if not action.get("placements") is Array:return "排布数据无效"
+			return restore_deployment(int(action.get("team",-1)),action.placements)
 		"build_tower":
 			if not action.has("position"):return build_tower(int(action.team))
 			var position = action.position
@@ -425,7 +541,9 @@ func _spawn_wave() -> void:
 		last_formations[team] = []
 		for slot in formations[team]:
 			slot.deployed = true
-			last_formations[team].append({"kind":slot.kind,"cell":slot.cell})
+			var deployed_slot := {"kind":slot.kind,"cell":slot.cell}
+			if slot.has("member_positions"):deployed_slot.member_positions=slot.member_positions.duplicate(true)
+			last_formations[team].append(deployed_slot)
 	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true),"economy":economy.ledger()})
 	for team in range(2):
 		var layout: Dictionary = rules.layout
@@ -455,6 +573,9 @@ func _spawn_wave() -> void:
 			for member in range(count):
 				var offset := Vector2((member%pack_columns-(pack_columns-1)*0.5)*(spacing.x+0.1),(member/pack_columns-(pack_rows-1)*0.5)*(spacing.y+0.1))
 				var point := Vector2(x,y)+offset
+				var positions = slot.get("member_positions",[])
+				if positions is Array and positions.size()==count and FormationLayout.valid_position(positions[member]):
+					point=Vector2(float(layout.spawn_x),float(layout.spawn_y))+Vector2(float(positions[member][0]),float(positions[member][1]))
 				# 出生时按体积留边；大型单位和小组边缘不被裁在地图外。
 				var bounds: Dictionary = layout.bounds
 				point.x=clampf(point.x,float(bounds.left)+spacing.x*0.5,float(bounds.right)-spacing.x*0.5)

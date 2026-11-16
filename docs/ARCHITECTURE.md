@@ -1,4 +1,4 @@
-# 架构与接口（规则 0.11.3）
+# 架构与接口（规则 0.12.0）
 
 本文描述当前代码结构。各版本逐条追加的实现记录见 [历史归档](archive/ARCHITECTURE_HISTORY.md)。
 
@@ -14,14 +14,16 @@
 | 技能 | `scripts/skills/` | `SkillSystem` 调度各技能组件；`services/` 提供序列、弹体、光束、直线、范围、护盾、减速、状态、召唤、部署等公共服务 |
 | 经济 | `scripts/economy/desert_storm_economy.gd` | 周期收入、中央井、气厂、瓦斯兑换、灵核奖励 |
 | 电脑 | `scripts/commander_ai.gd` | 只做购买与建塔决策 |
+| 布阵 | `scripts/formation_layout.gd`、`formation_panel.gd` | 纯几何排布/校验与独立配置面板；通过模拟接口调整已有成员，详见 [部队配置](MOBILE_FORMATION.md) |
 | 表现 | `scripts/main.gd`、`battle_view.gd`、`unit_art.gd`、`unit_summary.gd`、`rifle_visual.gd`、`battlecruiser_visual.gd` | 输入、界面、调度固定步、绘制快照与事件、保存设置与战报；不计算伤害 |
 
-`main.gd` 每帧累计时间，够 0.05 秒推进一次 `BattleSim.step()`（20 Hz，单帧最多补 0.25 秒），暂停、说明页、经济面板和切后台时不推进。表现层在 `prev` 与 `pos` 之间插值，绘制的形状、血条和特效不参与命中。
+`main.gd` 每帧累计时间，够 0.05 秒推进一次 `BattleSim.step()`（20 Hz，单帧最多补 0.25 秒），暂停、说明页、经济面板、部队配置和切后台时不推进。表现层在 `prev` 与 `pos` 之间插值，绘制的形状、血条和特效不参与命中。
 
 ## 模拟接口
 
-- 阵容：`Array[{kind, cell}]`，`cell = row × columns + column`，允许空数组。兵营内部条目另有 `deployed`（是否出场过）。
+- 阵容：`Array[{kind, cell}]`，`cell = row × columns + column`，允许空数组。兵营内部条目另有 `deployed`（是否出场过）和可选 `member_positions`（组内成员相对出兵中心的坐标数组）。
 - `buy(team, kind, cell)`、`sell(team, cell)`、`move(team, from, to)`、`submit_formation(team, formation)`：成功返回空字符串，失败返回原因且不改状态。`submit_formation` 按格比较，同格同兵种保留，其余先卖后买，整份资源足够才执行。
+- `deployment_bounds()`、`deployment_members(team)`：提供部署边界和展开后的成员位置；`arrange_members(team, placements)` 免费重排已有成员，校验整批后写入位置，不经买卖、不改变出场状态，只影响后续波次。`restore_deployment(team, placements)` 只允许开局恢复完整组内坐标，保留旧布局重叠并记录独立动作。
 - `validate_formation(formation, budget, team)`、`kind_error(team, kind)`：玩家、电脑与测试共享校验。
 - `build_tower(team, position)`、`tower_error`、`tower_position_error`、`suggested_tower_position`：建塔资格、选址与电脑默认落点使用同一套规则。
 - `economy.set_gasworks(sim, team, count)`、`economy.exchange_gas(sim, team)`：经济操作，写入战报。
@@ -72,8 +74,9 @@
 
 ## 保存与复现
 
-- `user://settings.cfg`：音量、每个种族的最近兵营（`player/formation_<种族>`）、开局设置与种族选择（`match` 段，`economy_schema` 匹配时才读取自定义值）。
+- `user://settings.cfg`：音量、每个种族的最近兵营及可选单兵位置（`player/formation_<种族>`）、开局设置与种族选择（`match` 段，`economy_schema` 匹配时才读取自定义值）。
 - `user://last_match.json`：规则版本、种子、开局设置覆盖（`settings`）、全部操作及其 tick（`actions`）、每波阵容与经济账本（`waves`）、经济事件、经济配置、初始矿物与最终结果。只保留最近一局，不上传。
+- 单兵位置按购买组保存；无坐标阵容沿用旧出生算法。恢复设置时先按经济规则购买，再校验位置；新战报的排布动作不兼容旧版本程序，详见 [部队配置兼容约定](MOBILE_FORMATION.md)。
 - `tests/replay.gd` 用相同种子和设置新建模拟，在对应 tick 前执行 `apply_action()`，推进到结束并比较结果；规则版本不一致或日志未完成时拒绝。相同引擎、相同数据版本是复现前提。
 
 ## 未来联机边界
