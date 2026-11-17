@@ -51,8 +51,9 @@ func run() -> void:
 	verify(game.sim.races==["terran","zerg"] and game.sim.journal.settings.races==["terran","zerg"],"chosen races applied and journaled")
 	verify(game._shop_kinds().all(func(k): return game.sim.catalog[k].race=="terran"),"shop lists own race only")
 	verify(game.sim.formations[1].all(func(s): return game.sim.catalog[s.kind].race=="zerg"),"computer buys its own race")
+	_saved_medic_migration()
 	game.handle_action("clear")
-	# 推荐开局资金买不起医疗兵（含瓦斯）、特工、雷神、大和舰；编辑器路径测试直接补足资源。
+	# 推荐开局资金买不起医疗运输机、特工、雷神、大和舰；编辑器路径测试直接补足资源。
 	game.sim.minerals[0] = 20000
 	game.sim.economy.gas[0] = 2000
 	game.handle_action("select:hellbat")
@@ -65,16 +66,16 @@ func run() -> void:
 	game.handle_action("erase")
 	game.handle_action("cell:11")
 	verify(game.sim.formations[0].is_empty(),"erase")
-	game.handle_action("select:medic")
+	game.handle_action("select:medivac")
 	game.handle_action("cell:0")
-	verify(game.sim.formations[0][0].kind=="medic","place medic")
+	verify(game.sim.formations[0][0].kind=="medivac","place medivac")
 	game.handle_action("move")
 	game.handle_action("cell:0")
 	game.handle_action("cell:6")
-	verify(game.sim.formations[0][0].cell==6,"move medic")
+	verify(game.sim.formations[0][0].cell==6,"move medivac")
 	game.handle_action("erase")
 	game.handle_action("cell:6")
-	verify(game.sim.formations[0].is_empty(),"erase medic")
+	verify(game.sim.formations[0].is_empty(),"erase medivac")
 	game.handle_action("select:mortar")
 	game.handle_action("cell:1")
 	verify(game.sim.formations[0][0].kind=="mortar","place mortar")
@@ -232,3 +233,28 @@ func run() -> void:
 	game.queue_free()
 	await process_frame
 	quit(1 if failed else 0)
+
+## 仅准备待运行回归：不写设置文件，检查迁移先于提交/恢复排布。
+func _saved_medic_migration() -> void:
+	var saved: Array = [
+		{"kind":"hellbat","cell":2,"member_positions":[[-4,0]]},
+		{"kind":"medic","cell":3,"member_positions":[[-4,0]]},
+		{"kind":"hellbat","cell":9,"member_positions":[[4,0]]}
+	]
+	var untouched: Array = saved.duplicate(true)
+	var migrated: Array = game._migrate_saved_formation(saved)
+	verify(migrated==[saved[0],saved[2]] and saved==untouched,"migration retains other slots and exact positions without modifying input")
+	verify(not migrated.any(func(slot):return slot.kind=="medivac"),"migration never substitutes medivac")
+	game.sim.submit_formation(0,[])
+	game.sim.minerals[0]=20000
+	verify(game.sim.submit_formation(0,migrated)=="" and game._restore_deployment(migrated)=="","retained formation and positions restore after retired medic removed")
+	verify(game.sim.formations[0].size()==2 and game.sim.formations[0][0].member_positions==saved[0].member_positions and game.sim.formations[0][1].member_positions==saved[2].member_positions,"retained member positions are not reset")
+	var only_medic: Array = game._migrate_saved_formation([saved[1]])
+	verify(only_medic.is_empty() and game.sim.submit_formation(0,only_medic)=="" and game.sim.formations[0].is_empty(),"medic-only save intentionally restores empty army, not starter")
+	verify(game._migrate_saved_formation([{"kind":"unknown","cell":0},17]).size()==2,"migration does not hide unrelated invalid entries")
+	game.sim.races[0]="zerg"
+	verify(game._migrate_saved_formation(saved)==saved,"other races retain existing validation behavior")
+	game.sim.races[0]="terran"
+	game.sim.catalog.medic.available=true
+	verify(game._migrate_saved_formation(saved)==saved,"re-enabled medic is not removed")
+	game.sim.catalog.medic.available=false

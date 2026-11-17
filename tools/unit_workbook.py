@@ -15,6 +15,7 @@ LABELS = dict(zip(
     '内部ID 显示名称 种族 每组价格 每组数量 生命上限 护盾上限 护盾护甲 能量上限 初始能量 护甲类型 护甲值 基础伤害 攻击间隔秒 射程格 移速格每秒 溅射半径 次目标伤害倍率 模型尺寸宽高 碰撞半径 停步分散 对甲额外伤害 攻击目标层 可被攻击层 自身层级 单位标签 单位类型 伤害类型 前摇秒 后摇秒 每秒回血 回血延迟秒 每秒回盾 回盾延迟秒 每秒回能 回能延迟秒 可攻击基地 可攻击建筑 是否建筑 实装状态 符号 颜色 定位 特点 前置兵种 星际原型'.split()))
 # 伤害类型仍供内部减甲规则使用，编辑表改展示每轮命中次数。
 LABELS.pop('damage_type', None)
+LABELS['available']='可进入游戏（false暂时停用）'
 LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
 LABELS['primary_mode']='默认攻击模式ID'
@@ -151,6 +152,7 @@ def validate(units):
             if any(x not in ids for x in references):raise ValueError(where+'技能引用了不存在的攻击模式。')
         for key, choices in [('race', ('terran','zerg','protoss','blight','neutral')), ('armor_type', ('none','light','heavy','special')), ('layer', ('ground','air')), ('status', ('ready','stub','summoned')), ('damage_type', ('physical','spell','true'))]:
             if key in unit and unit[key] not in choices: raise ValueError(where + key + ' 枚举值无效。')
+        if 'available' in unit and not isinstance(unit['available'],bool): raise ValueError(where+'available 必须为布尔值。')
         if not unit.get('name') or not re.fullmatch('[0-9a-fA-F]{6}', str(unit.get('color',''))): raise ValueError(where + '名称或颜色无效。')
         if len(str(unit.get('symbol',''))) != 1: raise ValueError(where + 'symbol 必须为单字符。')
         if not isinstance(unit.get('skills',{}), dict): raise ValueError(where + 'skills 须为对象。')

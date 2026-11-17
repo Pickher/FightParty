@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_medivacs"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -420,10 +420,10 @@ func _medics() -> void:
 	check(died_at==pulse and healed_that_step,"two heals and a lethal hit resolve on the same step")
 	check(not lethal.units.has(victim),"overhealing cannot act as a shield")
 	var ai=AI.new()
-	# 医疗兵需要瓦斯；与 main.gd 一样把电脑当前瓦斯传给 buy_list。
-	var formation_with_medic: Array=ai.buy_list([],[],2000,int(lethal.catalog.medic.gas_cost))
-	check(formation_with_medic.any(func(s): return s.kind=="medic" and int(s.cell) % int(lethal.rules.columns)==0),"AI buys medic in rear column")
-	check(lethal.validate_formation(formation_with_medic,2000)=="","AI medic formation within budget")
+	var support_formation: Array=ai.buy_list([],[],2000,0)
+	check(support_formation.any(func(s): return s.kind=="medivac" and int(s.cell) % int(lethal.rules.columns)==0),"AI buys medivac in rear column")
+	check(not support_formation.any(func(s):return s.kind=="medic"),"AI never buys dormant medic")
+	check(lethal.validate_formation(support_formation,2000)=="","AI support formation within budget")
 
 ## 架设与收起按模拟时间推进；未确认前保持移动形态（可用移动炮），架设后换攻城炮与架设护甲。
 func _siege() -> void:
@@ -2135,3 +2135,53 @@ func _formation_pace() -> void:
 	var origin: Vector2=stalker.pos
 	check(blink.step(mixed,stalker,threat,1.0/float(mixed.rules.tick_rate),moves),"mixed army retains damage-triggered stalker blink")
 	check(moves.has(stalker.id) and is_equal_approx(origin.distance_to(moves[stalker.id]),float(mixed.catalog.stalker.skills.blink.distance)),"blink distance is not limited by formation pace")
+
+## 医疗机独立于保留的医疗兵；本分组随本地实现新增，尚未运行。
+func _medivacs() -> void:
+	var shop=bare()
+	check(not Catalog.race_units(shop.catalog,"terran",true).has("medic"),"retired medic hidden even in legacy shop")
+	check(Catalog.race_units(shop.catalog,"terran").has("medivac"),"medivac playable")
+	check(shop.kind_error(0,"medic")!="" and shop.validate_formation(formation("medic",1),9999)!="","retired medic rejected on purchase and restore")
+	shop.formations[0]=[]
+	shop.minerals[0]=850
+	check(shop.buy(0,"medivac",0)=="" and shop.minerals[0]==0,"medivac group costs 850 minerals")
+	check(int(shop.catalog.medivac.spawn_count)==2,"medivac group spawns two")
+	check(shop.sell(0,0)=="" and shop.minerals[0]==850,"undeployed medivac group refunds 850")
+	for team in range(2):
+		var sim=bare()
+		tune(sim,"medivac",{"speed":0,"energy_regen":0})
+		tune(sim,"rifle",{"speed":0,"damage":0,"skills":{}})
+		tune(sim,"hellbat",{"speed":0,"damage":0,"skills":{}})
+		var craft=sim.spawn_unit(team,"medivac",field(0,0))
+		var a=sim.spawn_unit(team,"rifle",field(1,0))
+		var b=sim.spawn_unit(team,"rifle",field(0,1))
+		var c=sim.spawn_unit(team,"rifle",field(-1,0))
+		var machine=sim.spawn_unit(team,"hellbat",field(0,-1))
+		a.hp=10
+		b.hp=20
+		c.hp=40
+		machine.hp=1
+		craft.hp=50
+		var heal: float=float(sim.definitions.medivac.primary_weapon_data.healing)
+		var pulse: int=ceili(float(sim.definitions.medivac.primary_weapon_data.delivery.tick_interval)*float(sim.rules.tick_rate))
+		ticks(sim,pulse)
+		check(a.hp==10+heal and b.hp==20+heal and c.hp==40,"two separate lowest-ratio biological patients %d" % team)
+		check(machine.hp==1 and craft.hp==50,"no mechanical or self healing %d" % team)
+		check(float(craft.energy)==198,"two beams spend one energy each per pulse %d" % team)
+		check(sim.active_beams.filter(func(beam):return int(beam.source_id)==int(craft.id)).size()==2,"two visible healing beams %d" % team)
+		check(sim.combat_units(team)==0,"medical support cannot keep final combat alive %d" % team)
+		craft.energy=0
+		var hp_before: float=float(a.hp)
+		ticks(sim,pulse)
+		check(a.hp==hp_before,"empty energy stops healing %d" % team)
+		# 不可把空中生物目标排除；复用测试兵模板切换层。
+		tune(sim,"rifle",{"layer":"air"})
+		craft.energy=10
+		ticks(sim,pulse)
+		check(a.hp>hp_before,"air biological patients accepted %d" % team)
+	var flee=bare()
+	var craft=flee.spawn_unit(0,"medivac",field(0,0))
+	flee.spawn_unit(1,"rifle",field(2,0))
+	var before: float=craft.pos.x
+	flee.step()
+	check(craft.pos.x<before,"medivac retreats from anti-air threat")

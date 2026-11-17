@@ -165,14 +165,17 @@ func _new_match() -> void:
 	camera_center=sim.layout_pos(0,"spawn")
 	ai = AI.new(42, sim.races[1])
 	var prior: Array = Catalog.starter(sim.races[0])
+	var removed_retired_medic := false
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
 		# 每个种族单独记住兵营；旧版只有一份 formation，按当前种族校验，不合法就用默认阵容。
 		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
 		if saved is Array:
-			prior = saved
+			prior = _migrate_saved_formation(saved)
+			removed_retired_medic = prior.size() < saved.size()
 	var saved_layout_error := ""
 	if sim.submit_formation(0, prior) != "":
+		removed_retired_medic = false # 其他非法内容仍沿用原有回退，不宣称已保留部队。
 		sim.submit_formation(0, Catalog.starter(sim.races[0]))
 	else:
 		saved_layout_error=_restore_deployment(prior)
@@ -186,6 +189,8 @@ func _new_match() -> void:
 	rifle_visual.reset()
 	bc_visual.reset()
 	messages = ["兵营永久保留；每3秒收入，中央资源井第10波开放。"]
+	if removed_retired_medic:
+		_note("旧阵容中的医疗兵已暂时移除，未自动替换兵种。" + ("兵营暂为空，可重新配兵。" if prior.is_empty() else "其余部队已保留。"))
 	if not saved_layout_error.is_empty():_note("保存的排布不可用，已保留部队并使用默认阵型。")
 	pending_formation = []
 	move_source = -1
@@ -230,6 +235,14 @@ func _recommended_settings() -> Dictionary:
 	for field in options:
 		result[field] = int(options[field].recommended)
 	return result
+
+## 仅迁移已停用的人族医疗兵：不自动换成医疗机、不重排、不改写设置文件。
+## 保留其余槽位和完整单兵坐标；其他非法内容仍交给正常校验处理。
+func _migrate_saved_formation(formation: Array) -> Array:
+	var migrated: Array = formation.duplicate(true)
+	if str(sim.races[0])!="terran" or not sim.catalog.has("medic") or bool(sim.catalog.medic.get("available",true)):
+		return migrated
+	return migrated.filter(func(slot):return not (slot is Dictionary and slot.get("kind","")=="medic"))
 
 ## 旧阵容没有单兵位置时仍可用；布局不参与买兵、退款或费用计算。
 func _restore_deployment(formation: Array) -> String:

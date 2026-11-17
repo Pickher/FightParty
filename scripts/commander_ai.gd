@@ -52,7 +52,7 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int, gas: int = 0, cor
 		return []
 	var front: String = str(config.get("front", ""))
 	var support: String = str(config.get("support", ""))
-	# 辅助兵种（医疗兵）只按下面的规则买一个，不进随机池，避免兵营里堆满不会攻击的单位。
+	# 辅助兵种（当前为医疗运输机）只按下面的规则买一个，不进随机池，避免兵营里堆满不会攻击的单位。
 	var choices: Array = pool.filter(func(kind): return kind != support)
 	for slot in last_enemy:
 		if catalog.has(slot.kind):
@@ -76,7 +76,7 @@ func buy_list(last_enemy: Array, roster: Array, minerals: int, gas: int = 0, cor
 		if front != "" and fronts < int(config.get("front_min", 0)):
 			kind = front
 		elif support != "" and not has_support and _roster_value(roster) + minerals >= int(config.get("support_value", 0)) and _affordable(support, left, gas_left, cores_left):
-			# 辅助兵种需要瓦斯等资源；买不起时照常随机选兵，否则每次都会退回最便宜的兵种。
+			# 辅助兵种可能需要瓦斯等资源；买不起时照常随机选兵，否则每次都会退回最便宜的兵种。
 			kind = support
 		if not _affordable(kind, left, gas_left, cores_left):
 			var affordable: Array = pool.filter(func(candidate):return _affordable(candidate, left, gas_left, cores_left))

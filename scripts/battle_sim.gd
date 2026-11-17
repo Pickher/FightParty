@@ -181,6 +181,8 @@ func _buyable(kind) -> bool:
 func kind_error(team: int, kind) -> String:
 	if not _buyable(kind):
 		return "未知兵种"
+	if not bool(catalog[kind].get("available",true)):
+		return "该兵种已暂时停用"
 	if not Catalog.is_ready(catalog[kind]):
 		return "该兵种尚未实装"
 	if str(catalog[kind].get("race", "")) != str(races[team]):

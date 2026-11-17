@@ -38,11 +38,11 @@ static func races() -> Dictionary:
 
 ## 已实装（status 为 ready）的兵种才能购买和被电脑选择；stub 只是预留数据。
 static func is_ready(stats: Dictionary) -> bool:
-	return str(stats.get("status", "")) == "ready" and not bool(stats.get("structure", false))
+	return str(stats.get("status", "")) == "ready" and bool(stats.get("available", true)) and not bool(stats.get("structure", false))
 
 ## 某种族的兵种 ID，顺序与 units.json 一致；include_stubs 为 true 时包含未实装兵种。
 static func race_units(catalog: Dictionary, race: String, include_stubs: bool = false) -> Array:
-	return catalog.keys().filter(func(kind): return str(catalog[kind].get("race", "")) == race and not bool(catalog[kind].get("structure", false)) and str(catalog[kind].get("status","")) != "summoned" and (include_stubs or is_ready(catalog[kind])))
+	return catalog.keys().filter(func(kind): return bool(catalog[kind].get("available", true)) and str(catalog[kind].get("race", "")) == race and not bool(catalog[kind].get("structure", false)) and str(catalog[kind].get("status","")) != "summoned" and (include_stubs or is_ready(catalog[kind])))
 
 ## 首次进入或保存的阵容不合法时使用的默认军队（races.json 的 starter）；买不起时兵营为空，test_sim 会打印 WARN。
 ## kind 为兵种内部 ID，cell 为格子编号：18 列时第 0 行是 0～17，第 1 行是 18～35，以此类推。

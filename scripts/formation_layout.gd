@@ -101,7 +101,7 @@ static func line_placements(members: Array, selected: Array, start: Vector2, end
 ## 0近战前排，1普通火力，2远射程/部署/召唤，3治疗与辅助；不是战斗AI。
 static func _role(stats: Dictionary) -> int:
 	var skills: Dictionary = stats.get("skills",{})
-	if skills.has("healing") or skills.has("aura"):return 3
+	if skills.has("healing") or skills.has("medivac_healing") or skills.has("aura"):return 3
 	if skills.has("deployment") or skills.has("defender_zone") or skills.has("summon"):return 2
 	var reach := float(stats.get("range",0))
 	if stats.has("attack_modes"):

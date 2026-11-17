@@ -88,6 +88,13 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 				for offset in [-0.6,0.6]:
 					canvas.draw_line(p+Vector2(side*radius*0.4,offset*radius),p+Vector2(side*radius*1.3,offset*radius*1.3),color,2)
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius*0.7,0),p+Vector2(0,radius),p-Vector2(radius*0.7,0)]),color)
+		"medivac":
+			# Temporary silhouette only; the confirmed Tripo model will replace this.
+			canvas.draw_rect(Rect2(p-Vector2(radius*0.9,radius*0.35),Vector2(radius*1.8,radius*0.7)),color)
+			for side in [-1,1]:
+				canvas.draw_rect(Rect2(p+Vector2(-radius*0.4,side*radius*0.65)-Vector2(radius*0.55,radius*0.2),Vector2(radius*1.1,radius*0.4)),color)
+			canvas.draw_line(p-Vector2(radius*0.3,0),p+Vector2(radius*0.3,0),INK,2)
+			canvas.draw_line(p-Vector2(0,radius*0.3),p+Vector2(0,radius*0.3),INK,2)
 		"medic":
 			canvas.draw_circle(p,radius,color)
 			canvas.draw_rect(Rect2(p-Vector2(radius*0.65,radius*0.2),Vector2(radius*1.3,radius*0.4)),Color("162334"))

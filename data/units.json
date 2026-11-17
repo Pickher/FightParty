@@ -1,5 +1,5 @@
 {
- "version": "0.12.2",
+ "version": "0.12.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -357,7 +357,103 @@
     "source": "desert-storm",
     "status": "explicit_overrides"
    },
-   "core_cost": 0
+   "core_cost": 0,
+   "available": false
+  },
+  "medivac": {
+   "name": "医疗运输机",
+   "symbol": "H",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "医疗运输机 Medivac（沙漠风暴）",
+   "cost": 850,
+   "hp": 150,
+   "armor_type": "heavy",
+   "armor": 4,
+   "speed": 2.5,
+   "color": "85efd9",
+   "role": "空中医疗 · 双束治疗 · 避战",
+   "counter": "优先治疗受伤生物友军；不回盾、不维修机械，无攻击能力",
+   "skills": {
+    "medivac_healing": {
+     "max_targets": 2,
+     "acquire_range": 9,
+     "follow_distance": 3.2143,
+     "danger_distance": 3.5714,
+     "energy_cost": 1
+    }
+   },
+   "layer": "air",
+   "size": [
+    1.6,
+    1.6
+   ],
+   "spawn_count": 2,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 200,
+   "initial_energy": 200,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 1.125,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical",
+    "armored"
+   ],
+   "collision_radius": 0.75,
+   "primary_mode": "medivac_heal",
+   "attack_modes": [
+    {
+     "damage": 0,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4,
+     "interval": 0,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": false,
+     "id": "medivac_heal",
+     "label": "双束医疗",
+     "attack_duration": 0.5,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "beam",
+      "tick_interval": 0.5,
+      "switch_delay": 0.3,
+      "tracking": true
+     },
+     "healing": 12
+    }
+   ],
+   "gas_cost": 0,
+   "source_profile": {
+    "map_unit": "Medivac",
+    "source": "desert-storm",
+    "status": "partial_overrides",
+    "notes": "StarportReactor商店基础价850矿/2架，Medivac目录425/架；脚本250是首个升级费用，不是购买价。缺失依赖字段采用明确标注的项目临时值，见docs/MEDIVAC.md。"
+   },
+   "core_cost": 0,
+   "pending": [
+    "依赖数据缺失：生命150、速度2.5、最大能量200、治疗范围4、12生命/0.5秒/每束耗能1均为项目临时参数，不宣称原图精确值",
+    "推进加速、装载运输、升级分支不在本次范围"
+   ]
   },
   "agent": {
    "name": "特工",

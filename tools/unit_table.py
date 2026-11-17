@@ -44,6 +44,7 @@ def render(data):
         for uid, unit in units.items():
             if unit.get('race') != race: continue
             status = STATUS.get(unit.get('status'), '结构体' if unit.get('structure') else '—')
+            if not unit.get('available', True): status = '暂时停用'
             cost = '%d/%d/%d' % (unit['cost'], unit.get('gas_cost', 0), unit.get('core_cost', 0))
             health = number(unit['hp']) + ('/' + number(unit['shield']) if unit.get('shield') else '')
             armor = '%s %s' % (ARMOR[unit['armor_type']], number(unit['armor']))

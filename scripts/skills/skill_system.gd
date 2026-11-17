@@ -11,6 +11,7 @@ const TYPES := {
 	"deployment":preload("res://scripts/skills/deployment.gd"),
 	"defender_zone":preload("res://scripts/skills/defender_zone.gd"),
 	"healing":preload("res://scripts/skills/healing.gd"),
+	"medivac_healing":preload("res://scripts/skills/medivac_healing.gd"),
 	"shield_restore":preload("res://scripts/skills/shield_restore.gd"),
 	"stimulant":preload("res://scripts/skills/stimulant.gd"),
 	"multi_attack":preload("res://scripts/skills/multi_attack.gd"),
