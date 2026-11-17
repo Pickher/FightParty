@@ -4,6 +4,17 @@ const MEDIVAC_SPRITE := "res://assets/units/medivac/idle.png"
 static var _medivac_texture: Texture2D
 static var _medivac_texture_checked := false
 
+## 拦截机朝实际飞行方向绘制，能看出掠过和转向；不旋转血条或改变占地。
+static func draw_interceptor(canvas: CanvasItem, p: Vector2, color: Color, size: Vector2, heading: Vector2) -> void:
+	var forward := heading.normalized() if heading.length_squared()>0.0001 else Vector2.RIGHT
+	var side := Vector2(-forward.y,forward.x)
+	canvas.draw_colored_polygon(PackedVector2Array([
+		p+forward*size.x*0.5,
+		p-forward*size.x*0.4+side*size.y*0.45,
+		p-forward*size.x*0.2,
+		p-forward*size.x*0.4-side*size.y*0.45]),color)
+	canvas.draw_circle(p+forward*size.x*0.12,maxf(0.5,size.x*0.1),Color(INK,color.a))
+
 ## Shared battle/shop/formation art. Keep source colors, but honor disabled UI alpha.
 ## Missing optional sprite falls back to the existing procedural silhouette below.
 static func _draw_medivac_model(canvas: CanvasItem, p: Vector2, radius: float, alpha: float) -> bool:
@@ -211,7 +222,9 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"disruptor":
 			canvas.draw_circle(p,radius*.7,color)
 			canvas.draw_arc(p,radius*1.15,0,TAU,16,INK,2)
-		"broodling", "interceptor":
+		"interceptor":
+			draw_interceptor(canvas,p,color,Vector2.ONE*radius*3.0,Vector2.RIGHT)
+		"broodling":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0),p+Vector2(-radius,-radius*.7),p+Vector2(-radius,radius*.7)]),color)
 		"rotling", "splitter", "bloater", "plague_herald", "gravedigger", "brood_mother":
 			canvas.draw_circle(p,radius,color)
