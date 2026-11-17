@@ -6,7 +6,8 @@ var game
 func viewport_size() -> Vector2:
 	return game._battle_rect().size
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if game!=null and game.medivac_visual!=null:game.medivac_visual.sync(self,delta)
 	queue_redraw()
 
 func point(pos: Vector2) -> Vector2:
@@ -102,6 +103,7 @@ func _draw() -> void:
 			sector.append(sector[0])
 			draw_polyline(sector,Color(color,0.6),1.5)
 	for beam in sim.active_beams:
+		if game.medivac_visual!=null and game.medivac_visual.owns_heal(beam):continue
 		var from: Vector2 = beam.from
 		var to: Vector2 = beam.to
 		var source = sim.by_id.get(int(beam.source_id))
@@ -184,7 +186,24 @@ func _draw() -> void:
 				# 精灵按模型尺寸从原3格标定缩放，避免只改占地而舰体不变。
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,24,Color(color,0.8),1)
 				game.bc_visual.draw_unit(self,p,unit,bc_cell)
+			elif unit.kind=="medivac" and game.medivac_visual!=null and game.medivac_visual.has_model(int(unit.id)):
+				# Shared 3D layer is composited below, before all tactical overlays.
+				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
+
+	if game.medivac_visual!=null:
+		game.medivac_visual.draw_layer(self,self)
+		game.medivac_visual.draw_healing(self,self)
+	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
+	for unit in sim.units:
+		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
+		var stats: Dictionary = sim.catalog[unit.kind]
+		var body: Array = stats.get("size",[1.0,1.0])
+		if not view.grow(maxf(float(body[0]),float(body[1]))*(3.0 if unit.kind=="rifle" else 1.0)).has_point(position):continue
+		var p := point(position)
+		var dimensions := Vector2(pixels(float(body[0])),pixels(float(body[1])))
+		var color: Color = game.MINT if unit.team==0 else game.CORAL
+		var hidden: bool = game._hidden_team(int(unit.team))
 
 		if pixels(1.0)<12.0:continue
 		if hidden:

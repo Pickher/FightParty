@@ -6,6 +6,7 @@
 extends Control
 const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
+const Medivac3D = preload("res://scripts/visuals/medivac_3d.gd")
 const BattleView = preload("res://scripts/battle_view.gd")
 const FormationPanel = preload("res://scripts/formation_panel.gd")
 var formation_panel = FormationPanel.new()
@@ -67,6 +68,7 @@ var race_rng := RandomNumberGenerator.new()
 var race_info: Dictionary = Catalog.races()
 
 ## 节点进入场景后初始化：接管点击、准备音效、读取设置、建立对局、开启每帧更新。
+var medivac_visual
 var battle_viewport: SubViewport
 var camera_zoom := 1.0
 var camera_center := Vector2.ZERO
@@ -117,6 +119,9 @@ func _set_battle_expanded(expanded: bool) -> void:
 
 func _ready() -> void:
 	formation_panel.game=self
+	medivac_visual=Medivac3D.new()
+	medivac_visual.game=self
+	add_child(medivac_visual)
 	battle_viewport=SubViewport.new()
 	battle_viewport.size=Vector2i(_battle_rect().size)
 	battle_viewport.disable_3d=true
@@ -154,6 +159,7 @@ func _new_match() -> void:
 	var overrides: Dictionary = match_settings.duplicate()
 	overrides["races"] = [_resolve_race(race_choices[0]), _resolve_race(race_choices[1])]
 	sim = Sim.new(42, overrides)
+	if medivac_visual!=null:medivac_visual.reset()
 	formation_panel.reset()
 	_set_battle_expanded(true)
 	_set_camera_scale(CLOSE_PIXELS_PER_CELL)
@@ -339,7 +345,9 @@ func advance_tick() -> void:
 			bc_before[unit.id] = unit.duplicate()
 	rifle_visual.observe(sim.units)
 	bc_visual.observe(sim.units)
+	var medivac_before: Dictionary = medivac_visual.before_tick() if medivac_visual!=null else {}
 	var tick_events: Array = sim.step()
+	if medivac_visual!=null:medivac_visual.events(tick_events,medivac_before)
 	# 新出场单位也可接收本步动画事件，同时保留刚死亡单位的姿态供死亡动画使用。
 	rifle_visual.observe(sim.units, false)
 	bc_visual.observe(sim.units, false)
