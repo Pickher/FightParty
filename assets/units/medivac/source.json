@@ -1,0 +1,29 @@
+{
+  "source": "assets/models/medivac/medivac.glb",
+  "source_sha256": "2a7ee8d352a1ff9dbe51b256cd3eaa8ec63d0b63e5bacdd511e00f5fc2702870",
+  "blender": "4.3.2",
+  "sprite": "idle.png",
+  "size": [
+    512,
+    512
+  ],
+  "view": "fixed orthographic oblique",
+  "camera_direction": [
+    4,
+    -6,
+    7
+  ],
+  "bounds_min": [
+    -0.49029541015625,
+    -0.318511962890625,
+    -0.1410064697265625
+  ],
+  "bounds_max": [
+    0.49163818359375,
+    0.318817138671875,
+    0.1414337158203125
+  ],
+  "vertices": 4701,
+  "triangles": 6056,
+  "animated": false
+}
