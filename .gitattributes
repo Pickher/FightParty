@@ -5,3 +5,4 @@
 *.apk binary
 *.cmd text eol=crlf
 *.xlsx binary
+*.glb binary
