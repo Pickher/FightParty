@@ -1,6 +1,7 @@
 extends RefCounted
 ## 配置键 → 独立组件类。新增技能只注册一次，兵种只需挂参数。
 const TYPES := {
+	"formation_pace":preload("res://scripts/skills/formation_pace.gd"),
 	"combat_mobility":preload("res://scripts/skills/combat_mobility.gd"),
 	"mobility_burst":preload("res://scripts/skills/mobility_burst.gd"),
 	"shield_armor_buff":preload("res://scripts/skills/shield_armor_buff.gd"),
@@ -175,6 +176,10 @@ func movement_multiplier(sim, unit: Dictionary) -> float:
 	var value := 1.0
 	for component in components(unit):value*=component.movement_multiplier(sim)
 	return value
+func march_multiplier(sim, unit: Dictionary) -> float:
+	var value := 1.0
+	for component in components(unit):value*=component.march_multiplier(sim)
+	return clampf(value,0.0,1.0)
 func attack_rate(sim, unit: Dictionary) -> float:
 	var value: float = float(sim.aura_modifiers.get(unit.id,{}).get("attack_rate",1))
 	for component in components(unit):value*=component.attack_rate(sim)

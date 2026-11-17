@@ -974,6 +974,10 @@ func _movement_speed(unit: Dictionary) -> float:
 	if unit_model(unit).blocks_movement() and not skill_system.moves_while_attacking(unit): return 0.0
 	return definitions[unit.kind].speed * skill_system.movement_multiplier(self,unit) * SlowService.speed_multiplier(unit,tick)
 
+## 普通行军/追击另受编队限速；基础增益、减速、定身和攻击锁仍由原接口处理。
+func _march_speed(unit: Dictionary) -> float:
+	return _movement_speed(unit) * skill_system.march_multiplier(self,unit)
+
 func _tick_attack_clock(unit: Dictionary, dt: float) -> void:
 	unit_model(unit).tick_attack(dt, skill_system.attack_rate(self,unit))
 
@@ -1085,7 +1089,7 @@ func step() -> Array:
 			# 局部分离：离其他单位太近时轻微避让，降低拥挤；这里不是复杂障碍物寻路。
 			var separation := _separation(unit)
 			# limit_length 限制方向长度，避免加上避让向量后跑得更快；clampf 把位置留在场内。
-			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _movement_speed(unit)
+			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _march_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 		skill_system.after_action(ctx)
 	AttackSequences.advance(self,frame)

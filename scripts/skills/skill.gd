@@ -38,6 +38,8 @@ func target_priority(_sim, _victim: Dictionary) -> int: return 0
 func has_target_priority() -> bool: return false
 func contributes_damage() -> bool: return false
 func movement_multiplier(_sim) -> float: return 1.0
+## 只限制普通行军/追击，不影响瞬移、技能位移或停步分散。
+func march_multiplier(_sim) -> float: return 1.0
 func attack_rate(_sim) -> float: return 1.0
 func attack_count(_sim, value: int) -> int: return value
 func damage_multiplier(_ctx: Dictionary) -> float: return 1.0

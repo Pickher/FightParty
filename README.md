@@ -8,13 +8,15 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.12.0**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.12.2**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
 
 当前玩法规则见 [游戏设计](docs/DESIGN.md)，兵种数值见 [兵种数值总表](docs/UNIT_TABLE.md)，已有测试结果见 [测试报告](docs/TEST_REPORT.md)，不代表当前特性分支已验收。需要用户安排验证时，可用一条命令执行检查（见第十一节）；日常代码修改不自动运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_win64_console.exe'
 ```
+
+0.12.2（独立本地补丁）：追猎者、执政官在附近有其他类别友军时按混编部队限速行军，纯同类恢复原本行军速度；保留自身减速、攻击和闪现，跳虫不改。范围与具体规则见 [混编行军限速](docs/FORMATION_PACE.md)。未运行游戏、测试或打包。
 
 0.12.0：新增折叠式部队配置，购买组内成员可独立排布，坐标用于后续波次并随设置/战报保存。默认战场大视图；打开配置暂停当前离线人机局。未执行运行验证。
 

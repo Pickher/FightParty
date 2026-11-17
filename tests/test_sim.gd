@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -2056,3 +2056,82 @@ func _sentry_attack_and_retreat() -> void:
 	front.hp=0
 	ticks(falling, 20)
 	check(fighter.pos.x<x2-0.5 and is_equal_approx(target.hp, left), "sentry retreats once nearby attackers are dead and stops shooting")
+
+## 新增待运行回归：编队限速只进入普通行军入口，不改变原始移动/闪现接口。
+func _formation_pace() -> void:
+	for team in range(2):
+		for kind in ["archon","stalker"]:
+			var sim=bare()
+			var unit=sim.spawn_unit(team,kind,field(0,0))
+			var base: float=float(sim.definitions[kind].speed)
+			var radius: float=float(sim.catalog[kind].skills.formation_pace.radius)
+			var same=sim.spawn_unit(team,kind,field(1,0))
+			var enemy=sim.spawn_unit(1-team,"medic",field(2,0))
+			sim._build_buckets()
+			check(is_equal_approx(sim._march_speed(unit),base),"same kind and enemy do not cap %s/%d" % [kind,team])
+			var friend=sim.spawn_unit(team,"medic",field(3,0))
+			sim._build_buckets()
+			var pace: float=float(sim.definitions.medic.speed)
+			check(is_equal_approx(sim._march_speed(unit),pace),"other-kind mobile support sets march pace %s/%d" % [kind,team])
+			check(is_equal_approx(sim._movement_speed(unit),base),"ordinary movement mechanics and idle drift keep original speed")
+			friend.root_until_tick=sim.tick+100
+			friend.slow_until_tick=sim.tick+100
+			friend.slow_multiplier=0.1
+			check(is_equal_approx(sim._march_speed(unit),pace),"companion temporary locks/slows never freeze or recursively slow march")
+			unit.slow_until_tick=sim.tick+100
+			unit.slow_multiplier=0.5
+			check(is_equal_approx(sim._march_speed(unit),pace*0.5),"own slow still multiplies capped march speed")
+			unit.root_until_tick=sim.tick+100
+			check(sim._march_speed(unit)==0,"own root still prevents movement")
+			unit.root_until_tick=0
+			unit.slow_until_tick=0
+			unit.attack_blocked_this_frame=true
+			check(sim._march_speed(unit)==0,"own attack lock still prevents movement")
+			unit.attack_blocked_this_frame=false
+			friend.pos=field(radius,0)
+			sim._build_buckets()
+			check(is_equal_approx(sim._march_speed(unit),pace),"radius boundary included")
+			friend.pos=field(radius+0.01,0)
+			sim._build_buckets()
+			check(is_equal_approx(sim._march_speed(unit),base),"outside radius restores own march speed")
+			friend.pos=field(3,0)
+			friend.hp=0
+			sim._build_buckets()
+			check(is_equal_approx(sim._march_speed(unit),base),"dead friend does not cap")
+			var flyer=sim.spawn_unit(team,"void_ray",field(3,0))
+			sim._build_buckets()
+			var air_pace: float=minf(base,float(sim.definitions.void_ray.speed))
+			check(is_equal_approx(sim._march_speed(unit),air_pace),"ordinary air allies count")
+			var before: float=sim._march_speed(unit)
+			sim.units.reverse()
+			sim._build_buckets()
+			check(is_equal_approx(sim._march_speed(unit),before),"unit iteration order does not alter reference pace")
+	var mixed=bare()
+	var archon=mixed.spawn_unit(0,"archon",field(0,0))
+	var stalker=mixed.spawn_unit(0,"stalker",field(2,0))
+	mixed._build_buckets()
+	var archon_base: float=float(mixed.definitions.archon.speed)
+	check(is_equal_approx(mixed._march_speed(archon),archon_base) and is_equal_approx(mixed._march_speed(stalker),archon_base),"archon and stalker are different categories without mutual recursive cap")
+	var slow=mixed.spawn_unit(0,"medic",field(-2,0))
+	mixed._build_buckets()
+	check(is_equal_approx(mixed._march_speed(archon),float(mixed.definitions.medic.speed)),"slowest nearby type sets reference")
+	tune(mixed,"medic",{"speed":0})
+	mixed._build_buckets()
+	check(is_equal_approx(mixed._march_speed(archon),archon_base),"zero base speed does not freeze march")
+	var isolated=bare()
+	var solo=isolated.spawn_unit(0,"stalker",field(0,0))
+	isolated.spawn_unit(0,"locust",field(1,0))
+	isolated.spawn_unit(0,"tower",field(2,0))
+	isolated._build_buckets()
+	check(is_equal_approx(isolated._march_speed(solo),float(isolated.definitions.stalker.speed)),"summons and structures do not set march pace")
+	check(not isolated.catalog.zergling.skills.has("formation_pace"),"zergling combat mobility unchanged")
+
+	var blink=preload("res://scripts/skills/blink.gd").new()
+	blink.configure("blink",stalker,mixed.catalog.stalker.skills.blink)
+	stalker.shield=0
+	stalker.last_hit_tick=mixed.tick
+	var moves: Dictionary={}
+	var threat=mixed.spawn_unit(1,"dummy",stalker.pos+Vector2(3,0))
+	var origin: Vector2=stalker.pos
+	check(blink.step(mixed,stalker,threat,1.0/float(mixed.rules.tick_rate),moves),"mixed army retains damage-triggered stalker blink")
+	check(moves.has(stalker.id) and is_equal_approx(origin.distance_to(moves[stalker.id]),float(mixed.catalog.stalker.skills.blink.distance)),"blink distance is not limited by formation pace")

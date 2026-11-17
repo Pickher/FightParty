@@ -1,6 +1,6 @@
 # 兵种数值总表
 
-> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.11.5）生成，请勿手改；改数值后重新生成。
+> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.12.2）生成，请勿手改；改数值后重新生成。
 > 价格按组（每组 `spawn_count` 名），生命、护盾、伤害按个体。间隔单位秒，射程与速度单位格、格/秒。
 > 攻击模式列：伤害（类型/标签加成）×每轮段数 / 轮后间隔 / 射程（可打的层，投送类型）。
 
@@ -45,11 +45,11 @@
 | ID | 名称 | 状态 | 价格 矿/气/核 | 每组 | 生命/护盾 | 护甲 | 层 | 速度 | 攻击模式 | 技能组件 |
 |---|---|---|---|---:|---|---|---|---:|---|---|
 | `vanguard` | 先锋 | 可用 | 250/0/0 | 1 | 200/100 | 轻 4 | 地 | 3.125 | 双刃斩击 22×2 / 0.92 / 0.1（地，projectile） | `charge`、`combat_mobility` |
-| `stalker` | 追猎者 | 可用 | 180/0/0 | 1 | 80/80 | 重 4 | 地 | 4.13 | 粒子碎裂炮 16（+8重） / 1.34 / 6（地、空，projectile） | `blink` |
+| `stalker` | 追猎者 | 可用 | 180/0/0 | 1 | 80/80 | 重 4 | 地 | 4.13 | 粒子碎裂炮 16（+8重） / 1.34 / 6（地、空，projectile） | `blink`、`formation_pace` |
 | `sentry` | 哨兵 | 可用 | 500/0/0 | 2 | 40/40 | 无 4 | 地 | 3.5 | 裂解光束 4.5 / 0 / 5（地、空，beam） | `aura`、`shield_restore` |
 | `immortal` | 不朽者 | 可用 | 470/0/0 | 1 | 200/100 | 重 4 | 地 | 3.15 | 相位炮击 26（+39重） / 1.143 / 6（地，projectile） | `combat_mobility`、`shield_armor_buff` |
 | `high_templar` | 高阶圣堂武士 | 可用 | 780/0/0 | 1 | 40/40 | 轻 3 | 地 | 2.82 | 灵能冲击 7 / 1.25 / 6（地，projectile） | `delayed_area`、`combat_mobility` |
-| `archon` | 执政官 | 可用 | 450/0/0 | 1 | 10/350 | 无 3 | 地 | 3.94 | 灵能震荡 34（+13 biological） / 1.25 / 3，溅射 1（地、空，projectile） | — |
+| `archon` | 执政官 | 可用 | 450/0/0 | 1 | 10/350 | 无 3 | 地 | 3.94 | 灵能震荡 34（+13 biological） / 1.25 / 3，溅射 1（地、空，projectile） | `formation_pace` |
 | `colossus` | 巨像 | 可用 | 1250/0/0 | 1 | 250/100 | 重 4 | 地 | 3.15 | 双束热能扫射 21（+11轻）×2 / 1.1 / 7（地，line） | `line_attack`、`combat_mobility` |
 | `disruptor` | 干扰者 | 可用 | 1250/0/0 | 1 | 100/100 | 重 4 | 地 | 3.15 | 净化支援（无普通攻击） 0 / 1 / 13（地，projectile） | `delayed_area`、`combat_mobility` |
 | `void_ray` | 虚空辉光舰 | 可用 | 300/0/0 | 1 | 150/100 | 重 3 | 空 | 3.3203 | 棱镜光束 9（+4重） / 0 / 6（地、空，beam） | `weapon_buff`、`combat_mobility` |
