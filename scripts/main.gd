@@ -304,6 +304,8 @@ func _notification(what: int) -> void:
 		accumulator = 0.0
 		if OS.is_debug_build():
 			print("LIFECYCLE resumed tick=",sim.tick)
+	elif what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and is_node_ready():
+		_reset_pointer()
 	elif what == NOTIFICATION_RESIZED and is_node_ready():
 		_invalidate_interaction()
 		queue_redraw()
@@ -324,7 +326,9 @@ func _process(delta: float) -> void:
 	if not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened:
 		rifle_visual.update(delta)
 		bc_visual.update(delta)
-	if not formation_panel.opened:
+	if formation_panel.opened:
+		formation_panel.update_line_preview()
+	else:
 		for effect in effects:
 			effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
@@ -947,7 +951,7 @@ func _cancel_tower_placement() -> void:
 
 func _gui_input(event: InputEvent) -> void:
 	if formation_panel.opened and not setup_open and not help_open and not economy_open and pending_message=="" and not sim.finished:
-		if not interaction_ready:
+		if not interaction_ready or event.is_canceled():
 			formation_panel.cancel_drag()
 			accept_event()
 			return

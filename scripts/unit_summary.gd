@@ -4,7 +4,7 @@ const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
 const ARMOR_NAMES := {"light":"轻甲","heavy":"重甲","none":"无分类","special":"特殊甲"}
 const SKILL_NAMES := {
 	"combat_mobility":"交战机动", "mobility_burst":"狂暴机动", "shield_armor_buff":"刚毅护盾",
-	"deployment":"架设", "defender_zone":"防卫模式", "healing":"治疗",
+	"deployment":"架设", "defender_zone":"防卫模式", "healing":"治疗", "medivac_healing":"双束医疗",
 	"stimulant":"强化剂", "on_hit_slow":"命中减速", "multi_attack":"多重攻击",
 	"line_attack":"直线攻击", "weapon_switch":"武器切换", "yamato":"大和炮",
 	"regen":"再生", "suicide":"自爆", "delayed_area":"范围攻击",
