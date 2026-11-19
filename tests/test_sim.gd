@@ -1753,68 +1753,8 @@ func _battlecruisers() -> void:
 	var survivors: Array = [mirror.units.filter(func(u): return u.team==0),mirror.units.filter(func(u): return u.team==1)]
 	var even: bool = survivors[0].size()==survivors[1].size() and (survivors[0].is_empty() or is_equal_approx(survivors[0][0].hp,survivors[1][0].hp))
 	check(even and mirror.kills[0]==mirror.kills[1] and is_equal_approx(mirror.damage_done[0],mirror.damage_done[1]) and mirror.damage_done[0]>0,"battlecruiser duel is symmetric")
-	_battlecruiser_visual()
 
 ## 按 main.gd 的顺序驱动大和舰精灵动画：步前快照/观察 → step → 观察 → 事件 → 观察；画面时钟每步 0.05 秒。
-func _visual_ticks(sim, visual, count: int) -> Array:
-	var seen: Array = []
-	for i in range(count):
-		var before: Dictionary = {}
-		for unit in sim.units:
-			if unit.kind == "battlecruiser":
-				before[unit.id] = unit.duplicate()
-		visual.observe(sim.units)
-		var events: Array = sim.step()
-		visual.observe(sim.units, false)
-		for event in events:
-			visual.event(event, before, sim.units, true)
-			seen.append(event)
-		visual.observe(sim.units)
-		visual.update(0.05)
-	return seen
-
-func _battlecruiser_visual() -> void:
-	var Visual = load("res://scripts/battlecruiser_visual.gd")
-	var visual = Visual.new()
-	var sim = bare()
-	tune(sim,"dummy",{"speed":0,"damage":0,"hp":10000})
-	var ship = sim.spawn_unit(0,"battlecruiser",field(0,0))
-	var target = sim.spawn_unit(1,"dummy",field(float(sim.catalog.battlecruiser.skills.yamato.range)-1.0,0))
-	_visual_ticks(sim,visual,2)
-	var pose: Dictionary = visual.poses[ship.id]
-	check(pose.state=="yamato" and visual.frame_index("yamato",visual.clock-float(pose.since))==0 and not pose.left,"visual: channel shows yamato charge frame, facing right")
-	_visual_ticks(sim,visual,28)
-	check(visual.frame_index("yamato",visual.clock-float(pose.since))==1,"visual: after 1.2 s the muzzle shows the lock frame")
-	var events: Array = _visual_ticks(sim,visual,11)
-	var cannon: Array = events.filter(func(e): return e.type=="yamato")
-	check(cannon.size()==1 and cannon[0].muzzle=="round_muzzle" and visual.frame_index("yamato",visual.clock-float(pose.since))==2,"visual: yamato beam leaves the round muzzle on the fire frame")
-	_visual_ticks(sim,visual,10)
-	check(pose.state=="yamato" and visual.frame_index("yamato",visual.clock-float(pose.since))==3,"visual: recover frame after the beam")
-	var lasers: Array = _visual_ticks(sim,visual,60).filter(func(e): return e.type=="attack" and e.team==0)
-	var muzzles: Dictionary = {}
-	for shot in lasers:
-		muzzles[shot.muzzle] = true
-	check(lasers.size() > 2 and muzzles.has("wing_barrel") and muzzles.has("prow_low") and not muzzles.has("round_muzzle"),"visual: ground lasers alternate wing barrel and lower prow gun")
-	check(pose.state=="fire","visual: firing lasers uses the move-fire sheet")
-	var offset: Vector2 = visual.muzzle_offset("round_muzzle",false,80.0)
-	check(offset.x > 0 and visual.muzzle_offset("round_muzzle",true,80.0)==Vector2(-offset.x,offset.y),"visual: muzzle offsets mirror for left-facing ships")
-	var enemy = sim.spawn_unit(1,"battlecruiser",field(20,0))
-	_visual_ticks(sim,visual,1)
-	check(visual.poses[enemy.id].left,"visual: right-side ship faces left")
-	ship.hp = 0
-	_visual_ticks(sim,visual,1)
-	check(visual.corpses.size()==1 and not visual.poses.has(ship.id) and not visual.corpses[0].left,"visual: death leaves a wreck with the last facing")
-	_visual_ticks(sim,visual,29)
-	check(visual.corpses.is_empty(),"visual: wreck disappears after 1.4 s")
-	visual.reset()
-	var air = bare()
-	tune(air,"battlecruiser",{"speed":0,"skills":{"weapon_switch":air.catalog.battlecruiser.skills.weapon_switch}})
-	tune(air,"viking",{"speed":0,"damage":0,"hp":10000})
-	var hunter = air.spawn_unit(0,"battlecruiser",field(0,0))
-	air.spawn_unit(1,"viking",field(5,0))
-	var air_shots: Array = _visual_ticks(air,visual,20).filter(func(e): return e.type=="attack" and e.team==0)
-	check(hunter.weapon_index==1 and air_shots.size() > 0 and air_shots.all(func(e): return e.muzzle=="prow_high"),"visual: air lasers leave the upper prow gun")
-
 ## 试玩反馈：恶火分离半径 0.75 + 停步散开，降低坦克溅射叠伤；沙漠风暴 30 格交战半径，近战被远程溅射时转向攻击者。
 func _playtest_fixes() -> void:
 	var legacy: Dictionary = Catalog.units().hellbat.duplicate(true)

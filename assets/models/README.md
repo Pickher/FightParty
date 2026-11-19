@@ -7,3 +7,5 @@
 优先保存 `.glb` 文件。模型依赖外置贴图时，将贴图放在同一子目录，保留模型引用的相对路径。可用简短的说明记录模型来源、比例、正面方向和动画名称，方便其他开发者接入。
 
 提交并推送到 `cloud/test` 后，云端对话可以同步该分支，再从 `assets/models/<单位 ID>/` 读取模型。
+
+当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，接入状态见 `docs/unit-art-spec.md`。

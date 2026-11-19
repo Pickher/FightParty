@@ -31,8 +31,6 @@ func _draw() -> void:
 	if game==null:return
 	var sim = game.sim
 	# 大和舰原图以3格模型标定，主体、炮口、残骸统一随模型尺寸缩放。
-	var bc_body: Array = sim.catalog["battlecruiser"].get("size",[3.0,3.0])
-	var bc_cell: float = pixels(maxf(float(bc_body[0]),float(bc_body[1]))/3.0)
 	var view: Rect2 = game._camera_rect()
 	draw_rect(Rect2(Vector2.ZERO,viewport_size()),Color("0d1c2b"))
 	var spacing: float = 1.0 if pixels(1.0)>=12.0 else 5.0
@@ -126,9 +124,6 @@ func _draw() -> void:
 		if bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
 		var a := point(effect.from)
-		if effect.has("muzzle"):
-			# 大和舰：激光从炮管、大和炮从圆形炮口画起（精灵上的位置）。
-			a += game.bc_visual.muzzle_offset(str(effect.muzzle),bool(effect.left),bc_cell)
 		var b := point(effect.to)
 		if effect.type=="area_impact":
 			ring(effect.to,float(effect.radius),Color(color,clampf(float(effect.ttl)/0.16,0,1)))
@@ -157,9 +152,6 @@ func _draw() -> void:
 	for corpse in game.rifle_visual.corpses:
 		if view.grow(rifle_frame_world*2.0).has_point(corpse.pos):
 			game.rifle_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(rifle_frame_world))
-	for corpse in game.bc_visual.corpses:
-		if view.grow(4.0).has_point(corpse.pos):
-			game.bc_visual.draw_corpse(self,point(corpse.pos),corpse,bc_cell)
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
@@ -182,10 +174,6 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			elif unit.kind == "battlecruiser":
-				# 精灵按模型尺寸从原3格标定缩放，避免只改占地而舰体不变。
-				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,24,Color(color,0.8),1)
-				game.bc_visual.draw_unit(self,p,unit,bc_cell)
 			elif unit.kind=="medivac" and game.medivac_visual!=null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
