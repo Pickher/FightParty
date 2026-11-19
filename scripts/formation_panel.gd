@@ -2,36 +2,44 @@ extends RefCounted
 ## 折叠式部队面板。只编辑下一波已有士兵的位置，购买仍交给 BattleSim。
 const Catalog = preload("res://scripts/catalog.gd")
 const Layout = preload("res://scripts/formation_layout.gd")
+const UnitSummary = preload("res://scripts/unit_summary.gd")
 const PANEL := Rect2(32,98,1376,762)
 const BOARD_AREA := Rect2(446,244,930,530)
 const ROWS_PER_PAGE := 8
+# 距离使用面板的设计坐标，计时使用真实时间，不受暂停或游戏倍速影响。
+const LINE_HOLD_MS := 300
+const LINE_MIN_DISTANCE := 24.0
+const MEMBER_TAP_SLOP := 8.0
 var game
 var opened := false
 var tab := "owned"
 var selected_kind := ""
+var last_recruit_kind := ""
+var recruit_summary := ""
 var batch_count := 1
 var selection_offset := 0
 var list_page := 0
-var dragging := false
-var drag_start := Vector2.ZERO
-var drag_end := Vector2.ZERO
+var line_active := false
+var pressed_at_ms := 0
 var pressed_point := Vector2.ZERO
+var pointer_point := Vector2.ZERO
+var preview_point := Vector2.ZERO
 var pressed_member := false
-var drag_moved := false
 var preview: Dictionary = {"placements":[],"error":""}
 var drag_selection: Array = []
-var notice := "选择已有部队，再点按或按住拖线；修改只影响下一波。"
+var notice := "选择部队后，轻点聚拢或长按拉线。布置从下一波生效。"
 var notice_bad := false
 
 func reset() -> void:
 	opened=false
 	tab="owned"
 	selected_kind=""
+	last_recruit_kind=""
 	batch_count=1
 	selection_offset=0
 	list_page=0
 	cancel_drag()
-	notice="选择已有部队，再点按或按住拖线；修改只影响下一波。"
+	notice="选择部队后，轻点聚拢或长按拉线。布置从下一波生效。"
 	notice_bad=false
 
 func open_panel() -> void:
@@ -46,8 +54,7 @@ func close_panel() -> void:
 	game.queue_redraw()
 
 func cancel_drag() -> void:
-	dragging=false
-	drag_moved=false
+	line_active=false
 	pressed_member=false
 	drag_selection=[]
 	preview={"placements":[],"error":""}
@@ -91,11 +98,20 @@ func _kinds() -> Array:
 
 func _ensure_selection() -> void:
 	var kinds: Array = _kinds()
-	list_page=clampi(list_page,0,maxi(0,ceili(float(kinds.size())/ROWS_PER_PAGE)-1))
-	if not kinds.has(selected_kind):
-		selected_kind=str(kinds[0]) if not kinds.is_empty() else ""
-		selection_offset=0
-		batch_count=1
+	if kinds.is_empty() and selected_kind.is_empty():return
+	var index: int = kinds.find(selected_kind)
+	if index < 0:
+		_select_kind(_preferred_kind(kinds))
+	else:
+		list_page = index / ROWS_PER_PAGE
+
+func _preferred_kind(kinds: Array) -> String:
+	if tab == "recruit":
+		var balance: Dictionary = game.sim.wallet(0)
+		for kind in kinds:
+			if game.sim.resource_error(game.sim.unit_price(kind), balance).is_empty():
+				return str(kind)
+	return "" if kinds.is_empty() else str(kinds[0])
 
 func _pool(members: Array) -> Array:
 	var result: Array = []
@@ -116,7 +132,10 @@ func _select_kind(kind: String) -> void:
 		batch_count=1
 		selection_offset=0
 	var index: int = _kinds().find(kind)
-	if index>=0:list_page=index/ROWS_PER_PAGE
+	list_page = index / ROWS_PER_PAGE if index >= 0 else 0
+	if tab == "recruit" and index >= 0:
+		var stats: Dictionary = game.sim.catalog[kind]
+		recruit_summary = "%s · %s  %s" % [stats.name, _target_label(stats), UnitSummary.text(stats)]
 	cancel_drag()
 
 func _next_batch(members: Array) -> void:
@@ -134,13 +153,16 @@ func draw() -> void:
 	if not opened:return
 	_ensure_selection()
 	var members: Array = game.sim.deployment_members(0)
-	var selected: Array = drag_selection if dragging else _selection(members)
+	var selected: Array = _selection(members) if drag_selection.is_empty() else drag_selection
 	game.draw_rect(Rect2(0,98,1440,762),Color("091321"))
 	game._panel(PANEL,game.PANEL,game.MINT)
 	# 此面板独占输入，不留下被遮住的布阵格和战场工具栏按钮。
 	game.buttons.clear()
 	game._text(Vector2(56,137),"部队配置",27,game.MINT)
-	game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
+	if tab == "recruit" and not selected_kind.is_empty():
+		game.draw_multiline_string(game.FONT, Vector2(222,116), recruit_summary, HORIZONTAL_ALIGNMENT_LEFT, 788, 16, 3, game.INK)
+	else:
+		game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
 	game._button(Rect2(1024,109,152,42),"格阵管理","formation:legacy")
 	game._button(Rect2(1190,109,186,42),"收起，返回战场","formation:close",true)
 	game._button(Rect2(56,166,170,46),"现有部队","formation:tab:owned",tab=="owned")
@@ -148,15 +170,37 @@ func draw() -> void:
 	_draw_list()
 	_draw_tools(selected,members)
 	_draw_board(members,selected)
-	var info: String = str(preview.get("error","")) if dragging and not str(preview.get("error","")).is_empty() else notice
-	var bad: bool = not str(preview.get("error","")).is_empty() if dragging else notice_bad
-	if dragging and str(preview.get("error","")).is_empty():info="松手布置 %d 名；拖出方框或右键取消。" % drag_selection.size()
+	var info: String = notice
+	var bad: bool = notice_bad
+	if line_active:
+		bad=not str(preview.error).is_empty()
+		info=str(preview.error) if bad else "松手沿线布置 %d 名，拖出布阵框可取消。" % drag_selection.size()
 	game.draw_multiline_string(game.FONT,Vector2(446,803),info,HORIZONTAL_ALIGNMENT_LEFT,930,18,2,game.CORAL if bad else game.MINT)
 	game._text(Vector2(446,846),"亮圈为本批士兵 · 放好后自动选下一批 · 一键排布不花资源",16,game.MUTED)
+
+func _target_label(stats: Dictionary) -> String:
+	var ground := false
+	var air := false
+	var modes := UnitSummary.weapons(stats)
+	var summoned_kind: String = str(stats.get("skills", {}).get("summon", {}).get("kind", ""))
+	if game.sim.catalog.has(summoned_kind):
+		modes.append_array(UnitSummary.weapons(game.sim.catalog[summoned_kind]))
+	for mode in modes:
+		var weapon: Dictionary = mode.data
+		if float(weapon.get("damage", 0)) <= 0:
+			continue
+		var layers: Array = weapon.get("target_layers", ["ground"])
+		ground = ground or layers.has("ground")
+		air = air or layers.has("air")
+	if ground and air: return "对空对地"
+	if ground: return "仅对地"
+	if air: return "仅对空"
+	return str(stats.get("role", "支援"))
 
 func _draw_list() -> void:
 	var kinds: Array = _kinds()
 	var counts: Dictionary = _counts()
+	var balance: Dictionary = game.sim.wallet(0)
 	var pages: int = maxi(1,ceili(float(kinds.size())/ROWS_PER_PAGE))
 	for row in range(ROWS_PER_PAGE):
 		var index: int = list_page*ROWS_PER_PAGE+row
@@ -171,7 +215,8 @@ func _draw_list() -> void:
 		game._text(rect.position+Vector2(46,23),str(stats.name),19,game.INK)
 		game._text(rect.position+Vector2(46,44),"已有 %d 组 · %d 名" % [groups,count],15,game.MUTED)
 		if tab=="recruit":
-			game._text(rect.position+Vector2(233,23),"%d矿/组" % int(stats.cost),15,game.MINT)
+			var affordable: bool = game.sim.resource_error(game.sim.unit_price(kind), balance).is_empty()
+			game._text(rect.position+Vector2(233,23),"%d矿/组" % int(stats.cost),15,game.MINT if affordable else game.MUTED)
 			var gas: int = int(stats.get("gas_cost",0))
 			var cores: int = int(stats.get("core_cost",0))
 			if gas>0 or cores>0:game._text(rect.position+Vector2(233,44),"%d气 %d核" % [gas,cores],14,game.MUTED)
@@ -183,12 +228,35 @@ func _draw_list() -> void:
 	game._text(Vector2(174,746),"%d / %d" % [list_page+1,pages],18,game.MUTED)
 	game._button(Rect2(312,718,96,40),"下一页","formation:page:1")
 	if tab=="recruit" and not selected_kind.is_empty():
-		var stats: Dictionary = game.sim.catalog[selected_kind]
-		game._button(Rect2(56,774,352,50),"招募一组（%d 名）" % maxi(1,int(stats.get("spawn_count",1))),"formation:buy",true)
-		game._text(Vector2(56,848),"按组购买；单兵排布不会另行扣费。",16,game.MUTED)
+		_draw_buy_button(balance)
 	else:
 		game._text(Vector2(56,797),"组数与人数按当前兵种配置显示。",16,game.MUTED)
 		game._text(Vector2(56,823),"删除/退款请进入「格阵管理」。",16,game.MUTED)
+
+func _draw_buy_button(balance: Dictionary) -> void:
+	var stats: Dictionary = game.sim.catalog[selected_kind]
+	var price: Dictionary = game.sim.unit_price(selected_kind)
+	var full: bool = game.sim.formations[0].size() >= int(game.sim.rules.columns * game.sim.rules.rows)
+	var can_buy: bool = not full and game.sim.resource_error(price, balance).is_empty()
+	var rect := Rect2(56,774,352,50)
+	game._panel(rect, Color("204b43") if can_buy else Color("17293c"), game.MINT if can_buy else game.MUTED)
+	game._text(rect.position + Vector2(14,22), "招募%s ×%d" % [stats.name, maxi(1, int(stats.get("spawn_count",1)))], 19, game.MINT if can_buy else game.MUTED)
+	game._text(rect.position + Vector2(14,44), "每组 %s" % _resource_text(price), 16, game.INK if can_buy else game.MUTED)
+	if can_buy:
+		game.buttons.append({"rect":rect, "action":"formation:buy:"+selected_kind})
+	elif full:
+		game._text(Vector2(56,848), "兵营已满，可在格阵管理中移除部队", 16, game.CORAL)
+	else:
+		game._text(Vector2(56,848), "还缺 %s" % _resource_text(price, balance), 16, game.CORAL)
+
+func _resource_text(price: Dictionary, balance: Dictionary = {}) -> String:
+	var names := {"minerals":"矿", "gas":"气", "cores":"灵核"}
+	var parts := PackedStringArray()
+	for key in names:
+		var amount := int(price.get(key, 0)) - int(balance.get(key, 0))
+		if amount > 0:
+			parts.append("%d%s" % [amount, names[key]])
+	return " ".join(parts) if not parts.is_empty() else "0矿"
 
 func _draw_tools(selected: Array, members: Array) -> void:
 	var pool: Array = _pool(members)
@@ -202,7 +270,7 @@ func _draw_tools(selected: Array, members: Array) -> void:
 	game._button(Rect2(1028,166,170,44),"一键自动排布","formation:auto",true)
 	game._button(Rect2(1212,166,164,44),"取消本次拖线","formation:cancel")
 	var label: String = str(game.sim.catalog[selected_kind].name) if game.sim.catalog.has(selected_kind) else "未选兵种"
-	game._text(Vector2(446,233),"%s · 本批 %d 名 / 共 %d 名 · 按住拖线可排成多列" % [label,selected.size(),pool.size()],17,game.MUTED)
+	game._text(Vector2(446,233),"%s · 本批 %d 名 / 共 %d 名 · 点放聚拢，长按拉线展开" % [label,selected.size(),pool.size()],17,game.MUTED)
 
 func _draw_board(members: Array, selected: Array) -> void:
 	var field: Rect2 = _field()
@@ -229,11 +297,11 @@ func _draw_board(members: Array, selected: Array) -> void:
 		game.draw_circle(point,radius,Color(color,0.17))
 		game._draw_unit(point,kind,color,maxf(3,radius*0.6))
 		game.draw_arc(point,radius+2,0,TAU,16,game.MINT if chosen.has(_key(member)) else Color(color,0.5),2 if chosen.has(_key(member)) else 1)
-	if dragging:
+	if line_active:
 		var tint: Color = game.MINT if str(preview.get("error","")).is_empty() else game.CORAL
-		var end_point: Vector2 = _to_screen(drag_end).clamp(field.position,field.end)
-		game.draw_line(_to_screen(drag_start),end_point,tint,2)
-		game.draw_circle(_to_screen(drag_start),4,tint)
+		var end_point: Vector2 = pointer_point.clamp(field.position,field.end)
+		game.draw_line(pressed_point,end_point,tint,2)
+		game.draw_circle(pressed_point,4,tint)
 		game.draw_circle(end_point,4,tint)
 		for placement in preview.get("placements",[]):
 			var value: Array = placement.position
@@ -251,73 +319,87 @@ func _hit_member(point: Vector2, members: Array) -> Dictionary:
 			best=member
 	return best
 
-func _preview_at(point: Vector2, members: Array) -> void:
-	drag_end=_to_local(point)
-	if not _field().has_point(point):
-		preview={"placements":[],"error":"已移出布阵区；松手取消本次布置。"}
+## 手指越过距离门槛后停住，时间门槛仍可在下一帧到达。
+func update_line_preview() -> void:
+	if drag_selection.is_empty():return
+	var distance := pressed_point.distance_to(pointer_point)
+	if distance<LINE_MIN_DISTANCE or Time.get_ticks_msec()-pressed_at_ms<LINE_HOLD_MS:
+		line_active=false
 		return
-	preview=Layout.line_placements(members,drag_selection,drag_start,drag_end,_bounds())
+	if line_active and pointer_point==preview_point:return
+	line_active=true
+	preview_point=pointer_point
+	if not _field().has_point(pointer_point):
+		preview={"placements":[],"error":"已移出布阵区，松手取消本次布置。"}
+		return
+	preview=Layout.line_placements(game.sim.deployment_members(0),drag_selection,_to_local(pressed_point),_to_local(pointer_point),_bounds())
+
+func _begin_gesture(point: Vector2) -> void:
+	cancel_drag()
+	if not _field().has_point(point):return
+	var members: Array = game.sim.deployment_members(0)
+	# 已经选择多名时，点到其他士兵也保留整批。单名模式可直接点选场上的士兵。
+	if batch_count==1:
+		var hit: Dictionary = _hit_member(point,members)
+		if not hit.is_empty():
+			_select_kind(str(hit.kind))
+			var pool: Array = _pool(members)
+			for index in range(pool.size()):
+				if _key(pool[index])==_key(hit):
+					selection_offset=index
+					break
+			pressed_member=true
+	drag_selection=_selection(members)
+	if drag_selection.is_empty():
+		_message("先选择要排布的部队，没有部队时请先招募。",true)
+		return
+	pressed_point=point
+	pointer_point=point
+	pressed_at_ms=Time.get_ticks_msec()
+
+func _finish_gesture(point: Vector2) -> void:
+	if drag_selection.is_empty():return
+	if not _field().has_point(point):
+		cancel_drag()
+		_message("已取消本次布置。")
+		return
+	pointer_point=point
+	update_line_preview()
+	if pressed_member and point.distance_to(pressed_point)<MEMBER_TAP_SLOP:
+		cancel_drag()
+		_message("已选中士兵，点空处放置或长按拉线。")
+		return
+	var members: Array = game.sim.deployment_members(0)
+	var result: Dictionary
+	if line_active:
+		result=preview
+	else:
+		result=Layout.scatter_placements(members,drag_selection,_to_local(point),_bounds())
+	var error: String = str(result.error)
+	var amount: int = drag_selection.size()
+	var wrapped: bool = selection_offset+amount>=_pool(members).size()
+	if error.is_empty():error=game.sim.arrange_members(0,result.placements)
+	cancel_drag()
+	if not error.is_empty():
+		_message(error,true)
+		return
+	_next_batch(members)
+	game._save_settings()
+	game._save_journal()
+	var next_hint := "已回到第一批" if wrapped else "已选中下一批"
+	_message("已排布 %d 名，%s。" % [amount,next_hint])
 
 func pointer(event: InputEvent, design_point: Vector2) -> bool:
 	if not opened:return false
 	if event is InputEventMouseButton:
 		if event.button_index==MOUSE_BUTTON_RIGHT and event.pressed:
 			cancel_drag()
-			_message("已取消本次拖线，原布局保留。")
-			return true
-		if event.button_index!=MOUSE_BUTTON_LEFT:return true
-		if event.pressed:
-			# 宿主先处理本面板按钮，再把剩余事件交给 pointer。
-			if not _field().has_point(design_point):return true
-			var members: Array = game.sim.deployment_members(0)
-			var hit: Dictionary = _hit_member(design_point,members)
-			pressed_member=not hit.is_empty()
-			if pressed_member:
-				_select_kind(str(hit.kind))
-				var pool: Array = _pool(members)
-				for index in range(pool.size()):
-					if _key(pool[index])==_key(hit):
-						selection_offset=index
-						break
-				pressed_member=true
-			drag_selection=_selection(members)
-			if drag_selection.is_empty():
-				_message("先从现有部队选择兵种；没有部队时请先招募。",true)
-				return true
-			dragging=true
-			drag_moved=false
-			pressed_point=design_point
-			drag_start=_to_local(design_point)
-			_preview_at(design_point,members)
-			game.queue_redraw()
-			return true
-		if dragging:
-			var members: Array = game.sim.deployment_members(0)
-			drag_moved=drag_moved or design_point.distance_to(pressed_point)>=8.0
-			_preview_at(design_point,members)
-			if pressed_member and not drag_moved:
-				cancel_drag()
-				_message("已选中本批士兵；点击空白位置或按住拖线来重新排布。")
-				return true
-			var error: String = str(preview.get("error",""))
-			var amount: int = drag_selection.size()
-			var wrapped: bool = selection_offset+amount>=_pool(members).size()
-			if error.is_empty():error=game.sim.arrange_members(0,preview.get("placements",[]))
-			cancel_drag()
-			if error.is_empty():
-				_next_batch(members)
-				game._save_settings()
-				game._save_journal()
-				_message("已排布 %d 名，本轮已布置完；下一次从第一批开始。" % amount if wrapped else "已排布 %d 名，已选择下一批；再次点选可修改。" % amount)
-			else:_message(error,true)
-		return true
-	if event is InputEventMouseMotion:
-		if dragging:
-			drag_moved=drag_moved or design_point.distance_to(pressed_point)>=8.0
-			var members: Array = game.sim.deployment_members(0)
-			_preview_at(design_point,members)
-			game.queue_redraw()
-		return true
+			_message("已取消本次布置。")
+		elif event.button_index==MOUSE_BUTTON_LEFT:
+			if event.pressed:_begin_gesture(design_point)
+			else:_finish_gesture(design_point)
+	elif event is InputEventMouseMotion and not drag_selection.is_empty():
+		pointer_point=design_point
 	return true
 
 func handle_action(action: String) -> void:
@@ -329,14 +411,21 @@ func handle_action(action: String) -> void:
 	elif verb=="legacy":
 		close_panel()
 		game.handle_action("legacy_editor")
-	elif verb=="tab" and parts.size()==3:
+	elif verb=="tab" and parts.size()==3 and tab!=parts[2]:
+		if tab=="recruit":last_recruit_kind=selected_kind
 		tab=parts[2]
-		list_page=0
+		if tab=="recruit":
+			var kinds: Array = _kinds()
+			_select_kind(last_recruit_kind if kinds.has(last_recruit_kind) else _preferred_kind(kinds))
 		_ensure_selection()
 	elif verb=="kind" and parts.size()==3:_select_kind(parts[2])
 	elif verb=="page" and parts.size()==3:
-		var pages: int = maxi(1,ceili(float(_kinds().size())/ROWS_PER_PAGE))
-		list_page=posmod(list_page+int(parts[2]),pages)
+		var kinds: Array = _kinds()
+		var pages: int = maxi(1,ceili(float(kinds.size())/ROWS_PER_PAGE))
+		var page: int = posmod(list_page+int(parts[2]),pages)
+		if page != list_page:
+			var start := page * ROWS_PER_PAGE
+			_select_kind(_preferred_kind(kinds.slice(start, start + ROWS_PER_PAGE)))
 	elif verb=="count" and parts.size()==3:
 		var members: Array = game.sim.deployment_members(0)
 		var total: int = _pool(members).size()
@@ -363,7 +452,7 @@ func handle_action(action: String) -> void:
 			game._save_journal()
 			_message("已按兵种定位自动排布；可以继续选兵和拖线微调。")
 		else:_message(error,true)
-	elif verb=="buy":_buy_group()
+	elif verb=="buy" and tab=="recruit" and (parts.size()==2 or parts[2]==selected_kind):_buy_group()
 	game.queue_redraw()
 
 func _buy_group() -> void:

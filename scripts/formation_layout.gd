@@ -20,6 +20,21 @@ static func valid_position(value) -> bool:
 static func _inside(point: Vector2, radius: float, bounds: Rect2) -> bool:
 	return point.x-radius>=bounds.position.x-EPSILON and point.y-radius>=bounds.position.y-EPSILON and point.x+radius<=bounds.end.x+EPSILON and point.y+radius<=bounds.end.y+EPSILON
 
+static func _occupy(buckets: Dictionary, point: Vector2, radius: float, id: String) -> void:
+	var bucket := Vector2i(floori(point.x/BUCKET_SIZE),floori(point.y/BUCKET_SIZE))
+	if not buckets.has(bucket):buckets[bucket]=[]
+	buckets[bucket].append({"id":id,"position":point,"radius":radius})
+
+static func _overlaps(buckets: Dictionary, point: Vector2, radius: float, maximum_radius: float, ignore_id: String = "") -> bool:
+	var reach := radius+maximum_radius+GAP
+	for x in range(floori((point.x-reach)/BUCKET_SIZE),floori((point.x+reach)/BUCKET_SIZE)+1):
+		for y in range(floori((point.y-reach)/BUCKET_SIZE),floori((point.y+reach)/BUCKET_SIZE)+1):
+			for other in buckets.get(Vector2i(x,y),[]):
+				if other.id==ignore_id:continue
+				var minimum := radius+float(other.radius)+GAP-EPSILON
+				if point.distance_squared_to(other.position)<minimum*minimum:return true
+	return false
+
 ## 只检查被移动者的碰撞；旧格位队形原有的重叠不能阻止别处合法重排。
 static func placement_error(members: Array, placements: Array, bounds: Rect2, check_collisions: bool = true) -> String:
 	if placements.size()>members.size():return "排布数量超出现有兵力"
@@ -47,9 +62,7 @@ static func placement_error(members: Array, placements: Array, bounds: Rect2, ch
 		var point: Vector2 = changes.get(id,unit.position)
 		var layer := str(unit.layer)
 		if not buckets.has(layer):buckets[layer]={}
-		var bucket := Vector2i(floori(point.x/BUCKET_SIZE),floori(point.y/BUCKET_SIZE))
-		if not buckets[layer].has(bucket):buckets[layer][bucket]=[]
-		buckets[layer][bucket].append({"id":id,"position":point,"radius":float(unit.radius)})
+		_occupy(buckets[layer],point,float(unit.radius),id)
 		maximum_radius=maxf(maximum_radius,float(unit.radius))
 	for id in changes:
 		var unit: Dictionary = indexed[id]
@@ -57,19 +70,76 @@ static func placement_error(members: Array, placements: Array, bounds: Rect2, ch
 		# 批次可包含原位成员；允许它们保留旧格阵已有的重叠。
 		if point.distance_squared_to(unit.position)<=EPSILON*EPSILON:continue
 		var radius := float(unit.radius)
-		var reach := radius+maximum_radius+GAP
-		var layer_buckets: Dictionary = buckets[str(unit.layer)]
-		for x in range(floori((point.x-reach)/BUCKET_SIZE),floori((point.x+reach)/BUCKET_SIZE)+1):
-			for y in range(floori((point.y-reach)/BUCKET_SIZE),floori((point.y+reach)/BUCKET_SIZE)+1):
-				for other in layer_buckets.get(Vector2i(x,y),[]):
-					if str(other.id)==str(id):continue
-					var distance: float = radius+float(other.radius)+GAP
-					if point.distance_squared_to(other.position)<(distance-EPSILON)*(distance-EPSILON):
-						return "队形与同层部队重叠，请移到空处或先自动排布"
+		if _overlaps(buckets[str(unit.layer)],point,radius,maximum_radius,id):
+			return "队形与同层部队重叠，请移到空处或先自动排布"
 	return ""
 
 static func _placement(unit: Dictionary, point: Vector2) -> Dictionary:
 	return {"cell":int(unit.cell),"member":int(unit.member),"position":[point.x,point.y]}
+
+## 优先使用落点附近的空位。外圈错开角度，给每个候选位置加少量抖动，
+## 由近及远逐圈扩展；同层同尺寸的一批共用一次搜索。
+static func _scatter_group(group: Array, center: Vector2, bounds: Rect2, buckets: Dictionary, maximum_radius: float, rng: RandomNumberGenerator) -> Array:
+	var radius := float(group[0].radius)
+	var room := bounds.grow(-radius)
+	if room.size.x<0 or room.size.y<0:return []
+	var origin := center.clamp(room.position,room.end)
+	var spacing := radius*2.0+GAP
+	var pitch := spacing*1.08
+	var placements: Array = []
+	for ring in range(ceili(room.size.length()/pitch)+2):
+		var slots := 1
+		if ring>0:slots=maxi(1,floori(PI/asin(0.5/ring)+EPSILON))
+		var rotation := rng.randf_range(0,TAU)
+		for index in range(slots):
+			var point := origin
+			if ring>0:
+				# 在三个方向之间轮换，三名士兵也能展开成三角形。
+				var sector := index%3
+				var slot: int = ceili(float(sector*slots)/3.0)+index/3
+				var direction := Vector2.from_angle(rotation+TAU*slot/slots)
+				point+=direction*(ring*pitch+spacing*rng.randf_range(-0.035,0.035))
+			if not _inside(point,radius,bounds) or _overlaps(buckets,point,radius,maximum_radius):continue
+			var unit: Dictionary = group[placements.size()]
+			placements.append(_placement(unit,point))
+			_occupy(buckets,point,radius,key(int(unit.cell),int(unit.member)))
+			if placements.size()==group.size():return placements
+	return []
+
+static func scatter_placements(members: Array, selected: Array, center: Vector2, bounds: Rect2) -> Dictionary:
+	if selected.is_empty():return {"placements":[],"error":"请先选择要排布的部队"}
+	if not center.is_finite():return {"placements":[],"error":"排布位置无效"}
+	var moving: Dictionary = {}
+	var groups: Dictionary = {}
+	for unit in selected:
+		moving[key(int(unit.cell),int(unit.member))]=true
+		var layer := str(unit.layer)
+		var radius := float(unit.radius)
+		if not groups.has(layer):groups[layer]={}
+		if not groups[layer].has(radius):groups[layer][radius]=[]
+		groups[layer][radius].append(unit)
+	var buckets: Dictionary = {}
+	var maximum_radius := 0.0
+	for unit in members:
+		var layer := str(unit.layer)
+		if not buckets.has(layer):buckets[layer]={}
+		maximum_radius=maxf(maximum_radius,float(unit.radius))
+		var id := key(int(unit.cell),int(unit.member))
+		if not moving.has(id):_occupy(buckets[layer],unit.position,float(unit.radius),id)
+	var placements: Array = []
+	var rng := RandomNumberGenerator.new()
+	# 不消耗战斗随机数；同一手势预览与提交一致。存档和重放仍记录最终坐标。
+	rng.seed=hash([center,moving.keys()])
+	for layer in groups:
+		if not buckets.has(layer):return {"placements":[],"error":"所选部队已不存在，请重新选择"}
+		var radii: Array = groups[layer].keys()
+		radii.sort()
+		radii.reverse()
+		for radius in radii:
+			var placed := _scatter_group(groups[layer][radius],center,bounds,buckets[layer],maximum_radius,rng)
+			if placed.is_empty():return {"placements":[],"error":"空位不足，请换个位置或减少本批人数"}
+			placements.append_array(placed)
+	return {"placements":placements,"error":placement_error(members,placements,bounds)}
 
 ## 线长决定一排人数；短线展开多排。法线尽量朝己方(-X)，水平线向-Y展开。
 ## 失败仍返回候选坐标，供界面画红色预览；调用方必须检查 error 才能提交。
