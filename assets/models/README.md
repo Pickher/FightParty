@@ -9,3 +9,5 @@
 提交并推送到 `cloud/test` 后，云端对话可以同步该分支，再从 `assets/models/<单位 ID>/` 读取模型。
 
 当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，接入状态见 `docs/unit-art-spec.md`。
+
+恶火模型位于 [hellbat.glb](hellbat/hellbat.glb)，由用户提供，后续可接入恶火的战场表现。
