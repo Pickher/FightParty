@@ -8,4 +8,4 @@
 
 提交并推送到 `cloud/test` 后，云端对话可以同步该分支，再从 `assets/models/<单位 ID>/` 读取模型。
 
-当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，接入状态见 `docs/unit-art-spec.md`。
+当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，四组实时三维动作及预览见 [美术规范](../../docs/unit-art-spec.md#大和舰实时三维动画)。
