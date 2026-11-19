@@ -8,6 +8,8 @@ func viewport_size() -> Vector2:
 
 func _process(delta: float) -> void:
 	if game!=null and game.medivac_visual!=null:game.medivac_visual.sync(self,delta)
+	if game != null:
+		game.hellion_visual.sync_shared(self, game.medivac_visual, delta)
 	queue_redraw()
 
 func point(pos: Vector2) -> Vector2:
@@ -135,6 +137,8 @@ func _draw() -> void:
 			draw_circle(b,maxf(2,pixels(0.5))*fade,Color(Color("ffb347"),fade*0.4))
 			continue
 		if effect.type=="line_attack":
+			if effect.has("hellion_source") and game.hellion_visual.has_model(int(effect.hellion_source)):
+				continue
 			color=Color(game.sim.catalog[effect.kind].color) if not game._hidden_team(int(effect.team)) else game.CORAL
 			color.a=clampf(float(effect.ttl)/0.24,0,1)
 			var width: float = float(effect.get("half_width",0.3))*2.0 if str(effect.get("effect",""))=="flame" else 0.15
@@ -171,6 +175,8 @@ func _draw() -> void:
 		else:
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color(tint,0.14))
 			if hidden:draw_rect(Rect2(p-dimensions*.5,dimensions),tint)
+			elif unit.kind == "hellbat" and game.hellion_visual.has_model(int(unit.id)):
+				draw_arc(p, maxf(dimensions.x, dimensions.y) * 0.55, 0, TAU, 16, Color(color, 0.8), 1)
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
@@ -180,6 +186,7 @@ func _draw() -> void:
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
 	if game.medivac_visual!=null:
+		game.hellion_visual.draw_if_ground_only(self, game.medivac_visual, self)
 		game.medivac_visual.draw_layer(self,self)
 		game.medivac_visual.draw_healing(self,self)
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
