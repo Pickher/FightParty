@@ -32,7 +32,6 @@ func ring(center: Vector2, reach: float, color: Color) -> void:
 func _draw() -> void:
 	if game==null:return
 	var sim = game.sim
-	# 大和舰原图以3格模型标定，主体、炮口、残骸统一随模型尺寸缩放。
 	var view: Rect2 = game._camera_rect()
 	draw_rect(Rect2(Vector2.ZERO,viewport_size()),Color("0d1c2b"))
 	var spacing: float = 1.0 if pixels(1.0)>=12.0 else 5.0
@@ -117,6 +116,7 @@ func _draw() -> void:
 		draw_line(point(from),point(to),tint,maxf(1.5,pixels(0.06)))
 	for projectile in sim.projectiles:
 		if not view.grow(1.0).has_point(projectile.pos):continue
+		if game.medivac_visual != null and game.medivac_visual.battlecruisers.owns_projectile(projectile):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
 		var p := point(projectile.pos)
 		draw_circle(p,maxf(1.5,pixels(0.09)),tint)
@@ -180,7 +180,7 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			elif unit.kind=="medivac" and game.medivac_visual!=null and game.medivac_visual.has_model(int(unit.id)):
+			elif unit.kind in ["medivac", "battlecruiser"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
@@ -188,6 +188,7 @@ func _draw() -> void:
 	if game.medivac_visual!=null:
 		game.hellion_visual.draw_if_ground_only(self, game.medivac_visual, self)
 		game.medivac_visual.draw_layer(self,self)
+		game.medivac_visual.battlecruisers.draw_traces(self, self, game.medivac_visual.clock)
 		game.medivac_visual.draw_healing(self,self)
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:

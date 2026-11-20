@@ -1,11 +1,13 @@
 extends Node
 ## Presentation only. One shared transparent world; no physics or simulation writes.
+const BattlecruiserLayer = preload("res://scripts/visuals/battlecruiser_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
 const MAX_LIVE := 32
 const MAX_WRECKS := 12
 const MAX_TARGET_EDGE := 1024
 var game
+var battlecruisers = BattlecruiserLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
 var scene: Node3D
@@ -18,21 +20,17 @@ var bounds := AABB()
 var ready_model := false
 
 func _ready() -> void:
-	if not ENABLED or not ResourceLoader.exists(MODEL_PATH):return
-	packed=load(MODEL_PATH) as PackedScene
-	if packed==null:return
-	var probe=packed.instantiate()
-	if not probe is Node3D:
-		probe.free()
-		packed=null
-		return
-	var boxes: Array = []
-	_collect_bounds(probe,Transform3D.IDENTITY,boxes)
-	probe.free()
-	if boxes.is_empty():return
-	bounds=boxes[0]
-	for box in boxes:bounds=bounds.merge(box)
-	if maxf(bounds.size.x,bounds.size.z)<0.0001:return
+	if not ENABLED:return
+	packed = load(MODEL_PATH) as PackedScene if ResourceLoader.exists(MODEL_PATH) else null
+	bounds = _model_bounds(packed)
+	if maxf(bounds.size.x, bounds.size.z) < 0.0001:
+		packed = null
+	var path := BattlecruiserLayer.MODEL_PATH
+	var flagship: PackedScene = load(path) as PackedScene if ResourceLoader.exists(path) else null
+	var flagship_bounds := _model_bounds(flagship)
+	if maxf(flagship_bounds.size.x, flagship_bounds.size.z) < 0.0001:
+		flagship = null
+	if packed == null and flagship == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -63,7 +61,22 @@ func _ready() -> void:
 	light.light_energy=1.4
 	light.shadow_enabled=false
 	scene.add_child(light)
+	battlecruisers.configure(scene, flagship, flagship_bounds)
 	ready_model=true
+
+func _model_bounds(resource: PackedScene) -> AABB:
+	if resource == null:
+		return AABB()
+	var probe := resource.instantiate()
+	var boxes: Array = []
+	_collect_bounds(probe, Transform3D.IDENTITY, boxes)
+	probe.free()
+	if boxes.is_empty():
+		return AABB()
+	var box: AABB = boxes[0]
+	for part in boxes:
+		box = box.merge(part)
+	return box
 
 func _collect_bounds(node: Node, parent: Transform3D, boxes: Array) -> void:
 	var transform: Transform3D = parent*(node.transform if node is Node3D else Transform3D.IDENTITY)
@@ -76,6 +89,7 @@ func reset() -> void:
 		entry.root.queue_free()
 	entries.clear()
 	bursts.clear()
+	battlecruisers.reset()
 	clock=0
 
 func _glow(color: Color) -> MeshInstance3D:
@@ -118,8 +132,15 @@ func before_tick() -> Dictionary:
 	var result: Dictionary = {}
 	if not ready_model:return result
 	for unit in game.sim.units:
-		if unit.kind=="medivac" and not game._hidden_team(int(unit.team)):
-			result[unit.id]={"pos":unit.pos,"team":unit.team}
+		if unit.kind != "medivac" and unit.kind != "battlecruiser":continue
+		if unit.kind == "medivac" and game._hidden_team(int(unit.team)):continue
+		var snapshot := {"kind": unit.kind, "pos": unit.pos, "team": unit.team}
+		if unit.kind == "battlecruiser":
+			snapshot.fire_tick = int(unit.get("yamato_fire_tick", -1))
+			snapshot.target = int(unit.get("yamato_target", -1))
+			var target = game.sim.by_id.get(snapshot.target)
+			snapshot.target_pos = target.pos if target != null else unit.pos
+		result[unit.id] = snapshot
 	return result
 
 func events(tick_events: Array, before: Dictionary) -> void:
@@ -127,7 +148,7 @@ func events(tick_events: Array, before: Dictionary) -> void:
 	for event in tick_events:
 		if str(event.type)!="death" or not before.has(event.id):continue
 		var old: Dictionary = before[event.id]
-		if game._hidden_team(int(old.team)):continue
+		if old.kind != "medivac" or game._hidden_team(int(old.team)):continue
 		if bursts.size()>=MAX_WRECKS:bursts.pop_front()
 		bursts.append({"pos":event.pos,"team":old.team,"at":clock,"id":event.id})
 		if entries.has(event.id):
@@ -153,7 +174,7 @@ func sync(view, delta: float) -> void:
 	var retained: Dictionary = {}
 	var count := 0
 	for unit in game.sim.units:
-		if unit.kind!="medivac" or game._hidden_team(int(unit.team)):continue
+		if packed == null or unit.kind!="medivac" or game._hidden_team(int(unit.team)):continue
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		if not game._camera_rect().grow(2).has_point(position) or count>=MAX_LIVE:continue
 		count+=1
@@ -204,14 +225,15 @@ func sync(view, delta: float) -> void:
 			entry.root.queue_free()
 			entries.erase(id)
 	bursts=bursts.filter(func(b):return clock-float(b.at)<1.0 and not game._hidden_team(int(b.team)))
-	viewport.render_target_update_mode=SubViewport.UPDATE_ALWAYS if not entries.is_empty() else SubViewport.UPDATE_DISABLED
+	battlecruisers.sync(game, view, dt, clock, alpha)
+	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED if entries.is_empty() and battlecruisers.entries.is_empty() else SubViewport.UPDATE_ALWAYS
 
 func has_model(id: int) -> bool:
-	return ready_model and entries.has(id) and not bool(entries[id].dead)
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return
-	if not entries.is_empty():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
+	if not entries.is_empty() or not battlecruisers.entries.is_empty():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
 	for burst in bursts:
 		var age: float = clock-float(burst.at)
 		var p: Vector2 = view.point(burst.pos)
@@ -224,7 +246,7 @@ func draw_layer(canvas: CanvasItem, view) -> void:
 
 ## Only redraw beams owned by visible 3D craft; old path handles every fallback.
 func owns_heal(beam: Dictionary) -> bool:
-	return bool(beam.get("healing",false)) and has_model(int(beam.source_id))
+	return bool(beam.get("healing",false)) and entries.has(beam.source_id) and not entries[beam.source_id].dead
 
 func draw_healing(canvas: CanvasItem, view) -> void:
 	var alpha: float = clampf(float(game.accumulator)*float(game.sim.rules.tick_rate),0,1)

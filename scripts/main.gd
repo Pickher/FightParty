@@ -340,9 +340,9 @@ func advance_tick() -> void:
 			rifle_before[unit.id] = unit.duplicate()
 			rifle_before[unit.id]["body_radius"] = sim.body_radius(unit)
 	rifle_visual.observe(sim.units)
-	var medivac_before: Dictionary = medivac_visual.before_tick() if medivac_visual!=null else {}
+	var aircraft_before: Dictionary = medivac_visual.before_tick() if medivac_visual!=null else {}
 	var tick_events: Array = sim.step()
-	if medivac_visual!=null:medivac_visual.events(tick_events,medivac_before)
+	if medivac_visual!=null:medivac_visual.events(tick_events,aircraft_before)
 	# 新出场单位也可接收本步动画事件，同时保留刚死亡单位的姿态供死亡动画使用。
 	rifle_visual.observe(sim.units, false)
 	for unit in sim.units:
@@ -361,6 +361,9 @@ func advance_tick() -> void:
 	var journal_due := false
 	for event in tick_events:
 		rifle_visual.event(event, rifle_before, sim.units, sim.revealed)
+		var ship_owns_effect: bool = medivac_visual != null and medivac_visual.battlecruisers.event(event, aircraft_before, self, medivac_visual.clock)
+		if ship_owns_effect and event.type in ["attack", "yamato"]:
+			continue
 		if event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
