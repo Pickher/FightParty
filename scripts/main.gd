@@ -4,6 +4,8 @@
 # 当前 UI 是代码直接绘制的，编辑器里不会出现每张卡片的独立 Button 节点。
 # 将来升级 3D 时可替换战场表现，继续使用 sim 计算出的状态和事件。
 extends Control
+const HellionLayer = preload("res://scripts/visuals/hellion_layer.gd")
+var hellion_visual = HellionLayer.new()
 const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 const Medivac3D = preload("res://scripts/visuals/medivac_3d.gd")
@@ -120,6 +122,7 @@ func _ready() -> void:
 	medivac_visual=Medivac3D.new()
 	medivac_visual.game=self
 	add_child(medivac_visual)
+	hellion_visual.initialize(medivac_visual)
 	battle_viewport=SubViewport.new()
 	battle_viewport.size=Vector2i(_battle_rect().size)
 	battle_viewport.disable_3d=true
@@ -159,6 +162,7 @@ func _new_match() -> void:
 	sim = Sim.new(42, overrides)
 	if medivac_visual!=null:medivac_visual.reset()
 	formation_panel.reset()
+	hellion_visual.reset()
 	_set_battle_expanded(true)
 	_set_camera_scale(CLOSE_PIXELS_PER_CELL)
 	camera_follow=false
@@ -329,6 +333,7 @@ func _process(delta: float) -> void:
 ## 推进战斗一步并消费事件；显示攻击、更新波次战报，以及让 AI 计划下一波。
 ## AI 只拿到玩家刚刚出兵的公开阵容，不拿到玩家正在修改的下一波。
 func advance_tick() -> void:
+	var hellion_waves: Array = hellion_visual.before_step(sim)
 	var rifle_before: Dictionary = {}
 	for unit in sim.units:
 		if unit.kind == "rifle":
@@ -344,6 +349,14 @@ func advance_tick() -> void:
 		if unit.kind == "rifle" and not rifle_before.has(unit.id):
 			rifle_before[unit.id] = unit.duplicate()
 			rifle_before[unit.id]["body_radius"] = sim.body_radius(unit)
+	var hellion_segments: Dictionary = hellion_visual.observe_step(self, hellion_waves, tick_events)
+	if not hellion_segments.is_empty():
+		# Add renderer ownership only to a private copy of the event list.
+		tick_events = tick_events.duplicate()
+		for index in hellion_segments:
+			var flame: Dictionary = tick_events[index].duplicate()
+			flame.hellion_source = hellion_segments[index]
+			tick_events[index] = flame
 	var shop_due := false
 	var journal_due := false
 	for event in tick_events:
