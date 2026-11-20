@@ -10,6 +10,10 @@ const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 const Medivac3D = preload("res://scripts/visuals/medivac_3d.gd")
 const BattleView = preload("res://scripts/battle_view.gd")
+const DesktopCamera = preload("res://scripts/input/desktop/camera_input.gd")
+const MobileInput = preload("res://scripts/input/mobile/formation_input.gd")
+var desktop_camera=DesktopCamera.new()
+var mobile_input=MobileInput.new()
 const FormationPanel = preload("res://scripts/formation_panel.gd")
 var formation_panel = FormationPanel.new()
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
@@ -96,7 +100,9 @@ func _ui_origin() -> Vector2:
 func _design_point(point: Vector2) -> Vector2:
 	return (point-_ui_origin())/maxf(_ui_scale(),0.001)
 
-func _reset_pointer() -> void:
+func _reset_pointer(preserve_touch: bool = false) -> void:
+	desktop_camera.cancel()
+	if not preserve_touch:mobile_input.cancel()
 	battle_dragging=false
 	minimap_dragging=false
 	tower_preview_visible=false
@@ -305,6 +311,8 @@ func _notification(what: int) -> void:
 		accumulator = 0.0
 		if OS.is_debug_build():
 			print("LIFECYCLE resumed tick=",sim.tick)
+	elif what == NOTIFICATION_WM_WINDOW_FOCUS_OUT and is_node_ready():
+		_reset_pointer()
 	elif what == NOTIFICATION_RESIZED and is_node_ready():
 		_invalidate_interaction()
 		queue_redraw()
@@ -320,11 +328,14 @@ func _process(delta: float) -> void:
 		while accumulator >= 0.05:
 			accumulator -= 0.05
 			advance_tick()
+	desktop_camera.update(self,delta,_desktop_camera_allowed())
 	if camera_follow and not placing_tower and not paused and not backgrounded and not _navigation_blocked():
 		camera_center=_camera_rect().get_center().lerp(_frontline_point(),1.0-exp(-minf(delta,0.25)*6.0))
 	if not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened:
 		rifle_visual.update(delta)
-	if not formation_panel.opened:
+	if formation_panel.opened:
+		formation_panel.update_line_preview()
+	else:
 		for effect in effects:
 			effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
@@ -531,6 +542,7 @@ func _camera_scale() -> float:
 	return _camera_fit_scale()*camera_zoom
 
 func _set_camera_scale(value: float) -> void:
+	desktop_camera.cancel()
 	camera_zoom=maxf(1.0,minf(value,MAX_PIXELS_PER_CELL)/_camera_fit_scale())
 	tower_preview_visible=false
 
@@ -945,9 +957,24 @@ func _cancel_tower_placement() -> void:
 	_reset_pointer()
 
 func _gui_input(event: InputEvent) -> void:
-	if formation_panel.opened and not setup_open and not help_open and not economy_open and pending_message=="" and not sim.finished:
-		if not interaction_ready:
+	# Raw touch has one owner; discard Godot's emulated mouse duplicate (device -1).
+	if event is InputEventScreenTouch or event is InputEventScreenDrag:
+		if event is InputEventScreenTouch and event.pressed and mobile_input.active==-1:
 			formation_panel.cancel_drag()
+		desktop_camera.cancel()
+		event=mobile_input.adapt(self,event)
+		if event==null:
+			accept_event()
+			return
+	elif (event is InputEventMouseButton or event is InputEventMouseMotion) and (event.device==InputEvent.DEVICE_ID_EMULATION or OS.has_feature("mobile")):
+		accept_event()
+		return
+	if event is InputEventMouseButton and event.pressed and not bool(event.get_meta("touch_origin",false)) and mobile_input.active!=-1:
+		mobile_input.cancel()
+		formation_panel.cancel_drag()
+	if formation_panel.opened and not setup_open and not help_open and not economy_open and pending_message=="" and not sim.finished:
+		if not interaction_ready or event.is_canceled():
+			_reset_pointer()
 			accept_event()
 			return
 		if event is InputEventMouseButton or event is InputEventMouseMotion:
@@ -988,7 +1015,7 @@ func _gui_input(event: InputEvent) -> void:
 			return
 		# 标题/边框也吞掉点击；点击小地图只能导航，永不落塔。
 		if _minimap_panel().has_point(p):
-			_reset_pointer()
+			_reset_pointer(bool(event.get_meta("touch_origin",false)))
 			if event.button_index==MOUSE_BUTTON_LEFT and _minimap_field().has_point(p):
 				minimap_dragging=true
 				_navigate_minimap(p)
@@ -1034,10 +1061,20 @@ func _gui_input(event: InputEvent) -> void:
 		accept_event()
 
 ## 处理快捷键：空格开始/暂停，Esc 打开或关闭说明；忽略长按产生的重复事件。
+func _desktop_camera_allowed() -> bool:
+	return get_window().has_focus() and get_viewport().gui_get_focus_owner()==null and not OS.has_feature("mobile") and interaction_ready and not backgrounded and not paused and not _navigation_blocked() and not placing_tower and not battle_dragging and not minimap_dragging
+
 func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and desktop_camera.key(event,_desktop_camera_allowed()):
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if formation_panel.opened and not help_open and not economy_open and pending_message=="":
-			if event.keycode==KEY_ESCAPE:handle_action("formation:close")
+			if event.keycode==KEY_ESCAPE:
+				if formation_panel.dragging or formation_panel.desktop_input.button!=0:
+					_reset_pointer()
+					_note("已取消本次布置或选择。")
+				else:handle_action("formation:close")
 			get_viewport().set_input_as_handled()
 			return
 		if event.keycode == KEY_SPACE and not help_open and not economy_open and not setup_open and not sim.finished:

@@ -1,8 +1,8 @@
-# 电脑与手机输入目录
+# 双端输入
 
-- `desktop/` 用于后续电脑鼠标和键盘交互。
-- `mobile/` 用于后续手机点按、拖动和触摸手势。
+- `desktop/formation_input.gd`：布阵区左键单兵/同类双击/框选，右键散布或长按拖线。
+- `desktop/camera_input.gd`：WASD 镜头速度与时间积分，不下达战斗指令。
+- `mobile/formation_input.gd`：原生触摸独占手势、点放/长按拖线，多指取消。
+- `formation_panel.gd`：两端共享选择、预览和 `arrange_members` 提交；`formation_layout.gd`：共享确定性散布/拖线几何。
 
-输入方案确定后，在对应目录实现事件处理，通过共享配兵动作调用购买、预算校验和布阵逻辑。界面与模拟层继续共用。
-
-当前仅建立目录结构。操作方案记录在 [项目待办 U05](../../docs/PROJECT_BACKLOG.md)，待用户确认交互设计后接入。
+详见 [U05 实现与验收](../../docs/DESKTOP_INPUT.md)。本改动只完成静态审查，尚未运行 Godot 或设备验收。
