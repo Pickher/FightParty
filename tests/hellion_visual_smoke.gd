@@ -190,17 +190,7 @@ func run() -> void:
 	sync_layer(layer, fleet, view, 0.05)
 	check(not fleet.has_model(1) and actor.wreck_age > 0.0, "Death should start a finite vehicle wreck")
 	check(not has_flame(actor), "Destroyed vehicles should stop firing")
-	check(actor.rupture.size() > 0 and actor.rupture[0].visible, "Fuel tank should rupture on destruction")
-	if not actor.rupture.is_empty():
-		var tank_position: Vector3 = actor.to_local(actor.tank_socket.global_position)
-		check(actor.rupture[0].position.distance_to(tank_position) < 0.35 and actor.rupture[0].scale.x <= 0.5,
-			"Fuel flash should stay local to the tank and smaller than the hull")
-	for step in range(4):
-		sync_layer(layer, fleet, view, 0.1)
-	check(actor.darkened and not actor.rupture.is_empty() and not actor.rupture[0].visible, "Fuel flash should clear and expose the scorched chassis")
-	for step in range(36):
-		sync_layer(layer, fleet, view, 0.1)
-	check(fleet.entries.is_empty(), "Fuel-tank explosion and wreck must expire")
+	check_wreck_sequence(actor, game, layer, fleet, view)
 	fleet.reset()
 	layer.reset()
 	check(layer.clock == 0.0 and fleet.entries.is_empty(), "Reset should clear visual time and IDs")
@@ -208,3 +198,98 @@ func run() -> void:
 	if failures == 0:
 		print("Hellion visual smoke passed")
 	quit(1 if failures else 0)
+
+# Advance the real visual layer, bounded to its normal update timestep.
+func advance_wreck_to(age: float, actor, layer, fleet, view) -> void:
+	for step in range(ceili(maxf(0, age - actor.wreck_age) / 0.04) + 1):
+		if actor.wreck_age >= age - 0.0001:
+			return
+		sync_layer(layer, fleet, view, minf(0.04, age - actor.wreck_age))
+
+func fragment_poses(parts: Array) -> Array[Transform3D]:
+	var poses: Array[Transform3D] = []
+	for part in parts:
+		poses.append(part.mesh.transform)
+	return poses
+
+func check_wreck_sequence(actor, game, layer, fleet, view) -> void:
+	var original_body: Node3D = actor.model_root.find_child("Body", true, false)
+	if original_body == null:
+		check(false, "Expected the original Body mesh on the articulated vehicle")
+		return
+	check(original_body.is_visible_in_tree(), "Fuel ignition should briefly retain the original chassis")
+	check(not actor.rupture.is_empty() and actor.rupture[0].visible, "The fuel compartment should flash before the chassis breaks")
+	if not actor.rupture.is_empty():
+		var tank: Vector3 = actor.to_local(actor.tank_socket.global_position)
+		check(actor.rupture[0].position.distance_to(tank) < 0.35, "Ignition should originate at the fuel compartment")
+	var original_parts: Array = actor.wheels.duplicate()
+	original_parts.append(actor.turret)
+	advance_wreck_to(actor.BREAK_TIME - 0.01, actor, layer, fleet, view)
+	check(original_body.is_visible_in_tree(), "Chassis should survive the initial ignition delay")
+	advance_wreck_to(actor.BREAK_TIME + 0.03, actor, layer, fleet, view)
+	check(not original_body.is_visible_in_tree(), "An intact chassis must not remain after breakup")
+	var parts: Array = actor.wreck_parts
+	if parts.size() < 8:
+		check(false, "Expected four detached wheels, the gun and at least three textured chassis fragments")
+		return
+	var pieces: Array[MeshInstance3D] = []
+	var body_meshes: Array[Mesh] = []
+	for part in parts:
+		pieces.append(part.mesh)
+		check(part.mesh.is_visible_in_tree() and part.mesh.mesh != null, "Each debris piece should have visible geometry")
+		if not original_parts.has(part.mesh) and part.mesh.mesh != null and part.mesh.mesh.get_surface_count() > 0:
+			if not body_meshes.has(part.mesh.mesh):
+				body_meshes.append(part.mesh.mesh)
+	for old_part in original_parts:
+		check(pieces.has(old_part), "The detached wheel or turret should use its original mesh")
+	check(body_meshes.size() >= 3, "Body should fragment into at least three different mesh sections")
+	var initial := fragment_poses(parts)
+	var scene_children: int = actor.find_children("*", "", true, false).size()
+	var wreck_age: float = actor.wreck_age
+	game.paused = true
+	sync_layer(layer, fleet, view, 0.1)
+	check(is_equal_approx(actor.wreck_age, wreck_age) and fragment_poses(parts) == initial, "Pause should freeze the debris in midair")
+	game.paused = false
+
+	# Observe independent trajectories through the camera's ground plane. A real bounce
+	# descends then rises again before settling. This also catches frozen debris.
+	var seen_descent: Dictionary = {}
+	var observed_bounce := false
+	var previous := initial
+	var ascending_at_launch := false
+	var distinct_directions: Dictionary = {}
+	for sample in range(80):
+		if actor.wreck_age >= 1.55:
+			break
+		sync_layer(layer, fleet, view, 0.02)
+		var current := fragment_poses(parts)
+		for index in parts.size():
+			var motion: Vector3 = current[index].origin - previous[index].origin
+			if motion.y < -0.001:
+				seen_descent[index] = true
+			elif motion.y > 0.001:
+				ascending_at_launch = true
+				if seen_descent.has(index):
+					observed_bounce = true
+		previous = current
+	var grounded := fragment_poses(parts)
+	for index in parts.size():
+		var offset: Vector3 = grounded[index].origin - initial[index].origin
+		var offset_on_ground := Vector2(offset.x, offset.z)
+		check(offset_on_ground.length() > 0.035, "Each piece should travel across the ground")
+		distinct_directions[roundi(offset_on_ground.angle() * 8.0)] = true
+		check(not grounded[index].basis.is_equal_approx(initial[index].basis), "Detached pieces should spin")
+	check(ascending_at_launch and observed_bounce, "Ejected debris should arc, land, and rebound")
+	check(distinct_directions.size() >= 4, "Debris should scatter on several distinct paths")
+	check(actor.find_children("*", "", true, false).size() <= scene_children, "Stepping debris should not keep allocating extra scene nodes")
+	advance_wreck_to(actor.FADE_START - 0.05, actor, layer, fleet, view)
+	var held := fragment_poses(parts)
+	for index in parts.size():
+		check(held[index].is_equal_approx(grounded[index]), "Settled pieces should rest in place before the fade")
+	check(is_equal_approx(actor.wreck_opacity, 1.0), "Settled wreckage should remain fully visible until the fade")
+	advance_wreck_to(lerpf(actor.FADE_START, actor.WRECK_DURATION, 0.50), actor, layer, fleet, view)
+	check(actor.wreck_opacity > 0.0 and actor.wreck_opacity < 1.0, "The settled wreck should fade before it is released")
+	var remaining: float = actor.WRECK_DURATION - actor.wreck_age
+	for step in range(ceili(remaining / 0.05) + 2):
+		sync_layer(layer, fleet, view, 0.05)
+	check(fleet.entries.is_empty() and actor.is_queued_for_deletion(), "All debris must be removed together when the wreck expires")
