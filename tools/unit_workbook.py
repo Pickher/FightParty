@@ -42,6 +42,9 @@ PARAM_LABELS = {
     'cooldown':'冷却（秒）', 'cooldown_seconds':'冷却（秒）', 'channel_seconds':'引导时间（秒）',
     'min_target_hp':'目标最低当前生命+护盾', 'angle_degrees':'扇形角度', 'heal':'每次治疗量',
     'switch_seconds':'切换耗时（秒）', 'count':'数量（炮位/技能）', 'light_air_threshold':'轻甲空军数量阈值',
+    'pass_distance':'掠袭航段半长度（格）', 'lateral_spread':'航段随机横向偏移上限（格）',
+    'approach_angle_degrees':'下一航段偏转上限（度）', 'turn_rate_degrees':'最大转向速度（度/秒）',
+    'arrival_radius':'航点到达容差下限（格）', 'follow_radius':'待命跟随范围（格）',
 }
 
 

@@ -183,6 +183,8 @@ func _draw() -> void:
 			elif unit.kind in ["medivac", "battlecruiser"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
+			elif unit.kind == "interceptor":
+				UnitArt.draw_interceptor(self,p,tint,dimensions,unit.get("strafe_heading",Vector2.RIGHT if int(unit.team)==0 else Vector2.LEFT))
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
 	if game.medivac_visual!=null:

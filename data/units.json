@@ -1,5 +1,5 @@
 {
- "version": "0.12.3",
+ "version": "0.12.4",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -3347,7 +3347,7 @@
    "speed": 2.62,
    "color": "f0e0b0",
    "role": "母舰 · 放出拦截机",
-   "counter": "逐架放出最多 8 架可被攻击的拦截机；母舰死亡时拦截机消失",
+   "counter": "逐架放出最多 8 架可被攻击的拦截机，围绕敌人掠袭；母舰死亡时拦截机消失",
    "skills": {
     "summon": {
      "kind": "interceptor",
@@ -3391,7 +3391,7 @@
    ],
    "collision_radius": 1.5,
    "pending": [
-    "发射拦截机：简化实现；没有回收/补盾/付费制造机库循环"
+    "机库循环仍简化：脱战返航随舰，没有真正回收入库、补盾或付费制造"
    ],
    "primary_mode": "interceptor_support",
    "attack_modes": [
@@ -4629,8 +4629,8 @@
    ],
    "spawn_count": 1,
    "color": "d9c4ee",
-   "role": "临时召唤单位",
-   "counter": "由母体技能生成，不能直接购买",
+   "role": "舰载机 · 移动掠袭",
+   "counter": "接收母舰目标，变换航线掠过射击；可被对空火力击落，无目标时返航随舰",
    "name": "拦截机",
    "symbol": "i",
    "race": "protoss",
@@ -4638,7 +4638,17 @@
    "shield": 40,
    "speed": 10.5,
    "layer": "air",
-   "skills": {},
+   "skills": {
+    "strafe_attack": {
+     "display_name": "掠袭射击",
+     "pass_distance": 3.0,
+     "lateral_spread": 0.75,
+     "approach_angle_degrees": 65,
+     "turn_rate_degrees": 540,
+     "arrival_radius": 0.6,
+     "follow_radius": 1.2
+    }
+   },
    "shield_armor": 3,
    "energy": 0,
    "initial_energy": 0,
