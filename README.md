@@ -8,13 +8,15 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.12.3**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.13.0**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
 
 当前玩法规则见 [游戏设计](docs/DESIGN.md)，兵种数值见 [兵种数值总表](docs/UNIT_TABLE.md)，已有测试结果见 [测试报告](docs/TEST_REPORT.md)，不代表当前特性分支已验收。需要用户安排验证时，可用一条命令执行检查（见第十一节）；日常代码修改不自动运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_win64_console.exe'
 ```
+
+0.13.0 调整了四种步兵的编组。特战队员 220 矿招募 3 名，跳虫 300 矿招募 4 只（每只 50 生命），蟑螂 380 矿招募 2 只，刺蛇 540 矿招募 3 只。神族新增使徒，280 矿招募 2 名，射程 4，对地单发 13，对轻甲额外造成 15 点伤害。Android 导出预设版本号为 47。
 
 0.12.3：整合医疗运输机逻辑及旧阵容迁移，同时保留 0.12.2 混编行军与 U04 界面待设计事项。医疗运输机暂代人族医疗兵，850 矿/2 架，空中机械、避战、双束治疗生物友军；原医疗兵仅停用，代码保留。部分继承数值尚待确认，当前美术仅为占位轮廓。来源、临时参数和验证边界见 [医疗运输机](docs/MEDIVAC.md)。未运行游戏、测试或打包。
 
@@ -51,7 +53,7 @@ C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_
 ## 二、游戏打开后怎么玩
 
 1. 默认显示战场大视图，点下方「部队配置」展开面板；打开时暂停当前离线人机局。
-2. 「招募部队」按组购买；「现有部队」显示各兵种已有组数与实际人数（当前特战队员一组 4 名）。
+2. 「招募部队」按组购买；「现有部队」显示各兵种已有组数与实际人数（例如特战队员 220 矿一组 3 名、跳虫 300 矿一组 4 只）。
 3. 选兵种，再选 1 名、一组、全部或用 −/+ 调人数。点空处放置；按住拖出直线、松手后均匀排布，短线会展开多排。
 4. 「下一批」或一次成功布置后切到下一批；点已有士兵可重新选择并修改。绿色/红色预览提示可否放下，拖出框松手取消。
 5. 「一键自动排布」按近战、普通火力、远程部署和辅助的前后定位排布，还能继续拖线微调。
@@ -132,7 +134,7 @@ GDScript 中 var 定义变量，const 定义常量，func 定义函数，if 判�
 
 0.9.0起，下面的武器字段（damage、bonus、interval、range、target_layers等）均填写在单位的`attack_modes`对应模式中，不再放在单位顶层。`primary_mode`引用默认模式ID；`attack_duration`是本轮出手持续时间，`interval`是本轮结束后的等待时间。完整结构与每种兵种的初始模式见[攻击模式与弹道](docs/ATTACK_MODES.md)。
 
-打开 data/units.json，找到 units 下的对象。当前四个种族共 43 个可购买兵种，另有 3 种召唤物和 6 种结构体；完整数值见 [docs/UNIT_TABLE.md](docs/UNIT_TABLE.md)（运行 `python tools/unit_table.py` 从 JSON 重新生成）。
+打开 data/units.json，找到 units 下的对象。当前四个种族共 44 个可购买兵种，另有 3 种召唤物和 6 种结构体；完整数值见 [docs/UNIT_TABLE.md](docs/UNIT_TABLE.md)（运行 `python tools/unit_table.py` 从 JSON 重新生成）。
 
 - name：界面显示的中文名称。
 - symbol：字母标识；还没有专属外形的兵种画成圆形加这个字母。

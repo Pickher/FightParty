@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_medivacs"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -1621,9 +1621,10 @@ func _races() -> void:
 		var plan: Array = ai.choose(Catalog.starter("terran"),3000)
 		var check_sim = bare(1,{"races":[race,race]})
 		check(not plan.is_empty() and check_sim.validate_formation(plan,3000,0)=="","AI %s buys only ready units of its race" % race)
-		var mirror = bare(3,{"races":[race,race],"start_minerals":2000})
-		mirror.submit_formation(0,Catalog.starter(race))
-		mirror.submit_formation(1,Catalog.starter(race))
+		var starter: Array = Catalog.starter(race)
+		var mirror = bare(3,{"races":[race,race],"start_minerals":sim.formation_cost(starter)})
+		mirror.submit_formation(0,starter)
+		mirror.submit_formation(1,starter)
 		var outcome: Dictionary = _mirror_run(mirror,int(mirror.next_wave_tick)+1200)
 		check(outcome.contact>0 and outcome.symmetric_through_contact,race+" mirror battle is symmetric through first contact")
 		if outcome.diverged>0:
@@ -1633,13 +1634,16 @@ func _races() -> void:
 	check(AI.new(1,"terran").counter_for("immortal")!="","AI finds counters across races")
 	check(bare(1,{"races":["martian","zerg"]}).races==["terran","zerg"],"unknown race falls back to terran")
 	# 首次交战前看不到对方种族与上一波阵容；首次受伤后双方同时公开，之后保持公开。
-	var hidden = bare(2,{"races":["zerg","blight"],"start_minerals":2000})
-	hidden.submit_formation(0,Catalog.starter("zerg"))
-	hidden.submit_formation(1,Catalog.starter("blight"))
+	var zerg_starter: Array = Catalog.starter("zerg")
+	var blight_starter: Array = Catalog.starter("blight")
+	var budget := maxi(sim.formation_cost(zerg_starter),sim.formation_cost(blight_starter))
+	var hidden = bare(2,{"races":["zerg","blight"],"start_minerals":budget})
+	hidden.submit_formation(0,zerg_starter)
+	hidden.submit_formation(1,blight_starter)
 	ticks(hidden,int(hidden.next_wave_tick)+1)
 	var before: Dictionary = hidden.get_snapshot(0)
-	check(hidden.wave==1 and not hidden.revealed and hidden.last_formations[1].size()==8,"first wave spawned before any engagement")
-	check(before.races==["zerg",""] and before.last_formations[1].is_empty() and before.last_formations[0].size()==7,"snapshot hides enemy race and last wave before reveal")
+	check(hidden.wave==1 and not hidden.revealed and hidden.last_formations[1].size()==blight_starter.size(),"first wave spawned before any engagement")
+	check(before.races==["zerg",""] and before.last_formations[1].is_empty() and before.last_formations[0].size()==zerg_starter.size(),"snapshot hides enemy race and last wave before reveal")
 	check(hidden.visible_enemy_formation(1).is_empty() and hidden.get_snapshot(1).races==["","blight"],"computer side is equally blind before reveal")
 	var reveal_events: Array = []
 	var guard := 0
@@ -1650,7 +1654,7 @@ func _races() -> void:
 		guard += 1
 	var after: Dictionary = hidden.get_snapshot(0)
 	check(hidden.revealed and reveal_events.size()==1 and hidden.revealed_tick==hidden.tick,"first hit reveals both races once")
-	check(after.races==["zerg","blight"] and after.last_formations[1].size()==8 and hidden.visible_enemy_formation(1).size()==7,"after reveal both sides see races and last waves")
+	check(after.races==["zerg","blight"] and after.last_formations[1].size()==blight_starter.size() and hidden.visible_enemy_formation(1).size()==zerg_starter.size(),"after reveal both sides see races and last waves")
 	var quiet = bare(2)
 	ticks(quiet,200)
 	check(not quiet.revealed,"no fighting keeps races hidden")
@@ -2075,6 +2079,56 @@ func _formation_pace() -> void:
 	var origin: Vector2=stalker.pos
 	check(blink.step(mixed,stalker,threat,1.0/float(mixed.rules.tick_rate),moves),"mixed army retains damage-triggered stalker blink")
 	check(moves.has(stalker.id) and is_equal_approx(origin.distance_to(moves[stalker.id]),float(mixed.catalog.stalker.skills.blink.distance)),"blink distance is not limited by formation pace")
+
+## 经过正常攻击结算区分主目标与溅射，避免仅凭受伤时间错误触发后撤。
+func _adepts() -> void:
+	for scenario in ["ground", "air", "splash", "full_shield"]:
+		var sim = bare()
+		tune(sim, "adept", {"speed":0, "damage":0, "shield_regen":0})
+		var attacker_layer := "air" if scenario == "air" else "ground"
+		tune(sim, "rifle", {"layer":attacker_layer, "speed":0, "skills":{}, "splash":3 if scenario=="splash" else 0})
+		var adept: Dictionary = sim.spawn_unit(0, "adept", field(0,0))
+		if scenario != "full_shield":
+			adept.shield = 10.0
+		if scenario == "splash":
+			tune(sim, "dummy", {"speed":0, "damage":0})
+			sim.spawn_unit(0, "dummy", field(2,0))
+		sim.spawn_unit(1, "rifle", field(4,0))
+		var initial_shield: float = adept.shield
+		check(wait_until(sim,func(): return adept.shield < initial_shield,30)>0, "adept actually takes a hit: "+scenario)
+		sim.step()
+		check(adept.has("shade_position") == (scenario=="ground"), "only a direct ground hit against low shields starts retreat: "+scenario)
+		if scenario=="ground":
+			var retreat_origin: Vector2 = adept.pos
+			var retreat: Dictionary = sim.catalog.adept.skills.psionic_transfer
+			check(wait_until(sim,func(): return sim.teleports.has(adept.id),60)>0, "retreat shade resolves")
+			check(adept.pos.is_equal_approx(retreat_origin - Vector2.RIGHT * float(retreat.retreat_distance)), "retreat teleports away from the attacker")
+
+	var waves = bare(42,{"races":["protoss","terran"], "start_minerals":280, "first_wave_seconds":0.05})
+	var rate := int(waves.rules.tick_rate)
+	check(waves.buy(0,"adept",0)=="" and waves.minerals[0]==0, "one 280-mineral adept pack")
+	waves.step()
+	var first_wave: Array = waves.units.duplicate()
+	check(first_wave.size()==2 and first_wave.all(func(u):return u.adept_tactic=="retreat"), "two adepts spawn with the default tactic")
+	check(waves.set_adept_tactic(0,"support")=="" and first_wave.all(func(u):return u.adept_tactic=="retreat"), "tactic change preserves existing adepts")
+	waves.next_wave_tick=waves.tick+1
+	waves.step()
+	var next_wave: Array = waves.units.filter(func(u):return u.born==waves.tick)
+	check(next_wave.size()==2 and next_wave.all(func(u):return u.adept_tactic=="support"), "next wave takes the new tactic")
+	if next_wave.size()!=2:return
+	var advancing: Dictionary = next_wave[0]
+	var origin: Vector2 = advancing.pos
+	var forward := origin.direction_to(waves.base_pos(1))
+	tune(waves, "dummy", {"speed":0, "damage":0, "hp":10000})
+	waves.spawn_unit(1,"dummy",origin+forward*15)
+	check(wait_until(waves,func():return advancing.has("shade_position"),rate)>0, "support sends a shade before reaching the enemy")
+	check(wait_until(waves,func():return waves.teleports.has(advancing.id),rate*5)>0, "support shade teleports its owner near the enemy")
+	check((advancing.pos-origin).dot(forward)>0, "support teleports forward")
+	for i in range(rate*3):
+		waves.step()
+		if advancing.has("shade_position") or waves.teleports.has(advancing.id):
+			check(false, "support transfer launched again for the same adept")
+			break
 
 ## 医疗机独立于保留的医疗兵；本分组随本地实现新增，尚未运行。
 func _medivacs() -> void:
