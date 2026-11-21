@@ -16,4 +16,8 @@
 
 当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，四组实时三维动作及预览见 [美术规范](../../docs/unit-art-spec.md#大和舰实时三维动画)。
 
-雷神源模型位于 `thor/`：用户提供的[雷神拓扑模型](thor/thor.glb)用于机体，[雷神火箭模型](thor/thor_rocket.glb)用于火箭。两个 GLB 均未包含纹理图片，也未引用外置贴图，可直接供云端开发读取；战场接入与动画制作后续进行。
+雷神的[战场模型](thor/thor_rig.glb)沿用上传的[普通形态机体](thor/thor.glb)和[火箭弹头形态的四根炮管](thor/thor_rocket.glb)。双腿、脚掌、臂炮和背炮各有转轴。两个源文件均为白模，战场模型用钢蓝色装甲、深色机械和金属亮面区分部件。
+
+移动时按实际行程交替迈步。两种形态对地都使用左右臂炮。普通形态对空时由背炮射击，火箭弹头形态则从肩上四个发射口依次发射。对空武器切换时，四门炮在同一副机体上展开或收回，历时 0.5 秒。被毁时，武器和腿甲从当时的姿态脱落，落地停留后淡出。[两种形态的战场动作](../../docs/media/thor-actions.gif) · [三视角切换特写](../../docs/media/thor-switch.gif)
+
+在项目根目录运行 `python tools/art/build_thor_rig.py` 可用两份源模型重建雷神分件、转轴和内嵌材质。脚本需要 Python 3、NumPy 和 SciPy，转轴按这两份模型标定。

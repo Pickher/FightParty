@@ -1,6 +1,7 @@
 extends Node
 ## Presentation only. One shared transparent world; no physics or simulation writes.
 const BattlecruiserLayer = preload("res://scripts/visuals/battlecruiser_layer.gd")
+const ThorLayer = preload("res://scripts/visuals/thor_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
 const MAX_LIVE := 32
@@ -8,6 +9,7 @@ const MAX_WRECKS := 12
 const MAX_TARGET_EDGE := 1024
 var game
 var battlecruisers = BattlecruiserLayer.new()
+var thors = ThorLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
 var scene: Node3D
@@ -30,7 +32,11 @@ func _ready() -> void:
 	var flagship_bounds := _model_bounds(flagship)
 	if maxf(flagship_bounds.size.x, flagship_bounds.size.z) < 0.0001:
 		flagship = null
-	if packed == null and flagship == null:return
+	var walker: PackedScene = load(ThorLayer.MODEL_PATH) as PackedScene if ResourceLoader.exists(ThorLayer.MODEL_PATH) else null
+	var walker_bounds := _model_bounds(walker)
+	if maxf(walker_bounds.size.x, walker_bounds.size.z) < 0.0001:
+		walker = null
+	if packed == null and flagship == null and walker == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -62,6 +68,7 @@ func _ready() -> void:
 	light.shadow_enabled=false
 	scene.add_child(light)
 	battlecruisers.configure(scene, flagship, flagship_bounds)
+	thors.configure(scene, walker, walker_bounds)
 	ready_model=true
 
 func _model_bounds(resource: PackedScene) -> AABB:
@@ -90,6 +97,7 @@ func reset() -> void:
 	entries.clear()
 	bursts.clear()
 	battlecruisers.reset()
+	thors.reset()
 	clock=0
 
 func _glow(color: Color) -> MeshInstance3D:
@@ -132,10 +140,14 @@ func before_tick() -> Dictionary:
 	var result: Dictionary = {}
 	if not ready_model:return result
 	for unit in game.sim.units:
-		if unit.kind != "medivac" and unit.kind != "battlecruiser":continue
+		if unit.kind not in ["medivac", "battlecruiser", "thor"]:continue
 		if unit.kind == "medivac" and game._hidden_team(int(unit.team)):continue
 		var snapshot := {"kind": unit.kind, "pos": unit.pos, "team": unit.team}
-		if unit.kind == "battlecruiser":
+		if unit.kind == "thor":
+			snapshot.prev = unit.prev
+			snapshot.air_weapon_index = unit.get("air_weapon_index", 0)
+			snapshot.switch_until_tick = unit.get("switch_until_tick", 0)
+		elif unit.kind == "battlecruiser":
 			snapshot.fire_tick = int(unit.get("yamato_fire_tick", -1))
 			snapshot.target = int(unit.get("yamato_target", -1))
 			var target = game.sim.by_id.get(snapshot.target)
@@ -226,14 +238,18 @@ func sync(view, delta: float) -> void:
 			entries.erase(id)
 	bursts=bursts.filter(func(b):return clock-float(b.at)<1.0 and not game._hidden_team(int(b.team)))
 	battlecruisers.sync(game, view, dt, clock, alpha)
-	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED if entries.is_empty() and battlecruisers.entries.is_empty() else SubViewport.UPDATE_ALWAYS
+	thors.sync(game, view, dt, clock, alpha)
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if _has_actors() else SubViewport.UPDATE_DISABLED
+
+func _has_actors() -> bool:
+	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty()
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return
-	if not entries.is_empty() or not battlecruisers.entries.is_empty():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
+	if _has_actors():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
 	for burst in bursts:
 		var age: float = clock-float(burst.at)
 		var p: Vector2 = view.point(burst.pos)

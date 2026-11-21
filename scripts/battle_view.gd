@@ -118,10 +118,16 @@ func _draw() -> void:
 		if not view.grow(1.0).has_point(projectile.pos):continue
 		if game.medivac_visual != null and game.medivac_visual.battlecruisers.owns_projectile(projectile):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
-		var p := point(projectile.pos)
+		var launch_offset := Vector2.ZERO
+		if projectile.kind == "thor" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)):
+			var now := float(sim.tick) / float(sim.rules.tick_rate)
+			if game.medivac_visual.thors.draw_javelin(self, self, projectile, now):
+				continue
+			launch_offset = game.medivac_visual.thors.projectile_offset(projectile, now)
+		var p := point(projectile.pos + launch_offset)
 		draw_circle(p,maxf(1.5,pixels(0.09)),tint)
 		var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
-		draw_line(point(projectile.pos-tail),p,Color(tint,0.6),1.5)
+		draw_line(point(projectile.pos + launch_offset - tail),p,Color(tint,0.6),1.5)
 	for effect in game.effects:
 		if bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
@@ -180,7 +186,7 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			elif unit.kind in ["medivac", "battlecruiser"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
+			elif unit.kind in ["medivac", "battlecruiser", "thor"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
