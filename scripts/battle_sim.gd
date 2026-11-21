@@ -39,6 +39,9 @@ var revealed_tick: int = -1
 # 双方的永久兵营：每格 {kind, cell, deployed, member_positions?}；每波整份生成一次。
 # deployed 表示已出场；member_positions 为组内各成员相对出兵中心的坐标，不改变购买归属。
 var formations: Array = [[], []]
+# 每方分别选择下一波使徒战术，原图开局用后撤传送。
+const DEFAULT_ADEPT_TACTIC := "retreat"
+var adept_tactics: Array[String] = [DEFAULT_ADEPT_TACTIC, DEFAULT_ADEPT_TACTIC]
 # 上一波已出兵阵容（kind/cell及可选member_positions），按原公开时机供双方查看。
 var last_formations: Array = [[], []]
 # 双方当前矿物；收入和瓦斯分流由独立经济组件结算。
@@ -241,6 +244,16 @@ func _log(team: int, action: Dictionary) -> void:
 	action.tick = tick
 	action.team = team
 	journal.actions.append(action)
+
+func set_adept_tactic(team: int, tactic: String) -> String:
+	var error := _editable(team)
+	if not error.is_empty():return error
+	if races[team] != "protoss":return "使徒战术只能由神族选择"
+	if tactic not in ["retreat", "support"]:return "未知的使徒战术"
+	if adept_tactics[team] != tactic:
+		adept_tactics[team] = tactic
+		_log(team, {"type":"adept_tactic", "tactic":tactic})
+	return ""
 
 ## 所有购买入口共用矿/气/灵核钱包；价格按当前组配置，校验完成后一次性扣费。
 func unit_price(kind: String) -> Dictionary:
@@ -456,6 +469,8 @@ func submit_formation(team: int, formation: Array) -> String:
 ## 重放战报中的一个操作；返回值与原操作相同。
 func apply_action(action: Dictionary) -> String:
 	match str(action.get("type", "")):
+		"adept_tactic":
+			return set_adept_tactic(int(action.get("team",-1)), str(action.get("tactic","")))
 		"buy":
 			return buy(int(action.team), str(action.kind), int(action.cell))
 		"sell":
@@ -506,6 +521,8 @@ func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 		catalog[kind] = definitions[kind].to_data()
 	var instance = Unit.new(definitions[kind], next_id, team, pos, tick)
 	var unit: Dictionary = instance.state
+	if kind == "adept":
+		unit.adept_tactic = adept_tactics[team]
 	unit_instances[next_id] = instance
 	skill_system.attach(self,unit)
 	next_id += 1
@@ -544,6 +561,7 @@ func _spawn_wave() -> void:
 		for slot in formations[team]:
 			slot.deployed = true
 			var deployed_slot := {"kind":slot.kind,"cell":slot.cell}
+			if slot.kind == "adept":deployed_slot.adept_tactic = adept_tactics[team]
 			if slot.has("member_positions"):deployed_slot.member_positions=slot.member_positions.duplicate(true)
 			last_formations[team].append(deployed_slot)
 	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true),"economy":economy.ledger()})
@@ -932,17 +950,22 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 	return found
 
 ## 把一次命中的原始伤害（含穿甲加成）排入本步待结算列表；hits 是 id → 原始伤害数组。
-func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0, armor_multiplier: float = 1.0) -> void:
+func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0, armor_multiplier: float = 1.0, direct_source_id: int = 0) -> void:
 	if raw<=0:return
 	if ranged:
 		raw=maxf(float(rules.min_damage),raw-float(aura_modifiers.get(victim.id,{}).get("reduction",0)))
 	if not hits.has(victim.id):
 		hits[victim.id] = []
-	hits[victim.id].append({"raw":raw,"ignore_armor":ignore_armor,"shield_bonus":shield_bonus,"armor_multiplier":armor_multiplier} if ignore_armor or shield_bonus>0 or armor_multiplier!=1.0 else raw)
+	var track_source: bool = direct_source_id!=0 and victim.has("direct_hit_sources")
+	if track_source or ignore_armor or shield_bonus>0 or armor_multiplier!=1.0:
+		var hit := {"raw":raw,"ignore_armor":ignore_armor,"shield_bonus":shield_bonus,"armor_multiplier":armor_multiplier}
+		if track_source:hit.direct_source_id=direct_source_id
+		hits[victim.id].append(hit)
+	else:hits[victim.id].append(raw)
 
 ## 普通、传播、弹射武器共用伤害属性。true 额外跳过远程光环减伤。
-func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false, bonus_multiplier: float = 1.0) -> void:
-	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier,float(weapon.get("armor_multiplier",1)))
+func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false, bonus_multiplier: float = 1.0, direct_source_id: int = 0) -> void:
+	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier,float(weapon.get("armor_multiplier",1)),direct_source_id)
 
 ## 普通武器的一段命中；独立炮位也经过相同的溅射、护甲、护盾和命中技能结算。
 func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary, strike: int) -> void:
@@ -963,7 +986,7 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 		var raw: float = raw_damage(weapon,victim.kind)*multiplier
 		if raw<=0:continue
 		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
-		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier)
+		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier,int(unit.id) if victim.id==target.id else 0)
 		damage_done[int(unit.team)]+=amount
 		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
 		if ctx.has("impact_skills"):
@@ -1122,7 +1145,13 @@ func step() -> Array:
 				raw=skill_system.absorb(self,unit,raw)
 				var shield_bonus: float = float(hit.get("shield_bonus",0)) if hit is Dictionary and raw>0 else 0.0
 				var armor_multiplier: float = float(hit.get("armor_multiplier",1)) if hit is Dictionary else 1.0
-				hp_loss += Shield.absorb(self, unit, raw, ignore_armor,shield_bonus,armor_multiplier)
+				var prior_shield := float(unit.shield)
+				var lost_hp := Shield.absorb(self, unit, raw, ignore_armor,shield_bonus,armor_multiplier)
+				hp_loss += lost_hp
+				if hit is Dictionary and hit.has("direct_source_id") and (lost_hp>0 or unit.shield<prior_shield):
+					if int(unit.get("direct_hit_tick",-1))!=tick:unit.direct_hit_sources.clear()
+					unit.direct_hit_tick=tick
+					unit.direct_hit_sources[hit.direct_source_id]=true
 			lost += hp_loss
 			unit.last_hit_tick = tick
 			events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})

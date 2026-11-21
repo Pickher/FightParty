@@ -6,7 +6,7 @@ func type_id() -> String:
 	return "line"
 
 func emit(ctx: Dictionary, sequence: Dictionary) -> void:
-	Lines.launch_strike(ctx.sim,ctx.unit,ctx.goal,ctx.weapon.delivery,ctx.weapon,int(ctx.strike),float(sequence.damage_multiplier),ctx.source_position,float(ctx.fire_offset),sequence.impact_skills)
+	Lines.launch_strike(ctx.sim,ctx.unit,ctx.goal,ctx.weapon.delivery,ctx.weapon,int(ctx.strike),float(sequence.damage_multiplier),ctx.source_position,float(ctx.fire_offset),sequence.impact_skills,int(sequence.target_id))
 
 func advance(sim, frame: Dictionary) -> void:
 	Lines.advance(sim,float(frame.dt),frame.moves,frame.hits,frame.base_hits,frame.pending_slows)

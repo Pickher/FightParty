@@ -10,7 +10,7 @@ static func launch(sim, unit: Dictionary, goal: Vector2, config: Dictionary, mul
 		launch_strike(sim,unit,goal,config,stats,strike,multiplier,unit.pos,0.0,sim.skill_system.impact_configs(unit))
 
 ## 单段出手只创建一条轨迹，段间节奏由AttackSequence统一调度。
-static func launch_strike(sim, unit: Dictionary, goal: Vector2, config: Dictionary, weapon: Dictionary, strike: int, multiplier: float, source: Vector2, fire_offset: float, impact_skills: Dictionary) -> void:
+static func launch_strike(sim, unit: Dictionary, goal: Vector2, config: Dictionary, weapon: Dictionary, strike: int, multiplier: float, source: Vector2, fire_offset: float, impact_skills: Dictionary, target_id: int = 0) -> void:
 	var stats := weapon.duplicate(true)
 	stats.damage=float(stats.damage)*multiplier
 	stats.shield_bonus=float(stats.get("shield_bonus",0))*multiplier
@@ -31,7 +31,7 @@ static func launch_strike(sim, unit: Dictionary, goal: Vector2, config: Dictiona
 		"half_width":float(config.half_width),"damage":float(stats.damage),
 		"bonus":stats.get("bonus",{}).duplicate(),"bonus_tags":stats.get("bonus_tags",{}).duplicate(),
 		"shield_bonus":stats.shield_bonus,"damage_type":stats.damage_type,"weapon":stats,
-		"attacks_structures":stats.attacks_structures,"source_id":unit.id,"impact_skills":impact_skills.duplicate(true),
+		"attacks_structures":stats.attacks_structures,"source_id":unit.id,"target_id":target_id,"impact_skills":impact_skills.duplicate(true),
 		"target_layers":stats.target_layers.duplicate(),"attacks_base":stats.attacks_base,
 		"born":sim.tick,"hit_ids":{},"base_hit":false})
 
@@ -79,7 +79,7 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if crosses(wave, start, finish, next_distance):
 				wave.hit_ids[victim.id] = true
 				var amount: float = sim.expected_damage(wave, victim)
-				sim.queue_weapon_hit(hits, victim, wave, sim.raw_damage(wave, victim.kind),true)
+				sim.queue_weapon_hit(hits, victim, wave, sim.raw_damage(wave, victim.kind),true,1.0,int(wave.source_id) if victim.id==wave.get("target_id",0) else 0)
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				sim.skill_system.wave_hit(sim,wave,victim,hits,pending_slows)

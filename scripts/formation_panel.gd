@@ -167,7 +167,13 @@ func draw() -> void:
 	# 此面板独占输入，不留下被遮住的布阵格和战场工具栏按钮。
 	game.buttons.clear()
 	game._text(Vector2(56,137),"部队配置",27,game.MINT)
-	game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
+	if selected_kind == "adept":
+		var tactic: String = game.sim.adept_tactics[0]
+		game._text(Vector2(222,135),"下一波使徒战术",18,game.MUTED)
+		game._button(Rect2(426,109,160,42),"后撤传送","formation:adept_tactic:retreat",tactic=="retreat")
+		game._button(Rect2(600,109,160,42),"支援传送","formation:adept_tactic:support",tactic=="support")
+	else:
+		game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
 	game._button(Rect2(1024,109,152,42),"格阵管理","formation:legacy")
 	game._button(Rect2(1190,109,186,42),"收起，返回战场","formation:close",true)
 	game._button(Rect2(56,166,170,46),"现有部队","formation:tab:owned",tab=="owned")
@@ -381,6 +387,13 @@ func handle_action(action: String) -> void:
 		list_page=0
 		_ensure_selection()
 	elif verb=="kind" and parts.size()==3:_select_kind(parts[2])
+	elif verb=="adept_tactic" and selected_kind=="adept" and parts.size()==3:
+		var error: String = game.sim.set_adept_tactic(0,parts[2])
+		if not error.is_empty():_message(error,true)
+		else:
+			game._save_settings()
+			game._save_journal()
+			_message("下波使徒将向前投射阴影，遇地面敌人后传送。" if parts[2]=="support" else "下波使徒将在低盾受击时向后传送。")
 	elif verb=="page" and parts.size()==3:
 		var pages: int = maxi(1,ceili(float(_kinds().size())/ROWS_PER_PAGE))
 		list_page=posmod(list_page+int(parts[2]),pages)
