@@ -32,6 +32,10 @@
 
 可在项目根目录分别运行 `python tools/art/build_marauder_rig.py` 和 `python tools/art/build_hellbat_mech_rig.py`，从上传的模型重建两个单位的分件和材质。两个脚本都使用 Python 3、NumPy 和 SciPy。
 
-坦克（单位 ID 为 `mortar`）源模型位于 [mortar.glb](mortar/mortar.glb)，来自用户提供的 `坦克3d模型.glb`。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
+坦克（`mortar`）的[机动形态](mortar/mortar.glb)和[架起形态](mortar/mortar_siege.glb)均来自上传的白模。[战场模型](mortar/mortar_rig.glb)统一了两份模型的朝向，沙黄色装甲、深色履带和钢色炮节在两种形态中沿用同一套材质。
 
-坦克架起（攻城）形态源模型位于 [mortar_siege.glb](mortar/mortar_siege.glb)，来自用户提供的 `坦克架起3d模型.glb`，与上述 `mortar.glb` 分别保存。该 GLB 未包含纹理图片，无外置文件依赖；供后续架起形态及形态切换动画接入使用。
+行驶时左右履带随车身位移和转向运动，炮塔可以独立瞄准。机动双炮轮流开火，开火的那根炮管后坐。架起后改用中央攻城炮，命中时火星迸出，扬尘向实际溅射范围扩散。两种形态被毁时都从当前姿势解体，残件落地后消失。[坦克移动、开火与被毁](../../docs/media/tank-actions.gif)
+
+架起和收回动作读取战斗已有的 `siege_state` 及结束时刻。完整架起用时 1.5 秒，收回用时 1 秒，架起被打断时从当前姿势开始收回。[架起与收回预览](../../docs/media/tank-deployment.gif)
+
+在 Godot 中打开[坦克动作预览](../../scenes/art/tank_actions.tscn)，按 F6 可单独播放动作，并切换观察角度。在项目根目录运行 `python tools/art/build_tank_rig.py`，可从两份源模型重建分件、转轴、炮口和履带路径。脚本使用 Python 3、NumPy 和 SciPy。
