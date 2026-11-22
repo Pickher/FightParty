@@ -28,6 +28,7 @@ func initialize(host) -> void:
 	for box in boxes:
 		bounds = bounds.merge(box)
 	scene = host.scene
+	host.hellbat_mechs.travel_layer = self
 
 func reset() -> void:
 	for id in entries.keys():
@@ -101,6 +102,8 @@ func sync(game, view, dt: float, alpha: float) -> void:
 	var retained: Dictionary = {}
 	for unit in game.sim.units:
 		if unit.kind != "hellbat" or game._hidden_team(int(unit.team)):
+			continue
+		if unit.has("morph_start_tick") and game.medivac_visual.hellbat_mechs.has_model(unit.id):
 			continue
 		var pos: Vector2 = unit.prev.lerp(unit.pos, alpha)
 		if retained.size() >= MAX_LIVE or not area.has_point(pos):

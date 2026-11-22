@@ -442,7 +442,10 @@ func advance_tick() -> void:
 		var ship_owns_effect: bool = medivac_visual != null and medivac_visual.battlecruisers.event(event, aircraft_before, self, medivac_visual.clock)
 		if ship_owns_effect and event.type in ["attack", "yamato"]:
 			continue
-		if event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
+		if event.type == "cone_attack":
+			event.ttl = Medivac3D.HellbatMechLayer.FLAME_DURATION
+			effects.append(event)
+		elif event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
 		elif event.type == "wave":
@@ -634,7 +637,7 @@ func _world(pos: Vector2) -> Vector2:
 func _remember_combat(events: Array) -> void:
 	var best := INF
 	for event in events:
-		if str(event.type) not in ["attack","line_attack","yamato","chain","area_impact"]:continue
+		if str(event.type) not in ["attack","line_attack","cone_attack","yamato","chain","area_impact"]:continue
 		if not event.has("from") or not event.has("to"):continue
 		var point: Vector2 = (event.from+event.to)*0.5
 		var distance: float = point.distance_squared_to(camera_center)

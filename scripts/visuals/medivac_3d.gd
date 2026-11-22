@@ -3,6 +3,7 @@ const RigBounds = preload("res://scripts/visuals/rig_bounds.gd")
 ## Presentation only. One shared transparent world; no physics or simulation writes.
 const BattlecruiserLayer = preload("res://scripts/visuals/battlecruiser_layer.gd")
 const ThorLayer = preload("res://scripts/visuals/thor_layer.gd")
+const HellbatMechLayer = preload("res://scripts/visuals/hellbat_mech_layer.gd")
 const MarauderLayer = preload("res://scripts/visuals/marauder_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
@@ -12,6 +13,7 @@ const MAX_TARGET_EDGE := 1024
 var game
 var battlecruisers = BattlecruiserLayer.new()
 var thors = ThorLayer.new()
+var hellbat_mechs = HellbatMechLayer.new()
 var marauders = MarauderLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
@@ -43,7 +45,11 @@ func _ready() -> void:
 	var infantry_bounds := _model_bounds(infantry)
 	if maxf(infantry_bounds.size.x, infantry_bounds.size.z) < 0.0001:
 		infantry = null
-	if packed == null and flagship == null and walker == null and infantry == null:return
+	var mech: PackedScene = load(HellbatMechLayer.MODEL_PATH) as PackedScene if ResourceLoader.exists(HellbatMechLayer.MODEL_PATH) else null
+	var mech_bounds := _model_bounds(mech)
+	if maxf(mech_bounds.size.x, mech_bounds.size.z) < 0.0001:
+		mech = null
+	if packed == null and flagship == null and walker == null and infantry == null and mech == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -77,6 +83,7 @@ func _ready() -> void:
 	battlecruisers.configure(scene, flagship, flagship_bounds)
 	thors.configure(scene, walker, walker_bounds)
 	marauders.configure(scene, infantry, infantry_bounds)
+	hellbat_mechs.configure(scene, mech, mech_bounds)
 	ready_model=true
 
 func _model_bounds(resource: PackedScene) -> AABB:
@@ -94,6 +101,7 @@ func reset() -> void:
 	battlecruisers.reset()
 	thors.reset()
 	marauders.reset()
+	hellbat_mechs.reset()
 	clock=0
 
 func _glow(color: Color) -> MeshInstance3D:
@@ -158,6 +166,10 @@ func before_tick() -> Dictionary:
 func events(tick_events: Array, before: Dictionary) -> void:
 	if not ready_model:return
 	for event in tick_events:
+		if event.type == "cone_attack" and event.kind == "hellbat_mech":
+			hellbat_mechs.fire(event)
+		elif event.type == "death":
+			hellbat_mechs.destroy(event, clock)
 		if str(event.type)!="death" or not before.has(event.id):continue
 		var old: Dictionary = before[event.id]
 		if old.kind != "medivac" or game._hidden_team(int(old.team)):continue
@@ -240,13 +252,14 @@ func sync(view, delta: float) -> void:
 	battlecruisers.sync(game, view, dt, clock, alpha)
 	thors.sync(game, view, dt, clock, alpha)
 	marauders.sync(game, view, dt, clock, alpha)
+	hellbat_mechs.sync(game, view, dt, alpha)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if _has_actors() else SubViewport.UPDATE_DISABLED
 
 func _has_actors() -> bool:
-	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty()
+	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty() or not hellbat_mechs.entries.is_empty()
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id) or hellbat_mechs.has_model(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return

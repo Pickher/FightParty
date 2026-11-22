@@ -2,6 +2,7 @@ shader_type spatial;
 render_mode unshaded, cull_disabled, depth_draw_never, shadows_disabled, fog_disabled;
 uniform float elapsed;
 uniform float firing_time;
+uniform float spread = 0.4142;
 uniform float reach;
 uniform float nozzle_angle;
 uniform float nozzle_pitch;
@@ -31,7 +32,7 @@ void vertex() {
 	vec3 facing = cross(axis, eye);
 	if (dot(facing,lateral)<0.0) { facing = -facing; }
 	vec3 span = normalize(lateral + 0.65 * facing);
-	float width = 0.025 + reach * (0.12*u + 0.35*pow(u,0.94));
+	float width = 0.025 + reach * spread * (0.26*u + 0.74*pow(u,0.94));
 	VERTEX = axis * (reach*u) + span * (flank*width);
 	VERTEX.y += tan(nozzle_pitch) * min(reach*u,0.35) - 0.20*u*u;
 }

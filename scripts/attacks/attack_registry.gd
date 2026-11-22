@@ -4,7 +4,8 @@ const Behavior = preload("res://scripts/attacks/attack_behavior.gd")
 const TYPE_SCRIPTS := [
 	preload("res://scripts/attacks/projectile_attack.gd"),
 	preload("res://scripts/attacks/beam_attack.gd"),
-	preload("res://scripts/attacks/line_attack.gd")
+	preload("res://scripts/attacks/line_attack.gd"),
+	preload("res://scripts/attacks/cone_attack.gd")
 ]
 const ALIASES := {"instant":"projectile","fixed":"projectile","distance":"projectile","wave":"line"}
 static var _types: Dictionary = {}

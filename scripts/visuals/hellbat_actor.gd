@@ -279,7 +279,7 @@ func _fold_joints(progress: float) -> void:
 func muzzle_world(_side: int = 0) -> Vector3:
 	return vehicle.muzzle_world() if is_vehicle() and vehicle != null else muzzle.global_position
 
-func fire(reach: float, duration: float, shot_angle: float) -> void:
+func fire(reach: float, duration: float, shot_angle: float, arc_degrees: float = 45.0) -> void:
 	if wreck_age >= 0.0:
 		return
 	aim = shot_angle
@@ -299,6 +299,7 @@ func fire(reach: float, duration: float, shot_angle: float) -> void:
 	flame.custom_aabb = AABB(Vector3(-shot_reach, -1, -shot_reach), Vector3(2*shot_reach, 2, 2*shot_reach))
 	_flame_paint.set_shader_parameter("firing_time", fire_duration)
 	_flame_paint.set_shader_parameter("reach", shot_reach)
+	_flame_paint.set_shader_parameter("spread", tan(deg_to_rad(clampf(arc_degrees, 1.0, 170.0)) * 0.5))
 	_flame_paint.set_shader_parameter("shot_seed", float(_serial)*0.39)
 	_pose()
 	_update_flame()

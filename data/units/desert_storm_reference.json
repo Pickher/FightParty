@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.13.2",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。未还原原版/依赖继承。",
   "units": {
@@ -23,12 +23,17 @@
       "source_unit": "Hellion",
       "fields": {
         "armor": "UnitData/Hellion/LifeArmor",
-        "cost": "UnitData/Hellion/CostResource[Minerals] × spawn_count",
+        "cost": "FightParty 试玩平衡：保留兵种配置中的数值；原图参考 UnitData/Hellion/CostResource[Minerals] × spawn_count",
         "attack_modes/0/damage": "EffectData/InfernalFlameThrower/Amount",
         "attack_modes/0/bonus/light": "EffectData/InfernalFlameThrower/AttributeBonus[Light]",
         "collision_radius": "UnitData/HellionBlackOps、HHHellionTank/SeparationRadius=0.75（Hellion本体未覆盖，取图内恶火变体的分离半径）",
         "separate_when_stopped": "试玩反馈：同特战队员在攻击冷却中散开，降低溅射叠伤",
-        "sc2": "UnitData/Hellion 对应关系（内部ID保留hellbat）"
+        "sc2": "UnitData/Hellion 对应关系（内部ID保留hellbat）",
+        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定",
+        "skills/proximity_morph/target_kind": "FightParty 接敌变形；目标来自 AbilData/MorphToHellionTank → Hellbat",
+        "skills/proximity_morph/duration": "AbilData/MorphToHellionTank；升级 SmartServos 后变形2游戏秒",
+        "skills/proximity_morph/escort_speed": "FightParty 随队行军速度上限；增援前线时使用车型基础移速",
+        "tags": "机械车型继承 UnitData/Hellion；具有原图变形恶火 HellionMorph/TechAliasArray[4]=1 的冲击性"
       },
       "abilities": [
         "wanttoattackG",
@@ -720,6 +725,35 @@
       "behaviors": [
         "slowprotoss275"
       ]
+    },
+    "hellbat_mech": {
+      "source_unit": "Hellbat",
+      "fields": {
+        "hp": "UnitData/Hellbat/LifeMax",
+        "armor": "UnitData/Hellbat/LifeArmor",
+        "cost": "UnitData/Hellbat/CostResource[Minerals] × spawn_count",
+        "attack_modes/0/damage": "EffectData/HellionTankDamage/Amount",
+        "attack_modes/0/bonus/light": "EffectData/HellionTankDamage/AttributeBonus[Light]",
+        "spawn_count": "MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台",
+        "speed": "Swarm/UnitData/HellionTank/Speed=2.25（游戏秒）",
+        "energy": "Hellbat、HellionTank 及 Core/CUnit 均未设置能量池，使用 SC2 单位缺省值 0",
+        "size": "Swarm/UnitData/HellionTank/Radius=0.625，模型宽高按直径填写",
+        "collision_radius": "Swarm/UnitData/HellionTank/SeparationRadius=0.75",
+        "armor_type": "GameStrings/Button/Tooltip/DSSupplyDepot1 轻甲",
+        "tags": "Swarm/UnitData/HellionTank 的 Mechanical 及 Void/UnitData/HellionTank 的 Biological；GameStrings/DSSupplyDepot1 及 TechAliasArray[4]=1 表示冲击性",
+        "attack_modes/0/target_layers": "Hellbat/WeaponArray → HellionTank；HellionTankSearch 的地面目标过滤",
+        "attack_modes/0/range": "Swarm/WeaponData/HellionTank/Range=2",
+        "attack_modes/0/hit_count": "Swarm/EffectData/HellionTank → HellionTankDamage 主目标一次，HellionTankSearch 排除主目标",
+        "attack_modes/0/attack_duration": "Core/WeaponData/DamagePoint=0.167，映射为一次出手",
+        "attack_modes/0/backswing": "Core/WeaponData/Backswing=0.5",
+        "attack_modes/0/interval": "Void/WeaponData/HellionTank/Period=2游戏秒，扣除0.167出手和0.5后摇",
+        "attack_modes/0/delivery/angle_degrees": "Void/EffectData/HellionTankSearch/AreaArray@Arc=45",
+        "attack_modes/0/delivery/length": "Void/EffectData/HellionTankSearch/AreaArray@Radius=2"
+      },
+      "abilities": [
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
     }
   },
   "changes": [
@@ -781,13 +815,6 @@
       "before": 42.9,
       "after": 60,
       "source": "AbilData/DSVoidRaySwarmDamageBoost/Cost/Cooldown@TimeUse"
-    },
-    {
-      "id": "hellbat",
-      "path": "cost",
-      "before": 125,
-      "after": 130,
-      "source": "UnitData/Hellion/CostResource[Minerals] × spawn_count"
     },
     {
       "id": "marauder",
@@ -1939,6 +1966,13 @@
       "before": 10,
       "after": 5,
       "source": "0.11.3用户要求跨种族平衡；保留四炮位，耐久/输出均下调"
+    },
+    {
+      "id": "hellbat",
+      "path": "cost",
+      "before": 130,
+      "after": 380,
+      "source": "FightParty 0.13.2 平衡调整，每组1台；原图 Hellion 价格为130矿"
     }
   ],
   "unresolved": [
