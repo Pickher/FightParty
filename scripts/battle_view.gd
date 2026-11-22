@@ -1,6 +1,8 @@
 extends Node2D
 const Yamato = preload("res://scripts/skills/yamato.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
+# 只隐藏普通攻击连线和弹丸尾线，保留命中效果与动作。
+const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","agent","marauder","terran_bunker"]
 ## 独立的战场画布由 SubViewport 裁剪；缩放只影响显示，不改模拟单位。
 var game
 func viewport_size() -> Vector2:
@@ -126,8 +128,9 @@ func _draw() -> void:
 			launch_offset = game.medivac_visual.thors.projectile_offset(projectile, now)
 		var p := point(projectile.pos + launch_offset)
 		draw_circle(p,maxf(1.5,pixels(0.09)),tint)
-		var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
-		draw_line(point(projectile.pos + launch_offset - tail),p,Color(tint,0.6),1.5)
+		if str(projectile.kind) not in NO_ATTACK_TRACER_KINDS:
+			var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
+			draw_line(point(projectile.pos + launch_offset - tail),p,Color(tint,0.6),1.5)
 	for effect in game.effects:
 		if bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
@@ -152,7 +155,8 @@ func _draw() -> void:
 		else:
 			color.a=clampf(float(effect.ttl)/0.16,0,1)
 			if effect.has("muzzle"):color=Color(Color("ffb347"),color.a)
-			draw_line(a,b,color,1.5)
+			if effect.type!="attack" or str(effect.get("kind","")) not in NO_ATTACK_TRACER_KINDS:
+				draw_line(a,b,color,1.5)
 			if float(effect.get("splash",0))>0:
 				ring(effect.to,float(effect.splash),Color(color,color.a*0.5))
 	var alpha: float = clampf(float(game.accumulator)*float(sim.rules.tick_rate),0,1)
@@ -166,6 +170,11 @@ func _draw() -> void:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
 		var body: Array = stats.get("size",[1.0,1.0])
+		if unit.has("shade_position") and not game._hidden_team(int(unit.team)):
+			var shade: Vector2 = unit.shade_previous.lerp(unit.shade_position,alpha)
+			if view.grow(float(body[0])).has_point(shade):
+				var shade_color: Color = game.MINT if int(unit.team)==0 else game.CORAL
+				UnitArt.draw(self,point(shade),unit.kind,Color(shade_color,0.5),pixels(minf(float(body[0]),float(body[1])))/3.0)
 		if not view.grow(maxf(float(body[0]),float(body[1]))*(3.0 if unit.kind=="rifle" else 1.0)).has_point(position):continue
 		var p := point(position)
 		var dimensions := Vector2(pixels(float(body[0])),pixels(float(body[1])))
@@ -189,6 +198,8 @@ func _draw() -> void:
 			elif unit.kind in ["medivac", "battlecruiser", "thor"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
+			elif unit.kind == "interceptor":
+				UnitArt.draw_interceptor(self,p,tint,dimensions,unit.get("strafe_heading",Vector2.RIGHT if int(unit.team)==0 else Vector2.LEFT))
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
 
 	if game.medivac_visual!=null:

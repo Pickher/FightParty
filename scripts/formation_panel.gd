@@ -3,6 +3,7 @@ extends RefCounted
 const Catalog = preload("res://scripts/catalog.gd")
 const DesktopInput = preload("res://scripts/input/desktop/formation_input.gd")
 const Layout = preload("res://scripts/formation_layout.gd")
+const UnitSummary = preload("res://scripts/unit_summary.gd")
 const PANEL := Rect2(32,98,1376,762)
 const BOARD_AREA := Rect2(446,244,930,530)
 const ROWS_PER_PAGE := 8
@@ -23,6 +24,8 @@ var selected_kind := ""
 var batch_count := 1
 var selection_offset := 0
 var list_page := 0
+var recruit_page := 0
+var recruit_kind := ""
 var dragging := false
 var drag_start := Vector2.ZERO
 var drag_end := Vector2.ZERO
@@ -43,6 +46,8 @@ func reset() -> void:
 	batch_count=1
 	selection_offset=0
 	list_page=0
+	recruit_page=0
+	recruit_kind=""
 	cancel_drag()
 	notice="电脑：左键选择，右键放置；触屏：点放或长按拖线。仅影响下一波。"
 	notice_bad=false
@@ -103,9 +108,11 @@ func _counts() -> Dictionary:
 		result[kind]=int(result.get(kind,0))+1
 	return result
 
+func _recruit_kinds() -> Array:
+	return Catalog.race_units(game.sim.catalog,str(game.sim.races[0]))
+
 func _kinds() -> Array:
-	var available: Array = Catalog.race_units(game.sim.catalog,str(game.sim.races[0]))
-	if tab=="recruit":return available
+	var available: Array = _recruit_kinds()
 	var counts: Dictionary = _counts()
 	var result: Array = []
 	for kind in available:
@@ -119,6 +126,24 @@ func _ensure_selection() -> void:
 		selected_kind=str(kinds[0]) if not kinds.is_empty() else ""
 		selection_offset=0
 		batch_count=1
+
+func _page_count(kinds: Array) -> int:
+	return maxi(1,ceili(float(kinds.size())/ROWS_PER_PAGE))
+
+func _visible_recruits(kinds: Array) -> Array:
+	var first: int=recruit_page*ROWS_PER_PAGE
+	return kinds.slice(first,first+ROWS_PER_PAGE)
+
+## 不因每帧刷新钱包而跳选。仅首次打开、选项不可见或翻页时选择本页候选。
+func _ensure_recruit_selection(kinds: Array, balance: Dictionary) -> void:
+	recruit_page=clampi(recruit_page,0,_page_count(kinds)-1)
+	var visible: Array=_visible_recruits(kinds)
+	if visible.has(recruit_kind):return
+	recruit_kind=str(visible[0]) if not visible.is_empty() else ""
+	for kind in visible:
+		if game.sim.resource_error(game.sim.unit_price(kind),balance).is_empty():
+			recruit_kind=str(kind)
+			return
 
 func _pool(members: Array) -> Array:
 	var result: Array = []
@@ -157,9 +182,15 @@ func _message(text: String, bad: bool = false) -> void:
 	game._note(text)
 	game.queue_redraw()
 
+func _adept_tactic_visible() -> bool:
+	if tab=="recruit":
+		return recruit_kind=="adept" and _visible_recruits(_recruit_kinds()).has("adept")
+	return selected_kind=="adept"
+
 func draw() -> void:
 	if not opened:return
 	_ensure_selection()
+	if tab=="recruit":_ensure_recruit_selection(_recruit_kinds(),game.sim.wallet(0))
 	var members: Array = game.sim.deployment_members(0)
 	var selected: Array = drag_selection if dragging else _selection(members)
 	game.draw_rect(Rect2(0,98,1440,762),Color("091321"))
@@ -167,9 +198,15 @@ func draw() -> void:
 	# 此面板独占输入，不留下被遮住的布阵格和战场工具栏按钮。
 	game.buttons.clear()
 	game._text(Vector2(56,137),"部队配置",27,game.MINT)
-	game._text(Vector2(222,135),"调整下一波 · 不指挥场上部队",18,game.MUTED)
+	if _adept_tactic_visible():
+		var tactic: String = game.sim.adept_tactics[0]
+		game._text(Vector2(222,135),"下一波使徒战术",18,game.MUTED)
+		game._button(Rect2(388,109,118,42),"后撤传送","formation:adept_tactic:retreat",tactic=="retreat")
+		game._button(Rect2(518,109,118,42),"支援传送","formation:adept_tactic:support",tactic=="support")
+	else:
+		game._text(Vector2(222,135),"调整下一波 · 不指挥场上部队",18,game.MUTED)
 	if game._can_load_formation_preset():
-		game._button(Rect2(630,109,170,42),"载入已存阵容","formation:load_preset")
+		game._button(Rect2(648,109,152,42),"载入已存阵容","formation:load_preset")
 	if not members.is_empty():
 		game._button(Rect2(824,109,176,42),"保存当前布阵","formation:save_preset")
 	game._button(Rect2(1024,109,152,42),"格阵管理","formation:legacy")
@@ -179,6 +216,7 @@ func draw() -> void:
 	_draw_list()
 	_draw_tools(selected,members)
 	_draw_board(members,selected)
+	_draw_recruit_summary()
 	desktop_input.draw(self)
 	var info: String = str(preview.get("error","")) if dragging and not str(preview.get("error","")).is_empty() else notice
 	var bad: bool = not str(preview.get("error","")).is_empty() if dragging else notice_bad
@@ -187,40 +225,94 @@ func draw() -> void:
 	game._text(Vector2(446,846),"电脑：左键单选/双击同类/框选，右键点放或长按拖线；触屏沿用点放/拖线",16,game.MUTED)
 
 func _draw_list() -> void:
-	var kinds: Array = _kinds()
+	var recruiting: bool=tab=="recruit"
+	var kinds: Array = _recruit_kinds() if recruiting else _kinds()
 	var counts: Dictionary = _counts()
-	var pages: int = maxi(1,ceili(float(kinds.size())/ROWS_PER_PAGE))
+	var balance: Dictionary=game.sim.wallet(0) if recruiting else {}
+	var active_kind: String=recruit_kind if recruiting else selected_kind
+	var page: int=recruit_page if recruiting else list_page
+	var pages: int = _page_count(kinds)
 	for row in range(ROWS_PER_PAGE):
-		var index: int = list_page*ROWS_PER_PAGE+row
+		var index: int = page*ROWS_PER_PAGE+row
 		if index>=kinds.size():break
 		var kind: String = str(kinds[index])
 		var stats: Dictionary = game.sim.catalog[kind]
 		var groups: int = int(counts.get(kind,0))
 		var count: int = groups*maxi(1,int(stats.get("spawn_count",1)))
 		var rect := Rect2(56,226+row*60,352,54)
-		game._panel(rect,Color("204b43") if selected_kind==kind else Color("17293c"),game.MINT if selected_kind==kind else Color("304358"),6)
+		game._panel(rect,Color("204b43") if active_kind==kind else Color("17293c"),game.MINT if active_kind==kind else Color("304358"),6)
 		game._draw_unit(rect.position+Vector2(24,26),kind,Color(stats.color),10)
 		game._text(rect.position+Vector2(46,23),str(stats.name),19,game.INK)
 		game._text(rect.position+Vector2(46,44),"已有 %d 组 · %d 名" % [groups,count],15,game.MUTED)
-		if tab=="recruit":
-			game._text(rect.position+Vector2(233,23),"%d矿/组" % int(stats.cost),15,game.MINT)
-			var gas: int = int(stats.get("gas_cost",0))
-			var cores: int = int(stats.get("core_cost",0))
-			if gas>0 or cores>0:game._text(rect.position+Vector2(233,44),"%d气 %d核" % [gas,cores],14,game.MUTED)
-		game.buttons.append({"rect":rect,"action":"formation:kind:"+kind})
+		if recruiting:
+			var price: Dictionary=game.sim.unit_price(kind)
+			var affordable: bool=game.sim.resource_error(price,balance).is_empty()
+			game._text(rect.position+Vector2(221,23),"%d矿 / 组" % int(price.minerals),15,game.MINT if affordable else game.MUTED)
+			if int(price.gas)>0 or int(price.cores)>0:
+				game._text(rect.position+Vector2(221,44),"%d气 %d核" % [int(price.gas),int(price.cores)],14,game.MUTED)
+		var action_prefix: String="formation:recruit_kind:" if recruiting else "formation:kind:"
+		game.buttons.append({"rect":rect,"action":action_prefix+kind})
 	if kinds.is_empty():
-		game._text(Vector2(74,268),"还没有已购买的部队",20,game.MUTED)
-		game._text(Vector2(74,305),"点击「招募部队」购买一组。",17,game.MINT)
+		game._text(Vector2(74,268),"当前没有可招募的兵种" if recruiting else "还没有已购买的部队",20,game.MUTED)
+		if not recruiting:game._text(Vector2(74,305),"点击「招募部队」购买一组。",17,game.MINT)
 	game._button(Rect2(56,718,96,40),"上一页","formation:page:-1")
-	game._text(Vector2(174,746),"%d / %d" % [list_page+1,pages],18,game.MUTED)
+	game._text(Vector2(174,746),"%d / %d" % [page+1,pages],18,game.MUTED)
 	game._button(Rect2(312,718,96,40),"下一页","formation:page:1")
-	if tab=="recruit" and not selected_kind.is_empty():
-		var stats: Dictionary = game.sim.catalog[selected_kind]
-		game._button(Rect2(56,774,352,50),"招募一组（%d 名）" % maxi(1,int(stats.get("spawn_count",1))),"formation:buy",true)
-		game._text(Vector2(56,848),"按组购买；单兵排布不会另行扣费。",16,game.MUTED)
+	if recruiting:
+		if not recruit_kind.is_empty():_draw_buy_button(recruit_kind,balance)
 	else:
 		game._text(Vector2(56,797),"组数与人数按当前兵种配置显示。",16,game.MUTED)
 		game._text(Vector2(56,823),"删除/退款请进入「格阵管理」。",16,game.MUTED)
+
+func _resource_text(price: Dictionary, balance: Dictionary = {}) -> String:
+	var names := {"minerals":"矿","gas":"气","cores":"灵核"}
+	var parts := PackedStringArray()
+	for key in names:
+		var amount: int=int(price.get(key,0))-int(balance.get(key,0))
+		if amount>0:parts.append("%d%s" % [amount,names[key]])
+	return " ".join(parts) if not parts.is_empty() else "0矿"
+
+func _draw_buy_button(kind: String, balance: Dictionary) -> void:
+	var stats: Dictionary=game.sim.catalog[kind]
+	var price: Dictionary=game.sim.unit_price(kind)
+	var full: bool=game.sim.formations[0].size()>=int(game.sim.rules.columns)*int(game.sim.rules.rows)
+	var can_buy: bool=not full and game.sim.resource_error(price,balance).is_empty()
+	var rect:=Rect2(56,774,352,50)
+	game._panel(rect,Color("204b43") if can_buy else Color("17293c"),game.MINT if can_buy else game.MUTED)
+	game._text(rect.position+Vector2(14,22),"招募%s ×%d" % [stats.name,maxi(1,int(stats.get("spawn_count",1)))],19,game.MINT if can_buy else game.MUTED)
+	game._text(rect.position+Vector2(14,44),"每组 %s" % _resource_text(price),16,game.INK if can_buy else game.MUTED)
+	if can_buy:
+		game.buttons.append({"rect":rect,"action":"formation:buy:"+kind})
+	elif full:
+		game._text(Vector2(56,848),"兵营已满，可在格阵管理中移除部队",16,game.CORAL)
+	else:
+		game._text(Vector2(56,848),"还缺 %s" % _resource_text(price,balance),16,game.CORAL)
+
+func _target_label(stats: Dictionary) -> String:
+	var ground := false
+	var air := false
+	var modes: Array=UnitSummary.weapons(stats)
+	var summoned_kind: String=str(stats.get("skills",{}).get("summon",{}).get("kind",""))
+	if game.sim.catalog.has(summoned_kind):modes.append_array(UnitSummary.weapons(game.sim.catalog[summoned_kind]))
+	for mode in modes:
+		var weapon: Dictionary=mode.data
+		if float(weapon.get("damage",0))<=0:continue
+		var layers: Array=weapon.get("target_layers",["ground"])
+		ground=ground or layers.has("ground")
+		air=air or layers.has("air")
+	if ground and air:return "对空对地"
+	if ground:return "仅对地"
+	if air:return "仅对空"
+	return str(stats.get("role","支援"))
+
+## 招募摘要使用排布区右侧空白，不侵占顶部预设按钮、配兵战术或布阵底部提示。
+func _draw_recruit_summary() -> void:
+	if tab!="recruit" or not game.sim.catalog.has(recruit_kind):return
+	var begin: float=_field().end.x+12.0
+	var width: float=BOARD_AREA.end.x-begin-12.0
+	if width<120.0:return
+	var stats: Dictionary=game.sim.catalog[recruit_kind]
+	game.draw_multiline_string(game.FONT,Vector2(begin,318),str(stats.name)+" · "+_target_label(stats)+"\n"+UnitSummary.text(stats),HORIZONTAL_ALIGNMENT_LEFT,width,16,8,game.INK)
 
 func _draw_tools(selected: Array, members: Array) -> void:
 	var pool: Array = _pool(members)
@@ -379,14 +471,27 @@ func handle_action(action: String) -> void:
 	elif verb=="legacy":
 		close_panel()
 		game.handle_action("legacy_editor")
-	elif verb=="tab" and parts.size()==3:
+	elif verb=="tab" and parts.size()==3 and parts[2] in ["owned","recruit"]:
 		tab=parts[2]
-		list_page=0
 		_ensure_selection()
-	elif verb=="kind" and parts.size()==3:_select_kind(parts[2])
+	elif verb=="kind" and parts.size()==3 and tab=="owned" and _kinds().has(parts[2]):
+		_select_kind(parts[2])
+	elif verb=="recruit_kind" and parts.size()==3 and tab=="recruit":
+		if _visible_recruits(_recruit_kinds()).has(parts[2]):recruit_kind=parts[2]
+	elif verb=="adept_tactic" and parts.size()==3 and _adept_tactic_visible():
+		var error: String = game.sim.set_adept_tactic(0,parts[2])
+		if not error.is_empty():_message(error,true)
+		else:
+			game._save_settings()
+			game._save_journal()
+			_message("下波使徒将向前投射阴影，遇地面敌人后传送。" if parts[2]=="support" else "下波使徒将在低盾受击时向后传送。")
 	elif verb=="page" and parts.size()==3:
-		var pages: int = maxi(1,ceili(float(_kinds().size())/ROWS_PER_PAGE))
-		list_page=posmod(list_page+int(parts[2]),pages)
+		if tab=="recruit":
+			var kinds: Array=_recruit_kinds()
+			recruit_page=posmod(recruit_page+int(parts[2]),_page_count(kinds))
+			_ensure_recruit_selection(kinds,game.sim.wallet(0))
+		else:
+			list_page=posmod(list_page+int(parts[2]),_page_count(_kinds()))
 	elif verb=="count" and parts.size()==3:
 		explicit_selection=false
 		selection_keys.clear()
@@ -425,11 +530,16 @@ func handle_action(action: String) -> void:
 	elif verb=="save_preset":
 		var error: String=game._save_formation_preset()
 		_message("已保存本种族布阵；新局仍从空兵营开始。" if error.is_empty() else error,not error.is_empty())
-	elif verb=="buy":_buy_group()
+	elif verb=="buy" and parts.size()==3:_buy_group(parts[2])
 	game.queue_redraw()
 
-func _buy_group() -> void:
-	if not game.sim.catalog.has(selected_kind):return
+func _buy_group(kind: String) -> void:
+	# 旧点击区域可能在翻页后一帧仍存活。拒绝非当前选中、非当前页、非招募标签的动作。
+	if tab!="recruit" or kind!=recruit_kind or not _visible_recruits(_recruit_kinds()).has(kind):return
+	var budget_error: String=game.sim.resource_error(game.sim.unit_price(kind),game.sim.wallet(0))
+	if not budget_error.is_empty():
+		_message(budget_error,true)
+		return
 	var occupied: Dictionary = {}
 	for slot in game.sim.formations[0]:occupied[int(slot.cell)]=true
 	var cell := -1
@@ -440,12 +550,12 @@ func _buy_group() -> void:
 	if cell<0:
 		_message("兵营组数已满；请在格阵管理中取消不需要的组。",true)
 		return
-	var error: String = game.sim.buy(0,selected_kind,cell)
+	var error: String = game.sim.buy(0,kind,cell)
 	if not error.is_empty():
 		_message(error,true)
 		return
-	clear_explicit_selection()
-	var stats: Dictionary = game.sim.catalog[selected_kind]
+	_select_kind(kind)
+	var stats: Dictionary = game.sim.catalog[kind]
 	batch_count=maxi(1,int(stats.get("spawn_count",1)))
 	var pool: Array = _pool(game.sim.deployment_members(0))
 	for index in range(pool.size()):

@@ -77,6 +77,46 @@ static func placement_error(members: Array, placements: Array, bounds: Rect2, ch
 static func _placement(unit: Dictionary, point: Vector2) -> Dictionary:
 	return {"cell":int(unit.cell),"member":int(unit.member),"position":[point.x,point.y]}
 
+## Retained positions may already overlap. Only newly added pack members must clear final occupancy.
+static func added_preset_members(members: Array, retained: Array, added: Array, bounds: Rect2) -> Dictionary:
+	var error := placement_error(members,retained,bounds,false)
+	if not error.is_empty():return {"placements":[],"error":error}
+	if added.is_empty():return {"placements":retained,"error":""}
+	var changes: Dictionary = {}
+	for slot in retained:
+		changes[key(int(slot.cell),int(slot.member))]=Vector2(float(slot.position[0]),float(slot.position[1]))
+	var pending: Dictionary = {}
+	for unit in added:
+		pending[key(int(unit.cell),int(unit.member))]=true
+	var buckets: Dictionary = {}
+	var maximum_radius := 0.0
+	for unit in members:
+		var layer := str(unit.layer)
+		if not buckets.has(layer):buckets[layer]={}
+		maximum_radius=maxf(maximum_radius,float(unit.radius))
+		var id := key(int(unit.cell),int(unit.member))
+		if not pending.has(id):
+			_occupy(buckets[layer],changes.get(id,unit.position),float(unit.radius),id)
+	var placements: Array = retained.duplicate()
+	var ordered: Array = added.duplicate()
+	ordered.sort_custom(func(a: Dictionary,b: Dictionary) -> bool:
+		return int(a.cell)<int(b.cell) if int(a.cell)!=int(b.cell) else int(a.member)<int(b.member))
+	var rng := RandomNumberGenerator.new()
+	for unit in ordered:
+		var layer := str(unit.layer)
+		var radius := float(unit.radius)
+		var point: Vector2 = unit.position
+		var id := key(int(unit.cell),int(unit.member))
+		if _inside(point,radius,bounds) and not _overlaps(buckets[layer],point,radius,maximum_radius):
+			placements.append(_placement(unit,point))
+			_occupy(buckets[layer],point,radius,id)
+		else:
+			rng.seed=hash([int(unit.cell),int(unit.member)])
+			var found := _scatter_group([unit],point,bounds,buckets[layer],maximum_radius,rng)
+			if found.is_empty():return {"placements":[],"error":"旧阵容新增成员无可用空位"}
+			placements.append_array(found)
+	return {"placements":placements,"error":""}
+
 ## 优先使用落点附近的空位。外圈错开角度，给每个候选位置加少量抖动，
 ## 由近及远逐圈扩展；同层同尺寸的一批共用一次搜索。
 static func _scatter_group(group: Array, center: Vector2, bounds: Rect2, buckets: Dictionary, maximum_radius: float, rng: RandomNumberGenerator) -> Array:

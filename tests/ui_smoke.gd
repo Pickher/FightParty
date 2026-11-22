@@ -229,17 +229,33 @@ func run() -> void:
 	game.handle_action("setup_confirm")
 	verify(game.sim.races[0]=="zerg" and game.selected=="zergling","player plays zerg with a zerg card selected")
 	var preset_config := ConfigFile.new()
-	preset_config.set_value("player","formation_zerg",[{"kind":"zergling","cell":3}])
+	var old_point: Array = [0.55,-2.264286]
+	preset_config.set_value("player","formation_zerg",[{"kind":"zergling","cell":63,"member_positions":[old_point]}])
 	game.handle_action("restart")
 	game.handle_action("setup_race:0:terran")
 	game.handle_action("setup_confirm")
 	verify(game.sim.formations[0].is_empty() and game._read_formation_preset(preset_config).is_empty(),"terran roster does not inherit zerg units or preset")
 	game.handle_action("restart")
 	game.handle_action("setup_race:0:zerg")
+	game.handle_action("setup_pick:start_minerals:600")
 	game.handle_action("setup_confirm")
-	verify(game.sim.formations[0].is_empty(),"returning to zerg does not auto-buy a saved roster")
+	verify(game.sim.formations[0].is_empty() and int(game.sim.minerals[0])==600,"returning to zerg does not auto-buy a saved roster")
 	game.saved_formation_preset=game._read_formation_preset(preset_config)
-	verify(game._load_formation_preset()=="" and game.sim.formations[0].size()==1 and game.sim.formations[0][0].kind=="zergling" and int(game.sim.formations[0][0].cell)==3,"legacy zerg roster explicitly loaded per race")
+	var preserved: Array = game.saved_formation_preset.duplicate(true)
+	var price: int = int(game.sim.catalog.zergling.cost)
+	verify(game._load_formation_preset()=="" and game.sim.formations[0].size()==1 and int(game.sim.minerals[0])==600-price,"legacy zerg roster explicitly loaded at its current group price")
+	if not game.sim.formations[0].is_empty():
+		var slot: Dictionary = game.sim.formations[0][0]
+		var points: Array = slot.get("member_positions",[])
+		verify(slot.kind=="zergling" and int(slot.cell)==63 and points.size()==4,"legacy zergling group expands to four members")
+		if points.size()==4:
+			verify(points[0]==old_point,"migration preserves the legacy point overlapping a new default")
+			for i in range(points.size()):
+				for j in range(i):
+					var a := Vector2(float(points[i][0]),float(points[i][1]))
+					var b := Vector2(float(points[j][0]),float(points[j][1]))
+					verify(a.distance_to(b)>=1.0998,"generated zerglings clear same-layer occupants")
+	verify(game.saved_formation_preset==preserved,"loading does not rewrite the legacy preset")
 	game.handle_action("restart")
 	game.handle_action("setup_reset")
 	game.handle_action("setup_confirm")

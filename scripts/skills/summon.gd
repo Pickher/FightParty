@@ -16,8 +16,11 @@ func step(sim, unit: Dictionary, target: Dictionary) -> void:
 
 func _init() -> void:
 	hit_effect=true
-	view_fields=["summon_ready_tick"]
-func on_target(ctx: Dictionary) -> void: step(ctx.sim,owner,ctx.target)
+	view_fields=["summon_ready_tick","summon_target_id"]
+func on_target(ctx: Dictionary) -> void:
+	if bool(config.get("dependent",false)):
+		state.summon_target_id=int(ctx.target.get("id",0))
+	step(ctx.sim,owner,ctx.target)
 func on_hit(ctx: Dictionary) -> void:
 	if config.get("on","")=="hit":Summons.queue(ctx.sim,owner,str(config.kind),int(config.count),ctx.victim.pos,config)
 func after_attack(ctx: Dictionary) -> void:

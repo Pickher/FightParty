@@ -15,6 +15,7 @@ const MobileInput = preload("res://scripts/input/mobile/formation_input.gd")
 var desktop_camera=DesktopCamera.new()
 var mobile_input=MobileInput.new()
 const FormationPanel = preload("res://scripts/formation_panel.gd")
+const FormationLayout = preload("res://scripts/formation_layout.gd")
 var formation_panel = FormationPanel.new()
 # preload 在脚本加载时引入其他脚本；Sim.new() 会创建独立的战斗实例。
 const Sim = preload("res://scripts/battle_sim.gd")
@@ -184,6 +185,8 @@ func _new_match() -> void:
 	saved_formation_preset=[]
 	if config.load("user://settings.cfg")==OK:
 		saved_formation_preset=_read_formation_preset(config)
+		if sim.races[0]=="protoss":
+			sim.set_adept_tactic(0,str(config.get_value("player","adept_tactic",Sim.DEFAULT_ADEPT_TACTIC)))
 	if not sim.catalog.has(selected) or sim.kind_error(0, selected) != "":
 		selected = _shop_kinds()[0]
 	started = false
@@ -250,21 +253,44 @@ func _read_formation_preset(config: ConfigFile) -> Array:
 	var saved = config.get_value("player","manual_formation_"+race,config.get_value("player","formation_"+race,config.get_value("player","formation",[])))
 	return saved.duplicate(true) if saved is Array else []
 
-## 旧阵容没有单兵位置时仍可用；布局不参与买兵、退款或费用计算。
-func _restore_deployment(formation: Array, target = null) -> String:
-	if target==null:target=sim
-	var placements: Array = []
+## 兼容 0.13.0 前的四种固定编组。只用于本地预设，不放宽战报恢复规则。
+const PREVIOUS_PACK_COUNTS := {"rifle":4,"zergling":1,"roach":1,"hydralisk":1}
+
+func _preset_placements(formation: Array, target) -> Dictionary:
+	var saved_by_cell: Dictionary = {}
 	for slot in formation:
 		if not slot is Dictionary or not slot.has("member_positions"):continue
-		if not slot.member_positions is Array:return "排布数据无效"
-		if not target.catalog.has(str(slot.kind)):return "排布兵种无效"
-		if slot.member_positions.size()!=maxi(1,int(target.catalog[slot.kind].get("spawn_count",1))):return "排布人数已改变"
-		for member in range(slot.member_positions.size()):
-			placements.append({"cell":slot.cell,"member":member,"position":slot.member_positions[member]})
-	return target.restore_deployment(0,placements) if not placements.is_empty() else ""
+		if not slot.member_positions is Array:return {"error":"排布数据无效"}
+		var kind := str(slot.get("kind",""))
+		if not target.catalog.has(kind):return {"error":"排布兵种无效"}
+		var count := maxi(1,int(target.catalog[kind].get("spawn_count",1)))
+		var saved: Array = slot.member_positions
+		if saved.size()!=count and saved.size()!=int(PREVIOUS_PACK_COUNTS.get(kind,-1)):
+			return {"error":"排布人数已改变"}
+		for point in saved:
+			if not FormationLayout.valid_position(point):return {"error":"排布位置无效"}
+		saved_by_cell[int(slot.cell)]=saved
+	if saved_by_cell.is_empty():return {"placements":[],"error":""}
+	var retained: Array = []
+	var generated: Array = []
+	var members: Array = target.deployment_members(0)
+	for unit in members:
+		if not saved_by_cell.has(unit.cell):continue
+		var saved: Array = saved_by_cell[unit.cell]
+		if int(unit.member)<saved.size():
+			retained.append({"cell":unit.cell,"member":unit.member,"position":saved[unit.member]})
+		else:
+			generated.append(unit)
+	return FormationLayout.added_preset_members(members,retained,generated,target.deployment_bounds())
+
+func _restore_deployment(formation: Array, target = null) -> String:
+	if target==null:target=sim
+	var plan: Dictionary = _preset_placements(formation,target)
+	if not str(plan.error).is_empty():return str(plan.error)
+	return target.restore_deployment(0,plan.placements) if not plan.placements.is_empty() else ""
 
 func _can_load_formation_preset() -> bool:
-	return not started and not sim.finished and sim.tick==0 and sim.formations[0].is_empty() and not saved_formation_preset.is_empty()
+	return not started and not sim.finished and sim.tick==0 and sim.wave==0 and sim.formations[0].is_empty() and not saved_formation_preset.is_empty()
 
 ## 仅显式操作允许载入。先用同一套已结算钱包和规则做无副作用验证，不把未验证的阵容买进本局。
 func _load_formation_preset() -> String:
@@ -277,12 +303,18 @@ func _load_formation_preset() -> String:
 	probe.minerals[0]=sim.minerals[0]
 	probe.economy.gas[0]=sim.economy.gas[0]
 	probe.economy.cores[0]=sim.economy.cores[0]
+	# Preflight and live commit use the same current catalog and exact resolved points.
+	probe.catalog=sim.catalog.duplicate(true)
 	var error: String=probe.submit_formation(0,preset)
-	if error.is_empty():error=_restore_deployment(preset,probe)
 	if not error.is_empty():return error
+	var plan: Dictionary = _preset_placements(preset,probe)
+	if not str(plan.error).is_empty():return str(plan.error)
+	if not plan.placements.is_empty():
+		error=probe.restore_deployment(0,plan.placements)
+		if not error.is_empty():return error
 	error=sim.submit_formation(0,preset)
 	if not error.is_empty():return error
-	return _restore_deployment(preset)
+	return sim.restore_deployment(0,plan.placements) if not plan.placements.is_empty() else ""
 
 ## 新预设只由显式按钮写入，不覆盖旧版的阵容键。
 func _save_formation_preset() -> String:
@@ -308,6 +340,8 @@ func _save_settings() -> void:
 		_note("读取设置失败，未覆盖设置文件。")
 		return
 	config.set_value("audio","volume",volume)
+	if sim.races[0]=="protoss":
+		config.set_value("player","adept_tactic",sim.adept_tactics[0])
 	config.set_value("match","economy_schema",1)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
