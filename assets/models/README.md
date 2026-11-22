@@ -33,3 +33,5 @@
 可在项目根目录分别运行 `python tools/art/build_marauder_rig.py` 和 `python tools/art/build_hellbat_mech_rig.py`，从上传的模型重建两个单位的分件和材质。两个脚本都使用 Python 3、NumPy 和 SciPy。
 
 坦克（单位 ID 为 `mortar`）源模型位于 [mortar.glb](mortar/mortar.glb)，来自用户提供的 `坦克3d模型.glb`。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
+
+坦克架起（攻城）形态源模型位于 [mortar_siege.glb](mortar/mortar_siege.glb)，来自用户提供的 `坦克架起3d模型.glb`，与上述 `mortar.glb` 分别保存。该 GLB 未包含纹理图片，无外置文件依赖；供后续架起形态及形态切换动画接入使用。
