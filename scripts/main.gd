@@ -397,6 +397,12 @@ func advance_tick() -> void:
 	var journal_due := false
 	for event in tick_events:
 		rifle_visual.event(event, rifle_before, sim.units, sim.revealed)
+		if medivac_visual != null:
+			medivac_visual.thors.event(event, aircraft_before, self, medivac_visual.clock)
+			if event.type == "attack" and medivac_visual.thors.owns_javelin_launch(event):
+				continue
+			if event.type == "area_impact" and medivac_visual.thors.accept_javelin_impact(event, self):
+				continue
 		var ship_owns_effect: bool = medivac_visual != null and medivac_visual.battlecruisers.event(event, aircraft_before, self, medivac_visual.clock)
 		if ship_owns_effect and event.type in ["attack", "yamato"]:
 			continue
