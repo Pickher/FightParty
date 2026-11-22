@@ -31,3 +31,5 @@
 在 Godot 中打开[机甲动作预览](../../scenes/art/mech_actions.tscn)，按 F6 可选择单位、动作和观察角度。劫掠者已接入战场。现有战斗目录的 `hellbat` 是恶火战车，恶蝠机甲尚无独立单位配置。框架收到变形指令时可调用[恶蝠动画脚本](../../scripts/visuals/hellbat_actor.gd)的 `set_vehicle_form(true)`，再用 `advance(...)` 推进动画。
 
 可在项目根目录分别运行 `python tools/art/build_marauder_rig.py` 和 `python tools/art/build_hellbat_mech_rig.py`，从上传的模型重建两个单位的分件和材质。两个脚本都使用 Python 3、NumPy 和 SciPy。
+
+坦克（单位 ID 为 `mortar`）源模型位于 [mortar.glb](mortar/mortar.glb)，来自用户提供的 `坦克3d模型.glb`。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
