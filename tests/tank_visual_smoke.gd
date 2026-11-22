@@ -120,6 +120,22 @@ func retraces_joints(outgoing: Dictionary, incoming: Dictionary) -> bool:
 			return false
 	return true
 
+# Identify the physical tips in each rigid bank's own lengthwise coordinate.
+# Their signed hull-space Z positions then measure distance from the centerline.
+func track_end_widths(track: Node3D, front: bool, side_sign: float) -> Vector2:
+	var path := track.find_children(String(track.name) + "Path??", "Node3D", false, false)
+	if path.is_empty():
+		return Vector2.INF
+	var inner: Node3D = path.front()
+	var outer: Node3D = inner
+	var outward := 1.0 if front else -1.0
+	for point: Node3D in path:
+		if point.position.x * outward < inner.position.x * outward:
+			inner = point
+		if point.position.x * outward > outer.position.x * outward:
+			outer = point
+	return Vector2(actor.hull.to_local(inner.global_position).z, actor.hull.to_local(outer.global_position).z) * side_sign
+
 func mechanism_positions() -> Dictionary:
 	var motion := {}
 	for side in ["P", "N"]:
@@ -128,6 +144,7 @@ func mechanism_positions() -> Dictionary:
 			var track: Node3D = actor.joints["Track" + end + side]
 			var axis: Vector3 = actor.hull.global_basis.inverse() * track.global_basis.x
 			motion["Track" + end + side] = atan2(axis.z, axis.x) * sign_side * (1.0 if end == "Front" else -1.0)
+			motion["Tips" + end + side] = track_end_widths(track, end == "Front", sign_side)
 		var slide: Node3D = actor.joints["Slide" + side]
 		motion["Slide" + side] = actor.hull.to_local(slide.global_position).z * sign_side
 		var pad := actor.model_root.find_child("Contact" + side, true, false) as Node3D
@@ -181,6 +198,11 @@ func check_mechanisms(path: Array[Dictionary]) -> void:
 			var name: String = "Track" + end + side
 			check(last[name] - first[name] > 0.18 and travel_at(path, name, 0.20) < 0.07
 					and travel_at(path, name, 0.50) > 0.97, name + " should swing out between the bay opening and pad contact")
+			var tips: String = "Tips" + end + side
+			var parked: Vector2 = first[tips]
+			var braced: Vector2 = last[tips]
+			check(braced.x >= 0.0 and braced.x < parked.x - 0.02 and braced.y > parked.y + 0.10,
+				name + " should pull its inner tread tip toward the hull centerline while its outer tip swings away")
 		var slide: String = "Slide" + side
 		var foot: String = "Foot" + side
 		var doors: String = "Doors" + side
