@@ -119,6 +119,7 @@ func _draw() -> void:
 	for projectile in sim.projectiles:
 		if not view.grow(1.0).has_point(projectile.pos):continue
 		if game.medivac_visual != null and game.medivac_visual.battlecruisers.owns_projectile(projectile):continue
+		if projectile.kind == "marauder" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)) and game.medivac_visual.marauders.owns_projectile(projectile):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
 		var launch_offset := Vector2.ZERO
 		if projectile.kind == "thor" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)):
@@ -195,7 +196,7 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			elif unit.kind in ["medivac", "battlecruiser", "thor"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
+			elif unit.kind in ["medivac", "battlecruiser", "thor", "marauder"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
 			elif unit.kind == "interceptor":
@@ -207,6 +208,7 @@ func _draw() -> void:
 		game.medivac_visual.draw_layer(self,self)
 		game.medivac_visual.battlecruisers.draw_traces(self, self, game.medivac_visual.clock)
 		game.medivac_visual.thors.draw_ordnance(self, self, game, game.medivac_visual.thors.render_time(sim, alpha))
+		game.medivac_visual.marauders.draw_ordnance(self, self, game, game.medivac_visual.marauders.render_time(sim, alpha))
 		game.medivac_visual.draw_healing(self,self)
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:
