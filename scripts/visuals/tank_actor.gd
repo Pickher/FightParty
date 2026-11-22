@@ -41,6 +41,7 @@ var shot_age := 99.0
 var wreck: Wreck
 var wreck_age := -1.0
 var _ready_rig := false
+var _track_radius := 0.0
 var _wanted := 0.0
 var _speed := 0.0
 var _lean := 0.0
@@ -63,22 +64,8 @@ func setup(model: PackedScene, bounds: AABB, initial_heading: float, initial_dep
 	presentation.add_child(facing)
 	facing.add_child(centered)
 	centered.add_child(model_root)
-	var root_inverse := model_root.global_transform.affine_inverse()
-	var ends: Dictionary = {}
-	for key in JOINTS:
-		var joint := model_root.find_child(key, true, false) as Node3D
-		var marker := model_root.find_child("Deploy" + key, true, false) as Node3D
-		if joint == null or marker == null:
-			return false
-		var parent := joint.get_parent()
-		var parent_deployed: Transform3D = ends.get(parent, Transform3D.IDENTITY)
-		ends[joint] = root_inverse * marker.global_transform
-		var rail := Vector3.RIGHT if not key.begins_with("Foot") else Vector3.UP
-		var piece := Section.new()
-		if not piece.setup(joint, parent_deployed.affine_inverse() * ends[joint], rail):
-			return false
-		sections.append(piece)
-		joints[key] = joint
+	if not _bind_joints():
+		return false
 	hull = joints.Hull
 	turret = joints.Turret
 	mount = joints.Mount
@@ -93,25 +80,10 @@ func setup(model: PackedScene, bounds: AABB, initial_heading: float, initial_dep
 	if siege_muzzle == null:
 		return false
 	if not _mobile_bounds_cache.has(model):
-		# Imported Mesh AABBs can include the alternate shape. Measure unposed mobile
-		# vertices once so the zero floor and 1.6-cell footprint remain exact in both forms.
-		var mobile_box := AABB()
-		var measured := false
-		for section in sections:
-			var native := section.mobile_mesh
-			if native == null:
-				continue
-			var space := root_inverse * native.global_transform
-			for surface in native.mesh.get_surface_count():
-				var vertices: PackedVector3Array = native.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
-				for point in vertices:
-					var local := space * point
-					mobile_box = mobile_box.expand(local) if measured else AABB(local, Vector3.ZERO)
-					measured = true
-		_mobile_bounds_cache[model] = mobile_box if measured else bounds
+		_mobile_bounds_cache[model] = _rest_bounds(bounds)
 	var mobile_bounds: AABB = _mobile_bounds_cache[model]
 	length_factor = 1.0 / maxf(0.001, maxf(mobile_bounds.size.x, mobile_bounds.size.z))
-	ground_height = -mobile_bounds.size.y * 0.5 * length_factor
+	ground_height = -mobile_bounds.get_center().y * length_factor
 	centered.scale = Vector3.ONE * length_factor
 	centered.position = -mobile_bounds.get_center() * length_factor
 	for name_key in ["TrackFrontP", "TrackFrontN", "TrackRearP", "TrackRearN"]:
@@ -122,6 +94,9 @@ func setup(model: PackedScene, bounds: AABB, initial_heading: float, initial_dep
 			return false
 		tracks.append(bank)
 		tread_banks.append(tread)
+	# Differential drive acts at the shoe centerline, farther out than the hinge pins.
+	var track_point := tracks[0].get_node("TrackFrontPPath00") as Node3D
+	_track_radius = absf(model_root.to_local(track_point.global_position).z - mobile_bounds.get_center().z) * length_factor
 	var camera := get_viewport().get_camera_3d()
 	if camera != null:
 		var shear := 0.46 * smoothstep(0.87, 0.998, camera.global_basis.z.normalized().dot(Vector3.UP))
@@ -134,6 +109,56 @@ func setup(model: PackedScene, bounds: AABB, initial_heading: float, initial_dep
 	_ready_rig = true
 	_pose()
 	return true
+
+func _bind_joints() -> bool:
+	var targets := {}
+	var by_node := {}
+	var inv_model := model_root.global_transform.affine_inverse()
+	for marker: Node3D in model_root.find_children("Deploy*", "Node3D", true, false):
+		targets[String(marker.name).trim_prefix("Deploy")] = inv_model * marker.global_transform
+	for key in JOINTS:
+		if not targets.has(key):
+			return false
+	for node: Node3D in model_root.find_children("*", "Node3D", true, false):
+		var key := String(node.name)
+		if targets.has(key):
+			var parent := node.get_parent_node_3d()
+			var parent_target: Transform3D = targets.get(String(parent.name), inv_model * parent.global_transform)
+			var piece := Section.new()
+			piece.setup(node, parent_target.affine_inverse() * targets[key], _timing(key))
+			by_node[node] = piece
+			sections.append(piece)
+			joints[key] = node
+		elif node is MeshInstance3D and node.mesh != null:
+			var owner_joint := node.get_parent_node_3d()
+			while owner_joint != null and not by_node.has(owner_joint):
+				owner_joint = owner_joint.get_parent_node_3d()
+			if owner_joint != null:
+				var piece: Section = by_node[owner_joint]
+				piece.meshes.append(node)
+	if joints.size() != targets.size():
+		return false
+	for piece in sections:
+		if piece.meshes.is_empty():
+			return false
+	return true
+
+func _rest_bounds(fallback: AABB) -> AABB:
+	# A rotated local AABB overestimates height at angled hinge pins. Use actual
+	# vertices of the parked machine once per shared rig, including stowed parts.
+	var box := AABB()
+	var measured := false
+	var inv_model := model_root.global_transform.affine_inverse()
+	for piece in sections:
+		for mesh in piece.meshes:
+			var space := inv_model * mesh.global_transform
+			for surface in mesh.mesh.get_surface_count():
+				var points: PackedVector3Array = mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+				for point in points:
+					var local := space * point
+					box = box.expand(local) if measured else AABB(local, Vector3.ZERO)
+					measured = true
+	return box if measured else fallback
 
 func set_deployed(deployed: bool) -> void:
 	if wreck == null:
@@ -169,9 +194,8 @@ func advance(delta: float, desired_heading: float, distance: float, aim_heading:
 	heading = rotate_toward(heading, desired_heading, dt * HULL_SLEW * movable)
 	var yaw := angle_difference(previous, heading)
 	var roll_distance := distance * movable
-	var track_radius := absf(tracks[0].position.z) * length_factor
-	track_distance[0] += roll_distance - yaw * track_radius
-	track_distance[1] += roll_distance + yaw * track_radius
+	track_distance[0] += roll_distance - yaw * _track_radius
+	track_distance[1] += roll_distance + yaw * _track_radius
 	_speed = move_toward(_speed, minf(1.0, absf(roll_distance) / dt), dt * 7.5)
 	_lean = move_toward(_lean, clampf(-yaw / dt * 0.027, -0.055, 0.055), dt * 0.68)
 	shot_age += dt
@@ -184,40 +208,42 @@ func advance(delta: float, desired_heading: float, distance: float, aim_heading:
 	_pose()
 	_update_flash()
 
-func _phase(key: String) -> float:
-	var p := deployment_progress
-	if key.begins_with("Track"):
-		return smoothstep(0.02 if key.contains("Rear") else 0.07, 0.73, p)
+## Normalized progress windows for rotation and extension. Packing retraces this
+## sequence: pull rails home, close the shrouds, lift the feet, fold the bogies.
+func _timing(key: String) -> Vector4:
+	if key.begins_with("Bay"):
+		return Vector4(0.025, 0.245, 0.025, 0.245)
+	if key.begins_with("Slide"):
+		return Vector4(0.085, 0.345, 0.085, 0.345)
+	if key.begins_with("Track") or key.begins_with("Crank"):
+		var lag := 0.020 if key.contains("Front") else 0.0
+		return Vector4(0.185 + lag, 0.475 + lag, 0.16, 0.55)
 	if key.begins_with("Arm"):
-		return smoothstep(0.08, 0.72, p)
+		return Vector4(0.29, 0.54, 0.29, 0.54)
+	if key.begins_with("Ram"):
+		return Vector4(0.339, 0.585, 0.339, 0.585)
 	if key.begins_with("Foot"):
-		return smoothstep(0.22, 0.82, p)
-	if key == "Hull":
-		return smoothstep(0.04, 0.83, p)
-	if key == "Turret":
-		return smoothstep(0.17, 0.91, p)
-	return smoothstep(0.23, 0.99, p)
+		return Vector4(0.347, 0.565, 0.387, 0.57)
+	if key == "Hull" or key == "Turret":
+		return Vector4(0.16, 0.51, 0.16, 0.55)
+	if key.begins_with("Cover"):
+		return Vector4(0.405, 0.685, 0.405, 0.685)
+	if key.begins_with("Barrel"):
+		return Vector4(0.435, 0.69, 0.42, 0.67)
+	if key == "Mount":
+		return Vector4(0.56, 0.87, 0.575, 0.865)
+	if key == "CenterBarrel":
+		return Vector4(0.615, 0.89, 0.61, 0.885)
+	if key.begins_with("Rail"):
+		return Vector4(0.645, 0.905, 0.67, 0.925)
+	return Vector4(0.72, 0.94, 0.735, 0.955)
 
 func _pose() -> void:
 	facing.rotation.y = -heading
-	var track_id := 0
 	for piece in sections:
-		var key := String(piece.joint.name)
-		var t := _phase(key)
-		var pose := piece.at_rest.interpolate_with(piece.deployed, t)
-		var arc := sin(PI * t)
-		if key.begins_with("Track"):
-			pose.origin.y += 0.017 * arc
-			var bank := tread_banks[track_id]
-			bank.material.set_shader_parameter("deployment", t)
-			bank.material.set_shader_parameter("distance_traveled", track_distance[track_id % 2] / length_factor)
-			track_id += 1
-		elif key.begins_with("Arm"):
-			pose.origin.z += (0.035 if key.ends_with("P") else -0.035) * arc
-		elif key == "Mount":
-			pose.origin.y += 0.039 * arc
-		piece.joint.transform = pose
-		piece.skin(t)
+		piece.set_progress(deployment_progress)
+	for i in tread_banks.size():
+		tread_banks[i].material.set_shader_parameter("distance_traveled", track_distance[i % 2] / length_factor)
 	var braced := smoothstep(0.06, 0.65, deployment_progress)
 	var vibration := sin((track_distance[0] + track_distance[1]) * 60.0) * _speed * (1.0 - braced)
 	var rocking := 0.007 * vibration
@@ -236,9 +262,18 @@ func _pose() -> void:
 	_aim_turret()
 
 func _aim_turret() -> void:
-	var desired_yaw := -angle_difference(heading, turret_heading)
+	var ring_yaw := -angle_difference(heading, turret_heading)
+	var desired_yaw := ring_yaw
 	var rest_basis := turret.basis
 	var current_mode := _shot_mode if _hold > 0.0 else (SIEGE if deployment_progress >= 0.5 else MOBILE)
+	# While the gun is being assembled, hold traverse on the ring. The stowed
+	# emitter and mobile opening are free to move around that world bearing.
+	var correction := 1.0
+	if _hold <= 0.0:
+		correction = smoothstep(0.83, 0.99, deployment_progress) if current_mode == SIEGE else 1.0 - smoothstep(0.01, 0.17, deployment_progress)
+	if correction == 0.0:
+		turret.basis = Basis(Vector3.UP, ring_yaw) * rest_basis
+		return
 	var port := _muzzle(current_mode)
 	var parent := turret.get_parent_node_3d()
 	var parent_to_actor := global_transform.affine_inverse() * parent.global_transform
@@ -264,7 +299,7 @@ func _aim_turret() -> void:
 		if absf(derivative) < 0.0001:
 			break
 		desired_yaw -= clampf(cross / derivative, -0.48, 0.48)
-	turret.basis = Basis(Vector3.UP, desired_yaw) * rest_basis
+	turret.basis = Basis(Vector3.UP, lerp_angle(ring_yaw, desired_yaw, correction)) * rest_basis
 
 func _muzzle(mode: String) -> Node3D:
 	return siege_muzzle if mode == SIEGE or (mode.is_empty() and deployment_progress >= 0.5) else mobile_muzzles[muzzle_index]
@@ -340,17 +375,17 @@ func destroy() -> void:
 		flash.hide()
 	wreck.vent = wreck.to_local(model_root.to_global(Vector3(-0.26, 0.25, 0)))
 	var roles: Dictionary = {}
-	var bank_meshes: Array[MeshInstance3D] = []
 	for section in sections:
-		for shell in [section.mobile_mesh, section.siege_mesh]:
-			if shell != null and shell.visible:
-				roles[shell] = String(section.joint.name)
-		if String(section.joint.name).begins_with("Track"):
-			bank_meshes.append(section.mobile_mesh if section.mobile_mesh.visible else section.siege_mesh)
+		var group := section.joint
+		while group != model_root and String(group.name) not in JOINTS:
+			group = group.get_parent_node_3d()
+		for mesh in section.meshes:
+			roles[mesh] = String(group.name)
 	wreck.begin(facing, roles, ground_height)
-	# Keep the actual tread shoes on their departing bank, at the locked wheel phase.
-	for i in bank_meshes.size():
-		tread_banks[i].renderer.reparent(bank_meshes[i].get_parent(), true)
+	for i in tracks.size():
+		var fragment := wreck.get_node_or_null(String(tracks[i].name) + "Fragment")
+		if fragment != null:
+			tread_banks[i].renderer.reparent(fragment, true)
 
 func is_finished() -> bool:
 	return wreck_age >= Wreck.WRECK_DURATION

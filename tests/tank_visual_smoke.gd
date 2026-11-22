@@ -71,21 +71,190 @@ func check_tracks_and_aim() -> void:
 
 func mesh_poses() -> Dictionary:
 	var poses := {}
-	for item in actor.find_children("*", "MeshInstance3D", true, false):
+	for item in actor.model_root.find_children("*", "MeshInstance3D", true, false):
 		if item.mesh != null and item.is_visible_in_tree():
 			poses[item] = item.global_transform
 	return poses
 
-func support_poses() -> Dictionary:
-	var poses := {}
-	for label in ["TrackFrontP", "TrackFrontN", "FootP", "FootN"]:
-		var joint := actor.find_child(label, true, false) as Node3D
-		if joint != null:
-			for mesh in joint.find_children("*", "MeshInstance3D", true, false):
-				if mesh.mesh != null and mesh.is_visible_in_tree():
-					poses[joint] = joint.global_transform
-					break
-	return poses
+# Observe the parts in model space so the battle camera's oblique projection
+# and the unit's screen scale are not mistaken for deformation.
+func rigid_mesh_state() -> Dictionary:
+	var state := {}
+	var world_to_model: Transform3D = actor.model_root.global_transform.affine_inverse()
+	for part in actor.model_root.find_children("*", "MeshInstance3D", true, false):
+		if not part.is_visible_in_tree() or part.mesh == null:
+			continue
+		var paint: Array[Material] = []
+		for i in part.mesh.get_surface_count():
+			paint.append(part.get_active_material(i))
+		var pose: Transform3D = world_to_model * part.global_transform
+		state[part] = {"mesh": part.mesh, "paint": paint, "pose": pose}
+	return state
+
+func remains_solid(initial: Dictionary, current: Dictionary) -> bool:
+	if initial.size() != current.size():
+		return false
+	for part in initial:
+		if not current.has(part) or part.get_blend_shape_count() > 0:
+			return false
+		var old: Dictionary = initial[part]
+		var now: Dictionary = current[part]
+		if now.mesh != old.mesh or now.paint != old.paint:
+			return false
+		var a: Basis = old.pose.basis
+		var b: Basis = now.pose.basis
+		# The Gram matrix preserves lengths and angles across every rigid rotation.
+		if not (a.transposed() * a).is_equal_approx(b.transposed() * b):
+			return false
+	return true
+
+func retraces_joints(outgoing: Dictionary, incoming: Dictionary) -> bool:
+	for part in outgoing:
+		if not incoming.has(part):
+			return false
+		var a: Transform3D = outgoing[part].pose
+		var b: Transform3D = incoming[part].pose
+		var separation := a.origin.distance_to(b.origin)
+		var yaw := a.basis.orthonormalized().get_rotation_quaternion().angle_to(b.basis.orthonormalized().get_rotation_quaternion())
+		if separation > 0.005 or yaw > 0.025:
+			return false
+	return true
+
+func mechanism_positions() -> Dictionary:
+	var motion := {}
+	for side in ["P", "N"]:
+		var sign_side := 1.0 if side == "P" else -1.0
+		for end in ["Front", "Rear"]:
+			var track: Node3D = actor.joints["Track" + end + side]
+			var axis: Vector3 = actor.hull.global_basis.inverse() * track.global_basis.x
+			motion["Track" + end + side] = atan2(axis.z, axis.x) * sign_side * (1.0 if end == "Front" else -1.0)
+		var slide: Node3D = actor.joints["Slide" + side]
+		motion["Slide" + side] = actor.hull.to_local(slide.global_position).z * sign_side
+		var pad := actor.model_root.find_child("Contact" + side, true, false) as Node3D
+		motion["Foot" + side] = actor.presentation.to_local(pad.global_position).y - actor.ground_height
+		motion["Sole" + side] = lowest_pad_vertex(actor.joints["Foot" + side]) - actor.ground_height
+		var cover: Node3D = actor.joints["Cover" + side]
+		motion["Cover" + side] = atan2(cover.basis.y.z, cover.basis.y.y)
+		for part in ["Rail", "Barrel"]:
+			var joint: Node3D = actor.joints[part + side]
+			motion[part + side] = actor.mount.to_local(joint.global_position).x
+		var front: Node3D = actor.joints["BayFront" + side]
+		var rear: Node3D = actor.joints["BayRear" + side]
+		motion["Doors" + side] = actor.hull.to_local(front.global_position).x - actor.hull.to_local(rear.global_position).x
+	var receiver: Node3D = actor.joints.CenterBarrel
+	motion["Receiver"] = actor.mount.to_local(receiver.global_position).x
+	motion["Tube"] = receiver.to_local(actor.siege_muzzle.global_position).x
+	var mount_axis: Vector3 = actor.turret.global_basis.inverse() * actor.mount.global_basis.x
+	motion["Elevation"] = atan2(mount_axis.y, Vector2(mount_axis.x, mount_axis.z).length())
+	return motion
+
+# Compare mechanical events by their measured halfway points, independent of easing.
+func halfway(path: Array[Dictionary], part: String) -> int:
+	var first: float = path.front()[part]
+	var delta: float = path.back()[part] - first
+	if absf(delta) > 0.001:
+		for i in path.size():
+			if (float(path[i][part]) - first) / delta >= 0.5:
+				return i
+	return -1
+
+func travel_at(path: Array[Dictionary], part: String, phase: float) -> float:
+	var at := roundi(phase * float(path.size() - 1))
+	var start: float = path.front()[part]
+	var end: float = path.back()[part]
+	return inverse_lerp(start, end, float(path[at][part]))
+
+func check_mechanisms(path: Array[Dictionary]) -> void:
+	var first: Dictionary = path.front()
+	var last: Dictionary = path.back()
+	check((last.CoverP - first.CoverP) * (last.CoverN - first.CoverN) < 0.0,
+		"The two covers should hinge away from the bore on opposite sides")
+	var receiver_frame := halfway(path, "Receiver")
+	check(last.Elevation - first.Elevation > 0.12 and last.Receiver > first.Receiver + 0.04
+			and last.Tube > first.Tube + 0.02 and halfway(path, "Tube") > receiver_frame,
+		"The gun should elevate and the tube should telescope forward within the deployed receiver")
+	check(travel_at(path, "Elevation", 0.55) < 0.04 and travel_at(path, "Receiver", 0.60) < 0.03
+			and travel_at(path, "Tube", 0.85) < 0.80 and travel_at(path, "Tube", 0.95) > 0.97,
+		"The planted chassis should hold while the mount elevates and the siege tube finishes its late extension")
+	for side in ["P", "N"]:
+		for end in ["Front", "Rear"]:
+			var name: String = "Track" + end + side
+			check(last[name] - first[name] > 0.18 and travel_at(path, name, 0.20) < 0.07
+					and travel_at(path, name, 0.50) > 0.97, name + " should swing out between the bay opening and pad contact")
+		var slide: String = "Slide" + side
+		var foot: String = "Foot" + side
+		var doors: String = "Doors" + side
+		var door_frame := halfway(path, doors)
+		var slide_frame := halfway(path, slide)
+		var grounded_frame := halfway(path, foot)
+		check(last[doors] > first[doors] + 0.02 and last[slide] > first[slide] + 0.025,
+			"Both bay doors should slide apart and expose their outrigger")
+		check(travel_at(path, doors, 0.25) > 0.80 and travel_at(path, slide, 0.25) > 0.50
+				and door_frame >= 0 and slide_frame > door_frame and grounded_frame > slide_frame
+				and first[foot] > last[foot] + 0.02 and absf(last[foot]) < 0.025,
+			"The carriage should extend through its open doors before the stabilizer pad lowers to ground")
+		var sole: String = "Sole" + side
+		var above_ground := true
+		var holds_ground := true
+		for i in path.size():
+			above_ground = above_ground and float(path[i][sole]) >= -0.001
+			if float(i) / (path.size() - 1) >= 0.57:
+				holds_ground = holds_ground and absf(float(path[i][sole])) < 0.002
+		check(above_ground and holds_ground and path[roundi(0.50 * (path.size() - 1))][sole] > 0.003,
+			"The actual shoe should clear the ground on approach, plant near 55%, then remain planted through gun deployment")
+		var shell: String = "Barrel" + side
+		var rail: String = "Rail" + side
+		var cover: String = "Cover" + side
+		check(first[shell] - last[shell] > 0.02 and absf(last[cover] - first[cover]) > 0.20
+				and travel_at(path, cover, 0.40) < 0.015 and travel_at(path, cover, 0.60) > 0.50,
+			"The mobile barrel should retract and its rigid cover should hinge open")
+		var rail_frame := halfway(path, rail)
+		check(last[rail] > first[rail] + 0.02
+				and halfway(path, cover) < rail_frame and halfway(path, shell) < rail_frame and receiver_frame > halfway(path, cover),
+			"The rails and siege bore should advance after the mobile shrouds clear their path")
+
+func check_rigid_cycle() -> void:
+	for side in ["P", "N"]:
+		for prefix in ["TrackFront", "TrackRear", "Slide", "BayFront", "BayRear", "Cover", "Barrel", "Rail"]:
+			if not actor.joints.has(prefix + side):
+				check(false, "Expected rigid mechanical joint " + prefix + side)
+				return
+	var skill: Dictionary = game.sim.catalog.mortar.skills.deployment
+	var samples := 30
+	var states: Array[Dictionary] = [rigid_mesh_state()]
+	var motion: Array[Dictionary] = [mechanism_positions()]
+	var solid := not states[0].is_empty()
+	actor.set_deployed(true)
+	for i in samples:
+		actor.advance(float(skill.deploy_seconds) / samples, actor.heading, 0.0, actor.turret_heading)
+		var current := rigid_mesh_state()
+		solid = solid and remains_solid(states[0], current)
+		states.append(current)
+		motion.append(mechanism_positions())
+	check_mechanisms(motion)
+	check(is_equal_approx(actor.deployment_progress, 1.0), "Timed deployment should reach the siege pose")
+	actor.set_deployed(false)
+	var reversed := true
+	for i in samples:
+		actor.advance(float(skill.pack_seconds) / samples, actor.heading, 0.0, actor.turret_heading)
+		var current := rigid_mesh_state()
+		solid = solid and remains_solid(states[0], current)
+		reversed = reversed and retraces_joints(states[samples - i - 1], current)
+	check(solid, "Deployment and packing must retain the same visible rigid geometry and surfaces")
+	check(reversed and is_zero_approx(actor.deployment_progress), "Packing should reverse the physical joint sequence to its mobile pose")
+
+func lowest_pad_vertex(foot: Node3D) -> float:
+	var lowest := INF
+	var world_to_facing: Transform3D = actor.facing.global_transform.affine_inverse()
+	for shoe in foot.find_children("*", "MeshInstance3D", true, false):
+		if not shoe.is_visible_in_tree() or shoe.mesh == null:
+			continue
+		var space: Transform3D = world_to_facing * shoe.global_transform
+		for surface in shoe.mesh.get_surface_count():
+			var vertices: PackedVector3Array = shoe.mesh.surface_get_arrays(surface)[Mesh.ARRAY_VERTEX]
+			for vertex in vertices:
+				lowest = minf(lowest, (space * vertex).y)
+	return lowest
 
 func check_deployment() -> void:
 	var data: Dictionary = game.sim.catalog.mortar.skills.deployment
@@ -120,25 +289,18 @@ func check_deployment() -> void:
 	tank.siege_state = "mobile"
 	frames()
 	check(is_zero_approx(actor.deployment_progress), "Packing should finish at the mobile endpoint")
-	var mobile := support_poses()
 	transition("deploying", deploy_seconds)
 	var duration := roundi(deploy_seconds / DT)
-	frames(floori(duration * 0.5))
-	var middle := support_poses()
-	frames(duration - floori(duration * 0.5))
+	frames(duration)
 	tank.siege_state = "deployed"
 	frames()
 	check(is_equal_approx(actor.deployment_progress, 1.0), "Complete deployment should reach the siege endpoint")
-	var deployed := support_poses()
-	var articulated := 0
-	for part in mobile:
-		if middle.has(part) and deployed.has(part) and not mobile[part].is_equal_approx(middle[part]) and not middle[part].is_equal_approx(deployed[part]):
-			articulated += 1
 	for sign_name in ["P", "N"]:
 		var pad: Node3D = actor.model_root.find_child("Contact" + sign_name, true, false)
 		var pad_height: float = actor.presentation.to_local(pad.global_position).y
-		check(absf(pad_height - actor.ground_height) < 0.025, "A deployed stabilizer pad should reach the ground plane")
-	check(articulated == 4, "Both real front track banks and both stabilizer feet should articulate through deployment")
+		var sole := lowest_pad_vertex(actor.joints["Foot" + sign_name])
+		check(absf(pad_height - actor.ground_height) < 0.025 and absf(sole - actor.ground_height) < 0.025,
+			"The physical underside of each load-bearing shoe should reach the ground plane")
 
 func shoot(mode: String) -> void:
 	var catalog: Dictionary = game.sim.catalog.mortar
@@ -228,7 +390,7 @@ func check_wreck(state: String) -> void:
 		if wreck.is_ancestor_of(part):
 			fragments[part] = live[part]
 			check(part.global_transform.is_equal_approx(live[part]), state + " death should start from the current part pose")
-	check(fragments.size() >= 5, state + " death should release multiple original tank parts")
+	check(fragments.size() == live.size() and fragments.size() >= 5, state + " death should preserve every visible rigid part in the wreck")
 	frames(12)
 	var scattered := 0
 	for part in fragments:
@@ -265,6 +427,7 @@ func run() -> void:
 		var first: int = actor.muzzle_index
 		shoot("mobile_cannon")
 		check(first != actor.muzzle_index, "Consecutive mobile cannon strikes should use alternating barrels")
+		check_rigid_cycle()
 		check_deployment()
 		shoot("siege_cannon")
 		check_wreck("deployed")
@@ -275,6 +438,15 @@ func run() -> void:
 			check_visibility()
 			actor = host.tanks.entries[tank.id].actor
 			check_wreck("mobile")
+		tank.id += 1
+		if spawn():
+			var skill: Dictionary = game.sim.catalog.mortar.skills.deployment
+			transition("deploying", skill.deploy_seconds)
+			frames(roundi(skill.deploy_seconds / DT * 0.7))
+			transition("packing", skill.pack_seconds)
+			frames(2)
+			check(actor.deployment_progress > 0.1 and actor.deployment_progress < 0.9, "The interrupted tank should retain its articulated pose before destruction")
+			check_wreck("mid-packing")
 		check(host.viewport.render_target_update_mode == SubViewport.UPDATE_DISABLED, "An empty battlefield should release the shared render target")
 	host.reset()
 	host.free()

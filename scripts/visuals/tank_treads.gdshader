@@ -2,29 +2,25 @@ shader_type spatial;
 render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
 uniform sampler2D shoe_path : filter_linear, repeat_enable;
 uniform float distance_traveled;
-uniform float deployment;
-uniform vec2 perimeter;
-uniform vec2 belt_width;
+uniform float perimeter;
+uniform float belt_width;
 uniform float shoe_count;
 uniform float coverage = 1.0;
 varying vec3 pad;
 varying float steel_link;
 
 vec3 on_path(float t) {
-	return mix(textureLod(shoe_path,vec2(t,0.25),0.0).xyz,
-			textureLod(shoe_path,vec2(t,0.75),0.0).xyz,deployment);
+	return textureLod(shoe_path, vec2(t, 0.5), 0.0).xyz;
 }
 void vertex() {
-	float loop_length = mix(perimeter.x,perimeter.y,deployment);
-	// Keep the same shoe phase when the stationary suspension changes its footprint.
-	float t = (float(INSTANCE_ID)+0.5)/shoe_count + distance_traveled/perimeter.x;
+	float t = (float(INSTANCE_ID)+0.5)/shoe_count + distance_traveled/perimeter;
 	vec3 center = on_path(t);
 	vec3 tangent = normalize(on_path(t+0.004)-on_path(t-0.004));
 	vec3 side = normalize(vec3(0,0,1)-tangent*tangent.z);
 	vec3 normal = normalize(cross(side,tangent));
 	mat3 frame = mat3(tangent,normal,side);
 	pad = VERTEX;
-	vec3 dimensions = vec3(loop_length/shoe_count*0.81,0.009,mix(belt_width.x,belt_width.y,deployment));
+	vec3 dimensions = vec3(perimeter/shoe_count*0.81,0.009,belt_width);
 	VERTEX = center + normal * 0.0018 + frame*(VERTEX*dimensions);
 	NORMAL = normalize(frame*NORMAL);
 	steel_link = mod(float(INSTANCE_ID),6.) < 0.5 ? 1.0 : 0.0;
