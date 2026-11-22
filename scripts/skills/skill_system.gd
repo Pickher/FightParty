@@ -7,6 +7,7 @@ const TYPES := {
 	"shield_armor_buff":preload("res://scripts/skills/shield_armor_buff.gd"),
 	"weapon_buff":preload("res://scripts/skills/weapon_buff.gd"),
 	"mobile_attack":preload("res://scripts/skills/mobile_attack.gd"),
+	"strafe_attack":preload("res://scripts/skills/strafe_attack.gd"),
 	"independent_weapons":preload("res://scripts/skills/independent_weapons.gd"),
 	"deployment":preload("res://scripts/skills/deployment.gd"),
 	"defender_zone":preload("res://scripts/skills/defender_zone.gd"),

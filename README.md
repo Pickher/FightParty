@@ -8,13 +8,15 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.12.3**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.12.4**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
 
 当前玩法规则见 [游戏设计](docs/DESIGN.md)，兵种数值见 [兵种数值总表](docs/UNIT_TABLE.md)，已有测试结果见 [测试报告](docs/TEST_REPORT.md)，不代表当前特性分支已验收。需要用户安排验证时，可用一条命令执行检查（见第十一节）；日常代码修改不自动运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_win64_console.exe'
 ```
+
+0.12.4：拦截机接收母舰作战目标，通过独立「掠袭射击」组件变换航线、飞过目标并移动开火，无目标时返航随舰。保留已有载机数量、伤害与攻击周期，Excel 同步新增航线参数。行为及未执行的验收项见 [航母掠袭](docs/CARRIER_STRAFING.md)。未运行游戏、测试、模拟或打包。
 
 0.12.3：整合医疗运输机逻辑及旧阵容迁移，同时保留 0.12.2 混编行军与 U04 界面待设计事项。医疗运输机暂代人族医疗兵，850 矿/2 架，空中机械、避战、双束治疗生物友军；原医疗兵仅停用，代码保留。部分继承数值尚待确认，当前美术仅为占位轮廓。来源、临时参数和验证边界见 [医疗运输机](docs/MEDIVAC.md)。未运行游戏、测试或打包。
 
