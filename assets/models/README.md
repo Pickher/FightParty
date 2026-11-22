@@ -17,3 +17,5 @@
 当前大和舰模型为 [battlecruiser.glb](battlecruiser/battlecruiser.glb)，四组实时三维动作及预览见 [美术规范](../../docs/unit-art-spec.md#大和舰实时三维动画)。
 
 雷神源模型位于 `thor/`：用户提供的[雷神拓扑模型](thor/thor.glb)用于机体，[雷神火箭模型](thor/thor_rocket.glb)用于火箭。两个 GLB 均未包含纹理图片，也未引用外置贴图，可直接供云端开发读取；战场接入与动画制作后续进行。
+
+掠夺者（游戏配置名称为“劫掠者”，单位 ID 为 `marauder`）源模型位于 [marauder.glb](marauder/marauder.glb)，由用户提供。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
