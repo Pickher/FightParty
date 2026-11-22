@@ -1,18 +1,6 @@
 extends "res://scripts/visuals/thor_wreck.gd"
 ## A ruptured rear engine vents first. The magazine throws the turret from its ring.
-const ExchangeShader = preload("res://scripts/visuals/tank_shell.gdshader")
 var vent := Vector3.ZERO
-
-func _scorch(part: Piece) -> void:
-	# Each travelling shell already owns paint with a solid cut at its current seam.
-	# Keep that cut (and the original atlas) throughout ejection and screen-door fade.
-	for node in part.meshes:
-		for surface in node.mesh.get_surface_count():
-			var paint := node.get_active_material(surface) as ShaderMaterial
-			if paint != null and paint.shader == ExchangeShader:
-				paint.set_shader_parameter("damage", 1.0)
-				_paint_cache[paint] = paint
-	super._scorch(part)
 
 func _emit_core(center: Vector3) -> void:
 	_add_burst(Effect.FLASH, vent, -_forward * 0.055, 0.0, 0.14, 0.32, 0.31, Color("ffd478"))
