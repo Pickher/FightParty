@@ -24,8 +24,6 @@ static func advance(sim, frame: Dictionary) -> void:
 	var active: Array = []
 	var start_time: float = float(sim.tick-1)/float(sim.rules.tick_rate)
 	var end_time: float = float(sim.tick)/float(sim.rules.tick_rate)
-	var margin := 0.0
-	for unit in sim.units:margin=maxf(margin,unit.pos.distance_to(frame.moves.get(unit.id,unit.pos)))
 	# 不同弹速可使后发先至；同刻用递增ID保证确定的结算顺序。
 	sim.projectiles.sort_custom(func(a,b):return int(a.id)<int(b.id) if float(a.impact_time)==float(b.impact_time) else float(a.impact_time)<float(b.impact_time))
 	for projectile in sim.projectiles:
@@ -54,7 +52,6 @@ static func advance(sim, frame: Dictionary) -> void:
 		shot.impact_position=projectile.goal
 		shot.impact_fraction=fraction
 		shot.impact_time=projectile.impact_time
-		shot.motion_margin=margin
 		shot.damage_multiplier=projectile.damage_multiplier
 		shot.impact_skills=projectile.impact_skills
 		shot.weapon=projectile.weapon

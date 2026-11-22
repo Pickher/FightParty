@@ -5,6 +5,7 @@
 extends RefCounted
 ## 独立的固定步战斗模拟：不依赖场景节点或渲染器。
 const Economy = preload("res://scripts/economy/desert_storm_economy.gd")
+const WaveMarch = preload("res://scripts/skills/services/wave_march.gd")
 const FormationLayout = preload("res://scripts/formation_layout.gd")
 const Catalog = preload("res://scripts/catalog.gd")
 const Unit = preload("res://scripts/units/unit.gd")
@@ -19,6 +20,7 @@ const SlowService = preload("res://scripts/skills/services/slow_service.gd")
 const AreaService = preload("res://scripts/skills/services/area_service.gd")
 const SummonService = preload("res://scripts/skills/services/summon_service.gd")
 var skill_system = SkillSystem.new()
+var wave_march := WaveMarch.new()
 var skill_areas: Array = []
 var spawn_queue: Array = []
 var pending_effects: Array = []
@@ -521,6 +523,7 @@ func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 		catalog[kind] = definitions[kind].to_data()
 	var instance = Unit.new(definitions[kind], next_id, team, pos, tick)
 	var unit: Dictionary = instance.state
+	unit.wave_id = wave
 	if kind == "adept":
 		unit.adept_tactic = adept_tactics[team]
 	unit_instances[next_id] = instance
@@ -776,13 +779,18 @@ func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> b
 		return false
 	return true if bool(unit.get("projectile",false)) else skill_system.can_target(self,unit,other)
 
+func discovery_range(unit: Dictionary, weapon: Dictionary) -> float:
+	var reach := float(weapon.range)
+	if bool(weapon.get("range_from_edge",false)):
+		reach += body_radius(unit) + max_body_radius
+	return skill_system.discovery_radius(self,unit,reach * 1.5)
+
 ## 发现范围是自身射程的 150%；尚未开火时，每步重新选择追击目标。
 ## 开火后优先保持目标，直到其死亡、撤离或离开攻击范围；0 表示尚未锁定。同距时以稳定 ID 决定。
 func _target(unit: Dictionary) -> Dictionary:
 	var weapon := _search_stats(unit)
 	var reach := float(weapon.range)
-	var discovery: float = reach+body_radius(unit)+max_body_radius if bool(weapon.get("range_from_edge",false)) else reach
-	var radius: float = skill_system.discovery_radius(self,unit,discovery*1.5)
+	var radius := discovery_range(unit,weapon)
 	var locked = by_id.get(unit.locked_target_id)
 	if locked != null and locked.team != unit.team and locked.hp > 0 and _can_hit_unit(unit,locked,weapon):
 		if unit.pos.distance_to(locked.pos) <= attack_reach(unit,locked,_weapon_stats(unit)):
@@ -983,21 +991,35 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 		var multiplier: float = float(ctx.get("damage_multiplier",1.0))
 		if victim.id!=target.id:
 			multiplier*=WeaponDefinition.splash_damage_multiplier(weapon,distance)
-		var raw: float = raw_damage(weapon,victim.kind)*multiplier
-		if raw<=0:continue
-		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
-		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier,int(unit.id) if victim.id==target.id else 0)
-		damage_done[int(unit.team)]+=amount
-		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
-		if ctx.has("impact_skills"):
-			skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
-		else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
+		queue_strike_hit(ctx, weapon, victim, strike, multiplier, victim.id == target.id)
+
+## 对单个实际命中的单位结算一次伤害和命中技能，由投送方式决定哪些单位命中。
+func queue_strike_hit(ctx: Dictionary, weapon: Dictionary, victim: Dictionary, strike: int, multiplier: float, direct: bool) -> void:
+	var unit: Dictionary = ctx.unit
+	var raw := raw_damage(weapon, victim.kind) * multiplier
+	if raw <= 0.0:
+		return
+	var amount := expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
+	queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier,int(unit.id) if direct else 0)
+	damage_done[int(unit.team)]+=amount
+	events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
+	if ctx.has("impact_skills"):
+		skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
+	else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
 
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
 	if tick<int(unit.get("root_until_tick",0)):return 0.0
 	if unit_model(unit).blocks_movement() and not skill_system.moves_while_attacking(unit): return 0.0
 	return definitions[unit.kind].speed * skill_system.movement_multiplier(self,unit) * SlowService.speed_multiplier(unit,tick)
+
+## 武器或进攻技能处于交战时保留一次短暂记录，依附子机的作战也归属母舰。
+func mark_engaged(unit: Dictionary) -> void:
+	unit.last_engaged_tick = tick
+	if bool(unit.get("owner_dependent", false)):
+		var parent = by_id.get(unit.get("owner_id", 0))
+		if parent != null:
+			parent.last_engaged_tick = tick
 
 ## 普通行军/追击另受编队限速；基础增益、减速、定身和攻击锁仍由原接口处理。
 func _march_speed(unit: Dictionary) -> float:
@@ -1044,9 +1066,12 @@ func step() -> Array:
 	var base_hits: Array = [0.0, 0.0]
 	skill_system.incoming_slows=pending_slows
 	var frame := {"sim":self,"dt":dt,"hits":hits,"heals":heals,"shield_gains":shield_gains,"moves":moves,"self_costs":self_costs,"base_hits":base_hits,"pending_slows":pending_slows,"motion":motion}
+	var form_changes: Dictionary = {}
+	frame.form_changes = form_changes
 	skill_system.frame(frame)
 	StatusService.tick(self,dt,hits)
 	BaseDefense.fire(self, frame)
+	wave_march.prepare(self)
 	for unit in units:
 		var ctx: Dictionary = frame.duplicate()
 		ctx.unit=unit
@@ -1082,6 +1107,10 @@ func step() -> Array:
 		ctx.goal=goal
 		ctx.distance=distance
 		ctx.reach=reach
+		# 包含靠拦截机或伤害技能作战的单位。纯治疗和超出武器射程的寻敌不算交火。
+		if distance <= reach and ((not target.is_empty() and target.team == enemy) or (attacking_base and bool(stats.attacks_base))):
+			if float(stats.damage) > 0 or skill_system.contributes_damage(unit):
+				mark_engaged(unit)
 		skill_system.before_action(ctx)
 		_tick_attack_clock(unit,dt)
 		if not ctx.can_act or ctx.handled:
@@ -1117,6 +1146,13 @@ func step() -> Array:
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _march_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 		skill_system.after_action(ctx)
+	# 空间桶保存步初位置；瞬发范围武器和弹体还需搜索可能在步内移进范围的单位。
+	var motion_margin := 0.0
+	for id in moves:
+		var moving = by_id.get(id)
+		if moving != null:
+			motion_margin = maxf(motion_margin, moving.pos.distance_to(moves[id]))
+	frame.motion_margin = motion_margin
 	AttackSequences.advance(self,frame)
 	AttackTypes.advance(self,frame)
 	AreaService.advance(self,dt,moves,hits,base_hits)
@@ -1161,6 +1197,11 @@ func step() -> Array:
 		if unit.hp > 0:
 			unit_model(unit).restore(dt, tick, float(rules.tick_rate))
 			skill_system.survived({"sim":self,"unit":unit,"dt":dt})
+			# 在旧形态结算完本步受伤后再变形，两个阵营的索敌和护甲判定均取步初值。
+			if form_changes.has(unit.id):
+				var new_kind: String = form_changes[unit.id]
+				unit_model(unit).change_form(definitions[new_kind])
+				skill_system.attach(self,unit)
 			alive.append(unit)
 		elif is_structure(unit):
 			# 结构体不计击杀；宝库奖励灵核，同一座宝库只会死亡一次。

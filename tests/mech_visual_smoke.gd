@@ -2,6 +2,7 @@
 extends SceneTree
 
 const SharedView = preload("res://scripts/visuals/medivac_3d.gd")
+const HellionLayer = preload("res://scripts/visuals/hellion_layer.gd")
 const Hellbat = preload("res://scripts/visuals/hellbat_actor.gd")
 const MECH_RIG := "res://assets/models/hellbat_mech/hellbat_mech_rig.glb"
 const CAR_RIG := "res://assets/models/hellbat/hellion_rig.glb"
@@ -15,6 +16,7 @@ class FixtureGame:
 	var setup_open := false
 	var economy_open := false
 	var formation_panel := {"opened": false}
+	var medivac_visual
 	var accumulator := 0.025
 	var fog := true
 	var window := Rect2(0, 0, 40, 24)
@@ -279,6 +281,56 @@ func check_grenades(layer, actor) -> void:
 	game.sim.projectiles.clear()
 	game.fog = false
 
+
+func check_battle_morph() -> void:
+	var layer = host.hellbat_mechs
+	var travel := HellionLayer.new()
+	travel.initialize(host)
+	game.medivac_visual = host
+	var unit := {"id":21, "kind":"hellbat", "team":0, "prev":Vector2(5,5), "pos":Vector2(5,5)}
+	game.sim.units = [unit]
+	game.sim.by_id = {21:unit}
+	game.sim.tick = 100
+	host.sync(view, 0.05)
+	travel.sync_shared(view, host, 0.05)
+	check(travel.has_model(21) and not layer.has_model(21), "A travelling Hellion uses the vehicle rig")
+	unit.morph_start_tick = 100
+	unit.morph_end_tick = 140
+	game.sim.tick = 101
+	game.accumulator = 0.0
+	host.sync(view, 0.05)
+	travel.sync_shared(view, host, 0.05)
+	if not layer.has_model(21):
+		check(false, "The transforming vehicle should be owned by the articulated rig")
+		return
+	var actor = layer.entries[21].actor
+	check(is_equal_approx(actor.vehicle_progress, 1.0) and not travel.has_model(21),
+		"At contact exactly one finished vehicle hull should be visible for this ID")
+	game.sim.tick = 121
+	host.sync(view, 0.05)
+	check(is_equal_approx(actor.vehicle_progress, 0.5), "Half of the gameplay interval should unfold half the rig")
+	game.window = Rect2(25,13,12,10)
+	host.sync(view, 0.0)
+	check(not layer.has_model(21), "The transforming rig should be culled outside the camera")
+	game.window = Rect2(0,0,40,24)
+	host.sync(view, 0.0)
+	actor = layer.entries[21].actor
+	check(is_equal_approx(actor.vehicle_progress, 0.5), "Reentering the view must recover the current pose")
+	unit.kind = "hellbat_mech"
+	unit.erase("morph_start_tick")
+	unit.erase("morph_end_tick")
+	game.sim.tick = 140
+	host.sync(view, 0.05)
+	check(actor == layer.entries[21].actor and is_zero_approx(actor.vehicle_progress),
+		"The same combat actor should stand on its feet as the gameplay form changes")
+	host.events([{"type":"cone_attack","kind":"hellbat_mech","source_id":21,"team":0,
+		"from":unit.pos + Vector2.RIGHT * 0.75,"to":unit.pos + Vector2.RIGHT * 2.75,
+		"angle_degrees":45.0,"time":7.0}],{})
+	check(actor.flame != null and actor.flame.is_visible_in_tree(), "The actual cone event should fire the rig nozzle")
+	host.events([{"type":"death","id":21,"team":0,"pos":unit.pos}],{})
+	check(not host.has_model(21) and actor.wreck != null, "The combat actor should break from its final pose")
+	travel.reset()
+
 func run() -> void:
 	game.sim.catalog = JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json")).units
 	game.sim.units = [shooter, enemy, aircraft]
@@ -321,6 +373,7 @@ func run() -> void:
 		var tanks := [mech.tanks[0].global_position, mech.tanks[1].global_position]
 		mech.destroy()
 		check_wreck(mech, tanks, "Hellbat")
+	check_battle_morph()
 	host.reset()
 	host.free()
 	if failures == 0:

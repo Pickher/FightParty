@@ -60,6 +60,7 @@ func _init() -> void:
 	view_fields=["yamato_target","yamato_fire_tick","yamato_ready_tick"]
 func before_target(ctx: Dictionary) -> bool:
 	if not step(ctx.sim,owner,ctx.hits):return false
+	ctx.sim.mark_engaged(owner)
 	ctx.sim._tick_attack_clock(owner,ctx.dt)
 	return true
 

@@ -30,6 +30,7 @@ func cast(sim, unit: Dictionary) -> bool:
 	else:
 		if not pay_energy(sim): return false
 		Areas.launch(sim,unit,chosen.pos,config)
+	if contributes_damage():sim.mark_engaged(unit)
 	state.area_ready_tick=sim.tick+ceili(float(config.cooldown)*float(sim.rules.tick_rate))
 	if float(config.get("channel_seconds",0))>0:
 		unit.root_until_tick=maxi(int(unit.get("root_until_tick",0)),sim.tick+ceili(float(config.channel_seconds)*float(sim.rules.tick_rate)))

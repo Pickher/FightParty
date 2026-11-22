@@ -30,6 +30,23 @@ func _init(template: UnitDefinition, unit_id: int, team: int, point: Vector2, ti
 		"attack_target_id":0, "attack_weapon_id":"", "attack_interval":0.0}
 	state.merge(AttackCycle.create(),true)
 
+## 同一实体更换模板。保留伤势比例、外部状态及别人锁定的 ID。
+func change_form(template: UnitDefinition) -> void:
+	var health_ratio := hp / definition.max_hp
+	var previous_serial := int(state.attack_serial)
+	definition = template
+	state.kind = template.kind
+	hp = health_ratio * template.max_hp
+	state.shield = minf(shield, template.max_shield)
+	state.energy = minf(energy, template.max_energy)
+	state.merge(AttackCycle.create(), true)
+	# 旧武器未发射的段作废，已飞出的弹体继续使用发射时的快照。
+	state.attack_serial = previous_serial
+	state.attack_cancelled_through = previous_serial
+	state.erase("attack_blocked_this_frame")
+	state.erase("engage_id")
+	state.erase("beam_state")
+
 func has_tag(tag: String) -> bool:
 	return definition.has_tag(tag)
 

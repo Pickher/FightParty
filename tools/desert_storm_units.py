@@ -13,11 +13,11 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT/'reference/desert-storm/Base.SC2Data/GameData'
 # These packs have editable FightParty group prices. Map resources are per unit.
-PROJECT_PACKS = {'rifle', 'zergling', 'roach', 'hydralisk'}
+PROJECT_PACKS = {'rifle', 'hellbat', 'zergling', 'roach', 'hydralisk'}
 PACK_COUNT_SOURCE = 'FightParty 试玩平衡：每组数量由兵种配置指定'
 PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
- 'rifle':'Marine', 'hellbat':'Hellion', 'marauder':'Marauder', 'medic':'Medic',
+ 'rifle':'Marine', 'hellbat':'Hellion', 'hellbat_mech':'Hellbat', 'marauder':'Marauder', 'medic':'Medic',
  'agent':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter',
  'liberator':'Liberator', 'thor':'Thor', 'battlecruiser':'Battlecruiser',
  'zergling':'Zergling','baneling':'Baneling','roach':'Roach','hydralisk':'Hydralisk',
@@ -32,6 +32,7 @@ UNIT_IDS = {
 MODES = {
  'rifle': [('gauss_rifle','GuassRifle','GuassRifle')],
  'hellbat':[('flame_jet','InfernalFlameThrower','InfernalFlameThrower')],
+ 'hellbat_mech':[('napalm_spray','HellionTank','HellionTankDamage')],
  'marauder':[('concussive_grenade','PunisherGrenades','PunisherGrenadesU')],
  'agent':[('armor_piercing','C10CanisterRifleFake','C10CanisterRifle')],
  'mortar':[('mobile_cannon','90mmCannons','90mmCannons'),('siege_cannon','CrucioShockCannon','CrucioShockCannonDirected')],
@@ -237,6 +238,32 @@ def apply():
  })
  audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='adept' or item['path'] not in adept_fields]
  pending('adept','skills/psionic_transfer/shade_speed','主包投影基础速度2.9531，按 Void 行为加成1.75 暂取4.7031格/秒。间接依赖是否改写该加成待确认。')
+ # The ordinary Hellbat equips weapon HellionTank. The unit with that second ID is a different variant.
+ hellbat_fields=audit['units']['hellbat_mech']['fields']
+ hellbat_fields.update({
+  'spawn_count':'MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台',
+  'speed':'Swarm/UnitData/HellionTank/Speed=2.25（游戏秒）',
+  'energy':'Hellbat、HellionTank 及 Core/CUnit 均未设置能量池，使用 SC2 单位缺省值 0',
+  'size':'Swarm/UnitData/HellionTank/Radius=0.625，模型宽高按直径填写',
+  'collision_radius':'Swarm/UnitData/HellionTank/SeparationRadius=0.75',
+  'armor_type':'GameStrings/Button/Tooltip/DSSupplyDepot1 轻甲',
+  'tags':'Swarm/UnitData/HellionTank 的 Mechanical 及 Void/UnitData/HellionTank 的 Biological；GameStrings/DSSupplyDepot1 及 TechAliasArray[4]=1 表示冲击性',
+  'attack_modes/0/target_layers':'Hellbat/WeaponArray → HellionTank；HellionTankSearch 的地面目标过滤',
+  'attack_modes/0/range':'Swarm/WeaponData/HellionTank/Range=2',
+  'attack_modes/0/hit_count':'Swarm/EffectData/HellionTank → HellionTankDamage 主目标一次，HellionTankSearch 排除主目标',
+  'attack_modes/0/attack_duration':'Core/WeaponData/DamagePoint=0.167，映射为一次出手',
+  'attack_modes/0/backswing':'Core/WeaponData/Backswing=0.5',
+  'attack_modes/0/interval':'Void/WeaponData/HellionTank/Period=2游戏秒，扣除0.167出手和0.5后摇',
+  'attack_modes/0/delivery/angle_degrees':'Void/EffectData/HellionTankSearch/AreaArray@Arc=45',
+  'attack_modes/0/delivery/length':'Void/EffectData/HellionTankSearch/AreaArray@Radius=2',
+ })
+ audit['units']['hellbat']['fields'].update({
+  'skills/proximity_morph/target_kind':'FightParty 接敌变形；目标来自 AbilData/MorphToHellionTank → Hellbat',
+  'skills/proximity_morph/duration':'AbilData/MorphToHellionTank；升级 SmartServos 后变形2游戏秒',
+  'skills/proximity_morph/escort_speed':'FightParty 随队行军速度上限；增援前线时使用车型基础移速',
+  'tags':'机械车型继承 UnitData/Hellion；具有原图变形恶火 HellionMorph/TechAliasArray[4]=1 的冲击性',
+ })
+ audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='hellbat_mech' or item['path'] not in hellbat_fields]
  # Post-morph armor must be applied at damage settlement, not only recorded in a sheet.
  armor=cat.scalar('UnitData','SiegeTankSieged','LifeArmor')
  write('mortar','skills/deployment/armor_override',armor,'UnitData/SiegeTankSieged/LifeArmor')
