@@ -1,0 +1,64 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/art/mech_actions.gd" id="1"]
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 1
+background_color = Color(0.067, 0.100, 0.135, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.83, 0.88, 0.93, 1)
+ambient_light_energy = 0.7
+
+[sub_resource type="StandardMaterial3D" id="FloorMat"]
+albedo_color = Color(0.085, 0.13, 0.175, 1)
+roughness = 0.94
+
+[sub_resource type="PlaneMesh" id="FloorMesh"]
+material = SubResource("FloorMat")
+size = Vector2(24, 24)
+
+[sub_resource type="StandardMaterial3D" id="GridMat"]
+shading_mode = 0
+albedo_color = Color(0.20, 0.25, 0.29, 1)
+
+[node name="MechActions" type="Node3D"]
+script = ExtResource("1")
+grid_material = SubResource("GridMat")
+
+[node name="World" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Camera" type="Camera3D" parent="."]
+projection = 1
+current = true
+
+[node name="Key" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-47, -33, 0)
+light_energy = 1.15
+shadow_enabled = true
+directional_shadow_max_distance = 10.0
+
+[node name="Fill" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-28, 132, 0)
+light_color = Color(0.63, 0.77, 0.90, 1)
+light_energy = 0.6
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("FloorMesh")
+cast_shadow = 0
+
+[node name="Overlay" type="Node2D" parent="."]
+
+[node name="Controls" type="CanvasLayer" parent="."]
+
+[node name="Toolbar" type="HBoxContainer" parent="Controls"]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_right = 0.5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -68
+offset_bottom = -16
+grow_horizontal = 2
+theme_override_constants/separation = 12
+alignment = 1

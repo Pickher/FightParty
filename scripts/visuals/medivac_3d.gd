@@ -1,7 +1,9 @@
 extends Node
+const RigBounds = preload("res://scripts/visuals/rig_bounds.gd")
 ## Presentation only. One shared transparent world; no physics or simulation writes.
 const BattlecruiserLayer = preload("res://scripts/visuals/battlecruiser_layer.gd")
 const ThorLayer = preload("res://scripts/visuals/thor_layer.gd")
+const MarauderLayer = preload("res://scripts/visuals/marauder_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
 const MAX_LIVE := 32
@@ -10,6 +12,7 @@ const MAX_TARGET_EDGE := 1024
 var game
 var battlecruisers = BattlecruiserLayer.new()
 var thors = ThorLayer.new()
+var marauders = MarauderLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
 var scene: Node3D
@@ -36,7 +39,11 @@ func _ready() -> void:
 	var walker_bounds := _model_bounds(walker)
 	if maxf(walker_bounds.size.x, walker_bounds.size.z) < 0.0001:
 		walker = null
-	if packed == null and flagship == null and walker == null:return
+	var infantry: PackedScene = load(MarauderLayer.MODEL_PATH) as PackedScene if ResourceLoader.exists(MarauderLayer.MODEL_PATH) else null
+	var infantry_bounds := _model_bounds(infantry)
+	if maxf(infantry_bounds.size.x, infantry_bounds.size.z) < 0.0001:
+		infantry = null
+	if packed == null and flagship == null and walker == null and infantry == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -69,26 +76,14 @@ func _ready() -> void:
 	scene.add_child(light)
 	battlecruisers.configure(scene, flagship, flagship_bounds)
 	thors.configure(scene, walker, walker_bounds)
+	marauders.configure(scene, infantry, infantry_bounds)
 	ready_model=true
 
 func _model_bounds(resource: PackedScene) -> AABB:
-	if resource == null:
-		return AABB()
-	var probe := resource.instantiate()
-	var boxes: Array = []
-	_collect_bounds(probe, Transform3D.IDENTITY, boxes)
-	probe.free()
-	if boxes.is_empty():
-		return AABB()
-	var box: AABB = boxes[0]
-	for part in boxes:
-		box = box.merge(part)
-	return box
+	return RigBounds.from_scene(resource)
 
 func _collect_bounds(node: Node, parent: Transform3D, boxes: Array) -> void:
-	var transform: Transform3D = parent*(node.transform if node is Node3D else Transform3D.IDENTITY)
-	if node is MeshInstance3D and node.mesh!=null:boxes.append(transform*node.get_aabb())
-	for child in node.get_children():_collect_bounds(child,transform,boxes)
+	RigBounds.collect(node, parent, boxes)
 
 func reset() -> void:
 	for entry in entries.values():
@@ -98,6 +93,7 @@ func reset() -> void:
 	bursts.clear()
 	battlecruisers.reset()
 	thors.reset()
+	marauders.reset()
 	clock=0
 
 func _glow(color: Color) -> MeshInstance3D:
@@ -140,10 +136,14 @@ func before_tick() -> Dictionary:
 	var result: Dictionary = {}
 	if not ready_model:return result
 	for unit in game.sim.units:
-		if unit.kind not in ["medivac", "battlecruiser", "thor"]:continue
+		if unit.kind not in ["medivac", "battlecruiser", "thor", "marauder"]:continue
 		if unit.kind == "medivac" and game._hidden_team(int(unit.team)):continue
 		var snapshot := {"kind": unit.kind, "pos": unit.pos, "team": unit.team}
-		if unit.kind == "thor":
+		if unit.kind == "marauder":
+			snapshot.prev = unit.prev
+			snapshot.attack_target_id = unit.get("attack_target_id", 0)
+			snapshot.locked_target_id = unit.get("locked_target_id", 0)
+		elif unit.kind == "thor":
 			snapshot.prev = unit.prev
 			snapshot.air_weapon_index = unit.get("air_weapon_index", 0)
 			snapshot.switch_until_tick = unit.get("switch_until_tick", 0)
@@ -239,13 +239,14 @@ func sync(view, delta: float) -> void:
 	bursts=bursts.filter(func(b):return clock-float(b.at)<1.0 and not game._hidden_team(int(b.team)))
 	battlecruisers.sync(game, view, dt, clock, alpha)
 	thors.sync(game, view, dt, clock, alpha)
+	marauders.sync(game, view, dt, clock, alpha)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if _has_actors() else SubViewport.UPDATE_DISABLED
 
 func _has_actors() -> bool:
-	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty()
+	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty()
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return
