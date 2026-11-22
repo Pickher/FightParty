@@ -32,15 +32,15 @@ func setup(frame: Node3D) -> void:
 		part.set_surface_override_material(0, Hellion.original_paint)
 		sections.append(part)
 	# Panels deploy from close-fitting volumes under the shoulder armor and fuel pods.
-	_register(sections[0], Vector3(.10,.40,0), Vector3(0,0,-1.14), Vector3(.19,.62,.84), .30,.92)
-	_register(sections[1], Vector3(.01,.45,0), Vector3(0,0,-.76), Vector3(.44,.46,.68), .34,.86)
-	_register(sections[2], Vector3(-.08,.38,0), Vector3(0,0,.94), Vector3(.44,.48,.68), .30,.89)
+	_register(sections[0], Vector3(0.10, 0.40, 0), Vector3(0, 0, -1.14), Vector3(0.19, 0.62, 0.84), 0.30, 0.92)
+	_register(sections[1], Vector3(0.01, 0.45, 0), Vector3(0, 0, -0.76), Vector3(0.44, 0.46, 0.68), 0.34, 0.86)
+	_register(sections[2], Vector3(-0.08, 0.38, 0), Vector3(0, 0, 0.94), Vector3(0.44, 0.48, 0.68), 0.30, 0.89)
 	for i in car.wheels.size():
 		var side := -1.0 if i % 2 == 0 else 1.0
 		var front := i < 2
-		var origin := Vector3(.02,.105,side * .155) if front else Vector3(-.09,.45,side * .245)
-		_register(car.wheels[i], origin, Vector3(side * .35,0,0), Vector3(.62,.62,.21), .20 if front else .28, .79 if front else .86)
-	_register(car.turret, Vector3(-.21,.57,0), Vector3(0,0,-.45), Vector3(.38,.46,.66), .43,.95)
+		var origin := Vector3(0.02, 0.105, side * 0.155) if front else Vector3(-0.09, 0.45, side * 0.245)
+		_register(car.wheels[i], origin, Vector3(side * 0.35, 0, 0), Vector3(0.62, 0.62, 0.21), 0.20 if front else 0.28, 0.79 if front else 0.86)
+	_register(car.turret, Vector3(-0.21, 0.57, 0), Vector3(0, 0, -0.45), Vector3(0.38, 0.46, 0.66), 0.43, 0.95)
 	set_progress(0.0)
 
 func _register(part: Node3D, position: Vector3, angles: Vector3, size: Vector3, start: float, stop: float) -> void:
@@ -65,4 +65,4 @@ func set_progress(p: float) -> void:
 		else:
 			pose.origin.y += 0.034 * arc
 		part.transform = pose
-	car.suspension.rotation = Vector3(0.11, 0, -0.085) * smoothstep(.77,1.0,p)
+	car.suspension.rotation = Vector3(0.11, 0, -0.085) * smoothstep(0.77, 1.0, p)

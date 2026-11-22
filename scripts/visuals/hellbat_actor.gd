@@ -59,7 +59,7 @@ var wreck_age := -1.0
 func setup(model: PackedScene, bounds: AABB, initial_heading: float) -> void:
 	heading = initial_heading
 	aim = heading
-	length_factor = 1.0 / maxf(.001, maxf(bounds.size.x, bounds.size.z))
+	length_factor = 1.0 / maxf(0.001, maxf(bounds.size.x, bounds.size.z))
 	ground_height = -0.5 * bounds.size.y * length_factor
 	add_child(presentation)
 	presentation.add_child(facing)
@@ -68,7 +68,7 @@ func setup(model: PackedScene, bounds: AABB, initial_heading: float) -> void:
 	centered.position = -bounds.get_center() * length_factor
 	var camera := get_viewport().get_camera_3d()
 	if camera != null:
-		_overhead = .48 * smoothstep(.86, .99, camera.global_basis.z.normalized().dot(Vector3.UP))
+		_overhead = 0.48 * smoothstep(0.86, 0.99, camera.global_basis.z.normalized().dot(Vector3.UP))
 	model_root = model.instantiate()
 	centered.add_child(model_root)
 	pelvis = _joint("Pelvis")
@@ -142,11 +142,11 @@ func advance(delta: float, desired_heading: float, distance: float, aim_heading:
 	var previous := heading
 	heading = rotate_toward(heading, desired_heading, dt * DRIVE_TURN)
 	var turn := angle_difference(previous, heading)
-	var pivot_distance := absf(turn) * .18
+	var pivot_distance := absf(turn) * 0.18
 	var travel := absf(distance) + pivot_distance
 	var moving := travel > 0.00001
 	if moving:
-		_step_direction = Vector2(distance / travel, turn * .18 / travel)
+		_step_direction = Vector2(distance / travel, turn * 0.18 / travel)
 		walk_phase = fposmod(walk_phase + travel / STRIDE, 1.0)
 	walk_weight = move_toward(walk_weight, 1.0 if moving else 0.0, dt * 7.0)
 	fire_age += dt
@@ -170,9 +170,9 @@ func advance(delta: float, desired_heading: float, distance: float, aim_heading:
 
 func _pose() -> void:
 	var p := vehicle_progress
-	var shear := _overhead * (1.0 - smoothstep(.28,1.0,p))
-	presentation.basis = Basis(Vector3.RIGHT, Vector3(0,1,-shear), Vector3.BACK)
-	presentation.position.z = ground_height * shear * .45
+	var shear := _overhead * (1.0 - smoothstep(0.28, 1.0, p))
+	presentation.basis = Basis(Vector3.RIGHT, Vector3(0, 1, -shear), Vector3.BACK)
+	presentation.position.z = ground_height * shear * 0.45
 	facing.rotation.y = -heading
 	if p > 0.0 and assembly == null:
 		assembly = Assembly.new()
@@ -188,64 +188,64 @@ func _pose() -> void:
 		if skins[i] != null:
 			skins[i].show()
 			skins[i].scale = Vector3.ONE
-	var stride := walk_weight * (1.0 - smoothstep(0.0,.43,p))
+	var stride := walk_weight * (1.0 - smoothstep(0.0, 0.43, p))
 	var cycle := TAU * walk_phase
-	var protect := guard * (1.0-smoothstep(.03,.23,p))
-	var sink := (.020 + .010*cos(2.0*cycle)) * stride + .022*protect
-	var sway := .016*sin(cycle)*stride
-	pelvis.position += Vector3(0,-sink,sway)
+	var protect := guard * (1.0-smoothstep(0.03, 0.23, p))
+	var sink := (0.020 + 0.010*cos(2.0*cycle)) * stride + 0.022*protect
+	var sway := 0.016*sin(cycle)*stride
+	pelvis.position += Vector3(0, -sink, sway)
 	for i in 2:
-		_leg(i, fposmod(walk_phase + 0.5 * i,1.0), stride,sink,sway)
-	var aim_offset := angle_difference(heading,aim)
-	trunk.rotation = Vector3(-.075*sin(cycle)*stride, -aim_offset*.74 + .045*sin(cycle)*stride, -.055*protect)
+		_leg(i, fposmod(walk_phase + 0.5 * i, 1.0), stride, sink, sway)
+	var aim_offset := angle_difference(heading, aim)
+	trunk.rotation = Vector3(-0.075*sin(cycle)*stride, -aim_offset*0.74 + 0.045*sin(cycle)*stride, -0.055*protect)
 	for i in 2:
 		_guard_arm(i, stride, cycle, protect)
 	var elapsed := minf(fire_age, fire_duration)
-	var sweep := .52 * sin(elapsed * 8.4) * smoothstep(0,.09,elapsed) * protect
+	var sweep := 0.52 * sin(elapsed * 8.4) * smoothstep(0, 0.09, elapsed) * protect
 	var nozzle_axis := muzzle.transform.basis.x.normalized()
-	turret.rotation.y = -aim_offset*.26 - sweep + atan2(nozzle_axis.z,nozzle_axis.x) * protect
+	turret.rotation.y = -aim_offset*0.26 - sweep + atan2(nozzle_axis.z, nozzle_axis.x) * protect
 	if p > 0.0:
 		_fold_joints(p)
 
 func _leg(i: int, t: float, weight: float, sink: float, sway: float) -> void:
 	var side := 1.0 if i == 0 else -1.0
 	var step_length := STRIDE / length_factor * (_step_direction.x - side * _step_direction.y)
-	var offset := step_length * (.5*STANCE - t)
+	var offset := step_length * (0.5*STANCE - t)
 	var lift := 0.0
 	var toe := 0.0
 	if t >= STANCE:
 		var swing := (t-STANCE)/(1.0-STANCE)
-		offset = step_length * STANCE * (smoothstep(0,1,swing)-.5)
-		lift = .08 * pow(sin(PI*swing),1.22)
-		toe = -.20 * sin(TAU*swing)
+		offset = step_length * STANCE * (smoothstep(0, 1, swing)-0.5)
+		lift = 0.08 * pow(sin(PI*swing), 1.22)
+		toe = -0.20 * sin(TAU*swing)
 	var upper: Vector3 = (rest[knees[i]] as Transform3D).origin
 	var lower: Vector3 = (rest[feet[i]] as Transform3D).origin
-	var u := Vector2(upper.x,upper.y)
-	var l := Vector2(lower.x,lower.y)
-	var target := u+l+Vector2(weight*offset,weight*lift+sink)
-	var distance := clampf(target.length(),absf(u.length()-l.length())+.0001,u.length()+l.length()-.0001)
+	var u := Vector2(upper.x, upper.y)
+	var l := Vector2(lower.x, lower.y)
+	var target := u+l+Vector2(weight*offset, weight*lift+sink)
+	var distance := clampf(target.length(), absf(u.length()-l.length())+0.0001, u.length()+l.length()-0.0001)
 	var bind_bend := u.angle_to(l)
-	var bend := signf(bind_bend) * acos(clampf((distance*distance-u.length_squared()-l.length_squared())/(2*u.length()*l.length()),-1.0,1.0))
-	var hip_pitch := target.angle()-atan2(l.length()*sin(bend),u.length()+l.length()*cos(bend))-u.angle()
+	var bend := signf(bind_bend) * acos(clampf((distance*distance-u.length_squared()-l.length_squared())/(2*u.length()*l.length()), -1.0, 1.0))
+	var hip_pitch := target.angle()-atan2(l.length()*sin(bend), u.length()+l.length()*cos(bend))-u.angle()
 	var knee_pitch := bend-bind_bend
-	var hip_roll := -sway/minf(-.08,target.y)
-	hips[i].basis = Basis(Vector3.RIGHT,hip_roll)*Basis(Vector3.BACK,hip_pitch)
+	var hip_roll := -sway/minf(-0.08, target.y)
+	hips[i].basis = Basis(Vector3.RIGHT, hip_roll)*Basis(Vector3.BACK, hip_pitch)
 	knees[i].rotation.z = knee_pitch
-	feet[i].basis = Basis(Vector3.BACK,-hip_pitch-knee_pitch)*Basis(Vector3.RIGHT,-hip_roll)*Basis(Vector3.BACK,toe*weight)
+	feet[i].basis = Basis(Vector3.BACK, -hip_pitch-knee_pitch)*Basis(Vector3.RIGHT, -hip_roll)*Basis(Vector3.BACK, toe*weight)
 
 func _guard_arm(i: int, stride: float, cycle: float, protect: float) -> void:
 	var side := 1.0 if i == 0 else -1.0
 	var shoulder := shoulders[i]
-	shoulder.rotation = Vector3(0,side*1.04*protect,.13*protect+.12*sin(cycle+i*PI)*stride*(1.0-protect))
+	shoulder.rotation = Vector3(0, side*1.04*protect, 0.13*protect+0.12*sin(cycle+i*PI)*stride*(1.0-protect))
 	if protect <= 0.0:
 		return
 	# Rotate the broad side plates across the chest. Solve against their geometry
 	# centers so the unequal left/right shield shapes meet at the front.
-	var orientation := Basis(Vector3.RIGHT, side * .39) * Basis(Vector3.UP, side * 1.21) * Basis(Vector3.BACK, .07)
-	var guard_center := Vector3(.282 + .017 * i, .465, side * .114)
+	var orientation := Basis(Vector3.RIGHT, side * 0.39) * Basis(Vector3.UP, side * 1.21) * Basis(Vector3.BACK, 0.07)
+	var guard_center := Vector3(0.282 + 0.017 * i, 0.465, side * 0.114)
 	var guard_pose := Transform3D(orientation, guard_center - orientation * shield_centers[i])
 	var local_guard := shoulder.global_transform.affine_inverse() * trunk.global_transform * (bind[trunk] as Transform3D).affine_inverse() * guard_pose
-	shields[i].transform = (rest[shields[i]] as Transform3D).interpolate_with(local_guard,protect)
+	shields[i].transform = (rest[shields[i]] as Transform3D).interpolate_with(local_guard, protect)
 
 func _fold_joints(progress: float) -> void:
 	var raw_to_world := model_root.global_transform
@@ -260,20 +260,20 @@ func _fold_joints(progress: float) -> void:
 		var foot := joint_name.begins_with("Ankle")
 		var tank := joint_name.begins_with("Tank")
 		var gun := joint == turret
-		var w := smoothstep(.03 if arm or foot else .09, .86 if tank or foot else .95, progress)
+		var w := smoothstep(0.03 if arm or foot else 0.09, 0.86 if tank or foot else 0.95, progress)
 		var pose := source[i].interpolate_with(folded[joint], w)
 		var arc := sin(PI*w)
-		pose.origin.y += (.075 if arm else .038 if tank or gun else -.025) * arc
+		pose.origin.y += (0.075 if arm else 0.038 if tank or gun else -0.025) * arc
 		if arm or tank:
-			pose.origin.z += signf(source[i].origin.z)*.085*arc
+			pose.origin.z += signf(source[i].origin.z)*0.085*arc
 		joint.global_transform = raw_to_world * pose
 		var skin := skins[i]
 		if skin == null:
 			continue
 		# The old outer plate turns edge-on and slides under the new fender. Each
 		# group retracts on its own rail, while the real vehicle parts swing over it.
-		var tuck := smoothstep(.54 if arm or gun else .42,.96 if arm or gun else .88,progress)
-		skin.scale = Vector3.ONE.lerp(Vector3(.13,.18,.15) if not arm else Vector3(.36,.15,.12),tuck)
+		var tuck := smoothstep(0.54 if arm or gun else 0.42, 0.96 if arm or gun else 0.88, progress)
+		skin.scale = Vector3.ONE.lerp(Vector3(0.13, 0.18, 0.15) if not arm else Vector3(0.36, 0.15, 0.12), tuck)
 		skin.visible = tuck < 0.999
 
 func muzzle_world(_side: int = 0) -> Vector3:
@@ -287,19 +287,19 @@ func fire(reach: float, duration: float, shot_angle: float) -> void:
 		vehicle.aim_nozzle(angle_difference(heading, shot_angle))
 		vehicle.fire(reach, duration)
 		return
-	if vehicle_progress > .15:
+	if vehicle_progress > 0.15:
 		return
 	shot_heading = shot_angle
 	fire_age = 0.0
-	fire_duration = maxf(.12,duration)
-	shot_reach = maxf(.10,reach)
+	fire_duration = maxf(0.12, duration)
+	shot_reach = maxf(0.10, reach)
 	_serial += 1
 	if flame == null:
 		_create_flame()
-	flame.custom_aabb = AABB(Vector3(-shot_reach,-1,-shot_reach),Vector3(2*shot_reach,2,2*shot_reach))
-	_flame_paint.set_shader_parameter("firing_time",fire_duration)
-	_flame_paint.set_shader_parameter("reach",shot_reach)
-	_flame_paint.set_shader_parameter("shot_seed",float(_serial)*.39)
+	flame.custom_aabb = AABB(Vector3(-shot_reach, -1, -shot_reach), Vector3(2*shot_reach, 2, 2*shot_reach))
+	_flame_paint.set_shader_parameter("firing_time", fire_duration)
+	_flame_paint.set_shader_parameter("reach", shot_reach)
+	_flame_paint.set_shader_parameter("shot_seed", float(_serial)*0.39)
 	_pose()
 	_update_flame()
 
@@ -310,9 +310,9 @@ func _create_flame() -> void:
 		for i in 24:
 			var u0 := float(i)/24.0
 			var u1 := float(i+1)/24.0
-			for uv in [Vector2(u0,0),Vector2(u0,1),Vector2(u1,1),Vector2(u0,0),Vector2(u1,1),Vector2(u1,0)]:
+			for uv in [Vector2(u0, 0), Vector2(u0, 1), Vector2(u1, 1), Vector2(u0, 0), Vector2(u1, 1), Vector2(u1, 0)]:
 				tool.set_uv(uv)
-				tool.add_vertex(Vector3(uv.x,0.0,uv.y-.5))
+				tool.add_vertex(Vector3(uv.x, 0.0, uv.y-0.5))
 		_ribbon = tool.commit()
 	flame = MeshInstance3D.new()
 	flame.mesh = _ribbon
@@ -325,15 +325,15 @@ func _create_flame() -> void:
 func _update_flame() -> void:
 	if flame == null:
 		return
-	flame.visible = wreck_age < 0.0 and fire_age < fire_duration + AFTERBURN and vehicle_progress < .15
+	flame.visible = wreck_age < 0.0 and fire_age < fire_duration + AFTERBURN and vehicle_progress < 0.15
 	if not flame.visible:
 		return
 	flame.position = presentation.to_local(muzzle.global_position)
 	flame.rotation.y = -shot_heading
 	var local_axis := flame.global_basis.inverse() * muzzle.global_basis.x
-	_flame_paint.set_shader_parameter("elapsed",fire_age)
-	_flame_paint.set_shader_parameter("nozzle_angle",atan2(local_axis.z,local_axis.x))
-	_flame_paint.set_shader_parameter("nozzle_pitch",atan2(local_axis.y,Vector2(local_axis.x,local_axis.z).length()))
+	_flame_paint.set_shader_parameter("elapsed", fire_age)
+	_flame_paint.set_shader_parameter("nozzle_angle", atan2(local_axis.z, local_axis.x))
+	_flame_paint.set_shader_parameter("nozzle_pitch", atan2(local_axis.y, Vector2(local_axis.x, local_axis.z).length()))
 
 func destroy() -> void:
 	if wreck_age >= 0.0:
@@ -361,7 +361,7 @@ func destroy() -> void:
 	if vehicle != null and vehicle.visible:
 		for panel in assembly.panels:
 			roles[panel] = "Car" + String(panel.name)
-	wreck.begin(facing,roles,ground_height)
+	wreck.begin(facing, roles, ground_height)
 
 func is_finished() -> bool:
 	if wreck_age < 0.0:

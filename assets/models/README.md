@@ -28,4 +28,6 @@
 
 恶蝠的[原始机甲](hellbat_mech/hellbat_mech.glb)与恶火的[战车模型](hellbat/hellion_rig.glb)各自保留。机甲用双腿行走、转向，向前喷火时两面盾向胸前收拢，背部喷口横扫扇面。被毁时背部燃料罐先爆燃，机体随后解体。变形时机身压低、腿轮收折，最终拼成游戏中的恶火战车。[恶蝠四组动作](../../docs/media/hellbat-mech-actions.gif) · [机甲变战车的三个视角](../../docs/media/hellbat-to-hellion.gif)
 
-在 Godot 中打开[机甲动作预览](../../scenes/art/mech_actions.tscn)，按 F6 可选择单位、动作和观察角度。劫掠者已接入战场。现有战斗目录的 `hellbat` 是恶火战车，恶蝠机甲尚无独立单位配置。框架可在获得变形指令时调用恶蝠演员的 `set_vehicle_form(true)`，用 `advance(...)` 按表现时间推进。
+在 Godot 中打开[机甲动作预览](../../scenes/art/mech_actions.tscn)，按 F6 可选择单位、动作和观察角度。劫掠者已接入战场。现有战斗目录的 `hellbat` 是恶火战车，恶蝠机甲尚无独立单位配置。框架收到变形指令时可调用[恶蝠动画脚本](../../scripts/visuals/hellbat_actor.gd)的 `set_vehicle_form(true)`，再用 `advance(...)` 推进动画。
+
+可在项目根目录分别运行 `python tools/art/build_marauder_rig.py` 和 `python tools/art/build_hellbat_mech_rig.py`，从上传的模型重建两个单位的分件和材质。两个脚本都使用 Python 3、NumPy 和 SciPy。

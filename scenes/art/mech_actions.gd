@@ -12,7 +12,7 @@ const MODELS := [
 const FONT = preload("res://assets/NotoSansSC.ttf")
 enum Action { MOVE, TURN, ATTACK, DESTROY, TRANSFORM }
 const ACTION_NAMES := ["移动", "转向", "攻击", "被毁", "变形为恶火"]
-const VIEW_NAMES := ["斜视", "侧面", "战场俯视", "正面"]
+const VIEW_NAMES := ["立体视角", "侧面", "战场俯视", "正面"]
 const DIRECTIONS := [Vector3(2.6, 1.85, 3.7), Vector3(0.08, 1.25, 4.2), Vector3.UP, Vector3(4.2, 0.74, 0.05)]
 @export var grid_material: Material
 
