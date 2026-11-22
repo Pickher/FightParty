@@ -41,7 +41,9 @@ var unit := {"id": 11, "kind": "thor", "team": 0, "hp": 400, "weapon_index": 2,
 	"air_weapon_index": 0, "switch_until_tick": 0, "prev": Vector2(8.8, 8), "pos": Vector2(9, 8)}
 var opponent := {"id": 21, "kind": "thor", "team": 1, "hp": 400, "weapon_index": 1,
 	"air_weapon_index": 1, "switch_until_tick": 0, "prev": Vector2(20, 8), "pos": Vector2(20, 8)}
+var air_target := {"id": 31, "kind": "viking", "team": 1, "hp": 135, "prev": Vector2(22, 8), "pos": Vector2(22, 8)}
 var actor
+var next_projectile_id := 1000
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -165,48 +167,180 @@ func check_switches() -> void:
 	check(actor.transform_progress < interrupted, "Barrels should start folding from the interrupted angle")
 	step(10)
 
+func launch(mode: String, strike: int, target: Dictionary, shooter: Dictionary) -> Dictionary:
+	var weapon: Dictionary
+	for config in game.sim.catalog.thor.attack_modes:
+		if config.id == mode:
+			weapon = config
+			break
+	var time := float(game.sim.tick) / float(game.sim.rules.tick_rate)
+	var duration: float = shooter.pos.distance_to(target.pos) / float(weapon.delivery.speed) if weapon.delivery.flight == "distance" else weapon.delivery.seconds
+	var shot := {"id": next_projectile_id, "kind": "thor", "source_id": shooter.id, "team": shooter.team, "launch_time": time,
+		"impact_time": time + duration, "strike": strike, "origin": shooter.pos, "pos": shooter.pos,
+		"goal": target.pos, "target_id": target.id, "weapon": weapon}
+	next_projectile_id += 1
+	game.sim.projectiles.append(shot)
+	var original := shot.duplicate(true)
+	event({"type": "attack", "kind": "thor", "source_id": shooter.id, "team": shooter.team, "from": shooter.pos,
+		"to": target.pos, "mode": mode, "strike": strike, "splash": weapon.splash, "time": time, "projectile": true})
+	check(shot == original, "A presentation launch should leave the native projectile untouched")
+	return shot
+
 func check_salvo(mode: String, strikes: int) -> void:
-	var launchers: Array = actor.arms if mode == "hammer" else actor.cannons
-	var sockets: Array = actor.arm_sockets if mode == "hammer" else actor.cannon_sockets
+	var rocket := mode == "javelin"
+	var mounts: Array = actor.arms + actor.cannons
+	var sockets: Array = actor.arm_sockets + actor.cannon_sockets
+	var expected_form: float = actor.transform_progress
 	var offsets: Array[Vector2] = []
 	var physical_sides: Array[float] = []
 	for i in strikes:
+		game.sim.projectiles.clear()
 		step(8)
-		var weapon: Node3D = launchers[i]
-		var at_rest := weapon.position
-		var other: Node3D = launchers[i ^ 1]
-		var opposite := other.position
-		var launch_time: float = float(game.sim.tick) / 20.0
-		var shot := {"id": 1000 + int(game.sim.tick), "kind": "thor", "source_id": unit.id, "team": unit.team, "launch_time": launch_time,
-			"impact_time": launch_time + 0.4, "strike": i, "origin": unit.pos, "pos": unit.pos,
-			"goal": opponent.pos, "target_id": opponent.id, "weapon": {"id": mode}}
-		game.sim.projectiles = [shot]
-		var shot_snapshot := shot.duplicate(true)
-		event({"type": "attack", "kind": "thor", "source_id": unit.id, "team": unit.team,
-			"from": unit.pos, "to": opponent.pos, "mode": mode, "strike": i, "time": launch_time, "projectile": true})
-		var muzzle: Node3D = sockets[i]
+		var slot := i + 2 if rocket else i
+		var rest: Array[Vector3] = []
+		for mount in mounts:
+			rest.append(mount.position)
+		var shot := launch(mode, i, opponent if mode == "hammer" else air_target, unit)
+		var muzzle: Node3D = sockets[slot]
 		var marker := Vector2(muzzle.global_position.x, muzzle.global_position.z)
 		var origin: Vector2 = (marker - view.point(unit.pos)) / view.pixels(1.0)
-		var actual: Vector2 = fleet.projectile_offset(shot, launch_time)
+		var actual: Vector2
+		if rocket:
+			var flight: Dictionary = fleet.javelins.get([shot.source_id, shot.strike, shot.launch_time], {})
+			if flight.is_empty():
+				check(false, "Each real Javelin launch should own a flight")
+				return
+			actual = fleet.javelin_position(flight, shot.goal, 0.0) - shot.origin
+		else:
+			actual = fleet.projectile_offset(shot, shot.launch_time)
+			check(Vector2(fleet.projectile_offset(shot, (shot.launch_time + shot.impact_time) * 0.5)).is_equal_approx(actual * 0.5)
+				and Vector2(fleet.projectile_offset(shot, shot.impact_time)).is_zero_approx(),
+				"Arm projectile correction should converge to the native impact point")
+		check(fleet.owns_javelin(shot) == rocket, "Only a tube-launched missile should replace the native projectile drawing")
 		offsets.append(actual)
 		physical_sides.append(actor.trunk.to_local(muzzle.global_position).z)
 		check(actual.distance_to(origin) < 0.025, "Launch should inherit the rendered muzzle origin for %s strike %d" % [mode, i])
-		check(Vector2(fleet.projectile_offset(shot, launch_time + 0.2)).is_equal_approx(actual * 0.5)
-			and Vector2(fleet.projectile_offset(shot, launch_time + 0.4)).is_zero_approx(),
-			"Projectile correction should converge to the native impact point")
-		var flash = actor.flashes[i if mode == "hammer" else i + 2]
+		var flash = actor.flashes[slot]
 		check(is_instance_valid(flash) and flash.is_visible_in_tree(), "A launch event should illuminate the selected socket")
-		if is_instance_valid(flash):
-			check(flash.global_position.distance_to(muzzle.global_position) < 0.01, "Flash should originate at the physical muzzle")
 		host.sync(view, 0.025)
-		check(weapon.position.distance_to(at_rest) > 0.005 and other.position.is_equal_approx(opposite),
-			"Only the selected weapon should slide back on its mount")
-		check(shot_snapshot == shot, "Corrections should leave the authoritative projectile untouched")
+		if is_instance_valid(flash):
+			check(flash.global_position.distance_to(muzzle.global_position) < 0.01,
+				"Flash should stay on the physical nozzle while the projectile travels")
+		for j in mounts.size():
+			if j == slot:
+				check(mounts[j].position.distance_to(rest[j]) > 0.005, "The firing weapon should recoil")
+			else:
+				check(mounts[j].position.is_equal_approx(rest[j]), "An inactive arm or shoulder tube recoiled during " + mode)
+				var unused = actor.flashes[j]
+				check(not is_instance_valid(unused) or not unused.is_visible_in_tree(), "An inactive arm or shoulder tube flashed during " + mode)
+		check(is_equal_approx(expected_form, actor.transform_progress), "Firing should preserve the active Thor form")
 	for i in range(1, strikes):
 		check(physical_sides[i-1] * physical_sides[i] < 0.0 and offsets[i-1].distance_to(offsets[i]) > 0.08,
 			"Consecutive %s shots should alternate physical sides and projected origins" % mode)
 	game.sim.projectiles.clear()
 	step(8)
+
+func check_javelin_flight() -> void:
+	step(20)
+	var shot := launch("javelin", 0, air_target, unit)
+	var flight: Dictionary = fleet.javelins.get([shot.source_id, shot.strike, shot.launch_time], {})
+	if flight.is_empty():
+		check(false, "Expected a managed Javelin flight")
+		return
+	var old_goal: Vector2 = air_target.pos
+	var start: Vector2 = fleet.javelin_position(flight, old_goal, 0.0)
+	var first: Vector2 = fleet.javelin_position(flight, old_goal, 0.008)
+	var bore: Vector3 = actor.cannon_sockets[0].global_basis.x
+	check(start.direction_to(first).dot(Vector2(bore.x, bore.z).normalized()) > 0.95,
+		"Missile should leave in the physical tube's direction before homing")
+	check(flight.hit.is_empty(), "Launch should not create a contact explosion")
+	# Keep the target in view while the launcher leaves the camera.
+	game.camera_rect = Rect2(20, 0, 12, 20)
+	step()
+	check(not fleet.has_model(unit.id) and fleet.owns_javelin(shot), "Missile flight should survive culling its launcher")
+	game.camera_rect = Rect2(0, 0, 32, 20)
+	game.paused = true
+	var frozen: float = fleet.render_time(game.sim, 0.0)
+	host.sync(view, 0.1)
+	check(is_equal_approx(frozen, fleet.render_time(game.sim, 0.0)) and fleet.owns_javelin(shot) and flight.hit.is_empty(),
+		"Pause should retain the flight without advancing its clock or igniting its target")
+	game.paused = false
+	# Supply the authoritative tracking samples for a fighter crossing the original line.
+	for i in 3:
+		air_target.prev = air_target.pos
+		air_target.pos += Vector2(0.0, 0.55)
+		shot.goal = air_target.pos
+		shot.pos = shot.origin.lerp(shot.goal, (float(game.sim.tick + 1) / 20.0 - shot.launch_time) / (shot.impact_time - shot.launch_time))
+		step()
+	var halfway: Vector2 = fleet._display_goal(flight, game.sim, fleet.render_time(game.sim, 0.5))
+	check(halfway.is_equal_approx(air_target.prev.lerp(air_target.pos, 0.5)), "Tracking should interpolate the actual aircraft between tick samples")
+	var tracked: Vector2 = fleet._display_goal(flight, game.sim, fleet.render_time(game.sim, 1.0))
+	var incoming: Vector2 = fleet.javelin_position(flight, tracked, 0.82)
+	check(incoming.distance_to(fleet.javelin_position(flight, old_goal, 0.82)) > 0.5,
+		"The airborne missile should bend toward the fighter's updated location")
+	check(Vector2(fleet.javelin_position(flight, shot.goal, 1.0)).is_equal_approx(air_target.pos), "Missile should reach the updated goal")
+	var impact := {"type": "area_impact", "kind": "thor", "team": unit.team, "radius": shot.weapon.splash,
+		"from": shot.goal, "to": shot.goal}
+	game.sim.tick = ceili(shot.impact_time * 20.0)
+	game.sim.projectiles.clear()
+	check(flight.hit.is_empty(), "Reaching the scheduled arrival time alone must not create a blast")
+	var unrelated := impact.duplicate()
+	unrelated.from = old_goal + Vector2.RIGHT * 3.0
+	unrelated.to = unrelated.from
+	check(not fleet.accept_javelin_impact(unrelated, game) and flight.hit.is_empty(),
+		"An unrelated area strike should keep its own effect and must not detonate this missile")
+	check(fleet.accept_javelin_impact(impact, game), "The native contact event should transfer impact drawing to the missile")
+	check(not flight.hit.is_empty() and Vector2(flight.hit.to).is_equal_approx(air_target.pos),
+		"The blast should originate at the actual tracked contact")
+	var hit_record: Dictionary = flight.hit.duplicate(true)
+	check(fleet.accept_javelin_impact(impact, game) and flight.hit == hit_record and fleet.javelins.size() == 1,
+		"Repeated observation should suppress a duplicate generic ring and preserve the first explosion")
+	game.paused = true
+	for i in 8:
+		host.sync(view, 0.1)
+	check(fleet.javelins.size() == 1 and flight.hit == hit_record, "Contact should remain frozen throughout a pause")
+	game.paused = false
+	step(20)
+	check(fleet.javelins.is_empty(), "Finished contact should be released")
+	var friendly_air := {"id": 32, "kind": "viking", "team": 0, "hp": 135, "prev": unit.pos, "pos": unit.pos}
+	game.sim.by_id[friendly_air.id] = friendly_air
+	var hidden_shot := launch("javelin", 1, friendly_air, opponent)
+	check(fleet.owns_javelin(hidden_shot), "A visible opposing launcher should own its missile")
+	game.hide_enemy = true
+	step()
+	check(not fleet.owns_javelin(hidden_shot) and fleet.javelins.is_empty(), "Fog should release the opposing shooter's private visual")
+	game.sim.projectiles.clear()
+	game.hide_enemy = false
+	var pending := launch("javelin", 1, air_target, unit)
+	host.reset()
+	check(not fleet.owns_javelin(pending) and fleet.javelins.is_empty(), "Reset should clear pending flight and impact ownership")
+	game.sim.projectiles.clear()
+	step()
+	actor = fleet.entries[unit.id].actor
+
+func check_overlapping_launches() -> void:
+	# A flyer directly above a Thor gives zero native travel time. Both the launch
+	# and area contact arrive in the same tick, with no projectile in the final list.
+	var saved: Vector2 = air_target.pos
+	air_target.pos = unit.pos
+	air_target.prev = unit.pos
+	var time := (float(game.sim.tick) - 0.3) / float(game.sim.rules.tick_rate)
+	for strike in 2:
+		var data := {"type": "attack", "kind": "thor", "source_id": unit.id, "team": unit.team, "from": unit.pos,
+			"to": air_target.pos, "mode": "javelin", "strike": strike, "time": time, "splash": 1.2, "projectile": false}
+		event(data)
+		check(fleet.owns_javelin_launch(data), "Coincident launch must suppress its generic attack trace")
+	var first := {"type": "area_impact", "kind": "thor", "team": unit.team, "from": air_target.pos, "to": air_target.pos, "radius": 1.2}
+	var second := first.duplicate()
+	check(fleet.accept_javelin_impact(first, game) and fleet.accept_javelin_impact(first, game)
+		and fleet.accept_javelin_impact(second, game), "Two simultaneous rockets should each claim their own contact once")
+	var landed: Array = fleet.javelins.values()
+	check(landed.size() == 2 and not landed[0].hit.is_empty() and not landed[1].hit.is_empty()
+		and not is_same(landed[0].hit, landed[1].hit), "Distinct rockets hitting the same point should each explode")
+	air_target.prev = saved
+	air_target.pos = saved
+	step(10)
+	check(fleet.javelins.is_empty(), "Same-tick effects should expire normally")
 
 func visible_cannon_meshes(mech) -> Dictionary:
 	var poses := {}
@@ -258,8 +392,8 @@ func check_deaths() -> void:
 
 func run() -> void:
 	game.sim.catalog = JSON.parse_string(FileAccess.get_file_as_string("res://data/units.json")).units
-	game.sim.units = [unit, opponent]
-	game.sim.by_id = {11: unit, 21: opponent}
+	game.sim.units = [unit, opponent, air_target]
+	game.sim.by_id = {11: unit, 21: opponent, 31: air_target}
 	host.game = game
 	root.add_child(host)
 	host.sync(view, 0.025)
@@ -280,11 +414,15 @@ func run() -> void:
 		return
 	check_walk()
 	check_switches()
+	game.hide_enemy = false
 	check_salvo("hammer", 2)
 	check_salvo("high_impact", 2)
 	switch_to(1)
 	step(12)
+	check_salvo("hammer", 2)
 	check_salvo("javelin", 4)
+	check_javelin_flight()
+	check_overlapping_launches()
 	check_walk()
 	opponent.air_weapon_index = 0
 	check_deaths()

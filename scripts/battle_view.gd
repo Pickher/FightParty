@@ -121,7 +121,7 @@ func _draw() -> void:
 		var launch_offset := Vector2.ZERO
 		if projectile.kind == "thor" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)):
 			var now := float(sim.tick) / float(sim.rules.tick_rate)
-			if game.medivac_visual.thors.draw_javelin(self, self, projectile, now):
+			if game.medivac_visual.thors.owns_javelin(projectile):
 				continue
 			launch_offset = game.medivac_visual.thors.projectile_offset(projectile, now)
 		var p := point(projectile.pos + launch_offset)
@@ -195,6 +195,7 @@ func _draw() -> void:
 		game.hellion_visual.draw_if_ground_only(self, game.medivac_visual, self)
 		game.medivac_visual.draw_layer(self,self)
 		game.medivac_visual.battlecruisers.draw_traces(self, self, game.medivac_visual.clock)
+		game.medivac_visual.thors.draw_ordnance(self, self, game, game.medivac_visual.thors.render_time(sim, alpha))
 		game.medivac_visual.draw_healing(self,self)
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:

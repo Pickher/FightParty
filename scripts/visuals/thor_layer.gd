@@ -5,12 +5,18 @@ const MODEL_PATH := "res://assets/models/thor/thor_rig.glb"
 const MAX_LIVE := 16
 const MAX_WRECKS := 6
 const MODES := ["high_impact", "javelin", "hammer"]
+const IMPACT_DURATION := 0.32
 var model: PackedScene
 var scene: Node3D
 var bounds: AABB
 var entries: Dictionary = {}
 var switches: Dictionary = {}
 var launch_offsets: Dictionary = {}
+var javelins: Dictionary = {}
+var _native_shots: Dictionary = {}
+var _native_tick := -1
+var _presented_at := -INF
+static var _glow: GradientTexture2D
 
 func configure(shared_world: Node3D, resource: PackedScene, model_bounds: AABB) -> void:
 	scene = shared_world
@@ -22,6 +28,10 @@ func reset() -> void:
 		_remove(id)
 	switches.clear()
 	launch_offsets.clear()
+	javelins.clear()
+	_native_shots.clear()
+	_native_tick = -1
+	_presented_at = -INF
 
 func _remove(id: int) -> void:
 	var actor: Node3D = entries[id].actor
@@ -142,6 +152,19 @@ func sync(game, view, dt: float, clock: float, alpha: float) -> void:
 				if launch_offsets.has(key):
 					live[key] = launch_offsets[key]
 		launch_offsets = live
+	var now := render_time(game.sim, alpha)
+	# A finishing hit may occur between the last two simulation samples. Let its
+	# confirmed contact finish under the result panel, using the pause-aware delta.
+	if game.sim.get("finished") == true:
+		now = maxf(now, _presented_at + dt)
+	_presented_at = now
+	for key in javelins.keys():
+		var flight: Dictionary = javelins[key]
+		var retention := IMPACT_DURATION if not flight.hit.is_empty() else 1.0 / float(game.sim.rules.tick_rate)
+		if now >= float(flight.impact_time) + retention or game._hidden_team(int(flight.team)):
+			javelins.erase(key)
+	if _native_tick != game.sim.tick:
+		_native_shots.clear()
 
 func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 	if model == null or not game.sim.catalog.has("thor"):
@@ -174,6 +197,7 @@ func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 	var diameter := _diameter(game.sim)
 	var pos: Vector2 = data.from if kind == "attack" else data.pos
 	if not game._camera_rect().grow(diameter * 2.0).has_point(pos):
+		_register_icon_shot(data, game.sim)
 		return
 	if not entries.has(id):
 		var count := 0
@@ -181,6 +205,7 @@ func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 			if not entry.dead:
 				count += 1
 		if count >= MAX_LIVE:
+			_register_icon_shot(data, game.sim)
 			return
 		_create(id, unit, pos, config)
 	var entry: Dictionary = entries[id]
@@ -200,9 +225,13 @@ func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 	if mode != "hammer":
 		entry.actor.set_air_progress(1.0 if mode == "javelin" else 0.0, mode)
 	entry.actor.fire_at(mode, strike, target_offset)
-	if data.get("projectile", false) and data.has("time"):
+	if data.has("time") and (data.get("projectile", false) or mode == "javelin"):
 		var key := [id, strike, float(data.time)]
-		launch_offsets[key] = entry.actor.muzzle_screen_offset(mode, strike) * diameter
+		var offset: Vector2 = entry.actor.muzzle_screen_offset(mode, strike) * diameter
+		if data.get("projectile", false):
+			launch_offsets[key] = offset
+		if mode == "javelin":
+			_register_javelin(key, data, pos + offset, entry.actor.javelin_launch_direction(strike), game.sim)
 
 func _projectile_key(projectile: Dictionary) -> Array:
 	return [int(projectile.get("source_id", -1)), int(projectile.get("strike", -1)), float(projectile.get("launch_time", -1))]
@@ -219,31 +248,192 @@ func projectile_offset(projectile: Dictionary, now: float) -> Vector2:
 	var remaining := clampf((float(projectile.impact_time) - now) / maxf(0.000001, duration), 0.0, 1.0)
 	return offset * remaining
 
-func draw_javelin(canvas: CanvasItem, view, projectile: Dictionary, now: float) -> bool:
-	if projectile.get("weapon", {}).get("id") != "javelin" or launch_offsets.is_empty():
+func render_time(sim, alpha: float) -> float:
+	# Opening some UI panels resets the interpolation accumulator in the same tick.
+	var sample := (float(sim.tick) - 1.0 + clampf(alpha, 0.0, 1.0)) / float(sim.rules.tick_rate)
+	return maxf(sample, _presented_at)
+
+func _register_icon_shot(data: Dictionary, sim) -> void:
+	if data.type == "attack" and data.mode == "javelin" and data.has("time"):
+		var key := [int(data.source_id), int(data.strike), float(data.time)]
+		var axis: Vector2 = data.to - data.from
+		_register_javelin(key, data, data.from, axis.normalized(), sim)
+
+func _register_javelin(key: Array, data: Dictionary, origin: Vector2, axis: Vector2, sim) -> void:
+	if _native_tick != sim.tick:
+		_native_tick = sim.tick
+		_native_shots.clear()
+		for projectile in sim.projectiles:
+			if projectile.kind == "thor" and projectile.weapon.id == "javelin":
+				_native_shots[_projectile_key(projectile)] = projectile
+	var native: Dictionary = _native_shots.get(key, {})
+	var due := float(data.time)
+	if not native.is_empty():
+		due = float(native.impact_time)
+	else:
+		# A short flight can be launched and resolved within one simulation step.
+		# Its launch event and the configured travel time survive that step.
+		for weapon in sim.catalog.thor.get("attack_modes", []):
+			if weapon.id == "javelin":
+				var length: float = data.from.distance_to(data.to)
+				due += length / maxf(0.001, float(weapon.delivery.speed))
+				break
+	javelins[key] = {"team":int(data.team), "strike":int(data.strike), "origin":origin,
+		"launch_direction":axis, "goal":data.to, "native":native, "launch_time":float(data.time),
+		"impact_time":due, "hit":{}}
+
+func owns_javelin(projectile: Dictionary) -> bool:
+	return projectile.get("weapon", {}).get("id") == "javelin" and javelins.has(_projectile_key(projectile))
+
+func owns_javelin_launch(data: Dictionary) -> bool:
+	return data.get("kind") == "thor" and data.get("mode") == "javelin" and javelins.has([
+		int(data.get("source_id", -1)), int(data.get("strike", -1)), float(data.get("time", -1))])
+
+func accept_javelin_impact(data: Dictionary, game) -> bool:
+	if data.type != "area_impact" or data.get("kind") != "thor" or game._hidden_team(int(data.team)):
 		return false
-	var key := _projectile_key(projectile)
-	if not launch_offsets.has(key):
+	var tick_end := float(game.sim.tick) / float(game.sim.rules.tick_rate)
+	var tick_start := tick_end - 1.0 / float(game.sim.rules.tick_rate)
+	var best: Dictionary = {}
+	var best_error := INF
+	for flight in javelins.values():
+		if is_same(flight.hit, data):
+			return true
+		if flight.team != data.team or not flight.hit.is_empty() or flight.impact_time > tick_end + 0.000001 or flight.impact_time < tick_start - 0.000001:
+			continue
+		var native: Dictionary = flight.native
+		var goal: Vector2 = native.get("goal", flight.goal)
+		var error := goal.distance_squared_to(data.to)
+		# The simulator updates this same projectile dictionary just before
+		# removing it. Overlapping contacts retain its native time / ID order.
+		if not native.is_empty() and not goal.is_equal_approx(data.to):
+			continue
+		if native.is_empty() and error > pow(float(data.radius), 2):
+			continue
+		if error < best_error or (error == best_error and _lands_first(flight, best)):
+			best_error = error
+			best = flight
+	if best.is_empty():
 		return false
-	var origin: Vector2 = projectile.origin + launch_offsets[key]
-	var axis: Vector2 = view.point(projectile.goal) - view.point(origin)
-	if axis.length_squared() < 0.000001:
-		return false
-	axis = axis.normalized()
-	var tip: Vector2 = view.point(projectile.pos + projectile_offset(projectile, now))
-	var body := clampf(view.pixels(0.22), 2.6, 8.5)
-	var shoulder := tip - axis * body * 0.43
-	var nozzle := tip - axis * body
-	var span := axis.orthogonal() * maxf(0.85, body * 0.22)
-	# One tracking projectile carries its own exhaust; the 3D tube flash stays at launch.
-	var flicker := 0.85 + 0.15 * sin((now - float(projectile.launch_time)) * 47.0 + int(projectile.strike))
-	var tail := nozzle - axis * clampf(view.pixels(0.35), 3.3, 12.0) * flicker
-	canvas.draw_colored_polygon(PackedVector2Array([nozzle+span, tail, nozzle-span]), Color("fa7228"))
-	canvas.draw_line(nozzle, nozzle.lerp(tail, 0.57), Color("ffe6a5"), maxf(1.0, body * 0.22), true)
-	canvas.draw_colored_polygon(PackedVector2Array([tip, shoulder+span, nozzle+span*0.65,
-		nozzle-span*0.65, shoulder-span]), Color("9fb9c7"))
-	canvas.draw_line(shoulder, tip, Color("f2faff"), maxf(1.0, body * 0.26), true)
+	best.hit = data
 	return true
+
+func _lands_first(flight: Dictionary, other: Dictionary) -> bool:
+	if other.is_empty() or flight.impact_time != other.impact_time:
+		return other.is_empty() or flight.impact_time < other.impact_time
+	return int(flight.native.get("id", 2147483647)) < int(other.native.get("id", 2147483647))
+
+func javelin_position(flight: Dictionary, goal: Vector2, progress: float) -> Vector2:
+	var start: Vector2 = flight.origin
+	var delta := goal - start
+	var length := delta.length()
+	var axis := delta.normalized()
+	var launch: Vector2 = flight.launch_direction
+	if launch.is_zero_approx():
+		launch = axis
+	# Leave the physical bore tangent first, then bank onto the tracked aircraft.
+	# The raised approach projects slightly north in the battlefield's overhead view.
+	var first := start + launch * minf(length * 0.40, 2.0)
+	var last := goal - axis * minf(length * 0.22, 1.7) + Vector2.UP * minf(length * 0.17, 1.0)
+	return start.bezier_interpolate(first, last, goal, clampf(progress, 0.0, 1.0))
+
+func _display_goal(flight: Dictionary, sim, now: float) -> Vector2:
+	var native: Dictionary = flight.native
+	var hit: Dictionary = flight.hit
+	var goal: Vector2 = native.get("goal", flight.goal) if hit.is_empty() else hit.to
+	var target = sim.by_id.get(native.get("target_id", 0))
+	if target == null:
+		return goal
+	var tick_start := (float(sim.tick) - 1.0) / float(sim.rules.tick_rate)
+	var duration := 1.0 / float(sim.rules.tick_rate)
+	if not hit.is_empty():
+		duration = maxf(0.000001, float(flight.impact_time) - tick_start)
+	return Vector2(target.prev).lerp(goal, clampf((now - tick_start) / duration, 0.0, 1.0))
+
+func draw_ordnance(canvas: CanvasItem, view, game, now: float) -> void:
+	var area: Rect2 = game._camera_rect().grow(1.5)
+	for flight in javelins.values():
+		if game._hidden_team(int(flight.team)) or now < flight.launch_time:
+			continue
+		if now >= flight.impact_time:
+			var hit: Dictionary = flight.hit
+			var age := now - float(flight.impact_time)
+			if not hit.is_empty() and age < IMPACT_DURATION and area.has_point(hit.to):
+				_draw_impact(canvas, view, hit, int(flight.strike), age)
+			continue
+		var duration := maxf(0.000001, float(flight.impact_time) - float(flight.launch_time))
+		var t := (now - float(flight.launch_time)) / duration
+		var goal := _display_goal(flight, game.sim, now)
+		var tip := javelin_position(flight, goal, t)
+		if area.has_point(tip):
+			_draw_rocket(canvas, view, flight, goal, t, tip, duration)
+
+func _draw_rocket(canvas: CanvasItem, view, flight: Dictionary, goal: Vector2, t: float, world_tip: Vector2, duration: float) -> void:
+	var tip: Vector2 = view.point(world_tip)
+	var near := javelin_position(flight, goal, t + 0.005) - javelin_position(flight, goal, t - 0.005)
+	var axis := near.normalized()
+	if axis.is_zero_approx():
+		axis = Vector2.RIGHT
+	var body := clampf(view.pixels(0.34), 3.6, 12.0)
+	# The tip starts at the socket. Reveal only the length which has cleared the bore.
+	var bore: Vector2 = view.point(flight.origin)
+	var travel := tip.distance_to(bore)
+	if travel < body + 14.0:
+		travel = 0.0
+		for i in range(1, 5):
+			var along: Vector2 = view.point(javelin_position(flight, goal, t * i / 4.0))
+			travel += bore.distance_to(along)
+			bore = along
+	if travel < 0.6:
+		return
+	var exposed := minf(body, travel)
+	var shoulder := tip - axis * minf(exposed, body * 0.39)
+	var nozzle := tip - axis * exposed
+	var span := axis.orthogonal() * maxf(1.0, body * 0.20)
+	if exposed < body * 0.4:
+		var nose_span := span * (exposed / (body * 0.4))
+		canvas.draw_colored_polygon(PackedVector2Array([tip, nozzle+nose_span, nozzle-nose_span]), Color("fbfeff"))
+		return
+	var clearance := travel - body
+	if clearance > 0.65:
+		# The motor and its smoke appear once the back of the missile is in free flight.
+		var trail_time := minf(t, 0.068 / duration)
+		var previous: Vector2 = view.point(javelin_position(flight, goal, t - trail_time))
+		for i in range(1, 6):
+			var u := float(i) / 5.0
+			var p: Vector2 = view.point(javelin_position(flight, goal, t - trail_time * (1.0 - u)))
+			canvas.draw_line(previous, p, Color(0.82,0.79,0.69,0.16+0.32*u), maxf(1.1, body * (0.16 + 0.12*u)), true)
+			previous = p
+		var flicker := 0.85 + 0.15 * sin(t * duration * 59.0 + int(flight.strike))
+		var tail := nozzle - axis * minf(clearance, clampf(view.pixels(0.38), 4, 13) * flicker)
+		canvas.draw_colored_polygon(PackedVector2Array([nozzle+span, tail, nozzle-span]), Color("ff7524"))
+		canvas.draw_line(nozzle, nozzle.lerp(tail, 0.62), Color("ffe6a5"), maxf(1.1, body * 0.22), true)
+	canvas.draw_colored_polygon(PackedVector2Array([tip, shoulder+span, nozzle+span*0.75,
+		nozzle-span*0.75, shoulder-span]), Color("a3bac3"))
+	canvas.draw_line(shoulder, tip, Color("fbfeff"), maxf(1.0, body * 0.25), true)
+
+func _draw_impact(canvas: CanvasItem, view, hit: Dictionary, strike: int, age: float) -> void:
+	if _glow == null:
+		var gradient := Gradient.new()
+		gradient.offsets = PackedFloat32Array([0.0, 0.35, 0.7, 1.0])
+		gradient.colors = PackedColorArray([Color.WHITE, Color(1,1,1,0.82), Color(1,1,1,0.27), Color(1,1,1,0)])
+		_glow = GradientTexture2D.new()
+		_glow.gradient = gradient
+		_glow.fill = GradientTexture2D.FILL_RADIAL
+		_glow.fill_from = Vector2(0.5, 0.5)
+		_glow.fill_to = Vector2(1, 0.5)
+	var t := clampf(age / IMPACT_DURATION, 0.0, 1.0)
+	var center: Vector2 = view.point(hit.to)
+	var size := clampf(view.pixels(float(hit.radius) * 0.72), 5.0, 32.0)
+	var r := size * (0.25 + 0.79 * sin(sqrt(t) * PI * 0.6))
+	canvas.draw_texture_rect(_glow, Rect2(center - Vector2.ONE*r, Vector2.ONE*2*r), false, Color(1.0,0.38,0.09,1.0-t))
+	var core := maxf(0.1, size * (0.35 + 0.25 * sin(t*PI)) * (1.0-smoothstep(0.08, 0.70, t)))
+	canvas.draw_texture_rect(_glow, Rect2(center - Vector2.ONE*core, Vector2.ONE*2*core), false, Color(1,0.94,0.67,1.0-t))
+	for i in 6:
+		var angle := i * TAU / 6.0 + strike * 0.72 + 0.26 * sin(i*2.3)
+		var ray := Vector2.from_angle(angle) * size * (0.83 + 0.16*sin(i+strike))
+		var tip := center + ray * (0.12 + 0.93 * sqrt(t))
+		canvas.draw_line(tip - ray * (0.19*(1.0-t)), tip, Color(1,0.76,0.34,(1.0-t)*0.9), maxf(1.0, size*0.075), true)
 
 func _destroy(entry: Dictionary, pos: Vector2, clock: float) -> void:
 	var count := 0

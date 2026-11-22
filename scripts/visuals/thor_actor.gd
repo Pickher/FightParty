@@ -6,7 +6,8 @@ const STRIDE := 0.53
 const STANCE := 0.58
 const BODY_TURN := 3.1
 const AIM_TURN := 6.2
-const SHOT_LIFE := [0.13, 0.15, 0.185]
+enum Shot { HAMMER, HIGH_IMPACT, JAVELIN }
+const SHOT_LIFE := [0.13, 0.15, 0.115]
 const SIDE_NAMES := ["P", "N"]
 const CANNON_NAMES := ["InnerP", "InnerN", "OuterP", "OuterN"]
 
@@ -168,7 +169,7 @@ func _pose() -> void:
 		var clearance := sin(PI * travel)
 		pose.origin += Vector3(-0.018, 0.072, 0.035 * (1 if i % 2 == 0 else -1)) * clearance
 		var tube_axis: Vector3 = (rest[cannon_sockets[i]] as Transform3D).basis.x.normalized()
-		pose.origin -= pose.basis * tube_axis * _recoil(2 + i) * (0.023 if fire_kind[2 + i] == 2 else 0.065)
+		pose.origin -= pose.basis * tube_axis * _recoil(2 + i) * 0.023
 		cannons[i].transform = pose
 		var shroud := shrouds[i]
 		if shroud != null and not is_equal_approx(shroud.get_blend_shape_value(0), 1.0 - travel):
@@ -211,7 +212,10 @@ func _place_arm(index: int, blend: float, phase: float, trunk_to_actor: Transfor
 	var swing := 0.095 * sin(phase + PI * index) * stride_weight * (1.0 - 0.7 * aim_weight)
 	var axis := port.basis.x.normalized()
 	var elevation := atan2(axis.y, Vector2(axis.x, axis.z).length())
-	var tilt := lerpf(-0.30 * blend + swing, 0.04 - elevation, aim_weight) + 0.11 * kick
+	var aim_elevation := 0.04
+	if fire_kind[index] == Shot.HIGH_IMPACT:
+		aim_elevation += 0.21 * (1.0 - smoothstep(0.075, 0.21, fire_age[index]))
+	var tilt := lerpf(-0.30 * blend + swing, aim_elevation - elevation, aim_weight) + 0.11 * kick
 	var pitch := Basis(Vector3.BACK, tilt)
 	var carrier := start.origin + Vector3(0.012 * blend, -0.043 * blend, 0.0)
 	var yaw := 0.0
@@ -241,13 +245,11 @@ static func _barrel_yaw(trunk_to_actor: Transform3D, carrier: Vector3, port: Vec
 		var slope := Vector2(d_axis.x, d_axis.z).cross(towards) - line.cross(Vector2(d_offset.x, d_offset.z))
 		if absf(slope) < 0.0001:
 			break
-		yaw = clampf(yaw - error / slope, -1.02, 1.02)
+		yaw = clampf(yaw - error / slope, -1.08, 1.08)
 	return yaw
 
 func _slot(mode: String, strike: int) -> int:
-	if mode == "hammer":
-		return posmod(strike, 2)
-	return 2 + posmod(strike, 4 if mode == "javelin" else 2)
+	return 2 + posmod(strike, 4) if mode == "javelin" else posmod(strike, 2)
 
 func _socket(index: int) -> Node3D:
 	return arm_sockets[index] if index < 2 else cannon_sockets[index - 2]
@@ -258,6 +260,11 @@ func muzzle_world(mode: String, strike: int) -> Vector3:
 func muzzle_screen_offset(mode: String, strike: int) -> Vector2:
 	var point := to_local(muzzle_world(mode, strike))
 	return Vector2(point.x, point.z)
+
+func javelin_launch_direction(strike: int) -> Vector2:
+	var muzzle := _socket(_slot("javelin", strike))
+	var axis := global_basis.inverse() * muzzle.global_basis.x
+	return Vector2(axis.x, axis.z).normalized()
 
 func fire_at(mode: String, strike: int, target_offset: Vector2) -> void:
 	if wreck != null:
@@ -276,7 +283,7 @@ func _fire(mode: String, strike: int, shot_heading: float, target: Vector2) -> v
 	target_hold = 0.22
 	var index := _slot(mode, strike)
 	fire_age[index] = 0.0
-	fire_kind[index] = 0 if mode == "hammer" else (2 if mode == "javelin" else 1)
+	fire_kind[index] = Shot.JAVELIN if mode == "javelin" else (Shot.HIGH_IMPACT if mode == "high_impact" else Shot.HAMMER)
 	if flashes[index] == null:
 		var flash := MeshInstance3D.new()
 		flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -296,15 +303,15 @@ static func _shot_mesh(kind: int) -> ArrayMesh:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	builder.set_material(material)
-	if kind == 2:
-		_ring(builder, -0.13, 0.001, Color("ed591a"), -0.038, 0.018, Color("ffd376"))
-		_ring(builder, -0.038, 0.018, Color("fff3b2"), -0.024, 0.014, Color("ecf6ff"))
-		_ring(builder, -0.024, 0.022, Color("605a50"), 0.043, 0.020, Color("dedfc8"))
-		_ring(builder, 0.043, 0.020, Color("b77c58"), 0.082, 0.0, Color("e3ccc0"))
+	if kind == Shot.JAVELIN:
+		# Only ignition gas stays on the tube. The tracked missile owns its body and exhaust.
+		_ring(builder, -0.005, 0.022, Color("fffce1"), 0.023, 0.041, Color("fff2b8"))
+		_ring(builder, 0.023, 0.041, Color("fff2b8"), 0.061, 0.033, Color("ffb453"))
+		_ring(builder, 0.061, 0.033, Color("ffb453"), 0.107, 0.0, Color("ee692b"))
 	else:
-		var large := 1.16 if kind == 1 else 1.0
-		var cold := Color("aee8ff") if kind == 1 else Color("ffe7a0")
-		var edge := Color("659cc1") if kind == 1 else Color("f89c38")
+		var large := 1.16 if kind == Shot.HIGH_IMPACT else 1.0
+		var cold := Color("aee8ff") if kind == Shot.HIGH_IMPACT else Color("ffe7a0")
+		var edge := Color("659cc1") if kind == Shot.HIGH_IMPACT else Color("f89c38")
 		_ring(builder, -0.017, 0.023 * large, cold, 0.040, 0.047 * large, Color("ffffe6"))
 		_ring(builder, 0.040, 0.047 * large, Color("ffffe6"), 0.092 * large, 0.033 * large, cold)
 		_ring(builder, 0.092 * large, 0.033 * large, cold, 0.20 * large, 0.0, edge)
@@ -337,10 +344,9 @@ func _update_flashes() -> void:
 			continue
 		var socket := _socket(i)
 		var reach := 1.0 - smoothstep(0.27, 1.0, t)
-		var travel := 0.17 * t if kind == 2 else 0.0
 		var expansion := 1.0 + 0.28 * t
 		var shape := Vector3(maxf(0.02, reach * expansion), maxf(0.02, reach), maxf(0.02, reach))
-		node.global_transform = socket.global_transform * Transform3D(Basis.from_scale(shape), Vector3(travel, 0, 0))
+		node.global_transform = socket.global_transform.scaled_local(shape)
 
 func destroy() -> void:
 	if wreck != null:
