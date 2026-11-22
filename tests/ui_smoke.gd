@@ -40,7 +40,7 @@ func run() -> void:
 	game.handle_action("setup_step:wave_seconds:1")
 	game.handle_action("setup_confirm")
 	verify(not game.setup_open and int(game.sim.rules.wave_seconds)==int(wave_option.recommended)+int(wave_option.step) and int(game.sim.rules.start_minerals)==1000,"custom settings applied")
-	verify(game.sim.minerals[1]<=1000 and game.sim.journal.settings.start_minerals==1000,"chosen start funds recorded")
+	verify(game.sim.minerals==[1000,1000] and game.sim.formations==[[],[]] and game.sim.journal.settings.start_minerals==1000,"chosen start funds recorded")
 	game.handle_action("restart")
 	verify(game.setup_open and game.custom_fields.has("wave_seconds"),"restart reopens setup with previous custom values")
 	game.handle_action("setup_reset")
@@ -50,7 +50,8 @@ func run() -> void:
 	verify(int(game.sim.rules.wave_seconds)==int(wave_option.recommended) and int(game.sim.journal.settings.start_minerals)==int(options.start_minerals.recommended),"reset restores recommended settings")
 	verify(game.sim.races==["terran","zerg"] and game.sim.journal.settings.races==["terran","zerg"],"chosen races applied and journaled")
 	verify(game._shop_kinds().all(func(k): return game.sim.catalog[k].race=="terran"),"shop lists own race only")
-	verify(game.sim.formations[1].all(func(s): return game.sim.catalog[s.kind].race=="zerg"),"computer buys its own race")
+	verify(game.sim.formations==[[],[]],"both races begin with empty barracks")
+	_empty_starts_all_races()
 	_saved_medic_migration()
 	game.handle_action("clear")
 	# 推荐开局资金买不起医疗运输机、特工、雷神、大和舰；编辑器路径测试直接补足资源。
@@ -131,17 +132,29 @@ func run() -> void:
 	# 混编覆盖劫掠者、喷火直线攻击与特工换弹的完整对局。
 	game._commit([{"kind":"marauder","cell":5},{"kind":"hellbat","cell":8},{"kind":"agent","cell":6}])
 	game.handle_action("start")
+	game.accumulator=0.025
+	game.handle_action("battle_layout")
+	verify(game.formation_panel.opened and is_equal_approx(game.accumulator,0.025),"opening formation preserves fractional simulation time")
+	var before_panel: int=game.sim.tick
+	game._process(0.1)
+	verify(game.sim.tick>before_panel,"running simulation continues with formation open")
+	game.handle_action("formation:close")
 	game.handle_action("start")
+	game.handle_action("battle_layout")
 	var before: int=game.sim.tick
 	game._process(0.2)
-	verify(game.sim.tick==before,"pause stops ticks")
+	verify(game.sim.tick==before,"manual pause remains paused with formation open")
+	game.handle_action("formation:close")
 	game.handle_action("start")
 	game._notification(MainLoop.NOTIFICATION_APPLICATION_PAUSED)
 	game._process(0.2)
 	verify(game.sim.tick==before,"background stops ticks")
 	game._notification(MainLoop.NOTIFICATION_APPLICATION_RESUMED)
 	# 第一波出场后、交战前：敌方种族、阵容与兵种外形都不公开。
+	game.handle_action("battle_layout")
 	while game.sim.wave < 1:game.advance_tick()
+	verify(game.formation_panel.opened and not game.sim.last_formations[1].is_empty() and game.sim.last_formations[1].all(func(slot):return game.sim.catalog[slot.kind].race=="zerg"),"AI buys its own race on normal income before first wave with formation open")
+	game.handle_action("formation:close")
 	for i in range(10):game.advance_tick()
 	verify(not game.sim.revealed and game.sim.visible_enemy_formation(0).is_empty() and game.sim.visible_race(0,1)=="","enemy hidden before first engagement")
 	game.effects.clear()
@@ -209,21 +222,24 @@ func run() -> void:
 		root.get_texture().get_image().save_png(destination.replace(".png","-setup.png"))
 	game.handle_action("setup_confirm")
 	verify(game.sim.minerals==[0,0] and game.sim.formations[0].is_empty(),"zero start funds leave roster empty")
-	# 每个种族分别记住兵营：虫族阵容不会带到人族，换回虫族时恢复。
+	# 不写预设文件：验证每个种族都从空兵营开始，同族预设只在显式载入时使用。
 	game.handle_action("restart")
 	game.handle_action("setup_reset")
 	game.handle_action("setup_race:0:zerg")
 	game.handle_action("setup_confirm")
 	verify(game.sim.races[0]=="zerg" and game.selected=="zergling","player plays zerg with a zerg card selected")
-	game._commit([{"kind":"zergling","cell":3}])
+	var preset_config := ConfigFile.new()
+	preset_config.set_value("player","formation_zerg",[{"kind":"zergling","cell":3}])
 	game.handle_action("restart")
 	game.handle_action("setup_race:0:terran")
 	game.handle_action("setup_confirm")
-	verify(game.sim.formations[0].all(func(s): return game.sim.catalog[s.kind].race=="terran"),"terran roster does not inherit zerg units")
+	verify(game.sim.formations[0].is_empty() and game._read_formation_preset(preset_config).is_empty(),"terran roster does not inherit zerg units or preset")
 	game.handle_action("restart")
 	game.handle_action("setup_race:0:zerg")
 	game.handle_action("setup_confirm")
-	verify(game.sim.formations[0].size()==1 and game.sim.formations[0][0].kind=="zergling" and int(game.sim.formations[0][0].cell)==3,"zerg roster restored per race")
+	verify(game.sim.formations[0].is_empty(),"returning to zerg does not auto-buy a saved roster")
+	game.saved_formation_preset=game._read_formation_preset(preset_config)
+	verify(game._load_formation_preset()=="" and game.sim.formations[0].size()==1 and game.sim.formations[0][0].kind=="zergling" and int(game.sim.formations[0][0].cell)==3,"legacy zerg roster explicitly loaded per race")
 	game.handle_action("restart")
 	game.handle_action("setup_reset")
 	game.handle_action("setup_confirm")
@@ -258,3 +274,26 @@ func _saved_medic_migration() -> void:
 	game.sim.catalog.medic.available=true
 	verify(game._migrate_saved_formation(saved)==saved,"re-enabled medic is not removed")
 	game.sim.catalog.medic.available=false
+
+## Regression fixture only; no saved file writes from these helpers.
+func _empty_starts_all_races() -> void:
+	var choices: Array=game.race_choices.duplicate()
+	for race in ["terran","zerg","protoss","blight"]:
+		game.race_choices=[race,race]
+		game._new_match()
+		verify(game.sim.races==[race,race] and game.sim.formations==[[],[]],race+" has no system starter for either side")
+		verify(game.sim.minerals==[int(game.sim.rules.start_minerals),int(game.sim.rules.start_minerals)],race+" starts without purchases")
+	game.race_choices=choices
+	game._new_match()
+	var saved: Array=[{"kind":"hellbat","cell":2,"member_positions":[[-4,0]]}]
+	game.saved_formation_preset=saved
+	game.sim.minerals[0]=0
+	verify(game._load_formation_preset()!="" and game.sim.formations[0].is_empty(),"insufficient resources leave preset unloaded")
+	game.sim.minerals[0]=20000
+	game.saved_formation_preset=[{"kind":"hellbat","cell":2,"member_positions":[[9999,0]]}]
+	var actions_before: int=game.sim.journal.actions.size()
+	verify(game._load_formation_preset()!="" and game.sim.formations[0].is_empty() and game.sim.minerals[0]==20000 and game.sim.journal.actions.size()==actions_before,"invalid positions do not purchase, spend, or journal")
+	game.saved_formation_preset=saved
+	verify(game._load_formation_preset()=="" and game.sim.formations[0][0].member_positions==saved[0].member_positions,"explicit preset load retains positions")
+	game._new_match()
+	verify(game.sim.formations==[[],[]],"a preset never auto-applies in a new match")

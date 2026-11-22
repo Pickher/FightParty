@@ -40,7 +40,7 @@ func sync_shared(view, host, delta: float) -> void:
 	if model == null:
 		return
 	var game = host.game
-	var paused: bool = not game.started or game.paused or game.backgrounded or game.help_open or game.economy_open or game.formation_panel.opened or game.setup_open
+	var paused: bool = not game.started or game.paused or game.backgrounded or game.help_open or game.economy_open or game.setup_open
 	var dt := 0.0 if paused else minf(delta, 0.1)
 	var alpha := clampf(float(game.accumulator) * float(game.sim.rules.tick_rate), 0.0, 1.0)
 	sync(game, view, dt, alpha)

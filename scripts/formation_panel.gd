@@ -167,7 +167,11 @@ func draw() -> void:
 	# 此面板独占输入，不留下被遮住的布阵格和战场工具栏按钮。
 	game.buttons.clear()
 	game._text(Vector2(56,137),"部队配置",27,game.MINT)
-	game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
+	game._text(Vector2(222,135),"调整下一波 · 不指挥场上部队",18,game.MUTED)
+	if game._can_load_formation_preset():
+		game._button(Rect2(630,109,170,42),"载入已存阵容","formation:load_preset")
+	if not members.is_empty():
+		game._button(Rect2(824,109,176,42),"保存当前布阵","formation:save_preset")
 	game._button(Rect2(1024,109,152,42),"格阵管理","formation:legacy")
 	game._button(Rect2(1190,109,186,42),"收起，返回战场","formation:close",true)
 	game._button(Rect2(56,166,170,46),"现有部队","formation:tab:owned",tab=="owned")
@@ -356,7 +360,6 @@ func finish_placement(point: Vector2, touch: bool) -> void:
 		_message(error,true)
 		return
 	if touch and not explicit_selection:_next_batch(members)
-	game._save_settings()
 	game._save_journal()
 	_message("已排布 %d 名，下波生效。" % amount)
 
@@ -408,10 +411,20 @@ func handle_action(action: String) -> void:
 		if error.is_empty():error=game.sim.arrange_members(0,result.get("placements",[]))
 		if error.is_empty():
 			selection_offset=0
-			game._save_settings()
 			game._save_journal()
 			_message("已按兵种定位自动排布；可以继续选兵和拖线微调。")
 		else:_message(error,true)
+	elif verb=="load_preset":
+		var error: String=game._load_formation_preset()
+		if error.is_empty():
+			game._save_journal()
+			tab="owned"
+			_ensure_selection()
+			_message("已按当前价格购入并载入阵容。")
+		else:_message(error,true)
+	elif verb=="save_preset":
+		var error: String=game._save_formation_preset()
+		_message("已保存本种族布阵；新局仍从空兵营开始。" if error.is_empty() else error,not error.is_empty())
 	elif verb=="buy":_buy_group()
 	game.queue_redraw()
 
@@ -439,6 +452,5 @@ func _buy_group() -> void:
 		if int(pool[index].cell)==cell:
 			selection_offset=index
 			break
-	game._save_settings()
 	game._save_journal()
 	_message("已招募一组%s（%d 名）；已选中新兵，可在右侧重新排布。" % [str(stats.name),batch_count])

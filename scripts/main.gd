@@ -32,6 +32,7 @@ const PANEL := Color("101e30")
 const SHIELD := Color("6fb6ff")
 const FONT = preload("res://assets/NotoSansSC.ttf")
 var sim = Sim.new()
+var saved_formation_preset: Array = []
 var ai = AI.new()
 # selected 是当前选中的兵种 ID，也可能是 erase（删除）或 move（移动）工具。
 var selected := "rifle"
@@ -160,7 +161,7 @@ func _make_sound() -> void:
 	stream.data = data
 	speaker.stream = stream
 
-## 新建模拟器与 AI，尝试用开局资金买回上次的兵营；买不起则用默认阵容，再买不起则留空。
+## 新建模拟器与 AI，双方兵营为空；不恢复预设、不提前替电脑买兵。
 ## 重置开始、暂停和特效状态。进入游戏后仍要点击“开始准备”才会计时。
 func _new_match() -> void:
 	var overrides: Dictionary = match_settings.duplicate()
@@ -178,33 +179,19 @@ func _new_match() -> void:
 	tower_preview_visible=false
 	camera_center=sim.layout_pos(0,"spawn")
 	ai = AI.new(42, sim.races[1])
-	var prior: Array = Catalog.starter(sim.races[0])
-	var removed_retired_medic := false
+	_ai_configure_gas() # 保留首笔收入分流；不购买或生成任何兵力。
 	var config := ConfigFile.new()
-	if config.load("user://settings.cfg") == OK:
-		# 每个种族单独记住兵营；旧版只有一份 formation，按当前种族校验，不合法就用默认阵容。
-		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
-		if saved is Array:
-			prior = _migrate_saved_formation(saved)
-			removed_retired_medic = prior.size() < saved.size()
-	var saved_layout_error := ""
-	if sim.submit_formation(0, prior) != "":
-		removed_retired_medic = false # 其他非法内容仍沿用原有回退，不宣称已保留部队。
-		sim.submit_formation(0, Catalog.starter(sim.races[0]))
-	else:
-		saved_layout_error=_restore_deployment(prior)
+	saved_formation_preset=[]
+	if config.load("user://settings.cfg")==OK:
+		saved_formation_preset=_read_formation_preset(config)
 	if not sim.catalog.has(selected) or sim.kind_error(0, selected) != "":
 		selected = _shop_kinds()[0]
-	_ai_shop()
 	started = false
 	paused = false
 	accumulator = 0.0
 	effects.clear()
 	rifle_visual.reset()
 	messages = ["兵营永久保留；每3秒收入，中央资源井第10波开放。"]
-	if removed_retired_medic:
-		_note("旧阵容中的医疗兵已暂时移除，未自动替换兵种。" + ("兵营暂为空，可重新配兵。" if prior.is_empty() else "其余部队已保留。"))
-	if not saved_layout_error.is_empty():_note("保存的排布不可用，已保留部队并使用默认阵型。")
 	pending_formation = []
 	move_source = -1
 	journal_error = false
@@ -257,31 +244,70 @@ func _migrate_saved_formation(formation: Array) -> Array:
 		return migrated
 	return migrated.filter(func(slot):return not (slot is Dictionary and slot.get("kind","")=="medic"))
 
+## 按种族读取显式预设；兼容旧版按种族及单独一份的阵容文件，不在此改写。
+func _read_formation_preset(config: ConfigFile) -> Array:
+	var race: String=str(sim.races[0])
+	var saved = config.get_value("player","manual_formation_"+race,config.get_value("player","formation_"+race,config.get_value("player","formation",[])))
+	return saved.duplicate(true) if saved is Array else []
+
 ## 旧阵容没有单兵位置时仍可用；布局不参与买兵、退款或费用计算。
-func _restore_deployment(formation: Array) -> String:
+func _restore_deployment(formation: Array, target = null) -> String:
+	if target==null:target=sim
 	var placements: Array = []
 	for slot in formation:
 		if not slot is Dictionary or not slot.has("member_positions"):continue
 		if not slot.member_positions is Array:return "排布数据无效"
-		if not sim.catalog.has(str(slot.kind)):return "排布兵种无效"
-		if slot.member_positions.size()!=maxi(1,int(sim.catalog[slot.kind].get("spawn_count",1))):return "排布人数已改变"
+		if not target.catalog.has(str(slot.kind)):return "排布兵种无效"
+		if slot.member_positions.size()!=maxi(1,int(target.catalog[slot.kind].get("spawn_count",1))):return "排布人数已改变"
 		for member in range(slot.member_positions.size()):
 			placements.append({"cell":slot.cell,"member":member,"position":slot.member_positions[member]})
-	return sim.restore_deployment(0,placements) if not placements.is_empty() else ""
+	return target.restore_deployment(0,placements) if not placements.is_empty() else ""
 
-## 保存当前音量、开局设置和本方种族的下一波阵容；先读入旧文件，保留其他种族的兵营。失败只给提示，不影响继续战斗。
+func _can_load_formation_preset() -> bool:
+	return not started and not sim.finished and sim.tick==0 and sim.formations[0].is_empty() and not saved_formation_preset.is_empty()
+
+## 仅显式操作允许载入。先用同一套已结算钱包和规则做无副作用验证，不把未验证的阵容买进本局。
+func _load_formation_preset() -> String:
+	if not _can_load_formation_preset():return "只能在开始准备前、兵营为空时载入阵容。"
+	var preset: Array=_migrate_saved_formation(saved_formation_preset)
+	if preset.is_empty():return "已存阵容没有可用兵种。"
+	var probe_rules: Dictionary = sim.rules.duplicate(true)
+	probe_rules["structures"]=false
+	var probe = Sim.new(42,probe_rules)
+	probe.minerals[0]=sim.minerals[0]
+	probe.economy.gas[0]=sim.economy.gas[0]
+	probe.economy.cores[0]=sim.economy.cores[0]
+	var error: String=probe.submit_formation(0,preset)
+	if error.is_empty():error=_restore_deployment(preset,probe)
+	if not error.is_empty():return error
+	error=sim.submit_formation(0,preset)
+	if not error.is_empty():return error
+	return _restore_deployment(preset)
+
+## 新预设只由显式按钮写入，不覆盖旧版的阵容键。
+func _save_formation_preset() -> String:
+	if sim.finished or sim.formations[0].is_empty():return "没有可保存的部队。"
+	var config := ConfigFile.new()
+	var load_error := config.load("user://settings.cfg")
+	if load_error!=OK and load_error!=ERR_FILE_NOT_FOUND:return "读取设置失败，未改动已存阵容。"
+	var preset: Array=[]
+	for slot in sim.formations[0]:
+		var entry: Dictionary={"kind":slot.kind,"cell":slot.cell}
+		if slot.has("member_positions"):entry.member_positions=slot.member_positions.duplicate(true)
+		preset.append(entry)
+	config.set_value("player","manual_formation_"+str(sim.races[0]),preset)
+	if config.save("user://settings.cfg")!=OK:return "阵容保存失败。"
+	saved_formation_preset=preset
+	return ""
+
+## 音量与开局设置保存不写入或抹掉任何阵容预设。
 func _save_settings() -> void:
 	var config := ConfigFile.new()
-	config.load("user://settings.cfg")
+	var load_error := config.load("user://settings.cfg")
+	if load_error!=OK and load_error!=ERR_FILE_NOT_FOUND:
+		_note("读取设置失败，未覆盖设置文件。")
+		return
 	config.set_value("audio","volume",volume)
-	var formation: Array = []
-	for slot in sim.formations[0]:
-		var saved_slot: Dictionary = {"kind":slot.kind,"cell":slot.cell}
-		if slot.has("member_positions"):saved_slot.member_positions=slot.member_positions.duplicate(true)
-		formation.append(saved_slot)
-	if config.has_section_key("player","formation"):
-		config.erase_section_key("player","formation")
-	config.set_value("player","formation_"+str(sim.races[0]),formation)
 	config.set_value("match","economy_schema",1)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
@@ -321,7 +347,7 @@ func _notification(what: int) -> void:
 ## 累计够 0.05 秒才推进一步战斗；特效按画面时间更新，并请求重绘。
 func _process(delta: float) -> void:
 	elapsed_ui += delta
-	if started and not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened and not sim.finished:
+	if started and not paused and not backgrounded and not help_open and not economy_open and not sim.finished:
 		# 每帧最多积累 0.25 秒，防止卡顿后瞬间补算过多步。当前节拍固定 20 Hz。
 		# 如果修改 rules.json 的 tick_rate，必须同步这里的 0.05 和下面插值、时间显示等计算。
 		accumulator += minf(delta, 0.25)
@@ -331,13 +357,12 @@ func _process(delta: float) -> void:
 	desktop_camera.update(self,delta,_desktop_camera_allowed())
 	if camera_follow and not placing_tower and not paused and not backgrounded and not _navigation_blocked():
 		camera_center=_camera_rect().get_center().lerp(_frontline_point(),1.0-exp(-minf(delta,0.25)*6.0))
-	if not paused and not backgrounded and not help_open and not economy_open and not formation_panel.opened:
+	if not paused and not backgrounded and not help_open and not economy_open:
 		rifle_visual.update(delta)
 	if formation_panel.opened:
 		formation_panel.update_line_preview()
-	else:
-		for effect in effects:
-			effect.ttl -= delta
+	for effect in effects:
+		effect.ttl -= delta
 	effects = effects.filter(func(e): return e.ttl > 0)
 	queue_redraw()
 
@@ -419,7 +444,7 @@ func advance_tick() -> void:
 		_save_journal()
 	rifle_visual.observe(sim.units)
 
-## 电脑在开局、出兵和每次收入后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
+## 电脑在出兵和每次收入后用当前矿物增量购买；首次交战后才看到玩家刚出场的阵容，之前当作一无所知。
 ## 落后时先建防御塔，买不起就本轮攒矿不买兵。
 func _ai_shop() -> void:
 	var seen: Array = sim.visible_enemy_formation(1)
@@ -428,7 +453,12 @@ func _ai_shop() -> void:
 		sim.build_tower(1,sim.suggested_tower_position(1))
 	elif plan == "save":
 		return
-	# 瓦斯兵种按同一分流规则攒气，不发额外资源；补齐后恢复矿物收入。
+	_ai_configure_gas()
+	for slot in ai.buy_list(seen, sim.formations[1], int(sim.minerals[1]),int(sim.economy.gas[1]),int(sim.economy.cores[1])):
+		sim.buy(1, slot.kind, slot.cell)
+
+## 瓦斯兵种按同一分流规则攒气，不发额外资源；补齐后恢复矿物收入。
+func _ai_configure_gas() -> void:
 	var needs_gas := false
 	for kind in ai.pool:
 		if int(sim.catalog[kind].get("gas_cost",0))<=0:continue
@@ -439,8 +469,6 @@ func _ai_shop() -> void:
 	var gasworks := 2 if needs_gas else 0
 	if int(sim.economy.gasworks[1])!=gasworks:
 		sim.economy.set_gasworks(sim,1,gasworks)
-	for slot in ai.buy_list(seen, sim.formations[1], int(sim.minerals[1]),int(sim.economy.gas[1]),int(sim.economy.cores[1])):
-		sim.buy(1, slot.kind, slot.cell)
 
 ## 将最新提示放在消息列表最前面，最多保留五条；界面显示最新一条。
 func _note(message: String) -> void:
@@ -501,7 +529,8 @@ func _draw() -> void:
 	_text(Vector2(895,37),"灵核",16,MUTED)
 	_text(Vector2(895,74),str(int(sim.economy.cores[0])),26,Color("ffcd70"))
 	if formation_panel.opened:
-		_text(Vector2(1040,55),"配置中 · 战斗与倒计时已暂停",21,MINT)
+		var status: String = "战斗继续" if started and not paused else ("战斗已暂停" if paused else "尚未开始")
+		_text(Vector2(1040,55),"配置中 · "+status,21,MINT)
 	else:
 		_button(Rect2(1000,24,120,48),"音量 %d" % int(volume*100),"volume")
 		_button(Rect2(1132,24,120,48),"玩法说明","help")
@@ -836,7 +865,7 @@ func _draw_help() -> void:
 		"   宝库被摧毁奖励对方1灵核；中央井第10波开放，控制方每3秒+3矿。",
 		"   花 %d 矿点选己方半场建塔；不能重叠建筑，被摧毁不能重建。" % int(sim.catalog[sim.tower_kind(0)].cost),
 		"7. 摧毁基地获胜；第 %d 波后先没有可攻击部队的一方失败。" % int(sim.rules.wave_limit),
-		"8. 打开配置时暂停计时，收起后返回战斗；手机切后台也会暂停。",
+		"8. 打开配置不会暂停战斗和倒计时；手机切后台仍会暂停。",
 		"   双方种族在开局选择、整局固定；首次交战后才看到敌方种族与阵容。",
 		"提示：战场下方「经济」管理气厂分流与瓦斯兑换。"]
 	for i in range(lines.size()):
@@ -1124,7 +1153,6 @@ func handle_action(action: String) -> void:
 		_cancel_tower_placement()
 		_set_battle_expanded(true)
 		formation_panel.open_panel()
-		accumulator=0.0
 	elif action=="legacy_editor":
 		formation_panel.close_panel()
 		_set_battle_expanded(false)
@@ -1226,8 +1254,6 @@ func _commit(formation: Array, confirmed: bool = false) -> void:
 	var error: String = sim.submit_formation(0, formation)
 	if error != "":
 		_note(error)
-	else:
-		_save_settings()
 
 ## 在阵容副本上执行放置、替换、删除或移动，再提交校验。
 ## 移动分两次点击：第一次记住来源格，第二次移到空格或与已有单位交换。
@@ -1247,8 +1273,6 @@ func _edit_cell(cell: int) -> void:
 			move_source=-1
 			if error != "":
 				_note(error)
-			else:
-				_save_settings()
 		return
 	if index>=0:
 		formation.remove_at(index)

@@ -52,7 +52,7 @@ func run() -> void:
 	game.paused=false
 	game.formation_panel.opened=true
 	visual.sync(view,0.08)
-	check(visual.clock==old_clock,"formation panel freezes animation clock")
+	check(visual.clock>old_clock,"formation panel leaves animation clock running")
 	game.formation_panel.opened=false
 	var beam: Dictionary={"source_id":1,"target_id":3,"healing":true,"team":0,"from":craft.pos,"to":Vector2(25,20)}
 	game.sim.active_beams=[beam]

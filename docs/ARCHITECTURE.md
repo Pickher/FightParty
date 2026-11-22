@@ -7,7 +7,7 @@
 | 层 | 文件 | 职责 |
 | --- | --- | --- |
 | 数据 | `data/rules.json`、`data/units.json`、`data/races.json` | 规则、兵种、种族与电脑参数，带版本号 |
-| 读取 | `scripts/catalog.gd` | 加载配置、构造 `UnitDefinition`、按种族筛选（`race_units`）、判断实装（`is_ready`）、默认阵容（`starter`）、种族防御塔（`tower_kind`） |
+| 读取 | `scripts/catalog.gd` | 加载配置、构造 `UnitDefinition`、按种族筛选（`race_units`）、判断实装（`is_ready`）、测试用历史阵容（`starter`）、种族防御塔（`tower_kind`） |
 | 模型 | `scripts/units/` | `UnitDefinition`（兵种模板）、`WeaponDefinition`（攻击模式）、`Unit`（战场实例状态）、`AttackCycle`（出手/冷却）、`BaseDefense`（基地防御层） |
 | 模拟 | `scripts/battle_sim.gd` | 兵营操作、波次、固定步模拟、统一结算、胜负、快照与战报；不依赖场景树、节点、物理或渲染 |
 | 攻击 | `scripts/attacks/` | `AttackBehavior` 接口与 `projectile`/`beam`/`line` 三种投送行为，经 `attack_registry.gd` 分发 |
@@ -17,7 +17,7 @@
 | 布阵 | `scripts/formation_layout.gd`、`formation_panel.gd` | 纯几何排布/校验与独立配置面板；通过模拟接口调整已有成员，详见 [部队配置](MOBILE_FORMATION.md) |
 | 表现 | `scripts/main.gd`、`battle_view.gd`、`unit_art.gd`、`unit_summary.gd`、`rifle_visual.gd`、`battlecruiser_visual.gd` | 输入、界面、调度固定步、绘制快照与事件、保存设置与战报；不计算伤害 |
 
-`main.gd` 每帧累计时间，够 0.05 秒推进一次 `BattleSim.step()`（20 Hz，单帧最多补 0.25 秒），暂停、说明页、经济面板、部队配置和切后台时不推进。表现层在 `prev` 与 `pos` 之间插值，绘制的形状、血条和特效不参与命中。
+`main.gd` 每帧累计时间，够 0.05 秒推进一次 `BattleSim.step()`（20 Hz，单帧最多补 0.25 秒），未开始、暂停、说明页、经济面板和切后台时不推进；部队配置不暂停进行中的对局。表现层在 `prev` 与 `pos` 之间插值，绘制的形状、血条和特效不参与命中。
 
 ## 模拟接口
 

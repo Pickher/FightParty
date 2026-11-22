@@ -158,7 +158,7 @@ func events(tick_events: Array, before: Dictionary) -> void:
 
 func sync(view, delta: float) -> void:
 	if not ready_model or game.sim==null:return
-	var running: bool = not (not game.started or game.paused or game.backgrounded or game.help_open or game.economy_open or game.formation_panel.opened or game.setup_open)
+	var running: bool = not (not game.started or game.paused or game.backgrounded or game.help_open or game.economy_open or game.setup_open)
 	var dt: float = minf(delta,0.1) if running else 0.0
 	clock+=dt
 	view_size=view.viewport_size()
