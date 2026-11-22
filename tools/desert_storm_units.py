@@ -12,6 +12,10 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT/'reference/desert-storm/Base.SC2Data/GameData'
+# These packs have editable FightParty group prices. Map resources are per unit.
+PROJECT_PACKS = {'rifle', 'zergling', 'roach', 'hydralisk'}
+PACK_COUNT_SOURCE = 'FightParty 试玩平衡：每组数量由兵种配置指定'
+PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
  'rifle':'Marine', 'hellbat':'Hellion', 'marauder':'Marauder', 'medic':'Medic',
  'agent':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter',
@@ -19,7 +23,7 @@ UNIT_IDS = {
  'zergling':'Zergling','baneling':'Baneling','roach':'Roach','hydralisk':'Hydralisk',
  'ravager':'Ravager','piercer':'LurkerMP','tunneler':'SwarmHostMP','mutalisk':'Mutalisk',
  'infestor':'Infestor','ultralisk':'Ultralisk','brood_lord':'BroodLord',
- 'vanguard':'Zealot','stalker':'Stalker','sentry':'Sentry','immortal':'Immortal',
+ 'vanguard':'Zealot','adept':'Adept','stalker':'Stalker','sentry':'Sentry','immortal':'Immortal',
  'high_templar':'HighTemplar','archon':'Archon','colossus':'Colossus','disruptor':'Disruptor',
  'void_ray':'VoidRay','carrier':'Carrier','broodling':'Broodling','locust':'LocustMP','interceptor':'Interceptor',
 }
@@ -45,6 +49,7 @@ MODES = {
  'ultralisk':[('kaiser_blades','KaiserBlades2','KaiserBladesDamage')],
  'brood_lord':[('broodling_strike','BroodLord','BroodlingEscortDamage')],
  'vanguard':[('psi_blades','Weapon_LNLR','Effect_SH_LNLR')],
+ 'adept':[('resonating_glaive','Adept','AdeptDamage')],
  'stalker':[('particle_disruptor','ParticleDisruptors','ParticleDisruptorsU')],
  'sentry':[('disruption_beam','DisruptionBeam','DisruptionBeamDamage')],
  'immortal':[('phase_disruptor','PhaseDisruptors','PhaseDisruptors')],
@@ -93,16 +98,19 @@ def apply():
  cat=Catalog();path=ROOT/'data/units.json';data=json.loads(path.read_text(encoding='utf-8'));units=data['units']
  extension_path=ROOT/'data/units/defense_reference.json'
  extension=json.loads(extension_path.read_text(encoding='utf-8')) if extension_path.exists() else {}
- profile_version=extension.get('version','0.11.0')
+ profile_version=data['version']
  previous_path=ROOT/'data/units/desert_storm_reference.json'
  previous=json.loads(previous_path.read_text(encoding='utf-8')) if previous_path.exists() else {}
- audit={'version':profile_version,'source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；价格按单体×现有组数；未还原原版/依赖继承。用户确认以参考配置覆盖旧数值。',
+ audit={'version':profile_version,'source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。未还原原版/依赖继承。',
         'units':{},'changes':[],'unresolved':[]}
  def write(uid,path,value,source):
   unit=units[uid];old=unit
   try:
    for part in path.split('/'):old=old[int(part)] if isinstance(old,list) else old[part]
   except (KeyError,IndexError):old=None
+  if (uid in PROJECT_PACKS and path=='cost') or (uid=='zergling' and path=='hp'):
+   value=old
+   source=PACK_BALANCE_SOURCE+source
   if isinstance(value,float) and value.is_integer():value=int(value)
   if old!=value:audit['changes'].append({'id':uid,'path':path,'before':copy.deepcopy(old),'after':copy.deepcopy(value),'source':source})
   if old!=value:set_path(unit,path,value)
@@ -139,6 +147,8 @@ def apply():
   for native,local in [('LifeMax','hp'),('Speed','speed'),('EnergyMax','energy')]:
    if cat.scalar('UnitData',sid,native) is None:pending(uid,local,f'{sid}/{native}未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认')
   entry=audit['units'].setdefault(uid,{'source_unit':sid,'fields':{}})
+  if uid in PROJECT_PACKS:
+   entry['fields']['spawn_count']=PACK_COUNT_SOURCE
   entry['abilities']=[n.get('Link') for n in node.findall('AbilArray') if n.get('Link') and n.get('removed')!='1']
   entry['behaviors']=[n.get('Link') for n in node.findall('BehaviorArray') if n.get('Link') and n.get('removed')!='1']
   for bid in entry['behaviors']:
@@ -205,6 +215,28 @@ def apply():
   skill(uid,'stimulant',config,'AbilData/'+aid+'/Cost')
   for field in ['duration','attack_multiplier','speed_multiplier']:
    pending(uid,'skills/stimulant/'+field,'Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）')
+ # Additional Adept fields come from its inherited weapon and the map's two mutually exclusive orders.
+ adept_fields=audit['units']['adept']['fields']
+ adept_fields.update({
+  'spawn_count':'ShakurasGateway/EnergyMax；GameStrings/Button/Tooltip/ShakurasGateway 部署两名；每名140矿',
+  'speed':'Void/UnitData/Adept/Speed（原始游戏秒）', 'collision_radius':'Core/UnitData/Radius=0.5',
+  'armor_type':'Unit/Adept 属性及 ShakurasGateway 中文说明：轻甲', 'tags':'Unit/Adept 属性及 ShakurasGateway 中文说明：生物',
+  'shield_regen':'Void/UnitData/Adept/ShieldRegenRate', 'shield_regen_delay':'Void/UnitData/Adept/ShieldRegenDelay',
+  'attack_modes/0/target_layers':'WeaponData/Adept/TargetFilters：Ground',
+  'attack_modes/0/hit_count':'Void/WeaponData/Adept 单发共鸣之刃',
+  'attack_modes/0/interval':'Void/WeaponData/Adept/Period=2.25；MapScript 全局 AdeptPiercingAttack 攻速+45%；完整周期 2.25/1.45 减出手',
+  'attack_modes/0/attack_duration':'Core/WeaponData/DamagePoint=0.167，以单段出手持续时间表达',
+  'attack_modes/0/delivery/speed':'Void/MoverData/AdeptWeapon 继承 Core/MoverData/MissileDefault，速度18.75',
+  'skills/psionic_transfer/launch_delay':'MapScript 发出 AdeptPhaseShift 指令前 Wait(0.25)',
+  'skills/psionic_transfer/contact_range':'ValidatorData/EnemiesGroundNearbyRange622222，地面敌人',
+  'skills/psionic_transfer/retreat_shield_threshold':'ValidatorData/CasterShieldLT30',
+  'skills/psionic_transfer/retreat_cooldown':'AbilData/AdeptPhaseShift_FSB/Cost/Cooldown',
+  'skills/psionic_transfer/attacker_range':'AbilData/AdeptPhaseShift_FSB/AutoCastRange',
+  'skills/psionic_transfer/retreat_distance':'EffectData/AdeptPhaseShift_LaunchBack/ImpactOffset',
+  'skills/psionic_transfer/retreat_speed':'MoverData/AdeptPhaseShift/MotionPhases/MaxSpeed',
+ })
+ audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='adept' or item['path'] not in adept_fields]
+ pending('adept','skills/psionic_transfer/shade_speed','主包投影基础速度2.9531，按 Void 行为加成1.75 暂取4.7031格/秒。间接依赖是否改写该加成待确认。')
  # Post-morph armor must be applied at damage settlement, not only recorded in a sheet.
  armor=cat.scalar('UnitData','SiegeTankSieged','LifeArmor')
  write('mortar','skills/deployment/armor_override',armor,'UnitData/SiegeTankSieged/LifeArmor')
@@ -256,7 +288,6 @@ def apply():
   unit.setdefault('gas_cost',0);unit.setdefault('core_cost',0)
  audit['units'].update(extension.get('units',{}))
  audit['unresolved'].extend(extension.get('unresolved',[]))
- data['version']=profile_version
  path.write_text(json.dumps(data,ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
  # Preserve original before-values when a developer reapplies the same profile.
  if previous.get('version')==audit['version']:

@@ -1,5 +1,5 @@
 {
- "version": "0.12.3",
+ "version": "0.13.0",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -7,7 +7,7 @@
    "race": "terran",
    "status": "ready",
    "sc2": "陆战队员 Marine",
-   "cost": 300,
+   "cost": 220,
    "hp": 55,
    "armor_type": "light",
    "armor": 3,
@@ -20,7 +20,7 @@
     0.8,
     0.8
    ],
-   "spawn_count": 4,
+   "spawn_count": 3,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -1366,8 +1366,8 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "跳虫 Zergling",
-   "cost": 75,
-   "hp": 90,
+   "cost": 300,
+   "hp": 50,
    "armor_type": "light",
    "armor": 3,
    "speed": 3.5,
@@ -1379,7 +1379,7 @@
     1,
     1
    ],
-   "spawn_count": 1,
+   "spawn_count": 4,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -1545,7 +1545,7 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "蟑螂 Roach",
-   "cost": 120,
+   "cost": 380,
    "hp": 150,
    "armor_type": "heavy",
    "armor": 4,
@@ -1559,7 +1559,7 @@
     1,
     1
    ],
-   "spawn_count": 1,
+   "spawn_count": 2,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -1627,7 +1627,7 @@
    "race": "zerg",
    "status": "ready",
    "sc2": "刺蛇 Hydralisk",
-   "cost": 130,
+   "cost": 540,
    "hp": 100,
    "armor_type": "light",
    "armor": 3,
@@ -1640,7 +1640,7 @@
     1,
     1
    ],
-   "spawn_count": 1,
+   "spawn_count": 3,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -2493,6 +2493,108 @@
    },
    "gas_cost": 0,
    "core_cost": 0
+  },
+  "adept": {
+   "name": "使徒",
+   "symbol": "A",
+   "race": "protoss",
+   "status": "ready",
+   "sc2": "使徒 Adept",
+   "cost": 280,
+   "spawn_count": 2,
+   "hp": 70,
+   "shield": 70,
+   "shield_armor": 3,
+   "armor_type": "light",
+   "armor": 4,
+   "speed": 2.5,
+   "color": "ebac76",
+   "role": "地面中排 · 克轻甲",
+   "counter": "共鸣之刃对轻甲额外造成15点伤害，可选后撤或支援传送",
+   "layer": "ground",
+   "size": [
+    1,
+    1
+   ],
+   "collision_radius": 0.5,
+   "tags": [
+    "biological"
+   ],
+   "unit_type": "unit",
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 2,
+   "shield_regen_delay": 10,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "skills": {
+    "psionic_transfer": {
+     "display_name": "灵能传送",
+     "launch_delay": 0.25,
+     "shade_speed": 4.7031,
+     "contact_range": 7.5,
+     "retreat_shield_threshold": 30,
+     "retreat_cooldown": 15,
+     "retreat_distance": 10,
+     "retreat_speed": 8,
+     "attacker_range": 12
+    },
+    "combat_mobility": {
+     "modifiers": [
+      {
+       "speed_maximum": 2.75,
+       "speed_multiplier": 2.0
+      }
+     ],
+     "display_name": "交战机动"
+    }
+   },
+   "primary_mode": "resonating_glaive",
+   "attack_modes": [
+    {
+     "id": "resonating_glaive",
+     "label": "共鸣之刃",
+     "damage": 13,
+     "hit_count": 1,
+     "bonus": {
+      "light": 15
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 4,
+     "attack_duration": 0.167,
+     "interval": 1.384724,
+     "windup": 0,
+     "backswing": 0,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "flight": "distance",
+      "speed": 18.75,
+      "tracking": true
+     }
+    }
+   ],
+   "gas_cost": 0,
+   "core_cost": 0,
+   "source_profile": {
+    "map_unit": "Adept",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   }
   },
   "stalker": {
    "name": "追猎者",

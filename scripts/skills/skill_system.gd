@@ -22,6 +22,7 @@ const TYPES := {
 	"on_hit_slow":preload("res://scripts/skills/on_hit_slow.gd"),
 	"delayed_area":preload("res://scripts/skills/delayed_area.gd"),
 	"blink":preload("res://scripts/skills/blink.gd"),
+	"psionic_transfer":preload("res://scripts/skills/psionic_transfer.gd"),
 	"charge":preload("res://scripts/skills/charge.gd"),
 	"dive":preload("res://scripts/skills/dive.gd"),
 	"aura":preload("res://scripts/skills/aura.gd"),

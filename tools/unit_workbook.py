@@ -25,6 +25,9 @@ LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multipl
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
     'strike_offsets':'各段出手时刻（秒）','armor_multiplier':'护甲减免倍率','splash_rings':'溅射分圈',
+    'launch_delay':'出场后投影延迟（秒）','shade_speed':'支援投影速度（格/秒）','contact_range':'投影遇敌半径（格）',
+    'retreat_shield_threshold':'触发后撤的护盾下限（低于时触发）','retreat_cooldown':'后撤冷却（秒）','retreat_distance':'后撤距离（格）',
+    'retreat_speed':'后撤投影速度（格/秒）','attacker_range':'触发后撤的地面攻击者范围（格）',
     'speed_maximum':'交战速度上限','health_cost':'固定扣血量','shield_threshold':'触发护盾阈值','armor_override':'部署后生命护甲',
     'shield_armor_buff':'临时护盾护甲','damage_trigger':'仅受伤后触发','initial_cooldown':'初始冷却',
     'healing':'治疗量','tick_interval':'光束结算间隔（秒）','switch_delay':'切换目标等待（秒）','attack_duration':'本轮持续/光束面板周期（秒）','delivery':'攻击行为','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'攻击类型（projectile/beam/line）','flight':'射弹飞行方式（contact/fixed/distance）','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
@@ -281,7 +284,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
     notes=[['FightParty 兵种数值表', '源码版本 '+data.get('version','')],
         ['编辑流程','修改下方三页并保存 → 在项目根目录执行 python tools/import_units.py；或把文件交给 AI 导入。'],
         ['审核标记','黄色空白=待确认，灰色空白=不适用。批注记录当前游戏兼容值，空白导入不会写0。可在原页或待确认清单D列填写，勿填两个不同值。'],
-        ['数据口径','0.11.0起按沙漠风暴明确配置覆盖旧数值。价格=原图单体价格×现有组数；未覆盖项保留项目回退值，不代表已还原原版继承。详见沙漠风暴来源/待确认页。'],
+        ['数据口径','0.11.0起按沙漠风暴明确配置覆盖旧数值。价格按组填写；采用原图定价时为单价×每组人数。特战队员、跳虫、蟑螂、刺蛇按项目指定组价。未覆盖项保留项目回退值，不代表已还原原版继承。详见沙漠风暴来源/待确认页。'],
         ['技能核对','该页保留旧原版原型资料；本版实际覆盖和未齐效果链见沙漠风暴来源/待确认。填数字不会自动实现技能。'],
         ['兵种属性','一行一个单位；价格按组，生命/伤害按单体；间隔单位秒，射程单位格。'],
         ['武器模式','每个兵种均显式列出攻击模式；伤害、加成、目标层、射程、每轮段数、出手持续时间、轮后间隔和弹道属于模式，单位属性不再重复保存武器值。技能通过mode_id引用。'],

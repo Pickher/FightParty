@@ -160,6 +160,11 @@ func _draw() -> void:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
 		var body: Array = stats.get("size",[1.0,1.0])
+		if unit.has("shade_position") and not game._hidden_team(int(unit.team)):
+			var shade: Vector2 = unit.shade_previous.lerp(unit.shade_position,alpha)
+			if view.grow(float(body[0])).has_point(shade):
+				var shade_color: Color = game.MINT if int(unit.team)==0 else game.CORAL
+				UnitArt.draw(self,point(shade),unit.kind,Color(shade_color,0.5),pixels(minf(float(body[0]),float(body[1])))/3.0)
 		if not view.grow(maxf(float(body[0]),float(body[1]))*(3.0 if unit.kind=="rifle" else 1.0)).has_point(position):continue
 		var p := point(position)
 		var dimensions := Vector2(pixels(float(body[0])),pixels(float(body[1])))

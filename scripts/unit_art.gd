@@ -119,6 +119,11 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 			canvas.draw_rect(Rect2(p-Vector2(radius*0.2,radius*0.65),Vector2(radius*0.4,radius*1.3)),Color("162334"))
 		"vanguard":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(-radius,-radius),p+Vector2(radius,-radius),p+Vector2(radius,radius*0.4),p+Vector2(0,radius*1.3),p+Vector2(-radius,radius*0.4)]),color)
+		"adept":
+			# 披风、头盔和月牙形共鸣刃；投影沿用本体剪影。
+			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(-0.45,-0.38)*radius,p+Vector2(0.32,-0.38)*radius,p+Vector2(0.52,0.85)*radius,p+Vector2(-0.81,1)*radius]),color)
+			canvas.draw_circle(p+Vector2(-0.12,-0.66)*radius,radius*0.41,color)
+			canvas.draw_arc(p+Vector2(0.72,-0.12)*radius,radius*0.51,-1.65,1.95,10,Color(INK,color.a),maxf(1,radius*0.22))
 		"swarm":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius),p+Vector2(radius,radius),p+Vector2(-radius,radius)]),color)
 		"mortar":

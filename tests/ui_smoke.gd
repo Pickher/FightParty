@@ -213,6 +213,7 @@ func run() -> void:
 	game.handle_action("restart")
 	game.handle_action("setup_reset")
 	game.handle_action("setup_race:0:zerg")
+	game.handle_action("setup_pick:start_minerals:%d" % int(game.sim.catalog.zergling.cost))
 	game.handle_action("setup_confirm")
 	verify(game.sim.races[0]=="zerg" and game.selected=="zergling","player plays zerg with a zerg card selected")
 	game._commit([{"kind":"zergling","cell":3}])

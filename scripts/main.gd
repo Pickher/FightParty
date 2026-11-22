@@ -182,6 +182,8 @@ func _new_match() -> void:
 	var removed_retired_medic := false
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
+		if sim.races[0] == "protoss":
+			sim.set_adept_tactic(0, str(config.get_value("player","adept_tactic",Sim.DEFAULT_ADEPT_TACTIC)))
 		# 每个种族单独记住兵营；旧版只有一份 formation，按当前种族校验，不合法就用默认阵容。
 		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
 		if saved is Array:
@@ -257,17 +259,30 @@ func _migrate_saved_formation(formation: Array) -> Array:
 		return migrated
 	return migrated.filter(func(slot):return not (slot is Dictionary and slot.get("kind","")=="medic"))
 
-## 旧阵容没有单兵位置时仍可用；布局不参与买兵、退款或费用计算。
+## 只在读取本地布阵时识别旧人数；战报继续严格使用当时的完整成员编号。
+const PREVIOUS_PACK_COUNTS := {"rifle":4, "zergling":1, "roach":1, "hydralisk":1}
+
 func _restore_deployment(formation: Array) -> String:
-	var placements: Array = []
+	var saved_by_cell: Dictionary = {}
 	for slot in formation:
 		if not slot is Dictionary or not slot.has("member_positions"):continue
 		if not slot.member_positions is Array:return "排布数据无效"
-		if not sim.catalog.has(str(slot.kind)):return "排布兵种无效"
-		if slot.member_positions.size()!=maxi(1,int(sim.catalog[slot.kind].get("spawn_count",1))):return "排布人数已改变"
-		for member in range(slot.member_positions.size()):
-			placements.append({"cell":slot.cell,"member":member,"position":slot.member_positions[member]})
-	return sim.restore_deployment(0,placements) if not placements.is_empty() else ""
+		var kind := str(slot.get("kind",""))
+		if not sim.catalog.has(kind):return "排布兵种无效"
+		var count := maxi(1,int(sim.catalog[kind].get("spawn_count",1)))
+		var saved_count: int = slot.member_positions.size()
+		if saved_count!=count and saved_count!=int(PREVIOUS_PACK_COUNTS.get(kind,-1)):
+			return "排布人数无效"
+		saved_by_cell[int(slot.cell)]=slot.member_positions
+	if saved_by_cell.is_empty():return ""
+	# 组数及费用由 submit_formation 按当前配置确定。只为已购买成员恢复坐标。
+	var placements: Array = []
+	for unit in sim.deployment_members(0):
+		if not saved_by_cell.has(unit.cell):continue
+		var saved: Array = saved_by_cell[unit.cell]
+		var point = saved[unit.member] if unit.member<saved.size() else [unit.position.x,unit.position.y]
+		placements.append({"cell":unit.cell,"member":unit.member,"position":point})
+	return sim.restore_deployment(0,placements)
 
 ## 保存当前音量、开局设置和本方种族的下一波阵容；先读入旧文件，保留其他种族的兵营。失败只给提示，不影响继续战斗。
 func _save_settings() -> void:
@@ -282,6 +297,8 @@ func _save_settings() -> void:
 	if config.has_section_key("player","formation"):
 		config.erase_section_key("player","formation")
 	config.set_value("player","formation_"+str(sim.races[0]),formation)
+	if sim.races[0] == "protoss":
+		config.set_value("player","adept_tactic",sim.adept_tactics[0])
 	config.set_value("match","economy_schema",1)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
