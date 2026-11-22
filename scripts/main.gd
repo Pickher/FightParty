@@ -432,6 +432,8 @@ func advance_tick() -> void:
 	for event in tick_events:
 		rifle_visual.event(event, rifle_before, sim.units, sim.revealed)
 		if medivac_visual != null:
+			if medivac_visual.tanks.event(event, aircraft_before, self, medivac_visual.clock):
+				continue
 			if medivac_visual.marauders.event(event, aircraft_before, self, medivac_visual.clock):
 				continue
 			medivac_visual.thors.event(event, aircraft_before, self, medivac_visual.clock)
