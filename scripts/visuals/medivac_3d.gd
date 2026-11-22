@@ -1,6 +1,7 @@
 extends Node
 ## Presentation only. One shared transparent world; no physics or simulation writes.
 const BattlecruiserLayer = preload("res://scripts/visuals/battlecruiser_layer.gd")
+const HellbatMechLayer = preload("res://scripts/visuals/hellbat_mech_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
 const MAX_LIVE := 32
@@ -8,6 +9,7 @@ const MAX_WRECKS := 12
 const MAX_TARGET_EDGE := 1024
 var game
 var battlecruisers = BattlecruiserLayer.new()
+var hellbat_mechs = HellbatMechLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
 var scene: Node3D
@@ -30,7 +32,12 @@ func _ready() -> void:
 	var flagship_bounds := _model_bounds(flagship)
 	if maxf(flagship_bounds.size.x, flagship_bounds.size.z) < 0.0001:
 		flagship = null
-	if packed == null and flagship == null:return
+	var mech_path := HellbatMechLayer.MODEL_PATH
+	var mech: PackedScene = load(mech_path) as PackedScene if ResourceLoader.exists(mech_path) else null
+	var mech_bounds := _model_bounds(mech)
+	if maxf(mech_bounds.size.x, mech_bounds.size.z) < 0.0001:
+		mech = null
+	if packed == null and flagship == null and mech == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -62,6 +69,7 @@ func _ready() -> void:
 	light.shadow_enabled=false
 	scene.add_child(light)
 	battlecruisers.configure(scene, flagship, flagship_bounds)
+	hellbat_mechs.configure(scene, mech, mech_bounds)
 	ready_model=true
 
 func _model_bounds(resource: PackedScene) -> AABB:
@@ -90,6 +98,7 @@ func reset() -> void:
 	entries.clear()
 	bursts.clear()
 	battlecruisers.reset()
+	hellbat_mechs.reset()
 	clock=0
 
 func _glow(color: Color) -> MeshInstance3D:
@@ -146,6 +155,8 @@ func before_tick() -> Dictionary:
 func events(tick_events: Array, before: Dictionary) -> void:
 	if not ready_model:return
 	for event in tick_events:
+		if event.type == "cone_attack" and event.kind == "hellbat_mech":
+			hellbat_mechs.fire(event)
 		if str(event.type)!="death" or not before.has(event.id):continue
 		var old: Dictionary = before[event.id]
 		if old.kind != "medivac" or game._hidden_team(int(old.team)):continue
@@ -226,14 +237,18 @@ func sync(view, delta: float) -> void:
 			entries.erase(id)
 	bursts=bursts.filter(func(b):return clock-float(b.at)<1.0 and not game._hidden_team(int(b.team)))
 	battlecruisers.sync(game, view, dt, clock, alpha)
-	viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED if entries.is_empty() and battlecruisers.entries.is_empty() else SubViewport.UPDATE_ALWAYS
+	hellbat_mechs.sync(game, view, dt, alpha)
+	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if _has_actors() else SubViewport.UPDATE_DISABLED
+
+func _has_actors() -> bool:
+	return not (entries.is_empty() and battlecruisers.entries.is_empty() and hellbat_mechs.entries.is_empty())
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or hellbat_mechs.entries.has(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return
-	if not entries.is_empty() or not battlecruisers.entries.is_empty():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
+	if _has_actors():canvas.draw_texture_rect(viewport.get_texture(),Rect2(Vector2.ZERO,view_size),false)
 	for burst in bursts:
 		var age: float = clock-float(burst.at)
 		var p: Vector2 = view.point(burst.pos)

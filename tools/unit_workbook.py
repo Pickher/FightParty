@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_WORKBOOK = ROOT / 'data' / 'units' / '兵种配置.xlsx'
-ATTACK_TYPES = ('projectile','beam','line')
+ATTACK_TYPES = ('projectile','beam','line','cone')
 FLIGHT_TYPES = ('contact','fixed','distance')
 LABELS = dict(zip(
     'id name race cost spawn_count hp shield shield_armor energy initial_energy armor_type armor damage interval range speed splash splash_multiplier size collision_radius separate_when_stopped bonus target_layers targetable_layers layer tags unit_type damage_type windup backswing health_regen health_regen_delay shield_regen shield_regen_delay energy_regen energy_regen_delay attacks_base attacks_structures structure status symbol color role counter requires sc2'.split(),
@@ -24,6 +24,7 @@ LABELS.update(gas_cost='每组瓦斯价格',core_cost='每组灵核价格',sourc
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
+    'travel_kind':'行军形态的兵种ID', 'travel_tags':'行军额外标签',
     'strike_offsets':'各段出手时刻（秒）','armor_multiplier':'护甲减免倍率','splash_rings':'溅射分圈',
     'launch_delay':'出场后投影延迟（秒）','shade_speed':'支援投影速度（格/秒）','contact_range':'投影遇敌半径（格）',
     'retreat_shield_threshold':'触发后撤的护盾下限（低于时触发）','retreat_cooldown':'后撤冷却（秒）','retreat_distance':'后撤距离（格）',
@@ -136,7 +137,7 @@ def validate(units):
                 layers=m.get('target_layers',[])
                 if not layers or any(x not in ('ground','air') for x in layers):raise ValueError(where+'攻击模式目标层无效。')
                 delivery=m.get('delivery',{}); typ=delivery.get('type')
-                if typ not in ATTACK_TYPES:raise ValueError(where+'攻击类型须为projectile（射弹）、beam（激光）或line（直线推进）。')
+                if typ not in ATTACK_TYPES:raise ValueError(where+'攻击类型须为 projectile（射弹）、beam（激光）、line（直线推进）或 cone（瞬发扇形）。')
                 if typ!='beam' and m['interval']<=0:raise ValueError(where+'非光束攻击的轮后间隔必须大于0。')
                 if typ=='beam':
                     if delivery.get('tick_interval',0)<=0 or delivery.get('switch_delay',0)<0:raise ValueError(where+'光束结算间隔或切换延时无效。')
@@ -147,6 +148,12 @@ def validate(units):
                 if typ=='projectile' and flight=='fixed' and ('seconds' not in delivery or delivery['seconds']<0):raise ValueError(where+'固定弹道需要非负seconds。')
                 if (typ=='line' or (typ=='projectile' and flight=='distance')) and delivery.get('speed',0)<=0:raise ValueError(where+'弹道速度必须大于0。')
                 if typ=='line' and (delivery.get('length',0)<=0 or delivery.get('half_width',0)<=0 or delivery.get('pattern') not in ('forward','transverse')):raise ValueError(where+'传播弹道的长度、半宽或形状无效。')
+                if typ=='cone':
+                    for key in ('length','angle_degrees'):
+                        value=delivery.get(key)
+                        if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value<=0:
+                            raise ValueError(where+'瞬发扇形的长度与角度必须是正数。')
+                    if delivery['angle_degrees']>360:raise ValueError(where+'扇形角度不能超过360度。')
             skills=unit.get('skills',{})
             references=list(skills.get('weapon_switch',{}).get('mode_ids',[]))
             for key in ('deployment','defender_zone'):
@@ -159,6 +166,15 @@ def validate(units):
         if not unit.get('name') or not re.fullmatch('[0-9a-fA-F]{6}', str(unit.get('color',''))): raise ValueError(where + '名称或颜色无效。')
         if len(str(unit.get('symbol',''))) != 1: raise ValueError(where + 'symbol 必须为单字符。')
         if not isinstance(unit.get('skills',{}), dict): raise ValueError(where + 'skills 须为对象。')
+        morph = unit.get('skills', {}).get('proximity_morph')
+        if morph is not None:
+            travel = morph.get('travel_kind')
+            if travel not in units or travel == uid:
+                raise ValueError(where+'行军形态须引用另一个已有的兵种ID。')
+            for key in ('duration', 'radius'):
+                value = morph.get(key)
+                if not isinstance(value, (int, float)) or isinstance(value, bool) or not math.isfinite(value) or value <= 0:
+                    raise ValueError(where+'变形的触发距离与耗时须为有限的正数。')
         for path, value in leaves(unit):
             key = path[-1]
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
@@ -304,7 +320,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。地图点位见data/rules.json。'],
         ['连续光束','医疗兵、哨兵、虚空辉光舰、基地反击：面板总量按0.5秒，每0.5秒一次完整伤害/治疗结算，护甲按这次完整命中扣除；不拆0.05秒采样。光束画面持续，切换目标等待0.3秒并重新计结算周期，轮后间隔0。治疗用healing字段。'],
-        ['攻击类型','三种独立实现：projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进。伤害与加成仍在武器模式内，类型负责投送，溅射/多段等共用公共结算。新兵种选类型并填参数即可复用。'],
+        ['攻击类型','projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进、cone瞬发扇形。扇形的length从发射者前缘算起，angle_degrees为两条侧边的全夹角。'],
         ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
         ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
         ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],

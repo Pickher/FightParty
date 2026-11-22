@@ -1,5 +1,5 @@
 {
- "version": "0.13.0",
+ "version": "0.13.1",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -172,6 +172,99 @@
    ],
    "source_profile": {
     "map_unit": "Hellion",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "gas_cost": 0,
+   "core_cost": 0
+  },
+  "hellbat_mech": {
+   "name": "恶蝠",
+   "symbol": "H",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "恶蝠 Hellbat",
+   "cost": 260,
+   "hp": 235,
+   "armor_type": "light",
+   "armor": 5,
+   "speed": 2.25,
+   "color": "ef824e",
+   "role": "近战喷火 · 克轻甲",
+   "counter": "正面扇形喷火，对轻甲额外造成25点伤害。可选择以恶火形态快速抵达前线。",
+   "skills": {
+    "proximity_morph": {
+     "display_name": "变形出动",
+     "travel_kind": "hellbat",
+     "radius": 6,
+     "duration": 2,
+     "travel_tags": [
+      "impact"
+     ]
+    }
+   },
+   "layer": "ground",
+   "size": [
+    1.25,
+    1.25
+   ],
+   "spawn_count": 1,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "biological",
+    "mechanical",
+    "impact"
+   ],
+   "collision_radius": 0.75,
+   "separate_when_stopped": true,
+   "primary_mode": "napalm_spray",
+   "attack_modes": [
+    {
+     "damage": 24,
+     "hit_count": 1,
+     "bonus": {
+      "light": 25
+     },
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": true,
+     "range": 2,
+     "interval": 1.333,
+     "windup": 0,
+     "backswing": 0.5,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "napalm_spray",
+     "label": "凝固汽油喷射器",
+     "attack_duration": 0.167,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "cone",
+      "length": 2,
+      "angle_degrees": 45
+     }
+    }
+   ],
+   "source_profile": {
+    "map_unit": "Hellbat",
     "source": "desert-storm",
     "status": "explicit_overrides"
    },

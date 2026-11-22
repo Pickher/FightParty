@@ -94,6 +94,14 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 			for side in [-1,1]:
 				canvas.draw_rect(Rect2(p+Vector2(side*radius-radius*0.3,-radius*0.55),Vector2(radius*0.6,radius*1.1)),color)
 			canvas.draw_line(p+Vector2(-radius*0.35,-radius*0.3),p+Vector2(radius*0.35,-radius*0.3),INK,2)
+		"hellbat_mech":
+			# Distinctive top-mounted torch and broad paired arm shields.
+			for side in [-1, 1]:
+				var offset := Vector2(float(side) * 0.85, 0.08) * radius
+				canvas.draw_circle(p + offset, radius * 0.60, color)
+				canvas.draw_rect(Rect2(p + offset + Vector2(-0.24, 0.32) * radius, Vector2(0.48, 0.60) * radius), color)
+			canvas.draw_rect(Rect2(p - Vector2(0.53, 0.72) * radius, Vector2(1.06, 1.22) * radius), color)
+			canvas.draw_line(p, p + Vector2(0.0, -1.18) * radius, Color(INK, color.a), maxf(1.0, radius * 0.26))
 		"colossus":
 			for side in [-1,1]:
 				for vertical in [-1,1]:

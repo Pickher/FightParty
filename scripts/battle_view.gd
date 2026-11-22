@@ -123,7 +123,7 @@ func _draw() -> void:
 		var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
 		draw_line(point(projectile.pos-tail),p,Color(tint,0.6),1.5)
 	for effect in game.effects:
-		if bool(effect.get("projectile",false)):continue
+		if effect.type == "cone_attack" or bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
 		var a := point(effect.from)
 		var b := point(effect.to)
@@ -185,7 +185,7 @@ func _draw() -> void:
 			elif unit.kind == "rifle":
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,16,Color(color,0.8),1)
 				game.rifle_visual.draw_unit(self,p,unit,pixels(rifle_frame_world))
-			elif unit.kind in ["medivac", "battlecruiser"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
+			elif unit.kind in ["medivac", "battlecruiser", "hellbat_mech"] and game.medivac_visual != null and game.medivac_visual.has_model(int(unit.id)):
 				# Shared 3D layer is composited below, before all tactical overlays.
 				draw_arc(p,maxf(dimensions.x,dimensions.y)*0.55,0,TAU,20,Color(color,0.8),1)
 			else:UnitArt.draw(self,p,unit.kind,tint,minf(dimensions.x,dimensions.y)/3.0,str(stats.get("symbol","?")))
@@ -195,6 +195,9 @@ func _draw() -> void:
 		game.medivac_visual.draw_layer(self,self)
 		game.medivac_visual.battlecruisers.draw_traces(self, self, game.medivac_visual.clock)
 		game.medivac_visual.draw_healing(self,self)
+		for effect in game.effects:
+			if effect.type == "cone_attack" and not game._hidden_team(int(effect.team)) and view.grow(float(effect.length)).has_point(effect.from):
+				game.medivac_visual.hellbat_mechs.draw_flame(self, self, effect)
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)

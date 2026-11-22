@@ -31,17 +31,17 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 				Status.queue_root(sim,victim,float(config.get("root_seconds",0)))
 				area.rooted[victim.id]=true
 			if bool(config.get("dot_on_impact",false)):
-				Status.queue_dot(sim,victim,{"per_second":sim.raw_damage(config,victim.kind)/maxf(duration,dt),"duration":duration,"max_stacks":1},{"team":area.team,"kind":area.kind})
+				Status.queue_dot(sim,victim,{"per_second":sim.raw_damage(config,victim)/maxf(duration,dt),"duration":duration,"max_stacks":1},{"team":area.team,"kind":area.kind})
 				if not sim.is_structure(victim):
 					Slow.queue_hit(sim,victim,{"speed_multiplier":float(config.get("slow_multiplier",1)),"duration":duration},sim.skill_system.incoming_slows)
 			elif duration>0:
 				# 同类持续区域不叠加，避免多个风暴在同一步重复扣血。
 				var key := "%s:%d:%d" % [str(config.get("effect",area.kind)),int(area.team),int(victim.id)]
-				var raw: float = sim.raw_damage(config,victim.kind) / ticks_total
+				var raw: float = sim.raw_damage(config,victim) / ticks_total
 				if not periodic.has(key) or raw > float(periodic[key].amount):
 					periodic[key]={"amount":raw,"victim":victim,"team":area.team,"config":config}
 			else:
-				var raw: float = float(config.structure_damage) if sim.is_structure(victim) and config.has("structure_damage") else sim.raw_damage(config,victim.kind)
+				var raw: float = float(config.structure_damage) if sim.is_structure(victim) and config.has("structure_damage") else sim.raw_damage(config,victim)
 				if sim.is_structure(victim) and bool(config.get("structure_ignore_armor",false)):
 					sim.queue_hit(hits,victim,raw,false,true)
 				elif config.has("damage_type"):

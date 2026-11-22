@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -2129,6 +2129,58 @@ func _adepts() -> void:
 		if advancing.has("shade_position") or waves.teleports.has(advancing.id):
 			check(false, "support transfer launched again for the same adept")
 			break
+
+## 恶蝠的出兵战术，以及机甲喷火的朝向、护甲与空地过滤。
+func _hellbat_mechs() -> void:
+	var waves = bare(42, {"races":["terran","terran"], "start_minerals":260, "first_wave_seconds":0.05})
+	check(waves.buy(0,"hellbat_mech",0)=="" and waves.minerals[0]==0, "260 minerals buy one hellbat")
+	waves.step()
+	check(waves.units.size()==1 and waves.units[0].kind=="hellbat_mech", "default wave spawns one hellbat in mech form")
+	check(waves.set_hellbat_tactic(0,"assault")=="", "assault march can be selected for future waves")
+	waves.next_wave_tick = waves.tick + 1
+	waves.step()
+	var next_wave: Array = waves.units.filter(func(u): return u.born == waves.tick)
+	check(next_wave.size()==1 and next_wave[0].kind=="hellbat" and waves.units[0].kind=="hellbat_mech", "only the new hellbat wave starts in vehicle form")
+
+	var morph = bare()
+	morph.set_hellbat_tactic(0,"assault")
+	var vehicle: Dictionary = morph.spawn_unit(0,"hellbat_mech",field(0,0))
+	var ordinary: Dictionary = morph.spawn_unit(0,"hellbat",field(0,3))
+	check(morph.has_tag(vehicle,"impact") and not morph.has_tag(ordinary,"impact"), "assault travel tag belongs only to the purchased hellbat")
+	var original_id: int = vehicle.id
+	vehicle.hp = float(morph.catalog.hellbat.hp) * 0.5
+	tune(morph,"viking",{"speed":0, "skills":{}})
+	morph.spawn_unit(1,"viking",field(2,0))
+	ticks(morph, int(morph.rules.tick_rate) * 3)
+	check(vehicle.kind=="hellbat", "aircraft alone do not trigger the transformation")
+	tune(morph,"dummy",{"speed":0,"damage":0})
+	morph.spawn_unit(1,"dummy",vehicle.pos + Vector2.RIGHT * 4.0)
+	check(wait_until(morph,func(): return vehicle.kind=="hellbat_mech", int(morph.rules.tick_rate)*3)>0, "assault vehicle transforms on ground contact")
+	check(vehicle.id==original_id and is_equal_approx(float(vehicle.hp),float(morph.catalog.hellbat_mech.hp)*0.5), "morph preserves identity and health fraction")
+	check(ordinary.kind=="hellbat", "independently recruited hellions retain vehicle form")
+
+	for team in range(2):
+		var sim = bare()
+		tune(sim,"hellbat_mech",{"speed":0, "separate_when_stopped":false})
+		tune(sim,"dummy",{"speed":0, "damage":0})
+		tune(sim,"rifle",{"speed":0, "damage":0, "skills":{}, "separate_when_stopped":false})
+		tune(sim,"viking",{"speed":0, "skills":{}})
+		var direction := Vector2.RIGHT if team == 0 else Vector2.LEFT
+		var mech: Dictionary = sim.spawn_unit(team,"hellbat_mech",field(0,0))
+		var muzzle: Vector2 = mech.pos + direction * sim.body_radius(mech)
+		var primary: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 0.55)
+		var light: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.7 + Vector2.UP * 0.55)
+		var edge: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.3 + Vector2.DOWN * 0.85)
+		var side: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.4 + Vector2.UP * 2.0)
+		var far_target: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 3.0)
+		var aircraft: Dictionary = sim.spawn_unit(1-team,"viking",muzzle + direction * 1.6)
+		var ally: Dictionary = sim.spawn_unit(team,"dummy",muzzle + direction * 1.7)
+		var hp := float(DUMMY.hp)
+		check(wait_until(sim,func(): return primary.hp < hp, 20)>0, "hellbat fires at a ground target")
+		check(is_equal_approx(float(primary.hp),hp-24.0) and is_equal_approx(float(edge.hp),hp-24.0), "one hit on the primary and a ground unit whose body touches the cone")
+		var light_damage := 49.0 - float(sim.catalog.rifle.armor)
+		check(is_equal_approx(float(light.hp),float(sim.catalog.rifle.hp)-light_damage), "light splash target takes 24 + 25 before armor")
+		check(side.hp==hp and far_target.hp==hp and ally.hp==hp and aircraft.hp==sim.catalog.viking.hp, "side, range, team and layer limit the flame cone")
 
 ## 医疗机独立于保留的医疗兵；本分组随本地实现新增，尚未运行。
 func _medivacs() -> void:

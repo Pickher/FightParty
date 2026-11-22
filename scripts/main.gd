@@ -182,8 +182,10 @@ func _new_match() -> void:
 	var removed_retired_medic := false
 	var config := ConfigFile.new()
 	if config.load("user://settings.cfg") == OK:
-		if sim.races[0] == "protoss":
-			sim.set_adept_tactic(0, str(config.get_value("player","adept_tactic",Sim.DEFAULT_ADEPT_TACTIC)))
+		for kind in sim.tactic_kinds_for(0):
+			var key: String = Sim.DEPLOYMENT_TACTICS[kind].key
+			if config.has_section_key("player",key):
+				sim.set_deployment_tactic(0,kind,str(config.get_value("player",key)))
 		# 每个种族单独记住兵营；旧版只有一份 formation，按当前种族校验，不合法就用默认阵容。
 		var saved = config.get_value("player", "formation_" + str(sim.races[0]), config.get_value("player", "formation", prior))
 		if saved is Array:
@@ -297,8 +299,9 @@ func _save_settings() -> void:
 	if config.has_section_key("player","formation"):
 		config.erase_section_key("player","formation")
 	config.set_value("player","formation_"+str(sim.races[0]),formation)
-	if sim.races[0] == "protoss":
-		config.set_value("player","adept_tactic",sim.adept_tactics[0])
+	for kind in sim.tactic_kinds_for(0):
+		var key: String = Sim.DEPLOYMENT_TACTICS[kind].key
+		config.set_value("player",key,sim.deployment_tactics[kind][0])
 	config.set_value("match","economy_schema",1)
 	for field in match_settings:
 		config.set_value("match",field,match_settings[field])
@@ -392,7 +395,10 @@ func advance_tick() -> void:
 		var ship_owns_effect: bool = medivac_visual != null and medivac_visual.battlecruisers.event(event, aircraft_before, self, medivac_visual.clock)
 		if ship_owns_effect and event.type in ["attack", "yamato"]:
 			continue
-		if event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
+		if event.type == "cone_attack":
+			event.ttl = Medivac3D.HellbatMechLayer.FLAME_DURATION
+			effects.append(event)
+		elif event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
 		elif event.type == "wave":
@@ -580,7 +586,7 @@ func _world(pos: Vector2) -> Vector2:
 func _remember_combat(events: Array) -> void:
 	var best := INF
 	for event in events:
-		if str(event.type) not in ["attack","line_attack","yamato","chain","area_impact"]:continue
+		if str(event.type) not in ["attack","line_attack","cone_attack","yamato","chain","area_impact"]:continue
 		if not event.has("from") or not event.has("to"):continue
 		var point: Vector2 = (event.from+event.to)*0.5
 		var distance: float = point.distance_squared_to(camera_center)

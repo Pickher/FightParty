@@ -39,9 +39,16 @@ var revealed_tick: int = -1
 # 双方的永久兵营：每格 {kind, cell, deployed, member_positions?}；每波整份生成一次。
 # deployed 表示已出场；member_positions 为组内各成员相对出兵中心的坐标，不改变购买归属。
 var formations: Array = [[], []]
-# 每方分别选择下一波使徒战术，原图开局用后撤传送。
+# 战术按阵营独立选择，出兵时复制给新单位。key 也用于本地设置和战报。
 const DEFAULT_ADEPT_TACTIC := "retreat"
+const DEFAULT_HELLBAT_TACTIC := "mech"
+const DEPLOYMENT_TACTICS := {
+	"adept": {"key":"adept_tactic", "options":["retreat","support"]},
+	"hellbat_mech": {"key":"hellbat_tactic", "options":["mech","assault"]},
+}
 var adept_tactics: Array[String] = [DEFAULT_ADEPT_TACTIC, DEFAULT_ADEPT_TACTIC]
+var hellbat_tactics: Array[String] = [DEFAULT_HELLBAT_TACTIC, DEFAULT_HELLBAT_TACTIC]
+var deployment_tactics: Dictionary = {"adept":adept_tactics, "hellbat_mech":hellbat_tactics}
 # 上一波已出兵阵容（kind/cell及可选member_positions），按原公开时机供双方查看。
 var last_formations: Array = [[], []]
 # 双方当前矿物；收入和瓦斯分流由独立经济组件结算。
@@ -246,13 +253,26 @@ func _log(team: int, action: Dictionary) -> void:
 	journal.actions.append(action)
 
 func set_adept_tactic(team: int, tactic: String) -> String:
+	return set_deployment_tactic(team,"adept",tactic)
+
+func set_hellbat_tactic(team: int, tactic: String) -> String:
+	return set_deployment_tactic(team,"hellbat_mech",tactic)
+
+func tactic_kinds_for(team: int) -> Array:
+	return DEPLOYMENT_TACTICS.keys().filter(func(kind): return catalog[kind].race == races[team])
+
+func set_deployment_tactic(team: int, kind: String, tactic: String) -> String:
 	var error := _editable(team)
 	if not error.is_empty():return error
-	if races[team] != "protoss":return "使徒战术只能由神族选择"
-	if tactic not in ["retreat", "support"]:return "未知的使徒战术"
-	if adept_tactics[team] != tactic:
-		adept_tactics[team] = tactic
-		_log(team, {"type":"adept_tactic", "tactic":tactic})
+	if not DEPLOYMENT_TACTICS.has(kind):return "该兵种没有可选战术"
+	var definition: Dictionary = DEPLOYMENT_TACTICS[kind]
+	var stats: Dictionary = catalog[kind]
+	if races[team] != stats.race:
+		return "%s战术只能由%s选择" % [stats.name,Catalog.races()[stats.race].name]
+	if tactic not in definition.options:return "未知的%s战术" % stats.name
+	if deployment_tactics[kind][team] != tactic:
+		deployment_tactics[kind][team] = tactic
+		_log(team, {"type":definition.key, "tactic":tactic})
 	return ""
 
 ## 所有购买入口共用矿/气/灵核钱包；价格按当前组配置，校验完成后一次性扣费。
@@ -471,6 +491,8 @@ func apply_action(action: Dictionary) -> String:
 	match str(action.get("type", "")):
 		"adept_tactic":
 			return set_adept_tactic(int(action.get("team",-1)), str(action.get("tactic","")))
+		"hellbat_tactic":
+			return set_hellbat_tactic(int(action.get("team",-1)), str(action.get("tactic","")))
 		"buy":
 			return buy(int(action.team), str(action.kind), int(action.cell))
 		"sell":
@@ -519,21 +541,38 @@ func spawn_unit(team: int, kind: String, pos: Vector2) -> Dictionary:
 	if not definitions.has(kind):
 		definitions[kind] = Catalog.UnitDefinition.new(kind, catalog[kind], rules)
 		catalog[kind] = definitions[kind].to_data()
-	var instance = Unit.new(definitions[kind], next_id, team, pos, tick)
+	var form := kind
+	if kind == "hellbat_mech" and hellbat_tactics[team] == "assault":
+		form = str(catalog[kind].skills.proximity_morph.travel_kind)
+	var instance = Unit.new(definitions[form], next_id, team, pos, tick)
 	var unit: Dictionary = instance.state
 	if kind == "adept":
 		unit.adept_tactic = adept_tactics[team]
+	elif kind == "hellbat_mech":
+		unit.hellbat_tactic = hellbat_tactics[team]
 	unit_instances[next_id] = instance
-	skill_system.attach(self,unit)
+	_attach_form_skills(unit,kind)
 	next_id += 1
 	units.append(unit)
 	return unit
+
+## 出动时使用行军形态自身的武器和技能，额外挂载所购单位的单向变形。
+func _attach_form_skills(unit: Dictionary, purchased_kind: String) -> void:
+	var skills: Dictionary = catalog[unit.kind].skills
+	var morph_config: Dictionary = catalog[purchased_kind].skills.get("proximity_morph", {})
+	if not morph_config.is_empty():
+		skills = skills.duplicate()
+		if unit.kind == purchased_kind:
+			skills.erase("proximity_morph")
+		else:
+			skills.proximity_morph = morph_config.merged({"target_kind":purchased_kind})
+	skill_system.attach(self,unit,skills)
 
 func unit_model(unit: Dictionary) -> Unit:
 	return unit_instances.get(int(unit.id))
 
 func has_tag(unit: Dictionary, tag: String) -> bool:
-	return definitions[unit.kind].has_tag(tag)
+	return Unit.matches_tag(definitions[unit.kind], unit, tag)
 
 func can_spend_energy(unit: Dictionary, amount: float) -> bool:
 	var instance = unit_model(unit)
@@ -561,7 +600,8 @@ func _spawn_wave() -> void:
 		for slot in formations[team]:
 			slot.deployed = true
 			var deployed_slot := {"kind":slot.kind,"cell":slot.cell}
-			if slot.kind == "adept":deployed_slot.adept_tactic = adept_tactics[team]
+			if DEPLOYMENT_TACTICS.has(slot.kind):
+				deployed_slot[DEPLOYMENT_TACTICS[slot.kind].key] = deployment_tactics[slot.kind][team]
 			if slot.has("member_positions"):deployed_slot.member_positions=slot.member_positions.duplicate(true)
 			last_formations[team].append(deployed_slot)
 	journal.waves.append({"tick":tick,"wave":wave,"minerals":minerals.duplicate(),"formations":last_formations.duplicate(true),"economy":economy.ledger()})
@@ -733,22 +773,24 @@ func _search_stats(unit: Dictionary) -> Dictionary:
 
 ## 护甲规则：攻击力 + 对应护甲类型的穿甲加成（bonus.light / bonus.heavy）。
 ## 无甲（none）与特殊甲（special）不吃任何加成。返回扣护盾/护甲之前的原始伤害。
-func raw_damage(weapon: Dictionary, victim_kind: String) -> float:
+## 战斗传入实体以应用当前形态标签；仅比较兵种模板时也可传入兵种键。
+func raw_damage(weapon: Dictionary, victim: Variant) -> float:
+	var unit: Dictionary = victim if victim is Dictionary else {"kind":victim}
 	var raw := float(weapon.damage)
-	var armor_type: String = str(catalog[victim_kind].get("armor_type", "none"))
+	var armor_type: String = str(catalog[unit.kind].get("armor_type", "none"))
 	if armor_type == "light" or armor_type == "heavy":
 		var bonus = weapon.get("bonus")
 		if bonus != null:
 			raw += float(bonus.get(armor_type, 0))
 	for tag in weapon.get("bonus_tags", {}):
-		if definitions[victim_kind].has_tag(str(tag)):
+		if has_tag(unit, str(tag)):
 			raw += float(weapon.bonus_tags[tag])
 	return raw
 
 ## 不考虑护盾剩余量的单发预估伤害：有护盾时按原始伤害，否则减去护甲点数，至少 min_damage。
 ## 用于统计、事件与电脑/多武器的选择；真正扣血在 step() 末尾经 Shield.absorb 结算。
 func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
-	var raw := raw_damage(weapon, victim.kind)
+	var raw := raw_damage(weapon, victim)
 	if raw <= 0.0:
 		return 0.0
 	if WeaponDefinition.ignores_armor(weapon): return raw
@@ -983,15 +1025,21 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 		var multiplier: float = float(ctx.get("damage_multiplier",1.0))
 		if victim.id!=target.id:
 			multiplier*=WeaponDefinition.splash_damage_multiplier(weapon,distance)
-		var raw: float = raw_damage(weapon,victim.kind)*multiplier
-		if raw<=0:continue
-		var amount: float = expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
-		queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier,int(unit.id) if victim.id==target.id else 0)
-		damage_done[int(unit.team)]+=amount
-		events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
-		if ctx.has("impact_skills"):
-			skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
-		else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
+		queue_strike_hit(ctx, weapon, victim, strike, multiplier, victim.id == target.id)
+
+## 对单个实际命中的单位结算一次伤害和命中技能，由投送方式决定哪些单位命中。
+func queue_strike_hit(ctx: Dictionary, weapon: Dictionary, victim: Dictionary, strike: int, multiplier: float, direct: bool) -> void:
+	var unit: Dictionary = ctx.unit
+	var raw := raw_damage(weapon, victim) * multiplier
+	if raw <= 0.0:
+		return
+	var amount := expected_damage({"damage":raw,"damage_type":weapon.damage_type,"shield_bonus":float(weapon.get("shield_bonus",0))*multiplier},victim)
+	queue_weapon_hit(ctx.hits,victim,weapon,raw,float(weapon.range)>1.5,multiplier,int(unit.id) if direct else 0)
+	damage_done[int(unit.team)]+=amount
+	events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
+	if ctx.has("impact_skills"):
+		skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
+	else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
 
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:
@@ -1044,6 +1092,8 @@ func step() -> Array:
 	var base_hits: Array = [0.0, 0.0]
 	skill_system.incoming_slows=pending_slows
 	var frame := {"sim":self,"dt":dt,"hits":hits,"heals":heals,"shield_gains":shield_gains,"moves":moves,"self_costs":self_costs,"base_hits":base_hits,"pending_slows":pending_slows,"motion":motion}
+	var form_changes: Dictionary = {}
+	frame.form_changes = form_changes
 	skill_system.frame(frame)
 	StatusService.tick(self,dt,hits)
 	BaseDefense.fire(self, frame)
@@ -1117,6 +1167,13 @@ func step() -> Array:
 			var velocity: Vector2 = (direction + separation * 0.65).limit_length(1.0) * _march_speed(unit)
 			moves[unit.id] = clamp_to_field(unit.pos + velocity * dt)
 		skill_system.after_action(ctx)
+	# 空间桶保存步初位置；瞬发范围武器和弹体还需搜索可能在步内移进范围的单位。
+	var motion_margin := 0.0
+	for id in moves:
+		var moving = by_id.get(id)
+		if moving != null:
+			motion_margin = maxf(motion_margin, moving.pos.distance_to(moves[id]))
+	frame.motion_margin = motion_margin
 	AttackSequences.advance(self,frame)
 	AttackTypes.advance(self,frame)
 	AreaService.advance(self,dt,moves,hits,base_hits)
@@ -1161,6 +1218,11 @@ func step() -> Array:
 		if unit.hp > 0:
 			unit_model(unit).restore(dt, tick, float(rules.tick_rate))
 			skill_system.survived({"sim":self,"unit":unit,"dt":dt})
+			# 在旧形态结算完本步受伤后再变形，两个阵营的索敌和护甲判定均取步初值。
+			if form_changes.has(unit.id):
+				var new_kind: String = form_changes[unit.id]
+				unit_model(unit).change_form(definitions[new_kind])
+				_attach_form_skills(unit,new_kind)
 			alive.append(unit)
 		elif is_structure(unit):
 			# 结构体不计击杀；宝库奖励灵核，同一座宝库只会死亡一次。

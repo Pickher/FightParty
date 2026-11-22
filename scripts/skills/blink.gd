@@ -21,7 +21,7 @@ func step(sim, unit: Dictionary, target: Dictionary, dt: float, moves: Dictionar
 
 func _init() -> void:
 	priority=60
-	view_fields=["blink_ready_tick"]
+	view_fields=["blink_ready_tick","invulnerable_until_tick"]
 func before_action(ctx: Dictionary) -> void:
 	if ctx.can_act and not ctx.handled:ctx.handled=step(ctx.sim,owner,ctx.target,ctx.dt,ctx.moves)
 

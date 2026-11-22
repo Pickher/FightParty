@@ -41,6 +41,7 @@
 | multi_attack | 每个攻击周期的独立打击次数 |
 | line_attack | 用传播攻击替代普通直接命中 |
 | weapon_switch | 按目标切换武器及切换计时 |
+| proximity_morph | 恶蝠的突袭战术先采用 `travel_kind` 行军。合格地面敌人进入 `radius` 格内时原地变形，`duration` 秒后恢复所购兵种，保留单位身份和生命比例 |
 | yamato | 引导式大和炮 |
 | regen | 脱战生命再生 |
 | on_hit_slow | 命中施加减速 |

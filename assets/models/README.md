@@ -20,4 +20,4 @@
 
 劫掠者（单位 ID 为 `marauder`）源模型位于 [marauder.glb](marauder/marauder.glb)，由用户提供。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
 
-恶蝠机甲源模型位于 [hellbat_mech.glb](hellbat_mech/hellbat_mech.glb)，来自用户提供的 `恶蝠3d模型.glb`，无纹理图片和外置文件依赖。当前项目历史上将 `hellbat` 单位 ID 和模型目录用于恶火车型，因此恶蝠机甲单独存放在 `hellbat_mech/`，供后续新增单位或形态时接入；此目录名目前仅用于区分资产，尚未对应 `data/units.json` 中的单位。
+人族恶蝠机甲在战场上使用上传的模型。直接出动时显示双足机甲；选择变形出动时先显示恶火车型，完成变形后切换为机甲。两种单位各有独立的商店入口。[恶蝠机甲模型](hellbat_mech/hellbat_mech.glb)

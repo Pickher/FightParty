@@ -1,6 +1,7 @@
 extends RefCounted
 ## 配置键 → 独立组件类。新增技能只注册一次，兵种只需挂参数。
 const TYPES := {
+	"proximity_morph":preload("res://scripts/skills/proximity_morph.gd"),
 	"formation_pace":preload("res://scripts/skills/formation_pace.gd"),
 	"combat_mobility":preload("res://scripts/skills/combat_mobility.gd"),
 	"mobility_burst":preload("res://scripts/skills/mobility_burst.gd"),
@@ -38,8 +39,12 @@ const TYPES := {
 var instances: Dictionary = {}
 var incoming_slows: Dictionary = {}
 
-func attach(sim, unit: Dictionary) -> void:
-	var configured: Dictionary = sim.catalog[unit.kind].get("skills",{})
+func attach(sim, unit: Dictionary, form_skills: Variant = null) -> void:
+	var configured: Dictionary = sim.catalog[unit.kind].get("skills",{}) if form_skills == null else form_skills
+	for previous in components(unit):
+		previous.on_removed(sim)
+		for key in previous.published_keys:
+			unit.erase(key)
 	assert(not (configured.has("deployment") and configured.has("defender_zone")),"不能同时挂载两套部署技能")
 	var attached: Array = []
 	for key in configured:

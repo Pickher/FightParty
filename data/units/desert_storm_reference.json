@@ -1,5 +1,5 @@
 {
-  "version": "0.13.0",
+  "version": "0.13.1",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。未还原原版/依赖继承。",
   "units": {
@@ -720,6 +720,39 @@
       "behaviors": [
         "slowprotoss275"
       ]
+    },
+    "hellbat_mech": {
+      "source_unit": "Hellbat",
+      "fields": {
+        "hp": "UnitData/Hellbat/LifeMax",
+        "armor": "UnitData/Hellbat/LifeArmor",
+        "cost": "UnitData/Hellbat/CostResource[Minerals] × spawn_count",
+        "attack_modes/0/damage": "EffectData/HellionTankDamage/Amount",
+        "attack_modes/0/bonus/light": "EffectData/HellionTankDamage/AttributeBonus[Light]",
+        "spawn_count": "MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台",
+        "speed": "Swarm/UnitData/HellionTank/Speed=2.25（游戏秒）",
+        "energy": "Hellbat、HellionTank 及 Core/CUnit 均未设置能量池，使用 SC2 单位缺省值 0",
+        "size": "Swarm/UnitData/HellionTank/Radius=0.625，模型宽高按直径填写",
+        "collision_radius": "Swarm/UnitData/HellionTank/SeparationRadius=0.75",
+        "armor_type": "GameStrings/Button/Tooltip/DSSupplyDepot1 轻甲",
+        "tags": "Swarm/UnitData/HellionTank 的 Mechanical 及 Void/UnitData/HellionTank 的 Biological；GameStrings/DSSupplyDepot1 及 TechAliasArray[4]=1 表示冲击性",
+        "attack_modes/0/target_layers": "Hellbat/WeaponArray → HellionTank；HellionTankSearch 的地面目标过滤",
+        "attack_modes/0/range": "Swarm/WeaponData/HellionTank/Range=2",
+        "attack_modes/0/hit_count": "Swarm/EffectData/HellionTank → HellionTankDamage 主目标一次，HellionTankSearch 排除主目标",
+        "attack_modes/0/attack_duration": "Core/WeaponData/DamagePoint=0.167，映射为一次出手",
+        "attack_modes/0/backswing": "Core/WeaponData/Backswing=0.5",
+        "attack_modes/0/interval": "Void/WeaponData/HellionTank/Period=2游戏秒，扣除0.167出手和0.5后摇",
+        "attack_modes/0/delivery/angle_degrees": "Void/EffectData/HellionTankSearch/AreaArray@Arc=45",
+        "attack_modes/0/delivery/length": "Void/EffectData/HellionTankSearch/AreaArray@Radius=2",
+        "skills/proximity_morph/travel_kind": "MapScript/Upgrade_BZZDB=9 → HellionMorph；AbilData/MorphToHellionTank → Hellbat",
+        "skills/proximity_morph/travel_tags": "UnitData/HellionMorph/TechAliasArray[4]=1；ValidatorData/Validator_TechAliasArray_4_1",
+        "skills/proximity_morph/radius": "ValidatorData/EnemiesGroundNearbyRange6；ExtendByUnitRadius",
+        "skills/proximity_morph/duration": "AbilData/MorphToHellionTank；升级 SmartServos 后变形2游戏秒"
+      },
+      "abilities": [
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
     }
   },
   "changes": [

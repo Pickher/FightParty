@@ -9,6 +9,12 @@ const ROWS_PER_PAGE := 8
 const LINE_HOLD_MS := 300
 const LINE_MIN_DISTANCE := 24.0
 const MEMBER_TAP_SLOP := 8.0
+const TACTIC_BUTTONS := {
+	"retreat": {"label":"后撤传送", "notice":"下波使徒将在低盾受击时向后传送。"},
+	"support": {"label":"支援传送", "notice":"下波使徒将向前投射阴影，遇地面敌人后传送。"},
+	"mech": {"label":"机甲行进", "notice":"下一波恶蝠以机甲形态出战。"},
+	"assault": {"label":"突袭行进", "notice":"下一波恶蝠以恶火形态快速行进，接近地面敌人后变形。"},
+}
 var desktop_input=DesktopInput.new()
 var explicit_selection := false
 var selection_keys: Dictionary={}
@@ -167,11 +173,14 @@ func draw() -> void:
 	# 此面板独占输入，不留下被遮住的布阵格和战场工具栏按钮。
 	game.buttons.clear()
 	game._text(Vector2(56,137),"部队配置",27,game.MINT)
-	if selected_kind == "adept":
-		var tactic: String = game.sim.adept_tactics[0]
-		game._text(Vector2(222,135),"下一波使徒战术",18,game.MUTED)
-		game._button(Rect2(426,109,160,42),"后撤传送","formation:adept_tactic:retreat",tactic=="retreat")
-		game._button(Rect2(600,109,160,42),"支援传送","formation:adept_tactic:support",tactic=="support")
+	if game.sim.DEPLOYMENT_TACTICS.has(selected_kind):
+		var definition: Dictionary = game.sim.DEPLOYMENT_TACTICS[selected_kind]
+		var current: String = game.sim.deployment_tactics[selected_kind][0]
+		game._text(Vector2(222,135),"下一波%s战术" % game.sim.catalog[selected_kind].name,18,game.MUTED)
+		for i in range(definition.options.size()):
+			var option: String = definition.options[i]
+			var action: String = "formation:%s:%s" % [definition.key,option]
+			game._button(Rect2(426+174*i,109,160,42),TACTIC_BUTTONS[option].label,action,current==option)
 	else:
 		game._text(Vector2(222,135),"已暂停 · 调整下一波，不指挥场上部队",18,game.MUTED)
 	game._button(Rect2(1024,109,152,42),"格阵管理","formation:legacy")
@@ -387,13 +396,13 @@ func handle_action(action: String) -> void:
 		list_page=0
 		_ensure_selection()
 	elif verb=="kind" and parts.size()==3:_select_kind(parts[2])
-	elif verb=="adept_tactic" and selected_kind=="adept" and parts.size()==3:
-		var error: String = game.sim.set_adept_tactic(0,parts[2])
+	elif parts.size()==3 and verb==game.sim.DEPLOYMENT_TACTICS.get(selected_kind,{}).get("key",""):
+		var error: String = game.sim.set_deployment_tactic(0,selected_kind,parts[2])
 		if not error.is_empty():_message(error,true)
 		else:
 			game._save_settings()
 			game._save_journal()
-			_message("下波使徒将向前投射阴影，遇地面敌人后传送。" if parts[2]=="support" else "下波使徒将在低盾受击时向后传送。")
+			_message(TACTIC_BUTTONS[parts[2]].notice)
 	elif verb=="page" and parts.size()==3:
 		var pages: int = maxi(1,ceili(float(_kinds().size())/ROWS_PER_PAGE))
 		list_page=posmod(list_page+int(parts[2]),pages)

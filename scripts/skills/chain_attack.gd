@@ -17,7 +17,7 @@ func chain(sim, unit: Dictionary, first: Dictionary, hits: Dictionary, weapon: D
 		if chosen.is_empty():break
 		struck[chosen.id]=true
 		var factor: float = multiplier*pow(float(config.falloff),hop+1)
-		var raw: float = sim.raw_damage(stats,chosen.kind)*factor
+		var raw: float = sim.raw_damage(stats,chosen)*factor
 		sim.queue_weapon_hit(hits,chosen,stats,raw,true,factor)
 		sim.damage_done[int(unit.team)]+=raw
 		var extras := effects.duplicate(true)

@@ -8,7 +8,7 @@ func suicide(sim, unit: Dictionary, target: Dictionary, hits: Dictionary, base_h
 	if unit.pos.distance_to(goal)>trigger:return false
 	for victim in sim.nearby_team(unit.pos,float(stats.splash),1-int(unit.team)):
 		if not sim._can_hit_unit(unit,victim,stats):continue
-		var raw: float = float(config.structure_damage) if sim.is_structure(victim) and config.has("structure_damage") else sim.raw_damage(stats,victim.kind)
+		var raw: float = float(config.structure_damage) if sim.is_structure(victim) and config.has("structure_damage") else sim.raw_damage(stats,victim)
 		if sim.is_structure(victim) and bool(config.get("structure_ignore_armor",false)):sim.queue_hit(hits,victim,raw,false,true)
 		else:sim.queue_weapon_hit(hits,victim,stats,raw)
 		sim.damage_done[int(unit.team)]+=sim.expected_damage(stats,victim)

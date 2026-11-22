@@ -79,7 +79,7 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			if crosses(wave, start, finish, next_distance):
 				wave.hit_ids[victim.id] = true
 				var amount: float = sim.expected_damage(wave, victim)
-				sim.queue_weapon_hit(hits, victim, wave, sim.raw_damage(wave, victim.kind),true,1.0,int(wave.source_id) if victim.id==wave.get("target_id",0) else 0)
+				sim.queue_weapon_hit(hits, victim, wave, sim.raw_damage(wave, victim),true,1.0,int(wave.source_id) if victim.id==wave.get("target_id",0) else 0)
 				sim.damage_done[int(wave.team)] += amount
 				sim.events.append({"type":"attack_hit","id":victim.id,"kind":wave.kind,"team":wave.team,"strike":wave.strike,"amount":amount})
 				sim.skill_system.wave_hit(sim,wave,victim,hits,pending_slows)
