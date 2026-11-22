@@ -1,6 +1,8 @@
 extends Node2D
 const Yamato = preload("res://scripts/skills/yamato.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
+# 这些单位不画普通射击连线或弹丸尾线；弹丸、命中效果和单位动作仍保留。
+const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","agent","marauder","terran_bunker"]
 ## 独立的战场画布由 SubViewport 裁剪；缩放只影响显示，不改模拟单位。
 var game
 func viewport_size() -> Vector2:
@@ -120,8 +122,9 @@ func _draw() -> void:
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
 		var p := point(projectile.pos)
 		draw_circle(p,maxf(1.5,pixels(0.09)),tint)
-		var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
-		draw_line(point(projectile.pos-tail),p,Color(tint,0.6),1.5)
+		if str(projectile.kind) not in NO_ATTACK_TRACER_KINDS:
+			var tail: Vector2 = (projectile.goal-projectile.origin).normalized()*0.35
+			draw_line(point(projectile.pos-tail),p,Color(tint,0.6),1.5)
 	for effect in game.effects:
 		if bool(effect.get("projectile",false)):continue
 		var color: Color = game.MINT if effect.team==0 else game.CORAL
@@ -146,7 +149,8 @@ func _draw() -> void:
 		else:
 			color.a=clampf(float(effect.ttl)/0.16,0,1)
 			if effect.has("muzzle"):color=Color(Color("ffb347"),color.a)
-			draw_line(a,b,color,1.5)
+			if effect.type!="attack" or str(effect.get("kind","")) not in NO_ATTACK_TRACER_KINDS:
+				draw_line(a,b,color,1.5)
 			if float(effect.get("splash",0))>0:
 				ring(effect.to,float(effect.splash),Color(color,color.a*0.5))
 	var alpha: float = clampf(float(game.accumulator)*float(sim.rules.tick_rate),0,1)
