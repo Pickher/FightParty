@@ -23,3 +23,7 @@
 两种形态都按实际行程交替迈步。切换对空武器时，四门炮在同一副机体上展开或收回，历时 0.5 秒。被毁时，武器和腿甲从当时的姿态脱落，落地停留后淡出。[两种形态的战场动作](../../docs/media/thor-actions.gif) · [三视角切换特写](../../docs/media/thor-switch.gif)
 
 在项目根目录运行 `python tools/art/build_thor_rig.py` 可用两份源模型重建雷神分件、转轴和内嵌材质。脚本需要 Python 3、NumPy 和 SciPy，转轴按这两份模型标定。
+
+劫掠者（单位 ID 为 `marauder`）源模型位于 [marauder.glb](marauder/marauder.glb)，由用户提供。该 GLB 未包含纹理图片，无外置文件依赖；供后续战场表现与动画接入使用。
+
+恶蝠机甲源模型位于 [hellbat_mech.glb](hellbat_mech/hellbat_mech.glb)，来自用户提供的 `恶蝠3d模型.glb`，无纹理图片和外置文件依赖。当前项目历史上将 `hellbat` 单位 ID 和模型目录用于恶火车型，因此恶蝠机甲单独存放在 `hellbat_mech/`，供后续新增单位或形态时接入；此目录名目前仅用于区分资产，尚未对应 `data/units.json` 中的单位。
