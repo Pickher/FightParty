@@ -5,7 +5,20 @@ const MODEL_PATH := "res://assets/models/thor/thor_rig.glb"
 const MAX_LIVE := 16
 const MAX_WRECKS := 6
 const MODES := ["high_impact", "javelin", "hammer"]
-const IMPACT_DURATION := 0.32
+const JAVELIN_VISUAL_SPEED := 1.5
+# Two 32px spark radii, the longest ray (1.05), and its anti-aliased tip.
+const IMPACT_MARGIN_PX := 70.0
+const IMPACT_DURATION := 0.24
+# Authored in polar order: angle, relative travel, and streak length or puff size.
+const IMPACT_SPARKS := [
+	Vector3(0.03, 1.00, 0.38), Vector3(0.43, 0.63, 0.12), Vector3(1.18, 0.84, 0.24),
+	Vector3(1.91, 0.98, 0.31), Vector3(2.16, 0.72, 0.14), Vector3(3.05, 0.87, 0.27),
+	Vector3(3.92, 0.58, 0.15), Vector3(4.35, 0.94, 0.36), Vector3(5.52, 0.83, 0.19),
+]
+const IMPACT_PUFFS := [
+	Vector3(0.22, 0.54, 0.89), Vector3(0.79, 0.39, 1.08), Vector3(2.54, 0.57, 0.83),
+	Vector3(3.05, 0.41, 1.24), Vector3(4.87, 0.49, 0.96),
+]
 var model: PackedScene
 var scene: Node3D
 var bounds: AABB
@@ -158,11 +171,20 @@ func sync(game, view, dt: float, clock: float, alpha: float) -> void:
 	if game.sim.get("finished") == true:
 		now = maxf(now, _presented_at + dt)
 	_presented_at = now
+	var due: Array[Array] = []
 	for key in javelins.keys():
 		var flight: Dictionary = javelins[key]
 		var retention := IMPACT_DURATION if not flight.hit.is_empty() else 1.0 / float(game.sim.rules.tick_rate)
 		if now >= float(flight.impact_time) + retention or game._hidden_team(int(flight.team)):
 			javelins.erase(key)
+		elif not flight.released and now >= flight.release_time:
+			due.append(key)
+	# Several frames may elapse in one update. A closer target can schedule a
+	# later native shot first; sample recoil and aim in visible release order.
+	if due.size() > 1:
+		due.sort_custom(_releases_first)
+	for key in due:
+		_release_javelin(javelins[key], key, game.sim, diameter, alpha, now)
 	if _native_tick != game.sim.tick:
 		_native_shots.clear()
 
@@ -173,6 +195,8 @@ func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 	if kind not in ["attack", "weapon_switch", "death"]:
 		return
 	if kind == "attack" and (data.get("kind") != "thor" or data.get("mode") not in MODES):
+		return
+	if kind == "attack" and owns_javelin_launch(data):
 		return
 	var id := int(data.get("source_id", -1) if kind == "attack" else data.get("id", -1))
 	var unit: Dictionary = game.sim.by_id.get(id, before.get(id, {}))
@@ -224,7 +248,10 @@ func event(data: Dictionary, before: Dictionary, game, clock: float) -> void:
 	entry.aim_until = clock + 0.15
 	if mode != "hammer":
 		entry.actor.set_air_progress(1.0 if mode == "javelin" else 0.0, mode)
-	entry.actor.fire_at(mode, strike, target_offset)
+	# Javelin waits for its shorter visible flight window. The arm guns fire on
+	# their native strike events and keep their original timing.
+	if mode != "javelin" or not data.has("time"):
+		entry.actor.fire_at(mode, strike, target_offset)
 	if data.has("time") and (data.get("projectile", false) or mode == "javelin"):
 		var key := [id, strike, float(data.time)]
 		var offset: Vector2 = entry.actor.muzzle_screen_offset(mode, strike) * diameter
@@ -278,9 +305,44 @@ func _register_javelin(key: Array, data: Dictionary, origin: Vector2, axis: Vect
 				var length: float = data.from.distance_to(data.to)
 				due += length / maxf(0.001, float(weapon.delivery.speed))
 				break
+	var launch_time := float(data.time)
+	var visible_duration := maxf(0.0, due - launch_time) / JAVELIN_VISUAL_SPEED
 	javelins[key] = {"team":int(data.team), "strike":int(data.strike), "origin":origin,
-		"launch_direction":axis, "goal":data.to, "native":native, "launch_time":float(data.time),
-		"impact_time":due, "hit":{}}
+		"launch_direction":axis, "goal":data.to, "native":native, "launch_time":launch_time,
+		"release_time":due - visible_duration, "released":false, "impact_time":due, "hit":{}}
+
+func _releases_first(a: Array, b: Array) -> bool:
+	var left: Dictionary = javelins[a]
+	var right: Dictionary = javelins[b]
+	if left.release_time != right.release_time:
+		return left.release_time < right.release_time
+	return left.launch_time < right.launch_time if left.launch_time != right.launch_time else left.strike < right.strike
+
+func _release_javelin(flight: Dictionary, key: Array, sim, diameter: float, alpha: float, now: float) -> void:
+	flight.released = true
+	var id := int(key[0])
+	if not has_model(id):
+		# A culled live walker fires from its tactical icon. An already destroyed
+		# launcher leaves the recorded muzzle in world space for this real shot.
+		var source = sim.by_id.get(id)
+		if source != null and source.get("hp", 1.0) > 0.0 and not entries.get(id, {}).get("dead", false):
+			flight.origin = Vector2(source.prev).lerp(source.pos, alpha)
+		return
+	var entry: Dictionary = entries[id]
+	var goal := _display_goal(flight, sim, now)
+	var elapsed := maxf(0.0, now - float(flight.release_time))
+	entry.actor.fire_at("javelin", flight.strike, (goal - Vector2(entry.pos)) / diameter, elapsed)
+	var offset: Vector2 = entry.actor.muzzle_screen_offset("javelin", flight.strike) * diameter
+	flight.origin = Vector2(entry.pos) + offset
+	flight.launch_direction = entry.actor.javelin_launch_direction(flight.strike)
+	if launch_offsets.has(key):
+		launch_offsets[key] = offset
+
+func javelin_progress(flight: Dictionary, now: float) -> float:
+	var duration := float(flight.impact_time) - float(flight.release_time)
+	if duration <= 0.0:
+		return 1.0 if now >= flight.impact_time else 0.0
+	return clampf((now - float(flight.release_time)) / duration, 0.0, 1.0)
 
 func owns_javelin(projectile: Dictionary) -> bool:
 	return projectile.get("weapon", {}).get("id") == "javelin" and javelins.has(_projectile_key(projectile))
@@ -341,6 +403,8 @@ func _display_goal(flight: Dictionary, sim, now: float) -> Vector2:
 	var native: Dictionary = flight.native
 	var hit: Dictionary = flight.hit
 	var goal: Vector2 = native.get("goal", flight.goal) if hit.is_empty() else hit.to
+	if not hit.is_empty() and now >= flight.impact_time:
+		return goal
 	var target = sim.by_id.get(native.get("target_id", 0))
 	if target == null:
 		return goal
@@ -351,18 +415,23 @@ func _display_goal(flight: Dictionary, sim, now: float) -> Vector2:
 	return Vector2(target.prev).lerp(goal, clampf((now - tick_start) / duration, 0.0, 1.0))
 
 func draw_ordnance(canvas: CanvasItem, view, game, now: float) -> void:
+	if javelins.is_empty():
+		return
 	var area: Rect2 = game._camera_rect().grow(1.5)
+	var impact_area := Rect2(Vector2.ZERO, view.viewport_size()).grow(IMPACT_MARGIN_PX)
 	for flight in javelins.values():
-		if game._hidden_team(int(flight.team)) or now < flight.launch_time:
+		if game._hidden_team(int(flight.team)):
 			continue
 		if now >= flight.impact_time:
 			var hit: Dictionary = flight.hit
 			var age := now - float(flight.impact_time)
-			if not hit.is_empty() and age < IMPACT_DURATION and area.has_point(hit.to):
+			if not hit.is_empty() and age < IMPACT_DURATION and impact_area.has_point(view.point(hit.to)):
 				_draw_impact(canvas, view, hit, int(flight.strike), age)
 			continue
-		var duration := maxf(0.000001, float(flight.impact_time) - float(flight.launch_time))
-		var t := (now - float(flight.launch_time)) / duration
+		if not flight.released or now < flight.release_time:
+			continue
+		var duration := float(flight.impact_time) - float(flight.release_time)
+		var t := javelin_progress(flight, now)
 		var goal := _display_goal(flight, game.sim, now)
 		var tip := javelin_position(flight, goal, t)
 		if area.has_point(tip):
@@ -425,15 +494,39 @@ func _draw_impact(canvas: CanvasItem, view, hit: Dictionary, strike: int, age: f
 	var t := clampf(age / IMPACT_DURATION, 0.0, 1.0)
 	var center: Vector2 = view.point(hit.to)
 	var size := clampf(view.pixels(float(hit.radius) * 0.72), 5.0, 32.0)
-	var r := size * (0.25 + 0.79 * sin(sqrt(t) * PI * 0.6))
-	canvas.draw_texture_rect(_glow, Rect2(center - Vector2.ONE*r, Vector2.ONE*2*r), false, Color(1.0,0.38,0.09,1.0-t))
-	var core := maxf(0.1, size * (0.35 + 0.25 * sin(t*PI)) * (1.0-smoothstep(0.08, 0.70, t)))
-	canvas.draw_texture_rect(_glow, Rect2(center - Vector2.ONE*core, Vector2.ONE*2*core), false, Color(1,0.94,0.67,1.0-t))
-	for i in 6:
-		var angle := i * TAU / 6.0 + strike * 0.72 + 0.26 * sin(i*2.3)
-		var ray := Vector2.from_angle(angle) * size * (0.83 + 0.16*sin(i+strike))
-		var tip := center + ray * (0.12 + 0.93 * sqrt(t))
-		canvas.draw_line(tip - ray * (0.19*(1.0-t)), tip, Color(1,0.76,0.34,(1.0-t)*0.9), maxf(1.0, size*0.075), true)
+	var spread := size * 2.0
+	var travel := sqrt(t)
+	var fade := 1.0 - smoothstep(0.20, 1.0, t)
+	var smoke := smoothstep(0.0, 0.18, t) * fade
+	# Small banks of soot spread around the flash so the target remains visible through the center.
+	for cloud: Vector3 in IMPACT_PUFFS:
+		var axis := Vector2.from_angle(cloud.x + strike * 0.71)
+		var puff := center + axis * spread * (0.10 + cloud.y * travel)
+		var radius := maxf(1.7, spread * (0.075 + 0.14 * travel) * cloud.z)
+		var extent := Vector2(radius, radius * 0.88)
+		canvas.draw_texture_rect(_glow, Rect2(puff - extent, extent * 2.0), false, Color(0.34, 0.36, 0.38, 0.85 * smoke))
+		var rim := puff - extent * 0.23 + axis.orthogonal() * radius * 0.34
+		extent *= 0.80
+		canvas.draw_texture_rect(_glow, Rect2(rim - extent, extent * 2.0), false, Color(0.70, 0.68, 0.64, 0.67 * smoke))
+
+	var flash := 1.0 - smoothstep(0.07, 0.67, t)
+	var halo := Vector2.ONE * size * (0.42 + 0.46 * sin(PI * travel))
+	canvas.draw_texture_rect(_glow, Rect2(center - halo, halo * 2.0), false, Color(1.0, 0.39, 0.10, 0.90 * flash))
+	var core := halo * 0.53
+	canvas.draw_texture_rect(_glow, Rect2(center - core, core * 2.0), false, Color(1.0, 0.96, 0.76, flash))
+	for i in IMPACT_SPARKS.size():
+		var spark: Vector3 = IMPACT_SPARKS[i]
+		var axis := Vector2.from_angle(spark.x + strike * 0.72)
+		var ray := axis * spread * spark.y
+		var progress := 0.12 + 0.93 * travel
+		var tip := center + ray * progress
+		var tail := center + ray * maxf(0.02, progress - spark.z * (1.0 - t))
+		var width := maxf(1.0, size * (0.03 + 0.10 * spark.z))
+		canvas.draw_line(tail, tip, Color(1.0, 0.49, 0.13, fade), width, true)
+		canvas.draw_circle(tip, maxf(0.65, width * 0.60), Color(1.0, 0.94, 0.68, fade), true, -1.0, true)
+		if i == 0 or i == 7:
+			var chip := center + ray * progress * 0.70 + axis.orthogonal() * spread * 0.075 * travel
+			canvas.draw_circle(chip, maxf(0.65, width * 0.48), Color(1.0, 0.72, 0.32, fade), true, -1.0, true)
 
 func _destroy(entry: Dictionary, pos: Vector2, clock: float) -> void:
 	var count := 0

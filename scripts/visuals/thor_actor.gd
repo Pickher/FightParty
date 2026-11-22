@@ -8,6 +8,8 @@ const BODY_TURN := 3.1
 const AIM_TURN := 6.2
 enum Shot { HAMMER, HIGH_IMPACT, JAVELIN }
 const SHOT_LIFE := [0.13, 0.15, 0.115]
+const ARM_RECOIL_TIME := 0.21
+const SHOULDER_RECOIL_TIME := 0.17
 const SIDE_NAMES := ["P", "N"]
 const CANNON_NAMES := ["InnerP", "InnerN", "OuterP", "OuterN"]
 
@@ -135,7 +137,7 @@ func advance(delta: float, desired_heading: float, distance: float, aim_heading:
 
 func _recoil(index: int) -> float:
 	var age := float(fire_age[index])
-	var recovery := 0.21 if index < 2 else 0.17
+	var recovery := ARM_RECOIL_TIME if index < 2 else SHOULDER_RECOIL_TIME
 	if age >= recovery:
 		return 0.0
 	return (0.73 + 0.27 * smoothstep(0, 0.024, age)) * (1.0 - smoothstep(0.024, recovery, age))
@@ -266,23 +268,25 @@ func javelin_launch_direction(strike: int) -> Vector2:
 	var axis := global_basis.inverse() * muzzle.global_basis.x
 	return Vector2(axis.x, axis.z).normalized()
 
-func fire_at(mode: String, strike: int, target_offset: Vector2) -> void:
+func fire_at(mode: String, strike: int, target_offset: Vector2, elapsed: float = 0.0) -> void:
 	if wreck != null:
 		return
-	_fire(mode, strike, target_offset.angle(), target_offset)
+	_fire(mode, strike, target_offset.angle(), target_offset, elapsed)
 
 func fire(mode: String, strike: int, shot_heading: float) -> void:
 	_fire(mode, strike, shot_heading, Vector2.INF)
 
-func _fire(mode: String, strike: int, shot_heading: float, target: Vector2) -> void:
+func _fire(mode: String, strike: int, shot_heading: float, target: Vector2, elapsed: float = 0.0) -> void:
 	if wreck != null or mode not in ["hammer", "high_impact", "javelin"]:
+		return
+	var index := _slot(mode, strike)
+	if elapsed >= (ARM_RECOIL_TIME if index < 2 else SHOULDER_RECOIL_TIME):
 		return
 	close_target = target
 	aim = shot_heading
 	aim_weight = 1.0
-	target_hold = 0.22
-	var index := _slot(mode, strike)
-	fire_age[index] = 0.0
+	target_hold = 0.22 - elapsed
+	fire_age[index] = elapsed
 	fire_kind[index] = Shot.JAVELIN if mode == "javelin" else (Shot.HIGH_IMPACT if mode == "high_impact" else Shot.HAMMER)
 	if flashes[index] == null:
 		var flash := MeshInstance3D.new()
