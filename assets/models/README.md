@@ -41,3 +41,9 @@
 动画读取战斗已有的 `siege_state` 及结束时刻。完整架起用时 1.5 秒，收回用时 1 秒。架起中途失去目标时，各个关节从当时的位置沿原路径收回。
 
 在 Godot 中打开[坦克动作预览](../../scenes/art/tank_actions.tscn)，按 F6 可原速或半速播放，也可暂停后切换观察角度。在项目根目录运行 `python tools/art/build_tank_rig.py`，可从两份源模型重建分件、转轴、炮口和履带路径。脚本使用 Python 3、NumPy 和 SciPy。
+
+## 招募肖像
+
+部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。已有兵模的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景，其余肖像的造型源在[肖像美术目录](../../tools/art/recruit_portraits/)。
+
+更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
