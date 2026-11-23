@@ -10,7 +10,8 @@ func activate(sim, max_hp: float) -> float:
 	if config.is_empty() or active_at(sim.tick) or sim.tick<int(state.get("stim_ready_tick",0)):
 		return -1.0
 	var cost := float(config.get("health_cost", max_hp * float(config.get("health_cost_ratio", 0))))
-	if float(owner.hp) <= cost or not pay_energy(sim):
+	var health_threshold := cost * maxf(1.0, float(config.get("min_health_cost_multiplier", 1.0)))
+	if float(owner.hp) <= health_threshold or not pay_energy(sim):
 		return -1.0
 	state.stim_ready_tick=sim.tick+ceili(float(config.get("cooldown",0))*float(sim.rules.tick_rate))
 	state.stim_until_tick = sim.tick + ceili(float(config.duration) * float(sim.rules.tick_rate))
@@ -31,7 +32,7 @@ func current_attack_rate(tick: int) -> float:
 func current_move_multiplier(tick: int) -> float:
 	return float(state.stim_speed_multiplier) if active_at(tick) else 1.0
 func before_action(ctx: Dictionary) -> void:
-	if ctx.can_act and not ctx.target.is_empty() and ctx.distance <= ctx.reach:
+	if ctx.can_act and ctx.armed and ctx.weapon_engaged:
 		var cost := activate(ctx.sim, float(ctx.sim.catalog[owner.kind].hp))
 		if cost >= 0:
 			ctx.self_costs[owner.id] = cost

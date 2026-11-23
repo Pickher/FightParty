@@ -95,6 +95,23 @@ def set_path(node, path, value):
  if isinstance(node,list):node[int(parts[-1])]=value
  else:node[parts[-1]]=value
 
+def apply_infantry_stimulants(cat, units, write):
+ # The two ordinary infantry augments both apply Stimpack. Commander variants use other effects.
+ for uid, ability in [('rifle','DSStimpack'), ('marauder','DSStimpackMarauder')]:
+  units[uid].setdefault('skills', {}).setdefault('stimulant', {})
+  prefix = 'skills/stimulant/'
+  cost_source = 'AbilData/' + ability + '/Cost'
+  behavior_source = 'AbilData/' + ability + '/Effect=Stimpack → Liberty BehaviorData/Stimpack/'
+  write(uid, prefix+'health_cost', cat.scalar('AbilData', ability, 'Cost/Vital', 'Life'), cost_source+'/Vital[Life]')
+  write(uid, prefix+'health_cost_ratio', 0, cost_source+'/Vital[Life] 为固定生命消耗')
+  cooldown = cat.children('AbilData', ability, 'Cost/Cooldown')[0]
+  write(uid, prefix+'cooldown', float(cooldown.get('TimeUse')), cost_source+'/Cooldown@TimeUse')
+  write(uid, prefix+'duration', 15, behavior_source+'Duration')
+  write(uid, prefix+'attack_multiplier', 1.5, behavior_source+'Modification@AttackSpeedMultiplier')
+  write(uid, prefix+'speed_multiplier', 1.5, behavior_source+'Modification@MoveSpeedMultiplier')
+  write(uid, prefix+'min_health_cost_multiplier', 2, 'FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍')
+  write(uid, prefix+'display_name', '兴奋剂', 'FightParty 技能显示名称')
+
 def apply_medivac(cat, write):
  """The deployed Medivac inherits Liberty campaign effects. Convert its game seconds to Faster real seconds."""
  uid = 'medivac'
@@ -234,14 +251,7 @@ def apply():
    if not cat.children('EffectData',eid,'AttributeBonus'):
     pending(uid,prefix+'bonus','加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0')
  # Confirmed skill overrides. Other native abilities remain in unresolved inventory.
- for uid,aid in [('rifle','DSStimpack'),('marauder','DSStimpackMarauder')]:
-  life=cat.scalar('AbilData',aid,'Cost/Vital','Life')
-  cooldown_node=cat.children('AbilData',aid,'Cost/Cooldown')
-  config=copy.deepcopy(units[uid].get('skills',{}).get('stimulant',{'health_cost_ratio':0,'duration':15,'attack_multiplier':1.5,'speed_multiplier':1.5}))
-  config['health_cost']=life;config['health_cost_ratio']=0;config['cooldown']=float(cooldown_node[0].get('TimeUse'))
-  skill(uid,'stimulant',config,'AbilData/'+aid+'/Cost')
-  for field in ['duration','attack_multiplier','speed_multiplier']:
-   pending(uid,'skills/stimulant/'+field,'Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）')
+ apply_infantry_stimulants(cat, units, write)
  # Additional Adept fields come from its inherited weapon and the map's two mutually exclusive orders.
  adept_fields=audit['units']['adept']['fields']
  adept_fields.update({
