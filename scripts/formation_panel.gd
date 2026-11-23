@@ -3,6 +3,7 @@ extends RefCounted
 const Catalog = preload("res://scripts/catalog.gd")
 const DesktopInput = preload("res://scripts/input/desktop/formation_input.gd")
 const Layout = preload("res://scripts/formation_layout.gd")
+const Portrait = preload("res://scripts/recruit_portrait.gd")
 const UnitSummary = preload("res://scripts/unit_summary.gd")
 const PANEL := Rect2(32,98,1376,762)
 const BOARD_AREA := Rect2(446,244,930,530)
@@ -85,8 +86,11 @@ func _bounds() -> Rect2:
 
 func _field() -> Rect2:
 	var bounds: Rect2 = _bounds()
-	var scale: float = minf(BOARD_AREA.size.x/bounds.size.x,BOARD_AREA.size.y/bounds.size.y)
-	return Rect2(BOARD_AREA.get_center()-bounds.size*scale*0.5,bounds.size*scale)
+	var area := BOARD_AREA
+	if tab == "recruit":
+		area.size.x -= 300.0
+	var scale: float = minf(area.size.x/bounds.size.x,area.size.y/bounds.size.y)
+	return Rect2(area.get_center()-bounds.size*scale*0.5,bounds.size*scale)
 
 func _to_screen(position: Vector2) -> Vector2:
 	var bounds: Rect2 = _bounds()
@@ -241,15 +245,16 @@ func _draw_list() -> void:
 		var count: int = groups*maxi(1,int(stats.get("spawn_count",1)))
 		var rect := Rect2(56,226+row*60,352,54)
 		game._panel(rect,Color("204b43") if active_kind==kind else Color("17293c"),game.MINT if active_kind==kind else Color("304358"),6)
-		game._draw_unit(rect.position+Vector2(24,26),kind,Color(stats.color),10)
-		game._text(rect.position+Vector2(46,23),str(stats.name),19,game.INK)
-		game._text(rect.position+Vector2(46,44),"已有 %d 组 · %d 名" % [groups,count],15,game.MUTED)
+		Portrait.draw(game,Rect2(rect.position + Vector2(2,1),Vector2(52,52)),kind,active_kind==kind)
+		var secondary: Color = Portrait.SELECTED_SECONDARY if active_kind == kind else game.MUTED
+		game._text(rect.position+Vector2(68,23),str(stats.name),19,game.INK)
+		game._text(rect.position+Vector2(68,44),"已有 %d 组 · %d 名" % [groups,count],15,secondary)
 		if recruiting:
 			var price: Dictionary=game.sim.unit_price(kind)
 			var affordable: bool=game.sim.resource_error(price,balance).is_empty()
-			game._text(rect.position+Vector2(221,23),"%d矿 / 组" % int(price.minerals),15,game.MINT if affordable else game.MUTED)
+			game._text(rect.position+Vector2(221,23),"%d矿 / 组" % int(price.minerals),15,game.MINT if affordable else secondary)
 			if int(price.gas)>0 or int(price.cores)>0:
-				game._text(rect.position+Vector2(221,44),"%d气 %d核" % [int(price.gas),int(price.cores)],14,game.MUTED)
+				game._text(rect.position+Vector2(221,44),"%d气 %d核" % [int(price.gas),int(price.cores)],14,secondary)
 		var action_prefix: String="formation:recruit_kind:" if recruiting else "formation:kind:"
 		game.buttons.append({"rect":rect,"action":action_prefix+kind})
 	if kinds.is_empty():
@@ -305,14 +310,29 @@ func _target_label(stats: Dictionary) -> String:
 	if air:return "仅对空"
 	return str(stats.get("role","支援"))
 
-## 招募摘要使用排布区右侧空白，不侵占顶部预设按钮、配兵战术或布阵底部提示。
 func _draw_recruit_summary() -> void:
-	if tab!="recruit" or not game.sim.catalog.has(recruit_kind):return
-	var begin: float=_field().end.x+12.0
-	var width: float=BOARD_AREA.end.x-begin-12.0
-	if width<120.0:return
-	var stats: Dictionary=game.sim.catalog[recruit_kind]
-	game.draw_multiline_string(game.FONT,Vector2(begin,318),str(stats.name)+" · "+_target_label(stats)+"\n"+UnitSummary.text(stats),HORIZONTAL_ALIGNMENT_LEFT,width,16,8,game.INK)
+	if tab != "recruit" or not game.sim.catalog.has(recruit_kind):
+		return
+	var field := _field()
+	var card := Rect2(field.end.x + 14.0, BOARD_AREA.position.y + 10.0,
+		BOARD_AREA.end.x - field.end.x - 24.0, BOARD_AREA.size.y - 20.0)
+	game._panel(card, Color("121b2b"), Color("384252"), 6)
+	var width := card.size.x - 32.0
+	var left := card.position.x + 16.0
+	var side := minf(224.0, width)
+	var image := Rect2(roundf(card.get_center().x - side * 0.5), card.position.y + 16.0, side, side)
+	Portrait.draw(game, image, recruit_kind)
+	var stats: Dictionary = game.sim.catalog[recruit_kind]
+	var title_y := image.end.y + 36.0
+	game._text(Vector2(left, title_y), str(stats.name), 25, game.INK)
+	var role := str(stats.get("role", ""))
+	var target := _target_label(stats)
+	if target != role:
+		game.draw_string(game.FONT, Vector2(left, title_y-1.0), target, HORIZONTAL_ALIGNMENT_RIGHT, width, 15, game.MINT)
+	game._text(Vector2(left, title_y+28.0), role, 16, game.MUTED)
+	game.draw_line(Vector2(left, title_y+44.0), Vector2(left+width, title_y+44.0), Color("364353"))
+	game.draw_multiline_string(game.FONT, Vector2(left, title_y+70.0), UnitSummary.text(stats),
+		HORIZONTAL_ALIGNMENT_LEFT, width, 17, -1, game.INK)
 
 func _draw_tools(selected: Array, members: Array) -> void:
 	var pool: Array = _pool(members)
@@ -342,8 +362,12 @@ func _draw_board(members: Array, selected: Array) -> void:
 	for y in range(ceili(bounds.position.y),floori(bounds.end.y)+1,2):
 		var point: Vector2 = _to_screen(Vector2(bounds.position.x,float(y)))
 		game.draw_line(point,point+Vector2(field.size.x,0),Color("1d4047"),1)
-	game._text(Vector2(458,280),"后方",19,game.MUTED)
-	game._text(Vector2(1275,280),"前线 →",19,game.MINT)
+	if tab == "recruit":
+		game._text(field.position + Vector2(12,30),"后方",17,game.MUTED)
+		game._text(Vector2(field.end.x-78,field.position.y+30),"前线 →",17,game.MINT)
+	else:
+		game._text(Vector2(458,280),"后方",19,game.MUTED)
+		game._text(Vector2(1275,280),"前线 →",19,game.MINT)
 	var chosen: Dictionary = {}
 	for member in selected:chosen[_key(member)]=true
 	for member in members:

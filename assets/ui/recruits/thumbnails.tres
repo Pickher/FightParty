@@ -1,0 +1,277 @@
+[gd_resource type="SpriteFrames" load_steps=47 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/recruits/thumbnails.png" id="1_atlas"]
+
+[sub_resource type="AtlasTexture" id="Tile_0"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_1"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_2"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_3"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_4"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_5"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_6"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_7"]
+atlas = ExtResource("1_atlas")
+region = Rect2(448, 0, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_8"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_9"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_10"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_11"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_12"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_13"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_14"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_15"]
+atlas = ExtResource("1_atlas")
+region = Rect2(448, 64, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_16"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_17"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_18"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_19"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_20"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_21"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_22"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_23"]
+atlas = ExtResource("1_atlas")
+region = Rect2(448, 128, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_24"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_25"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_26"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_27"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_28"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_29"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_30"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_31"]
+atlas = ExtResource("1_atlas")
+region = Rect2(448, 192, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_32"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_33"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_34"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_35"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_36"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_37"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_38"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_39"]
+atlas = ExtResource("1_atlas")
+region = Rect2(448, 256, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_40"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 320, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_41"]
+atlas = ExtResource("1_atlas")
+region = Rect2(64, 320, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_42"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 320, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_43"]
+atlas = ExtResource("1_atlas")
+region = Rect2(192, 320, 64, 64)
+filter_clip = true
+
+[sub_resource type="AtlasTexture" id="Tile_44"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 320, 64, 64)
+filter_clip = true
+
+[resource]
+animations = [
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_0")}], "loop": false, "name": &"abomination", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_1")}], "loop": false, "name": &"adept", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_2")}], "loop": false, "name": &"agent", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_3")}], "loop": false, "name": &"archon", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_4")}], "loop": false, "name": &"baneling", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_5")}], "loop": false, "name": &"battlecruiser", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_6")}], "loop": false, "name": &"bloater", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_7")}], "loop": false, "name": &"brood_lord", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_8")}], "loop": false, "name": &"brood_mother", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_9")}], "loop": false, "name": &"carrier", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_10")}], "loop": false, "name": &"colossus", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_11")}], "loop": false, "name": &"disruptor", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_12")}], "loop": false, "name": &"fly_swarm", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_13")}], "loop": false, "name": &"gravedigger", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_14")}], "loop": false, "name": &"hellbat", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_15")}], "loop": false, "name": &"hellbat_mech", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_16")}], "loop": false, "name": &"high_templar", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_17")}], "loop": false, "name": &"hydralisk", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_18")}], "loop": false, "name": &"immortal", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_19")}], "loop": false, "name": &"infestor", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_20")}], "loop": false, "name": &"liberator", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_21")}], "loop": false, "name": &"marauder", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_22")}], "loop": false, "name": &"medivac", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_23")}], "loop": false, "name": &"mortar", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_24")}], "loop": false, "name": &"mutalisk", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_25")}], "loop": false, "name": &"piercer", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_26")}], "loop": false, "name": &"plague_herald", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_27")}], "loop": false, "name": &"ravager", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_28")}], "loop": false, "name": &"rifle", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_29")}], "loop": false, "name": &"roach", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_30")}], "loop": false, "name": &"rotling", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_31")}], "loop": false, "name": &"sentry", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_32")}], "loop": false, "name": &"spitter", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_33")}], "loop": false, "name": &"splitter", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_34")}], "loop": false, "name": &"spore_drifter", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_35")}], "loop": false, "name": &"stalker", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_36")}], "loop": false, "name": &"swarm", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_37")}], "loop": false, "name": &"thor", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_38")}], "loop": false, "name": &"tunneler", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_39")}], "loop": false, "name": &"ultralisk", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_40")}], "loop": false, "name": &"vanguard", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_41")}], "loop": false, "name": &"viking", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_42")}], "loop": false, "name": &"void_ray", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_43")}], "loop": false, "name": &"widow_mine", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_44")}], "loop": false, "name": &"zergling", "speed": 1.0}
+]

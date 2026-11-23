@@ -15,20 +15,43 @@ func check(ok: bool, message: String) -> void:
 func _initialize() -> void:
 	call_deferred("run")
 
+func click_shop_button(main: Main, action: String) -> void:
+	# Switching pages clears the old hit regions until the next draw.
+	await process_frame
+	await process_frame
+	for button in main.buttons:
+		if button.action != action:
+			continue
+		var click := InputEventMouseButton.new()
+		click.button_index = MOUSE_BUTTON_LEFT
+		click.device = 0
+		click.position = main._ui_origin() + main._ui_scale() * button.rect.get_center()
+		click.pressed = true
+		main._gui_input(click)
+		click.pressed = false
+		main._gui_input(click)
+		return
+	check(false, "当前页缺少可点击卡片或翻页按钮 " + action)
+
 func run() -> void:
 	var main = Main.new()
 	root.add_child(main)
+	main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	main.setup_open = false
+	main.sim.races[0] = main.sim.catalog.rifle.race
 	main.sim.catalog["assassin"] = main.sim.catalog.rifle.duplicate(true)
 	main.sim.catalog.assassin.name = "测试刺客"
-	main.handle_action("units_next")
-	check(main.unit_page == 1, "第七个兵种应有第二页")
-	main.handle_action("select:assassin")
-	check(main.selected == "assassin", "新增兵种可选中")
-	main.handle_action("units_next")
-	check(main.unit_page == 0, "下一页循环到首页")
-	main.handle_action("units_prev")
-	check(main.unit_page == 1, "上一页循环到末页")
+	main.handle_action("legacy_editor")
+	var last_page := ceili(float(main._shop_kinds().size()) / Main.UNITS_PER_PAGE) - 1
+	for page in range(1, last_page + 1):
+		await click_shop_button(main, "units_next")
+		check(main.unit_page == page, "应能逐页向后翻到新增兵种")
+	await click_shop_button(main, "select:assassin")
+	check(main.selected == "assassin" and main.unit_page == last_page, "末页可点击选中新增兵种")
+	await click_shop_button(main, "units_next")
+	check(main.unit_page == 0, "末页的下一页循环到首页")
+	await click_shop_button(main, "units_prev")
+	check(main.unit_page == last_page, "首页的上一页循环到末页")
 	Catalog.extra_units["assassin"] = main.sim.catalog.assassin.duplicate(true)
 	var ai = AI.new(42)
 	check(ai.pool.has("assassin"), "同族已实装新增单位进入 AI 池")

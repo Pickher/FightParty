@@ -6,6 +6,7 @@
 extends Control
 const HellionLayer = preload("res://scripts/visuals/hellion_layer.gd")
 var hellion_visual = HellionLayer.new()
+const RecruitPortrait = preload("res://scripts/recruit_portrait.gd")
 const UnitSummary = preload("res://scripts/unit_summary.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 const Medivac3D = preload("res://scripts/visuals/medivac_3d.gd")
@@ -37,7 +38,7 @@ var saved_formation_preset: Array = []
 var ai = AI.new()
 # selected 是当前选中的兵种 ID，也可能是 erase（删除）或 move（移动）工具。
 var selected := "rifle"
-const UNITS_PER_PAGE := 9
+const UNITS_PER_PAGE := 6
 var unit_page := 0
 # 移动模式第一次点击的来源格；-1 表示还没选来源。
 var move_source := -1
@@ -816,29 +817,19 @@ func _draw_editor() -> void:
 	var cost: int = sim.formation_cost(sim.formations[0])
 	_text(Vector2(968,603),"兵营 %d · 可用 %d" % [cost,int(sim.minerals[0])],17,MINT)
 	var i := 0
+	var balance: Dictionary = sim.wallet(0)
 	for kind in kinds.slice(unit_page*UNITS_PER_PAGE,(unit_page+1)*UNITS_PER_PAGE):
-		var stats: Dictionary = sim.catalog[kind]
-		var rect := Rect2(762+(i%3)*146,616+(i/3)*55,140,50)
-		if not Catalog.is_ready(stats):
-			_panel(rect,Color("111c2a"),Color("243344"))
-			_draw_unit(rect.position+Vector2(20,20),kind,Color(Color(stats.color),0.35),9)
-			_text(rect.position+Vector2(37,25),stats.name,17 if stats.name.length() <= 4 else 13,MUTED)
-			_text(rect.position+Vector2(10,44),"尚未实装",12,Color("5d6e82"))
-			i += 1
-			continue
-		_panel(rect,Color("233e41") if selected==kind else Color("17293c"),MINT if selected==kind else Color("304358"))
-		_draw_unit(rect.position+Vector2(20,20),kind,Color(stats.color),9)
-		_text(rect.position+Vector2(37,25),stats.name,19 if stats.name.length() <= 3 else (15 if stats.name.length() == 4 else 12))
-		_text(rect.position+Vector2(102,24),str(int(stats.cost)),16,MINT)
-		_text(rect.position+Vector2(10,44),"%d/组 · %s" % [int(stats.get("spawn_count",1)),("另需%d瓦斯" % int(stats.get("gas_cost",0))) if int(stats.get("gas_cost",0))>0 else str(stats.role)],11,MUTED)
-		buttons.append({"rect":rect,"action":"select:"+kind})
+		var rect := Rect2(762+(i%2)*216,616+(i/2)*55,208,50)
+		_draw_recruit_card(rect, kind, balance)
 		i += 1
 	if sim.catalog.has(selected):
-		var summary: String = UnitSummary.text(sim.catalog[selected])
+		var stats: Dictionary = sim.catalog[selected]
+		RecruitPortrait.draw(self, Rect2(762,786,64,64), selected)
+		var summary: String = str(stats.role) + "\n" + UnitSummary.text(stats)
 		var font_size := 14
-		while font_size>11 and FONT.get_multiline_string_size(summary,HORIZONTAL_ALIGNMENT_LEFT,416,font_size).y>68:
+		while font_size>11 and FONT.get_multiline_string_size(summary,HORIZONTAL_ALIGNMENT_LEFT,352,font_size).y>68:
 			font_size-=1
-		draw_multiline_string(FONT,Vector2(764,786+FONT.get_ascent(font_size)),summary,HORIZONTAL_ALIGNMENT_LEFT,416,font_size,4,MUTED)
+		draw_multiline_string(FONT,Vector2(836,785+FONT.get_ascent(font_size)),summary,HORIZONTAL_ALIGNMENT_LEFT,352,font_size,-1,MUTED)
 	else:
 		_text(Vector2(764,806),"点击要取消的单位；已出场过的不退款" if selected=="erase" else "先点单位，再点目标格；占用格会交换，免费。",17,MINT)
 	_panel(Rect2(1212,573,196,287))
@@ -865,6 +856,38 @@ func _draw_editor() -> void:
 	_text(Vector2(1226,822),message.left(12),14,Color("e6c28e"))
 	if message.length()>12:
 		_text(Vector2(1226,842),message.substr(12,12),14,Color("e6c28e"))
+
+func _draw_recruit_card(rect: Rect2, kind: String, balance: Dictionary) -> void:
+	var stats: Dictionary = sim.catalog[kind]
+	var ready := Catalog.is_ready(stats)
+	var active: bool = ready and selected == kind
+	var secondary := RecruitPortrait.SELECTED_SECONDARY if active else MUTED
+	_panel(rect, Color("233e41") if active else Color("17293c"), MINT if active else Color("304358"), 5)
+	RecruitPortrait.draw(self, Rect2(rect.position+Vector2(2,1),Vector2(48,48)), kind, active, ready)
+	var x := rect.position.x + 58.0
+	var width := rect.size.x - 65.0
+	var name_size := 18
+	if ready:
+		var price: Dictionary = sim.unit_price(kind)
+		var minerals := "%d矿" % int(price.minerals)
+		var name_width := width - FONT.get_string_size(minerals,HORIZONTAL_ALIGNMENT_LEFT,-1,14).x - 5.0
+		while name_size > 12 and FONT.get_string_size(stats.name,HORIZONTAL_ALIGNMENT_LEFT,-1,name_size).x > name_width:
+			name_size -= 1
+		var affordable: bool = sim.resource_error(price,balance).is_empty()
+		draw_string(FONT,Vector2(x,rect.position.y+21),minerals,HORIZONTAL_ALIGNMENT_RIGHT,width,14,MINT if affordable else secondary)
+		var extra := PackedStringArray()
+		if int(price.gas) > 0: extra.append("%d气" % int(price.gas))
+		if int(price.cores) > 0: extra.append("%d灵核" % int(price.cores))
+		var detail := str(stats.role).get_slice("·",0).strip_edges() if extra.is_empty() else "另需" + " ".join(extra)
+		var line := "%d名/组 · %s" % [int(stats.get("spawn_count",1)),detail]
+		var size_pt := 13
+		while size_pt > 11 and FONT.get_string_size(line,HORIZONTAL_ALIGNMENT_LEFT,-1,size_pt).x > width:
+			size_pt -= 1
+		draw_string(FONT,Vector2(x,rect.position.y+41),line,HORIZONTAL_ALIGNMENT_LEFT,width,size_pt,secondary)
+		buttons.append({"rect":rect,"action":"select:"+kind})
+	else:
+		_text(Vector2(x,rect.position.y+41),"尚未实装",13,MUTED)
+	_text(Vector2(x,rect.position.y+21),stats.name,name_size,INK if ready else MUTED)
 
 ## 本方种族的兵种卡片（含未实装的预留兵种，显示为灰色、不可选），顺序与 units.json 一致。
 func _shop_kinds() -> Array:
