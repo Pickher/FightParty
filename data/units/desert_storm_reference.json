@@ -1,7 +1,7 @@
 {
-  "version": "0.13.2",
+  "version": "0.13.3",
   "source": "reference/desert-storm",
-  "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。未还原原版/依赖继承。",
+  "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
     "rifle": {
       "source_unit": "Marine",
@@ -754,6 +754,60 @@
         "wanttoattackCG2"
       ],
       "behaviors": []
+    },
+    "medivac": {
+      "source_unit": "Medivac",
+      "fields": {
+        "energy_regen": "UnitData/Medivac/EnergyRegenRate=1.125，Faster 实时每秒×1.4",
+        "attack_modes/0/range": "Liberty Campaign/AbilData/MedivacDoubleBeamHeal/Range；ValidatorData/HealTargetInRange",
+        "attack_modes/0/healing": "Liberty Campaign/EffectData/MedivacHealModifyTargetLife/VitalArray[Life]",
+        "attack_modes/0/attack_duration": "Liberty Campaign/EffectData/MedivacHealTargetPersistent/PeriodicPeriodArray=0.111（Faster：游戏秒÷1.4）",
+        "attack_modes/0/delivery/tick_interval": "Liberty Campaign/EffectData/MedivacHealTargetPersistent/PeriodicPeriodArray=0.111（Faster：游戏秒÷1.4）",
+        "attack_modes/0/delivery/switch_delay": "Liberty Campaign/EffectData/MedivacHealInitialSet：直接开始目标持续效果",
+        "skills/medivac_healing/max_targets": "Liberty Campaign/ValidatorData/HealBeamAvailable：MedivacHealBeamBusy < 2",
+        "skills/medivac_healing/acquire_range": "AbilData/MedivacDoubleBeamHeal/AutoCastRange",
+        "skills/medivac_healing/secondary_range": "Liberty Campaign/EffectData/MedivacHealSearch/AreaArray@Radius",
+        "skills/medivac_healing/scan_interval": "Liberty Campaign/EffectData/HealScanPersistent/PeriodicPeriodArray=0.0625（Faster：游戏秒÷1.4）",
+        "skills/medivac_healing/start_energy": "ValidatorData/healCasterMinEnergy/Value",
+        "skills/medivac_healing/sustain_energy": "Liberty Campaign/ValidatorData/HealPeriodicCombine → Liberty/ValidatorData/CasterHasEnergy",
+        "skills/medivac_healing/energy_cost": "Liberty Campaign/EffectData/MedivacHealModifyCasterEnergy/VitalArray[Energy]"
+      },
+      "abilities": [
+        "MedivacDoubleBeamHeal",
+        "MedivacSpeedBoost"
+      ],
+      "behaviors": []
+    },
+    "terran_bunker": {
+      "source_unit": "Bunker",
+      "fields": {
+        "cost": "UnitData/Bunker/CostResource[Minerals]=600",
+        "hp": "UnitData/Bunker/LifeStart、LifeMax=1800",
+        "armor": "UnitData/Bunker/LifeArmor=3",
+        "armor_type": "Liberty UnitData/Bunker/Attributes[Armored]",
+        "tags": "Liberty UnitData/Bunker 为机械建筑；本图添加 Heroic",
+        "size": "UnitData/Bunker/PlacementFootprint=Footprint3x3CreepNormal",
+        "collision_radius": "Liberty UnitData/Bunker/Radius=1.25",
+        "skills/regen": "UnitData/Bunker 挂载 FireSuppressionSystem；本图清空使用条件，保留 LifeLTHalf 验证，StarCoop BehaviorData 的生命恢复15/秒",
+        "skills/on_hit_slow": "PunisherGrenadesLM → PunisherGrenadesSet → PunisherGrenadesSlow；震荡弹升级已启用，目标过滤排除巨型、建筑和狂暴",
+        "skills/independent_weapons/weapons/0/count": "Bunker_Birth → MapScript 普通地堡创建并装入6名 WarPig",
+        "skills/independent_weapons/weapons/1/count": "Bunker_Birth → MapScript 普通地堡创建并装入2名 Marauder2",
+        "skills/independent_weapons/weapons/2/count": "Swarm Campaign UnitData/Bunker/WeaponArray ShrikeTurret；MapScript 为玩家启用 ShrikeTurret",
+        "attack_modes/0/damage": "EffectData/KelmorianMinerDamage → 9",
+        "attack_modes/0/range": "WeaponData/KelmorianMinerGaussRifle/Range=6，加驻舱 WeaponRange=1",
+        "attack_modes/0/interval": "Liberty Campaign KelmorianMinerGaussRifle/Period=0.8608，地图 RateMultiplier=3，总周期÷3并扣除本轮出手与后摇",
+        "attack_modes/0/strike_offsets": "WeaponData/KelmorianMinerGaussRifle/DamagePoint=0，直接伤害",
+        "attack_modes/1/damage": "EffectData/PunisherGrenadesU/Amount=13",
+        "attack_modes/1/bonus/heavy": "EffectData/PunisherGrenadesU/AttributeBonus[Armored]=13",
+        "attack_modes/1/range": "WeaponData/PunisherGrenades2/Range=7，加驻舱 WeaponRange=1",
+        "attack_modes/1/interval": "WeaponData/PunisherGrenades2/Period=1.5，RateMultiplier=3，总周期0.5减出手",
+        "attack_modes/1/delivery": "PunisherGrenadesLM → PunisherGrenadesLMWeapon → Liberty MoverData/PunisherGrenadesWeapon（制导，最高速度20格/秒）",
+        "attack_modes/2/damage": "Liberty Campaign WeaponData/ShrikeTurret → EffectData/ShrikeTurretDamage=6，直接伤害",
+        "attack_modes/2/range": "ShrikeTurret 继承 CWeaponLegacy 默认射程5；堡顶无驻舱射程加成",
+        "attack_modes/2/interval": "Liberty Campaign ShrikeTurret/Period=0.8608；地图 RateMultiplier=3，总周期÷3并扣除出手与后摇",
+        "skills/independent_weapons/weapons/0/stimulant": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1",
+        "skills/independent_weapons/weapons/1/stimulant": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+      }
     }
   },
   "changes": [
@@ -1973,6 +2027,271 @@
       "before": 130,
       "after": 380,
       "source": "FightParty 0.13.2 平衡调整，每组1台；原图 Hellion 价格为130矿"
+    },
+    {
+      "id": "medivac",
+      "path": "energy_regen",
+      "before": 1.125,
+      "after": 1.575,
+      "source": "UnitData/Medivac/EnergyRegenRate=1.125，Faster 实时每秒×1.4"
+    },
+    {
+      "id": "medivac",
+      "path": "attack_modes/0/healing",
+      "before": 12,
+      "after": 1,
+      "source": "Liberty Campaign/EffectData/MedivacHealModifyTargetLife/VitalArray[Life]"
+    },
+    {
+      "id": "medivac",
+      "path": "attack_modes/0/attack_duration",
+      "before": 0.5,
+      "after": 0.0792857143,
+      "source": "Liberty Campaign/EffectData/MedivacHealTargetPersistent/PeriodicPeriodArray=0.111（Faster：游戏秒÷1.4）"
+    },
+    {
+      "id": "medivac",
+      "path": "attack_modes/0/delivery/tick_interval",
+      "before": 0.5,
+      "after": 0.0792857143,
+      "source": "Liberty Campaign/EffectData/MedivacHealTargetPersistent/PeriodicPeriodArray=0.111（Faster：游戏秒÷1.4）"
+    },
+    {
+      "id": "medivac",
+      "path": "attack_modes/0/delivery/switch_delay",
+      "before": 0.3,
+      "after": 0,
+      "source": "Liberty Campaign/EffectData/MedivacHealInitialSet：直接开始目标持续效果"
+    },
+    {
+      "id": "medivac",
+      "path": "skills/medivac_healing/secondary_range",
+      "before": null,
+      "after": 4.5,
+      "source": "Liberty Campaign/EffectData/MedivacHealSearch/AreaArray@Radius"
+    },
+    {
+      "id": "medivac",
+      "path": "skills/medivac_healing/scan_interval",
+      "before": null,
+      "after": 0.0446428571,
+      "source": "Liberty Campaign/EffectData/HealScanPersistent/PeriodicPeriodArray=0.0625（Faster：游戏秒÷1.4）"
+    },
+    {
+      "id": "medivac",
+      "path": "skills/medivac_healing/start_energy",
+      "before": null,
+      "after": 2,
+      "source": "ValidatorData/healCasterMinEnergy/Value"
+    },
+    {
+      "id": "medivac",
+      "path": "skills/medivac_healing/sustain_energy",
+      "before": null,
+      "after": 1,
+      "source": "Liberty Campaign/ValidatorData/HealPeriodicCombine → Liberty/ValidatorData/CasterHasEnergy"
+    },
+    {
+      "id": "medivac",
+      "path": "skills/medivac_healing/energy_cost",
+      "before": 1,
+      "after": 0.33,
+      "source": "Liberty Campaign/EffectData/MedivacHealModifyCasterEnergy/VitalArray[Energy]"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "cost",
+      "before": 500,
+      "after": 600,
+      "source": "UnitData/Bunker/CostResource[Minerals]=600"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "hp",
+      "before": 1200,
+      "after": 1800,
+      "source": "UnitData/Bunker/LifeStart、LifeMax=1800"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "tags",
+      "before": [
+        "mechanical"
+      ],
+      "after": [
+        "mechanical",
+        "heroic"
+      ],
+      "source": "Liberty UnitData/Bunker 为机械建筑；本图添加 Heroic"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "size",
+      "before": [
+        2,
+        2
+      ],
+      "after": [
+        3,
+        3
+      ],
+      "source": "UnitData/Bunker/PlacementFootprint=Footprint3x3CreepNormal"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "collision_radius",
+      "before": 1.0,
+      "after": 1.25,
+      "source": "Liberty UnitData/Bunker/Radius=1.25"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/regen",
+      "before": null,
+      "after": {
+        "display_name": "自动灭火系统",
+        "per_second": 15,
+        "delay": 0,
+        "max_health_ratio": 0.5
+      },
+      "source": "UnitData/Bunker 挂载 FireSuppressionSystem；本图清空使用条件，保留 LifeLTHalf 验证，StarCoop BehaviorData 的生命恢复15/秒"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/on_hit_slow",
+      "before": null,
+      "after": {
+        "speed_multiplier": 0.5,
+        "duration": 1.5,
+        "weapon_modes": [
+          "garrison_marauder"
+        ],
+        "exclude_tags": [
+          "massive",
+          "structure",
+          "frenzied"
+        ]
+      },
+      "source": "PunisherGrenadesLM → PunisherGrenadesSet → PunisherGrenadesSlow；震荡弹升级已启用，目标过滤排除巨型、建筑和狂暴"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/0/count",
+      "before": 8,
+      "after": 6,
+      "source": "Bunker_Birth → MapScript 普通地堡创建并装入6名 WarPig"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/2/count",
+      "before": null,
+      "after": 1,
+      "source": "Swarm Campaign UnitData/Bunker/WeaponArray ShrikeTurret；MapScript 为玩家启用 ShrikeTurret"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/0/damage",
+      "before": 15,
+      "after": 9,
+      "source": "EffectData/KelmorianMinerDamage → 9"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/0/range",
+      "before": 6,
+      "after": 7,
+      "source": "WeaponData/KelmorianMinerGaussRifle/Range=6，加驻舱 WeaponRange=1"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/0/interval",
+      "before": 0.43,
+      "after": 0.2526,
+      "source": "Liberty Campaign KelmorianMinerGaussRifle/Period=0.8608，地图 RateMultiplier=3，总周期÷3并扣除本轮出手与后摇"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/0/strike_offsets",
+      "before": null,
+      "after": [
+        0
+      ],
+      "source": "WeaponData/KelmorianMinerGaussRifle/DamagePoint=0，直接伤害"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/1/damage",
+      "before": 20,
+      "after": 13,
+      "source": "EffectData/PunisherGrenadesU/Amount=13"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/1/bonus/heavy",
+      "before": 20,
+      "after": 13,
+      "source": "EffectData/PunisherGrenadesU/AttributeBonus[Armored]=13"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/1/range",
+      "before": 7,
+      "after": 8,
+      "source": "WeaponData/PunisherGrenades2/Range=7，加驻舱 WeaponRange=1"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/1/interval",
+      "before": 0.75,
+      "after": 0.499,
+      "source": "WeaponData/PunisherGrenades2/Period=1.5，RateMultiplier=3，总周期0.5减出手"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/2/damage",
+      "before": null,
+      "after": 6,
+      "source": "Liberty Campaign WeaponData/ShrikeTurret → EffectData/ShrikeTurretDamage=6，直接伤害"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/2/range",
+      "before": null,
+      "after": 5,
+      "source": "ShrikeTurret 继承 CWeaponLegacy 默认射程5；堡顶无驻舱射程加成"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "attack_modes/2/interval",
+      "before": null,
+      "after": 0.18693333,
+      "source": "Liberty Campaign ShrikeTurret/Period=0.8608；地图 RateMultiplier=3，总周期÷3并扣除出手与后摇"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/0/stimulant",
+      "before": null,
+      "after": {
+        "health_cost": 10,
+        "cooldown": 15,
+        "duration": 15,
+        "attack_multiplier": 1.5,
+        "speed_multiplier": 1
+      },
+      "source": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/1/stimulant",
+      "before": null,
+      "after": {
+        "health_cost": 10,
+        "cooldown": 15,
+        "duration": 15,
+        "attack_multiplier": 1.5,
+        "speed_multiplier": 1
+      },
+      "source": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
     }
   ],
   "unresolved": [
@@ -3150,6 +3469,16 @@
       "id": "adept",
       "path": "skills/psionic_transfer/shade_speed",
       "reason": "主包投影基础速度2.9531，按 Void 行为加成1.75 暂取4.7031格/秒。间接依赖是否改写该加成待确认。"
+    },
+    {
+      "id": "medivac",
+      "path": "ability:MedivacSpeedBoost",
+      "reason": "原图存在推进加速，本次还原双束治疗，推进加速尚未接入。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "ability:DSStimpack",
+      "reason": "私人依赖未随图上传，运输行为只显式开放基础 Stimpack，舱内 DSStimpack 的引擎触发条件无法完全核实。本项目按地图说明实现普通驻军交战时自动注射，堡顶炮台独立。"
     }
   ]
 }

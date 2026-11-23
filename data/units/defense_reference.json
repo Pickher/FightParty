@@ -1,7 +1,38 @@
 {
-  "version": "0.11.3",
-  "policy": "神族塔按地图明确覆盖；虫族保留2对地+2对空架构，按用户要求进行跨种族平衡，不继续叠加四座原图塔的生命和火力。继承缺失与主动平衡分别标明。",
+  "version": "0.13.3",
+  "policy": "地堡采用普通玩家建造脚本及已核对的战役/合作依赖；神族与虫族的原图覆盖和主动平衡逐项标记。",
   "units": {
+    "terran_bunker": {
+      "source_unit": "Bunker",
+      "fields": {
+        "cost": "UnitData/Bunker/CostResource[Minerals]=600",
+        "hp": "UnitData/Bunker/LifeStart、LifeMax=1800",
+        "armor": "UnitData/Bunker/LifeArmor=3",
+        "armor_type": "Liberty UnitData/Bunker/Attributes[Armored]",
+        "tags": "Liberty UnitData/Bunker 为机械建筑；本图添加 Heroic",
+        "size": "UnitData/Bunker/PlacementFootprint=Footprint3x3CreepNormal",
+        "collision_radius": "Liberty UnitData/Bunker/Radius=1.25",
+        "skills/regen": "UnitData/Bunker 挂载 FireSuppressionSystem；本图清空使用条件，保留 LifeLTHalf 验证，StarCoop BehaviorData 的生命恢复15/秒",
+        "skills/on_hit_slow": "PunisherGrenadesLM → PunisherGrenadesSet → PunisherGrenadesSlow；震荡弹升级已启用，目标过滤排除巨型、建筑和狂暴",
+        "skills/independent_weapons/weapons/0/count": "Bunker_Birth → MapScript 普通地堡创建并装入6名 WarPig",
+        "skills/independent_weapons/weapons/1/count": "Bunker_Birth → MapScript 普通地堡创建并装入2名 Marauder2",
+        "skills/independent_weapons/weapons/2/count": "Swarm Campaign UnitData/Bunker/WeaponArray ShrikeTurret；MapScript 为玩家启用 ShrikeTurret",
+        "attack_modes/0/damage": "EffectData/KelmorianMinerDamage → 9",
+        "attack_modes/0/range": "WeaponData/KelmorianMinerGaussRifle/Range=6，加驻舱 WeaponRange=1",
+        "attack_modes/0/interval": "Liberty Campaign KelmorianMinerGaussRifle/Period=0.8608，地图 RateMultiplier=3，总周期÷3并扣除本轮出手与后摇",
+        "attack_modes/0/strike_offsets": "WeaponData/KelmorianMinerGaussRifle/DamagePoint=0，直接伤害",
+        "attack_modes/1/damage": "EffectData/PunisherGrenadesU/Amount=13",
+        "attack_modes/1/bonus/heavy": "EffectData/PunisherGrenadesU/AttributeBonus[Armored]=13",
+        "attack_modes/1/range": "WeaponData/PunisherGrenades2/Range=7，加驻舱 WeaponRange=1",
+        "attack_modes/1/interval": "WeaponData/PunisherGrenades2/Period=1.5，RateMultiplier=3，总周期0.5减出手",
+        "attack_modes/1/delivery": "PunisherGrenadesLM → PunisherGrenadesLMWeapon → Liberty MoverData/PunisherGrenadesWeapon（制导，最高速度20格/秒）",
+        "attack_modes/2/damage": "Liberty Campaign WeaponData/ShrikeTurret → EffectData/ShrikeTurretDamage=6，直接伤害",
+        "attack_modes/2/range": "ShrikeTurret 继承 CWeaponLegacy 默认射程5；堡顶无驻舱射程加成",
+        "attack_modes/2/interval": "Liberty Campaign ShrikeTurret/Period=0.8608；地图 RateMultiplier=3，总周期÷3并扣除出手与后摇",
+        "skills/independent_weapons/weapons/0/stimulant": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1",
+        "skills/independent_weapons/weapons/1/stimulant": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+      }
+    },
     "protoss_photon_cannon": {
       "source_unit": "PhotonCannon",
       "fields": {
@@ -91,6 +122,11 @@
       "id": "zerg_tower_cluster",
       "path": "cost",
       "reason": "两座孢子明确150/座，脊针采用原版100/座回退，合并价格500。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "ability:DSStimpack",
+      "reason": "私人依赖未随图上传，运输行为只显式开放基础 Stimpack，舱内 DSStimpack 的引擎触发条件无法完全核实。本项目按地图说明实现普通驻军交战时自动注射，堡顶炮台独立。"
     }
   ],
   "hellion_comparison": {

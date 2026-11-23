@@ -95,6 +95,32 @@ def set_path(node, path, value):
  if isinstance(node,list):node[int(parts[-1])]=value
  else:node[parts[-1]]=value
 
+def apply_medivac(cat, write):
+ """The deployed Medivac inherits Liberty campaign effects. Convert its game seconds to Faster real seconds."""
+ uid = 'medivac'
+ ability = 'MedivacDoubleBeamHeal'
+ prefix = 'skills/medivac_healing/'
+ weapon = 'attack_modes/0/'
+ faster = 1.4
+ pulse = round(0.111 / faster, 10)
+ clock = '（Faster：游戏秒÷1.4）'
+ period_source = 'Liberty Campaign/EffectData/MedivacHealTargetPersistent/PeriodicPeriodArray=0.111' + clock
+ write(uid, 'energy_regen', round(cat.scalar('UnitData','Medivac','EnergyRegenRate') * faster, 6),
+       'UnitData/Medivac/EnergyRegenRate=1.125，Faster 实时每秒×1.4')
+ write(uid, weapon+'range', 4, 'Liberty Campaign/AbilData/MedivacDoubleBeamHeal/Range；ValidatorData/HealTargetInRange')
+ write(uid, weapon+'healing', 1, 'Liberty Campaign/EffectData/MedivacHealModifyTargetLife/VitalArray[Life]')
+ write(uid, weapon+'attack_duration', pulse, period_source)
+ write(uid, weapon+'delivery/tick_interval', pulse, period_source)
+ write(uid, weapon+'delivery/switch_delay', 0, 'Liberty Campaign/EffectData/MedivacHealInitialSet：直接开始目标持续效果')
+ write(uid, prefix+'max_targets', 2, 'Liberty Campaign/ValidatorData/HealBeamAvailable：MedivacHealBeamBusy < 2')
+ write(uid, prefix+'acquire_range', cat.scalar('AbilData',ability,'AutoCastRange'), 'AbilData/MedivacDoubleBeamHeal/AutoCastRange')
+ write(uid, prefix+'secondary_range', 4.5, 'Liberty Campaign/EffectData/MedivacHealSearch/AreaArray@Radius')
+ write(uid, prefix+'scan_interval', round(0.0625 / faster, 10),
+       'Liberty Campaign/EffectData/HealScanPersistent/PeriodicPeriodArray=0.0625' + clock)
+ write(uid, prefix+'start_energy', cat.scalar('ValidatorData','healCasterMinEnergy','Value'), 'ValidatorData/healCasterMinEnergy/Value')
+ write(uid, prefix+'sustain_energy', 1, 'Liberty Campaign/ValidatorData/HealPeriodicCombine → Liberty/ValidatorData/CasterHasEnergy')
+ write(uid, prefix+'energy_cost', 0.33, 'Liberty Campaign/EffectData/MedivacHealModifyCasterEnergy/VitalArray[Energy]')
+
 def apply():
  cat=Catalog();path=ROOT/'data/units.json';data=json.loads(path.read_text(encoding='utf-8'));units=data['units']
  extension_path=ROOT/'data/units/defense_reference.json'
@@ -102,7 +128,7 @@ def apply():
  profile_version=data['version']
  previous_path=ROOT/'data/units/desert_storm_reference.json'
  previous=json.loads(previous_path.read_text(encoding='utf-8')) if previous_path.exists() else {}
- audit={'version':profile_version,'source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。未还原原版/依赖继承。',
+ audit={'version':profile_version,'source':'reference/desert-storm','policy':'仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。',
         'units':{},'changes':[],'unresolved':[]}
  def write(uid,path,value,source):
   unit=units[uid];old=unit
@@ -311,6 +337,13 @@ def apply():
  # Source removes unit-side movement upgrades? Absence is not a removal; keep existing skills unless a confirmed replacement exists.
  for uid,entry in audit['units'].items():
   units[uid]['source_profile']={'map_unit':entry['source_unit'],'source':'desert-storm','status':'explicit_overrides'}
+ # The purchase is a pair of ordinary Medivacs; commander variants use different effect chains.
+ audit['units']['medivac']={
+  'source_unit':'Medivac', 'fields':{},
+  'abilities':['MedivacDoubleBeamHeal','MedivacSpeedBoost'], 'behaviors':[],
+ }
+ apply_medivac(cat, write)
+ pending('medivac','ability:MedivacSpeedBoost','原图存在推进加速，本次还原双束治疗，推进加速尚未接入。')
  for unit in units.values():
   unit.setdefault('gas_cost',0);unit.setdefault('core_cost',0)
  audit['units'].update(extension.get('units',{}))

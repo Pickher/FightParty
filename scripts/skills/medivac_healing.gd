@@ -1,83 +1,170 @@
 extends "res://scripts/skills/skill.gd"
-## 空中双束医疗。独立于保留的医疗兵组件，不把医疗机变成攻击单位。
+## 医疗运输机的主治疗指令和自动副束共用伤员标记，各自保留下一次治疗的时间。
 const Beams = preload("res://scripts/skills/services/beam_service.gd")
+const TIME_EPSILON := 0.000000001
 
 func _init() -> void:
-	priority=0
-	view_fields=["medical_targets"]
+	priority = 0
+	view_fields = ["medical_targets"]
 
-func _patient(sim, ally: Dictionary) -> bool:
-	if int(ally.team)!=int(owner.team) or int(ally.id)==int(owner.id) or float(ally.hp)<=0 or sim.is_structure(ally):return false
+func on_spawn(_sim) -> void:
+	state.beams = []
+	state.next_scan = 0.0
+	state.medical_targets = []
+
+func _patient(ctx: Dictionary, ally: Dictionary) -> bool:
+	var sim = ctx.sim
+	if int(ally.team) != int(owner.team) or ally.id == owner.id or ally.hp <= 0 or sim.is_structure(ally):
+		return false
 	var stats: Dictionary = sim.catalog[ally.kind]
-	if not stats.get("tags",[]).has("biological"):return false
-	if stats.get("tags",[]).has("hallucination"):return false
-	return float(ally.hp)<float(stats.hp)-0.00001
+	if not stats.tags.has("biological") or stats.tags.has("hallucination") or sim.tick < int(ally.get("invulnerable_until_tick", 0)):
+		return false
+	return float(ally.hp) + float(ctx.heals.get(ally.id, 0)) < float(stats.hp) - 0.000001
+
+func on_frame(ctx: Dictionary) -> void:
+	# 先由所有医疗机登记存续的治疗。出兵顺序较早的空闲医疗机也不会抢走已有伤员。
+	if not ctx.has("medivac_claims"):
+		ctx.medivac_claims = {}
+		ctx.medivac_idle = []
+	if owner.hp <= 0:
+		state.beams.clear()
+		state.medical_targets.clear()
+		return
+	var sim = ctx.sim
+	var weapon: Dictionary = sim._weapon_stats(owner)
+	var powered: bool = sim.can_spend_energy(owner, float(config.sustain_energy))
+	for beam in state.beams.duplicate():
+		var patient: Dictionary = sim.by_id.get(beam.target_id, {})
+		var radius: float = float(config.secondary_range) if beam.awaiting_range_check else float(weapon.range)
+		if powered and not patient.is_empty() and _patient(ctx, patient) and owner.pos.distance_to(patient.pos) <= radius and not ctx.medivac_claims.has(patient.id):
+			ctx.medivac_claims[patient.id] = owner.id
+		else:
+			state.beams.erase(beam)
+	if state.beams.is_empty() and sim.can_spend_energy(owner, float(config.start_energy)):
+		ctx.medivac_idle.append(self)
+
+func _best_patient(ctx: Dictionary, candidates: Array, radius: float, by_fraction: bool) -> Dictionary:
+	var best: Dictionary = {}
+	var best_life := INF
+	var best_distance := INF
+	for ally in candidates:
+		if ctx.medivac_claims.has(ally.id) or not _patient(ctx, ally):
+			continue
+		var distance: float = owner.pos.distance_squared_to(ally.pos)
+		if distance > radius * radius:
+			continue
+		var life := float(ally.hp) + float(ctx.heals.get(ally.id, 0))
+		if by_fraction:
+			life /= float(ctx.sim.catalog[ally.kind].hp)
+		if life > best_life:
+			continue
+		if life == best_life:
+			if distance > best_distance or (distance == best_distance and int(ally.id) >= int(best.id)):
+				continue
+		best = ally
+		best_life = life
+		best_distance = distance
+	return best
+
+func _start_beam(ctx: Dictionary, patient: Dictionary, at: float, period: float, secondary: bool) -> void:
+	ctx.medivac_claims[patient.id] = owner.id
+	state.beams.append({"target_id":patient.id, "next_pulse":at + period, "awaiting_range_check":secondary})
+
+func _issue_primary(ctx: Dictionary) -> void:
+	var sim = ctx.sim
+	var weapon: Dictionary = sim._weapon_stats(owner)
+	var radius := float(weapon.range)
+	var nearby: Array = sim.nearby_team(owner.pos, radius, int(owner.team))
+	var primary := _best_patient(ctx, nearby, radius, true)
+	if not primary.is_empty():
+		var now := float(sim.tick - 1) / float(sim.rules.tick_rate)
+		_start_beam(ctx, primary, now, float(weapon.delivery.tick_interval), false)
+		state.next_scan = now + float(config.scan_interval)
+
+func _advance_healing(ctx: Dictionary, candidates: Array, weapon: Dictionary) -> void:
+	var sim = ctx.sim
+	var now := float(sim.tick - 1) / float(sim.rules.tick_rate)
+	var end := now + float(ctx.dt)
+	var period := float(weapon.delivery.tick_interval)
+	var scan_interval := float(config.scan_interval)
+	if period <= 0.0 or scan_interval <= 0.0:
+		return
+	# 本步中途停束时，目标标记保留到下一步开始，避免另一架机按更早的步内扫描时间接手。
+	while not state.beams.is_empty():
+		var event_time := float(state.next_scan)
+		for beam in state.beams:
+			event_time = minf(event_time, float(beam.next_pulse))
+		if event_time > end + TIME_EPSILON:
+			break
+		for beam in state.beams.duplicate():
+			if float(beam.next_pulse) > event_time + TIME_EPSILON:
+				continue
+			var patient: Dictionary = sim.by_id[beam.target_id]
+			if owner.pos.distance_to(patient.pos) > float(weapon.range) or not _patient(ctx, patient):
+				state.beams.erase(beam)
+				continue
+			beam.awaiting_range_check = false
+			beam.next_pulse = float(beam.next_pulse) + period
+			var paid := Beams.heal_tick(ctx, patient.id, float(weapon.healing), float(config.energy_cost))
+			if not paid or not sim.can_spend_energy(owner, float(config.sustain_energy)):
+				state.beams.clear()
+				return
+			if not _patient(ctx, patient):
+				state.beams.erase(beam)
+		if float(state.next_scan) <= event_time + TIME_EPSILON:
+			state.next_scan = float(state.next_scan) + scan_interval
+			if not state.beams.is_empty() and state.beams.size() < int(config.max_targets) and sim.can_spend_energy(owner, float(config.start_energy)):
+				var secondary := _best_patient(ctx, candidates, float(config.secondary_range), false)
+				if not secondary.is_empty():
+					_start_beam(ctx, secondary, event_time, period, true)
 
 func before_target(ctx: Dictionary) -> bool:
+	# 本步起点先让每架空闲机认领主目标，再开始步内的副束扫描。
+	for healer in ctx.medivac_idle:
+		healer._issue_primary(ctx)
+	ctx.medivac_idle.clear()
+	if owner.hp <= 0:
+		return true
 	var sim = ctx.sim
-	var unit: Dictionary = owner
-	var weapon: Dictionary = sim._weapon_stats(unit)
-	var radius: float = float(config.get("acquire_range",weapon.range))
-	var candidates: Array = []
-	for ally in sim.nearby_team(unit.pos,radius,int(unit.team)):
-		if _patient(sim,ally):candidates.append(ally)
-	candidates.sort_custom(func(a,b):
-		var ar: float = float(a.hp)/float(sim.catalog[a.kind].hp)
-		var br: float = float(b.hp)/float(sim.catalog[b.kind].hp)
-		if not is_equal_approx(ar,br):return ar<br
-		var ad: float = unit.pos.distance_squared_to(a.pos)
-		var bd: float = unit.pos.distance_squared_to(b.pos)
-		return ad<bd if not is_equal_approx(ad,bd) else int(a.id)<int(b.id)
-	)
-	var count: int = maxi(1,int(config.get("max_targets",2)))
-	if not state.has("beams"):
-		state.beams=[]
-		for i in range(count):state.beams.append({})
-	var chosen: Array = []
-	var used: Dictionary = {}
-	# 保留仍有效且在治疗范围内的锁，避免低血量排序抖动重复等待。
-	for clock_owner in state.beams:
-		var target_id: int = int(Beams.state_for(clock_owner).target_id)
-		var previous = sim.by_id.get(target_id)
-		if previous!=null and _patient(sim,previous) and unit.pos.distance_to(previous.pos)<=float(weapon.range) and not used.has(target_id):
-			chosen.append(previous)
-			used[target_id]=true
-		else:chosen.append({})
-	for i in range(count):
-		if not chosen[i].is_empty():continue
-		for ally in candidates:
-			if used.has(ally.id) or unit.pos.distance_to(ally.pos)>float(weapon.range):continue
-			chosen[i]=ally
-			used[ally.id]=true
-			break
-	state.medical_targets=[]
-	var has_patient := false
-	for i in range(count):
-		var patient: Dictionary = chosen[i]
-		if patient.is_empty():
-			# An interrupted beam must not bank healing time for a later target.
-			Beams.state_for(state.beams[i]).accumulator=0.0
-			continue
-		has_patient=true
-		state.medical_targets.append(int(patient.id))
-		Beams.apply({"sim":sim,"unit":unit,"dt":ctx.dt,"heals":ctx.heals,"healing_energy_per_period":float(config.get("energy_cost",0))},state.beams[i],weapon,patient,int(patient.id),true)
-	var forward: float = 1.0 if int(unit.team)==0 else -1.0
+	var weapon: Dictionary = sim._weapon_stats(owner)
+	var radius := float(config.acquire_range)
+	var candidates: Array = sim.nearby_team(owner.pos, radius, int(owner.team))
+	_advance_healing(ctx, candidates, weapon)
+	state.medical_targets.clear()
+	for beam in state.beams:
+		var patient: Dictionary = sim.by_id[beam.target_id]
+		state.medical_targets.append(patient.id)
+		Beams.show_beam(sim, owner, weapon, patient, patient.id, true)
+	_move_with_allies(ctx, candidates, weapon)
+	return true
+
+func _move_with_allies(ctx: Dictionary, candidates: Array, weapon: Dictionary) -> void:
+	var sim = ctx.sim
+	var forward := 1.0 if int(owner.team) == 0 else -1.0
 	var front: Dictionary = {}
 	for ally in sim.units:
-		if int(ally.team)!=int(unit.team) or float(ally.hp)<=0 or sim.is_structure(ally) or float(sim.catalog[ally.kind].damage)<=0:continue
-		if front.is_empty() or float(ally.pos.x)*forward>float(front.pos.x)*forward:front=ally
-	var goal := Vector2(sim.mirror_x(unit.team,float(sim.rules.layout.spawn_x)),unit.pos.y)
-	if not front.is_empty():goal=Vector2(float(front.pos.x)-float(config.follow_distance)*forward,front.pos.y)
-	var safe_x: float = goal.x*forward
-	if has_patient:goal=unit.pos
-	elif not candidates.is_empty() and not front.is_empty():goal=candidates[0].pos
-	for enemy in sim._nearby(unit.pos,radius):
-		if int(enemy.team)==int(unit.team) or float(enemy.hp)<=0:continue
-		# 不因纯地面武器逃跑，但对所有能对空的攻击模式避战。
-		for mode in sim.catalog[enemy.kind].get("attack_modes",[]):
-			if float(mode.get("damage",0))>0 and mode.get("target_layers",[]).has("air"):
-				safe_x=minf(safe_x,float(enemy.pos.x)*forward-float(config.danger_distance))
+		if ally.team != owner.team or ally.hp <= 0 or sim.is_structure(ally) or float(sim.catalog[ally.kind].damage) <= 0:
+			continue
+		if front.is_empty() or float(ally.pos.x) * forward > float(front.pos.x) * forward:
+			front = ally
+	var goal := Vector2(sim.mirror_x(owner.team, float(sim.rules.layout.spawn_x)), owner.pos.y)
+	if not front.is_empty():
+		goal = Vector2(float(front.pos.x) - float(config.follow_distance) * forward, front.pos.y)
+	var safe_x: float = goal.x * forward if not front.is_empty() else INF
+	if not state.beams.is_empty():
+		# 施放不中断飞行；尽量跟上前排并把当前伤员留在治疗距离内。
+		var patient: Dictionary = sim.by_id[state.beams[0].target_id]
+		goal = patient.pos.move_toward(goal, float(weapon.range))
+	elif sim.can_spend_energy(owner, float(config.start_energy)):
+		var next_patient := _best_patient(ctx, candidates, float(config.acquire_range), true)
+		if not next_patient.is_empty():
+			goal = next_patient.pos
+	for enemy in sim._nearby(owner.pos, float(config.acquire_range)):
+		if enemy.team == owner.team or enemy.hp <= 0:
+			continue
+		for mode in sim.catalog[enemy.kind].get("attack_modes", []):
+			if float(mode.get("damage", 0)) > 0 and mode.get("target_layers", []).has("air"):
+				safe_x = minf(safe_x, float(enemy.pos.x) * forward - float(config.danger_distance))
 				break
-	goal.x=minf(goal.x*forward,safe_x)*forward
-	ctx.moves[unit.id]=unit.pos.move_toward(sim.clamp_to_field(goal),sim._movement_speed(unit)*float(ctx.dt))
-	return true
+	goal.x = minf(goal.x * forward, safe_x) * forward
+	ctx.moves[owner.id] = owner.pos.move_toward(sim.clamp_to_field(goal), sim._movement_speed(owner) * float(ctx.dt))

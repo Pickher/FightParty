@@ -1417,13 +1417,13 @@ func _structures() -> void:
 	ticks(loot,10)
 	check(loot.economy.cores==[reward,0],"treasury reward is not repeated")
 	# 可建造防御塔：种族专用、扣矿、选址校验、每局一次、被摧毁不给奖励。
-	var build = Sim.new(42,{"start_minerals":600})
+	var build = Sim.new(42,{"races":["terran","terran"],"start_minerals":600})
 	var tower_kind: String = build.tower_kind(0)
 	var tower_cost: int = int(build.catalog[tower_kind].cost)
-	check(tower_kind=="terran_bunker","terran builds bunker")
+	check(tower_kind=="terran_bunker" and tower_cost==600,"terran bunker costs 600 minerals")
 	var middle: float = float(build.rules.world_width)*0.5
 	check(build.tower_error(0,Vector2(middle,40))!="" and build.tower_error(0,build.base_pos(0))!="" and build.tower_error(0,build.layout_pos(0,"treasury"))!="" and build.tower_error(0,Vector2(0.5,40))!="","tower placement rejects midline, base, treasury and border")
-	check(build.tower_error(0)=="" and build.build_tower(0)=="" and build.minerals[0]==600-tower_cost,"build tower costs catalog price")
+	check(build.tower_error(0)=="" and build.build_tower(0)=="" and build.minerals[0]==0,"exact bunker price can be spent to build")
 	var built: Dictionary = build.units.filter(func(u): return u.kind==tower_kind)[0]
 	check(built.team==0 and built.pos==build.layout_pos(0,"tower"),"tower without position uses layout site")
 	build.minerals[0] = 5000
@@ -1433,8 +1433,8 @@ func _structures() -> void:
 	build.spawn_unit(1,"rifle",built.pos+Vector2(3.0,0))
 	wait_until(build,func(): return not build.units.has(built),60)
 	check(not build.units.has(built) and build.economy.cores==[0,0] and build.kills[1]==0 and build.build_tower(0)!="","destroyed tower gives no reward and cannot be rebuilt")
-	var poor = Sim.new(42,{"start_minerals":tower_cost-1})
-	check(poor.build_tower(1)!="" and poor.tower_builds==[0,0],"tower requires minerals")
+	var poor = Sim.new(42,{"races":["terran","terran"],"start_minerals":tower_cost-1})
+	check(poor.build_tower(1)!="" and poor.minerals[1]==tower_cost-1 and poor.tower_builds==[0,0],"unaffordable bunker spends neither minerals nor build allowance")
 	check(build.journal.actions.any(func(a): return a.type=="build_tower" and a.team==0),"tower build is journaled")
 	# 医疗兵不治疗结构体；结构体不算最后阶段的可攻击部队。
 	var care = Sim.new()
@@ -1460,6 +1460,68 @@ func _structures() -> void:
 	check(ai.wants_tower(Catalog.starter(),[],bunker,0) and not ai.wants_tower([],[],bunker,0) and not ai.wants_tower(Catalog.starter(),[],bunker,1),"AI builds tower only when behind and allowed")
 	check(ai.tower_plan(Catalog.starter(),[],bunker-1,0)=="save","AI saves minerals for tower when behind")
 	check(not ai.wants_tower(Catalog.starter(),Catalog.starter(),2000,0),"AI skips tower when roster is not behind")
+	_terran_bunker()
+
+func _terran_bunker() -> void:
+	var sim = bare()
+	tune(sim, "medivac", {"speed":0, "hp":5000, "skills":{}})
+	tune(sim, "dummy", {"speed":0, "hp":5000, "damage":0})
+	var hull: Dictionary = sim.spawn_unit(0, "terran_bunker", field(0,0))
+	var rate := int(sim.rules.tick_rate)
+	check(hull.hp == 1800 and sim.catalog.terran_bunker.armor == 3, "standard Desert Storm bunker hull")
+	hull.hp = 1000
+	ticks(sim, rate)
+	check(hull.hp == 1000, "fire suppression stays off above half health")
+	hull.hp = 880
+	ticks(sim, rate)
+	check(is_equal_approx(hull.hp, 895.0), "fire suppression restores 15 HP per second")
+	ticks(sim, rate)
+	check(is_equal_approx(hull.hp, 900.0), "fire suppression stops exactly at half health")
+
+	# 飞行目标仅在步枪射程内，地面目标仅在榴弹射程内。记录两组独立炮位的实际出手。
+	var flyer: Dictionary = sim.spawn_unit(1, "medivac", field(0,6.5))
+	var ground: Dictionary = sim.spawn_unit(1, "dummy", field(7.5,0))
+	var first_volley := {"garrison_rifle":0, "garrison_marauder":0}
+	var volleys := {"garrison_rifle":[], "garrison_marauder":[]}
+	var injections: Dictionary = {}
+	for _step in range(rate):
+		for event in sim.step():
+			if event.type == "skill_used" and event.id == hull.id and event.skill == "stimulant":
+				injections[event.mount] = event.health_cost
+			if event.type != "attack" or event.kind != "terran_bunker":
+				continue
+			var mode := str(event.mode)
+			if not volleys.has(mode):
+				continue
+			var times: Array = volleys[mode]
+			if times.is_empty() or not is_equal_approx(times.back(), event.time):
+				times.append(event.time)
+			if times.size() == 1:
+				first_volley[mode] += 1
+	check(first_volley == {"garrison_rifle":6, "garrison_marauder":2}, "six independent rifles and two grenadiers can engage air and ground simultaneously")
+	check(injections.size() == 8 and hull.hp == 900, "each garrison soldier injects without damaging the bunker")
+	var mounts: Array = sim.skill_system.get_component(hull, "independent_weapons").state.mounts
+	for index in injections:
+		var mount: Dictionary = mounts[index]
+		var group: Dictionary = sim.catalog.terran_bunker.skills.independent_weapons.weapons[mount.group_index]
+		check(injections[index] == 10 and is_equal_approx(mount.crew.hp, float(group.crew_hp) - 10 + (rate - 1.0) / rate), "each soldier regenerates its own lost health")
+	for mode in volleys:
+		var times: Array = volleys[mode]
+		var base_period := 0.8608 / 3.0 if mode == "garrison_rifle" else 0.5
+		check(times.size() >= 2 and absf(times[1] - times[0] - base_period / 1.5) < 0.002, "garrison stimulant scales volley cadence once " + str(mode))
+	check(flyer.hp < 5000 and int(flyer.get("slow_until_tick", 0)) == 0, "rifle impacts never apply concussive slow")
+	check(ground.hp < 5000 and ground.get("slow_multiplier", 1.0) == 0.5, "grenade impacts slow an eligible ground target")
+	var immune: Dictionary = sim.spawn_unit(1, "thor", field(7,1))
+	var pending: Dictionary = {}
+	sim.skill_system.hit(sim, hull, immune, {}, pending, sim.definitions.terran_bunker.weapons.garrison_marauder.to_data())
+	check(pending.is_empty(), "massive targets are immune to bunker concussive shells")
+	flyer.pos = field(0,4)
+	var turret_times: Array = []
+	for _step in range(rate):
+		for event in sim.step():
+			if event.type == "attack" and event.kind == "terran_bunker" and event.mode == "shrike_turret":
+				turret_times.append(event.time)
+	check(turret_times.size() >= 2 and absf(turret_times[1] - turret_times[0] - 0.8608 / 3.0) < 0.002, "the built-in Shrike turret fires independently with no crew stimulant")
 
 ## 开局设置选项：推荐值即 rules 默认值，预设都在自定义范围内且能被步进到达。
 func _setup_options() -> void:
@@ -2263,7 +2325,7 @@ func _hellion_wave_contact(team: int, veteran_ahead: bool) -> void:
 	else:
 		check(vehicle.has("morph_start_tick"), "in escort mode a ground sighting from the same wave triggers morphing beyond the Hellion's own discovery radius")
 
-## 医疗机独立于保留的医疗兵；本分组随本地实现新增，尚未运行。
+## 医疗运输机的自动双束、持续能耗及多机治疗占用。
 func _medivacs() -> void:
 	var shop=bare()
 	check(not Catalog.race_units(shop.catalog,"terran",true).has("medic"),"retired medic hidden even in legacy shop")
@@ -2274,41 +2336,97 @@ func _medivacs() -> void:
 	check(shop.buy(0,"medivac",0)=="" and shop.minerals[0]==0,"medivac group costs 850 minerals")
 	check(int(shop.catalog.medivac.spawn_count)==2,"medivac group spawns two")
 	check(shop.sell(0,0)=="" and shop.minerals[0]==850,"undeployed medivac group refunds 850")
+	var weapon: Dictionary = shop.definitions.medivac.primary_weapon_data
+	var config: Dictionary = shop.catalog.medivac.skills.medivac_healing
+	check(is_equal_approx(weapon.delivery.tick_interval, 0.111 / 1.4) and weapon.healing == 1, "Medivac uses Faster real-time campaign healing")
+	check(is_equal_approx(config.energy_cost, 0.33) and is_equal_approx(shop.catalog.medivac.energy_regen, 1.575), "Medivac energy drain and regeneration use the same clock")
 	for team in range(2):
-		var sim=bare()
-		tune(sim,"medivac",{"speed":0,"energy_regen":0})
-		tune(sim,"rifle",{"speed":0,"damage":0,"skills":{}})
-		tune(sim,"hellbat",{"speed":0,"damage":0,"skills":{}})
-		var craft=sim.spawn_unit(team,"medivac",field(0,0))
-		var a=sim.spawn_unit(team,"rifle",field(1,0))
-		var b=sim.spawn_unit(team,"rifle",field(0,1))
-		var c=sim.spawn_unit(team,"rifle",field(-1,0))
-		var machine=sim.spawn_unit(team,"hellbat",field(0,-1))
-		a.hp=10
-		b.hp=20
-		c.hp=40
-		machine.hp=1
-		craft.hp=50
-		var heal: float=float(sim.definitions.medivac.primary_weapon_data.healing)
-		var pulse: int=ceili(float(sim.definitions.medivac.primary_weapon_data.delivery.tick_interval)*float(sim.rules.tick_rate))
-		ticks(sim,pulse)
-		check(a.hp==10+heal and b.hp==20+heal and c.hp==40,"two separate lowest-ratio biological patients %d" % team)
-		check(machine.hp==1 and craft.hp==50,"no mechanical or self healing %d" % team)
-		check(float(craft.energy)==198,"two beams spend one energy each per pulse %d" % team)
-		check(sim.active_beams.filter(func(beam):return int(beam.source_id)==int(craft.id)).size()==2,"two visible healing beams %d" % team)
-		check(sim.combat_units(team)==0,"medical support cannot keep final combat alive %d" % team)
-		craft.energy=0
-		var hp_before: float=float(a.hp)
-		ticks(sim,pulse)
-		check(a.hp==hp_before,"empty energy stops healing %d" % team)
-		# 不可把空中生物目标排除；复用测试兵模板切换层。
-		tune(sim,"rifle",{"layer":"air"})
-		craft.energy=10
-		ticks(sim,pulse)
-		check(a.hp>hp_before,"air biological patients accepted %d" % team)
+		var sim = bare()
+		tune(sim, "medivac", {"speed":0, "energy_regen":0})
+		tune(sim, "rifle", {"speed":0, "damage":0, "skills":{}})
+		tune(sim, "hellbat", {"speed":0, "damage":0, "skills":{}})
+		var craft: Dictionary = sim.spawn_unit(team, "medivac", field(0,0))
+		var primary: Dictionary = sim.spawn_unit(team, "rifle", field(1,0))
+		var secondary: Dictionary = sim.spawn_unit(team, "rifle", field(0,1))
+		var reserve: Dictionary = sim.spawn_unit(team, "rifle", field(-1,0))
+		var machine: Dictionary = sim.spawn_unit(team, "hellbat", field(0,-1))
+		primary.hp = 10
+		secondary.hp = 20
+		reserve.hp = 40
+		machine.hp = 1
+		craft.hp = 50
+		ticks(sim, 2 * int(sim.rules.tick_rate))
+		var first_ticks := int(primary.hp) - 10
+		var second_ticks := int(secondary.hp) - 20
+		check(first_ticks >= 24 and first_ticks <= 25, "single beam averages 12.6 HP/s without rounding each pulse to a frame")
+		check(second_ticks >= 23 and second_ticks <= first_ticks and reserve.hp == 40, "secondary beam runs its own clock after its first scan")
+		check(machine.hp == 1 and craft.hp == 50, "only biological patients are eligible")
+		check(is_equal_approx(craft.energy, 200.0 - 0.33 * (first_ticks + second_ticks)), "each applied pulse spends energy from its own craft")
+		check(sim.active_beams.size() == 2 and sim.combat_units(team) == 0, "the two visible healing beams count as support")
+		craft.energy = 0
+		var hp_before: float = primary.hp
+		ticks(sim, 4)
+		check(primary.hp == hp_before and sim.active_beams.is_empty(), "empty Medivac stops channeling")
+		tune(sim, "rifle", {"layer":"air"})
+		craft.energy = 1.99
+		ticks(sim, 4)
+		check(primary.hp == hp_before, "restarting requires two energy even for the previous patient")
+		craft.energy = 2
+		ticks(sim, 8)
+		check(primary.hp > hp_before and craft.energy < 1.99, "air biological patients can be healed after recharging")
+		_medivac_shared_patient(team)
+	_medivac_patient_priority()
 	var flee=bare()
 	var craft=flee.spawn_unit(0,"medivac",field(0,0))
 	flee.spawn_unit(1,"rifle",field(2,0))
 	var before: float=craft.pos.x
 	flee.step()
 	check(craft.pos.x<before,"medivac retreats from anti-air threat")
+
+
+func _medivac_shared_patient(team: int) -> void:
+	var sim = bare()
+	tune(sim, "medivac", {"speed":0, "energy_regen":0})
+	tune(sim, "rifle", {"speed":0, "damage":0, "skills":{}})
+	var first: Dictionary = sim.spawn_unit(team, "medivac", field(0,0))
+	var second: Dictionary = sim.spawn_unit(team, "medivac", field(0,1))
+	var patient: Dictionary = sim.spawn_unit(team, "rifle", field(1,0))
+	patient.hp = 5
+	ticks(sim, int(sim.rules.tick_rate))
+	check(sim.active_beams.size() == 1 and patient.hp >= 16 and patient.hp <= 17, "overlapping Medivacs cannot stack healing on one patient")
+	if sim.active_beams.size() != 1:
+		return
+	var owner_id: int = sim.active_beams[0].source_id
+	var current: Dictionary = first if first.id == owner_id else second
+	var standby: Dictionary = second if first.id == owner_id else first
+	check(standby.energy == 200, "another craft's occupied patient costs the waiting Medivac no energy")
+	current.energy = 0
+	var before: float = patient.hp
+	ticks(sim, 6)
+	check(patient.hp > before and sim.active_beams.size() == 1 and sim.active_beams[0].source_id == standby.id, "ending a channel releases the patient to the other Medivac")
+	patient.pos = field(7,0)
+	before = patient.hp
+	ticks(sim, 4)
+	check(patient.hp == before and sim.active_beams.is_empty(), "discovery range alone cannot keep an out-of-range beam active")
+	patient.pos = field(1,0)
+	ticks(sim, 4)
+	check(patient.hp > before, "returning to healing range starts a fresh channel")
+	patient.hp = sim.catalog.rifle.hp
+	ticks(sim, 2)
+	check(sim.active_beams.is_empty(), "full patients release the healing channel")
+
+
+func _medivac_patient_priority() -> void:
+	var sim = bare()
+	tune(sim, "medivac", {"speed":0, "energy_regen":0})
+	tune(sim, "hellbat_mech", {"speed":0, "damage":0, "skills":{}})
+	tune(sim, "rifle", {"speed":0, "damage":0, "skills":{}})
+	sim.spawn_unit(0, "medivac", field(0,0))
+	var primary: Dictionary = sim.spawn_unit(0, "hellbat_mech", field(2,0))
+	var other_hellbat: Dictionary = sim.spawn_unit(0, "hellbat_mech", field(-2,0))
+	var rifle: Dictionary = sim.spawn_unit(0, "rifle", field(0,2))
+	primary.hp = 33
+	other_hellbat.hp = 45
+	rifle.hp = 20
+	ticks(sim, 4)
+	check(primary.hp > 33 and rifle.hp > 20 and other_hellbat.hp == 45, "primary prefers lowest life fraction, secondary prefers lowest current life and biological-mechanical units qualify")
