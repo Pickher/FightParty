@@ -44,7 +44,8 @@ PARAM_LABELS = {
     'splash_multiplier':'次目标伤害倍率', 'length':'传播长度（格）', 'speed':'传播速度（格/秒）',
     'splash_inner_ratio':'内圈占总半径比例', 'splash_inner_multiplier':'内圈伤害倍率',
     'half_width':'攻击半宽（格）', 'duration':'持续时间（秒）', 'duration_seconds':'持续时间（秒）',
-    'health_cost_ratio':'最大生命消耗比例', 'attack_multiplier':'攻速倍率', 'speed_multiplier':'移速倍率',
+    'health_cost_ratio':'最大生命消耗比例', 'min_health_cost_multiplier':'施放时生命须严格高于消耗的倍数',
+    'display_name':'技能显示名称', 'attack_multiplier':'攻速倍率', 'speed_multiplier':'移速倍率',
     'deploy_seconds':'架设/埋地耗时（秒）', 'pack_seconds':'收起耗时（秒）',
     'deploy_enemy_threshold':'立即部署人数阈值（需大于）', 'scan_seconds':'扫描间隔（秒）',
     'hold_range_multiplier':'部署保持外围倍率', 'mobile_can_attack':'未部署可攻击',
@@ -185,6 +186,8 @@ def validate(units):
                     raise ValueError(where+'变形耗时与随队速度上限须为有限的正数。')
         for path, value in leaves(unit):
             key = path[-1]
+            if key == 'min_health_cost_multiplier' and (not isinstance(value,(int,float)) or isinstance(value,bool) or value < 1):
+                raise ValueError(where + '/'.join(path) + ' 须为不小于1的生命消耗倍数。')
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
             if key in ('interval','speed','scan_seconds','scan_interval','length','crew_hp') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
@@ -359,6 +362,8 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
                     i=p.index('weapons')
                     group=u['skills'][p[1]]['weapons'][int(p[i+1])]
                     context=group.get('label',group.get('id',context))
+                elif context == 'stimulant':
+                    context=u[key][p[1]].get('display_name',context)
                 if context == 'medivac_healing': context = '双束医疗'
                 field = p[-2] if p[-1].isdigit() and p[-2] in ('weapon_modes','exclude_tags') else p[-1]
                 label=context+' · '+PARAM_LABELS.get(field,LABELS.get(field,field))

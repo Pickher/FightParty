@@ -1107,16 +1107,17 @@ func step() -> Array:
 		ctx.goal=goal
 		ctx.distance=distance
 		ctx.reach=reach
+		var target_in_reach: bool = distance <= reach and ((not target.is_empty() and target.team == enemy) or (attacking_base and bool(stats.attacks_base)))
+		ctx.weapon_engaged = target_in_reach and float(stats.damage) > 0.0
 		# 包含靠拦截机或伤害技能作战的单位。纯治疗和超出武器射程的寻敌不算交火。
-		if distance <= reach and ((not target.is_empty() and target.team == enemy) or (attacking_base and bool(stats.attacks_base))):
-			if float(stats.damage) > 0 or skill_system.contributes_damage(unit):
-				mark_engaged(unit)
+		if ctx.weapon_engaged or (target_in_reach and skill_system.contributes_damage(unit)):
+			mark_engaged(unit)
 		skill_system.before_action(ctx)
 		_tick_attack_clock(unit,dt)
 		if not ctx.can_act or ctx.handled:
 			unit_model(unit).cancel_attack()
 			continue
-		var eligible: bool = ctx.armed and float(stats.damage) > 0.0 and distance <= reach and (not target.is_empty() or (attacking_base and bool(stats.get("attacks_base", true))))
+		var eligible: bool = ctx.armed and ctx.weapon_engaged
 		# 基地用负编号，敌军用稳定正编号，未开火时不设置 locked_target_id。
 		var target_id: int = int(target.id) if not target.is_empty() else -enemy - 1
 		var attack_behavior := AttackTypes.for_weapon(stats)

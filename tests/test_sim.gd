@@ -920,17 +920,32 @@ func _stimulant_and_slow() -> void:
 	stim.step()
 	check(is_equal_approx(stim._movement_speed(caster),base_speed),"stim expires without combat and restores base speed")
 	check(caster.hp==max_hp-cost*2,"stim does not consume health without enemy target")
-	var low = bare()
-	tune(low,"dummy",{"speed":0,"damage":0,"hp":1000})
-	var fragile = low.spawn_unit(0,"marauder",field(0,0))
-	var foe = low.spawn_unit(1,"dummy",field(4,0))
-	fragile.hp=cost
-	wait_until(low,func(): return foe.hp<1000,30)
-	check(fragile.hp==cost and not fragile.has("stim_until_tick") and foe.hp<1000,"low health blocks stimulant but still permits firing")
+	for kind in ["rifle", "marauder"]:
+		var low = bare()
+		tune(low, "dummy", {"speed":0, "damage":0, "hp":1000})
+		var soldier: Dictionary = low.spawn_unit(0, kind, field(0,0))
+		var foe: Dictionary = low.spawn_unit(1, "dummy", field(4,0))
+		var dose: float = low.catalog[kind].skills.stimulant.health_cost
+		var threshold := 2.0 * dose
+		soldier.hp = threshold - 0.25
+		low.step()
+		check(not soldier.has("stim_until_tick"), "%s holds stimulant below twice its dose" % kind)
+		soldier.hp = threshold
+		wait_until(low, func(): return foe.hp < 1000, 30)
+		check(soldier.hp == threshold and not soldier.has("stim_until_tick") and foe.hp < 1000, "%s can fire at the exact threshold without injecting" % kind)
+		soldier.hp = threshold + 0.25
+		soldier.cooldown = 10
+		low.step()
+		check(soldier.hp == threshold + 0.25 - dose and soldier.has("stim_until_tick") and soldier.cooldown > 0, "%s injects as soon as healing crosses its threshold during combat" % kind)
 	var base = bare()
 	var sieger = base.spawn_unit(0,"marauder",base.base_pos(1)-Vector2(float(weapon.range)+float(base.rules.layout.base_radius)-0.5,0))
 	wait_until(base,func(): return base.bases[1]<float(base.rules.base_hp),40)
-	check(sieger.hp==max_hp and not sieger.has("stim_until_tick") and base.bases[1]<float(base.rules.base_hp),"base alone does not trigger stimulant")
+	check(sieger.hp==max_hp-cost and sieger.has("stim_until_tick") and base.bases[1]<float(base.rules.base_hp),"engaging an enemy base triggers stimulant")
+	var air = bare()
+	var ground_only: Dictionary = air.spawn_unit(0, "marauder", field(0,0))
+	air.spawn_unit(1, "medivac", field(3,0))
+	air.step()
+	check(ground_only.hp == max_hp and not ground_only.has("stim_until_tick"), "a ground-only soldier cannot trigger stimulant against an air target")
 	for reverse in range(2):
 		var healing = bare()
 		tune(healing,"dummy",{"speed":0,"damage":0,"hp":100000})
@@ -1025,10 +1040,10 @@ func _stimulant_and_slow() -> void:
 	check(not approaching.has("stim_until_tick"),"discovery alone does not trigger stimulant")
 	entry.step()
 	check(approaching.hp==max_hp-cost and approaching.cooldown>0,"first combat tick activates stimulant even while attack is cooling down")
-	approaching.hp=cost
+	approaching.hp=2.0*cost
 	entry.tick=int(approaching.stim_until_tick)-1
 	entry.step()
-	check(approaching.hp==cost and is_equal_approx(entry.skill_system.movement_multiplier(entry,approaching),1.0) and not entry.skill_system.get_component(approaching,"stimulant").active_at(entry.tick),"expired stimulant rechecks health and cannot renew at lethal cost")
+	check(approaching.hp==2.0*cost and is_equal_approx(entry.skill_system.movement_multiplier(entry,approaching),1.0) and not entry.skill_system.get_component(approaching,"stimulant").active_at(entry.tick),"expired stimulant rechecks the strict double-cost threshold")
 
 ## 解放者：空中层、对空普通武器、防卫模式展开时序、前向扇形内对地与不攻击基地。
 func _liberators() -> void:

@@ -1,5 +1,5 @@
 {
-  "version": "0.13.3",
+  "version": "0.13.4",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -8,9 +8,16 @@
       "fields": {
         "armor": "UnitData/Marine/LifeArmor",
         "cost": "FightParty 试玩平衡：保留兵种配置中的数值；原图参考 UnitData/Marine/CostResource[Minerals] × spawn_count",
+        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定",
         "attack_modes/0/damage": "EffectData/GuassRifle/Amount",
-        "skills/stimulant": "AbilData/DSStimpack/Cost",
-        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定"
+        "skills/stimulant/health_cost": "AbilData/DSStimpack/Cost/Vital[Life]",
+        "skills/stimulant/health_cost_ratio": "AbilData/DSStimpack/Cost/Vital[Life] 为固定生命消耗",
+        "skills/stimulant/cooldown": "AbilData/DSStimpack/Cost/Cooldown@TimeUse",
+        "skills/stimulant/duration": "AbilData/DSStimpack/Effect=Stimpack → Liberty BehaviorData/Stimpack/Duration",
+        "skills/stimulant/attack_multiplier": "AbilData/DSStimpack/Effect=Stimpack → Liberty BehaviorData/Stimpack/Modification@AttackSpeedMultiplier",
+        "skills/stimulant/speed_multiplier": "AbilData/DSStimpack/Effect=Stimpack → Liberty BehaviorData/Stimpack/Modification@MoveSpeedMultiplier",
+        "skills/stimulant/min_health_cost_multiplier": "FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍",
+        "skills/stimulant/display_name": "FightParty 技能显示名称"
       },
       "abilities": [
         "DSStimpack",
@@ -49,7 +56,14 @@
         "gas_cost": "UnitData/Marauder/CostResource[Vespene] × spawn_count",
         "attack_modes/0/damage": "EffectData/PunisherGrenadesU/Amount",
         "attack_modes/0/bonus/heavy": "EffectData/PunisherGrenadesU/AttributeBonus[Armored]",
-        "skills/stimulant": "AbilData/DSStimpackMarauder/Cost"
+        "skills/stimulant/health_cost": "AbilData/DSStimpackMarauder/Cost/Vital[Life]",
+        "skills/stimulant/health_cost_ratio": "AbilData/DSStimpackMarauder/Cost/Vital[Life] 为固定生命消耗",
+        "skills/stimulant/cooldown": "AbilData/DSStimpackMarauder/Cost/Cooldown@TimeUse",
+        "skills/stimulant/duration": "AbilData/DSStimpackMarauder/Effect=Stimpack → Liberty BehaviorData/Stimpack/Duration",
+        "skills/stimulant/attack_multiplier": "AbilData/DSStimpackMarauder/Effect=Stimpack → Liberty BehaviorData/Stimpack/Modification@AttackSpeedMultiplier",
+        "skills/stimulant/speed_multiplier": "AbilData/DSStimpackMarauder/Effect=Stimpack → Liberty BehaviorData/Stimpack/Modification@MoveSpeedMultiplier",
+        "skills/stimulant/min_health_cost_multiplier": "FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍",
+        "skills/stimulant/display_name": "FightParty 技能显示名称"
       },
       "abilities": [
         "DSStimpackMarauder",
@@ -2292,6 +2306,48 @@
         "speed_multiplier": 1
       },
       "source": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant/display_name",
+      "before": null,
+      "after": "兴奋剂",
+      "source": "FightParty 技能显示名称"
+    },
+    {
+      "id": "rifle",
+      "path": "skills/stimulant/min_health_cost_multiplier",
+      "before": null,
+      "after": 2,
+      "source": "FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/duration",
+      "before": 20,
+      "after": 15,
+      "source": "AbilData/DSStimpackMarauder/Effect=Stimpack → Liberty BehaviorData/Stimpack/Duration"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/attack_multiplier",
+      "before": 1.3,
+      "after": 1.5,
+      "source": "AbilData/DSStimpackMarauder/Effect=Stimpack → Liberty BehaviorData/Stimpack/Modification@AttackSpeedMultiplier"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/display_name",
+      "before": null,
+      "after": "兴奋剂",
+      "source": "FightParty 技能显示名称"
+    },
+    {
+      "id": "marauder",
+      "path": "skills/stimulant/min_health_cost_multiplier",
+      "before": null,
+      "after": 2,
+      "source": "FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍"
     }
   ],
   "unresolved": [
@@ -3229,36 +3285,6 @@
       "id": "interceptor",
       "path": "attack_modes/0/bonus",
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
-    },
-    {
-      "id": "rifle",
-      "path": "skills/stimulant/duration",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
-    },
-    {
-      "id": "rifle",
-      "path": "skills/stimulant/attack_multiplier",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
-    },
-    {
-      "id": "rifle",
-      "path": "skills/stimulant/speed_multiplier",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
-    },
-    {
-      "id": "marauder",
-      "path": "skills/stimulant/duration",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
-    },
-    {
-      "id": "marauder",
-      "path": "skills/stimulant/attack_multiplier",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
-    },
-    {
-      "id": "marauder",
-      "path": "skills/stimulant/speed_multiplier",
-      "reason": "Stimpack持续时间及倍率继承原版；保留现有参数（新挂载使用SC2原型15秒/1.5倍）"
     },
     {
       "id": "agent",
