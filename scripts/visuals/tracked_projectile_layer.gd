@@ -6,6 +6,7 @@ var _kind: String
 var _mode: String
 var _target_layer: String
 var _wreck_margin: float
+var _turn_to_target_at_rest := false
 var _actor_script: GDScript
 var _ordnance: GDScript
 var model: PackedScene
@@ -37,6 +38,9 @@ func _socket(_actor: Node3D, _side: int) -> Transform2D:
 
 func _fire_actor(_actor: Node3D, _offset: Vector2, _age: float, _side: int) -> void:
 	pass
+
+func _draw_contact(canvas: CanvasItem, view, pos: Vector2, age: float, side: int) -> void:
+	_ordnance.draw_impact(canvas, view, pos, age, side)
 
 func configure(shared: Node3D, resource: PackedScene, model_bounds: AABB) -> void:
 	scene = shared
@@ -130,6 +134,9 @@ func sync(game, view, dt: float, _clock: float, alpha: float) -> void:
 			return
 		retained[unit.id] = true
 		var entry: Dictionary = entries[unit.id]
+		var aim := _aim(unit, game, pos, alpha)
+		if _turn_to_target_at_rest and motion.length_squared() <= 0.000001 and is_finite(aim):
+			_last_headings[unit.id] = aim
 		entry.heading = _last_headings.get(unit.id, entry.heading)
 		var delta_pos: Vector2 = pos - entry.pos
 		var distance := delta_pos.length() / diameter
@@ -138,7 +145,7 @@ func sync(game, view, dt: float, _clock: float, alpha: float) -> void:
 		entry.pos = pos
 		_sample_form(entry, unit, game.sim, now)
 		_place(entry, view, diameter)
-		entry.actor.advance(dt, entry.heading, distance if dt > 0.0 else 0.0, _aim(unit, game, pos, alpha))
+		entry.actor.advance(dt, entry.heading, distance if dt > 0.0 else 0.0, aim)
 	for id in entries.keys():
 		var entry: Dictionary = entries[id]
 		var visible_area := wreck_area if entry.dead else area
@@ -256,13 +263,14 @@ func _contact_key(team: int, strike: int, time: float) -> Array:
 	return [team, strike, roundi(time * 1000000.0)]
 
 func _register(key: Array, data: Dictionary, source: Dictionary, side: int, origin: Vector2, direction: Vector2, sim) -> void:
-	if _indexed_tick != sim.tick:
+	var traveling := bool(data.get("projectile", true))
+	if traveling and _indexed_tick != sim.tick:
 		_indexed_tick = sim.tick
 		_native.clear()
 		for p in sim.projectiles:
 			if p.kind == _kind and p.weapon.id == _mode:
 				_native[_key(p)] = p
-	var native: Dictionary = _native.get(key, {})
+	var native: Dictionary = _native.get(key, {}) if traveling else {}
 	var target_id := int(source.get("attack_target_id", 0))
 	if target_id == 0:
 		target_id = int(source.get("locked_target_id", 0))
@@ -270,11 +278,15 @@ func _register(key: Array, data: Dictionary, source: Dictionary, side: int, orig
 	if not native.is_empty():
 		due = float(native.impact_time)
 		target_id = int(native.target_id)
-	else:
+	elif traveling:
 		# The projectile can leave the native list in its launch tick.
 		for weapon in sim.catalog[_kind].attack_modes:
 			if weapon.id == _mode:
-				due += Vector2(data.from).distance_to(data.to) / maxf(0.001, float(weapon.delivery.speed))
+				var delivery: Dictionary = weapon.delivery
+				if delivery.flight == "fixed":
+					due += float(delivery.seconds)
+				else:
+					due += Vector2(data.from).distance_to(data.to) / maxf(0.001, float(delivery.speed))
 				break
 	var token := _contact_key(data.team, key[1], due)
 	shots[key] = {"team":data.team, "side":side, "origin":origin, "direction":direction, "goal":data.to,
@@ -304,7 +316,8 @@ func _record_hit(data: Dictionary, sim) -> void:
 	selected.hit = true
 	selected.hit_event = data
 	selected.hit_pos = selected.native.get("goal", selected.goal)
-	if selected.native.is_empty():
+	# An instantaneous launch already carries the exact interpolated contact.
+	if selected.native.is_empty() and float(selected.impact_time) > float(selected.launch_time):
 		var victim = sim.by_id.get(data.id)
 		if victim != null:
 			var fraction := clampf(float(data.time) * float(sim.rules.tick_rate) - float(sim.tick - 1), 0.0, 1.0)
@@ -330,7 +343,7 @@ func draw_ordnance(canvas: CanvasItem, view, game, now: float) -> void:
 		var age := now - float(shot.impact_time)
 		if age >= 0.0:
 			if shot.hit and age < _ordnance.IMPACT_DURATION and area.has_point(shot.hit_pos):
-				_ordnance.draw_impact(canvas, view, shot.hit_pos, age, shot.side)
+				_draw_contact(canvas, view, shot.hit_pos, age, shot.side)
 		elif shot.released:
 			var progress := (now - float(shot.launch_time)) / (float(shot.impact_time) - float(shot.launch_time))
 			var goal := _goal(shot, game.sim, now)

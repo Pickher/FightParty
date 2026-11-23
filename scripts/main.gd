@@ -435,6 +435,8 @@ func advance_tick() -> void:
 		if medivac_visual != null:
 			if medivac_visual.tanks.event(event, aircraft_before, self, medivac_visual.clock):
 				continue
+			if medivac_visual.assault_vikings.event(event, aircraft_before, self, medivac_visual.clock):
+				continue
 			if medivac_visual.vikings.event(event, aircraft_before, self, medivac_visual.clock):
 				continue
 			if medivac_visual.marauders.event(event, aircraft_before, self, medivac_visual.clock):

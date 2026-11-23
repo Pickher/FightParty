@@ -59,15 +59,11 @@ func _ready() -> void:
 	var tank_bounds := _model_bounds(tank)
 	if maxf(tank_bounds.size.x, tank_bounds.size.z) < 0.0001:
 		tank = null
-	var viking := load(VikingAssaultLayer.MODEL_PATH) as PackedScene if ResourceLoader.exists(VikingAssaultLayer.MODEL_PATH) else null
-	var viking_bounds := _model_bounds(viking)
-	if maxf(viking_bounds.size.x, viking_bounds.size.z) < 0.0001:
-		viking = null
 	var fighter: PackedScene = load(VikingLayer.MODEL_PATH) as PackedScene if ResourceLoader.exists(VikingLayer.MODEL_PATH) else null
 	var fighter_bounds := _model_bounds(fighter)
 	if maxf(fighter_bounds.size.x, fighter_bounds.size.z) < 0.0001:
 		fighter = null
-	if packed == null and flagship == null and walker == null and infantry == null and mech == null and tank == null and fighter == null and viking == null:return
+	if packed == null and flagship == null and walker == null and infantry == null and mech == null and tank == null and fighter == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -99,7 +95,7 @@ func _ready() -> void:
 	light.shadow_enabled=false
 	scene.add_child(light)
 	battlecruisers.configure(scene, flagship, flagship_bounds)
-	assault_vikings.configure(scene, viking, viking_bounds)
+	assault_vikings.configure(scene, fighter, fighter_bounds)
 	thors.configure(scene, walker, walker_bounds)
 	marauders.configure(scene, infantry, infantry_bounds)
 	hellbat_mechs.configure(scene, mech, mech_bounds)
@@ -168,12 +164,13 @@ func before_tick() -> Dictionary:
 	var result: Dictionary = {}
 	if not ready_model:return result
 	for unit in game.sim.units:
-		if unit.kind not in ["medivac", "battlecruiser", "thor", "marauder", "mortar", "viking"]:continue
+		if unit.kind not in ["medivac", "battlecruiser", "thor", "marauder", "mortar", "viking", "viking_assault"]:continue
 		if unit.kind == "medivac" and game._hidden_team(int(unit.team)):continue
 		if unit.kind == "mortar" and tanks.model == null:continue
 		if unit.kind == "viking" and vikings.model == null:continue
+		if unit.kind == "viking_assault" and assault_vikings.model == null:continue
 		var snapshot := {"kind": unit.kind, "pos": unit.pos, "team": unit.team}
-		if unit.kind in ["marauder", "mortar", "viking"]:
+		if unit.kind in ["marauder", "mortar", "viking", "viking_assault"]:
 			snapshot.prev = unit.prev
 			snapshot.attack_target_id = unit.get("attack_target_id", 0)
 			snapshot.locked_target_id = unit.get("locked_target_id", 0)
@@ -198,9 +195,7 @@ func events(tick_events: Array, before: Dictionary) -> void:
 	if not ready_model:return
 	tanks.observe_step(game, before)
 	for event in tick_events:
-		if event.type == "attack" and event.kind == "viking_assault":
-			assault_vikings.fire(event.source_id)
-		elif event.type == "cone_attack" and event.kind == "hellbat_mech":
+		if event.type == "cone_attack" and event.kind == "hellbat_mech":
 			hellbat_mechs.fire(event)
 		elif event.type == "death":
 			hellbat_mechs.destroy(event, clock)
@@ -284,7 +279,7 @@ func sync(view, delta: float) -> void:
 			entries.erase(id)
 	bursts=bursts.filter(func(b):return clock-float(b.at)<1.0 and not game._hidden_team(int(b.team)))
 	battlecruisers.sync(game, view, dt, clock, alpha)
-	assault_vikings.sync(game, view, dt, alpha)
+	assault_vikings.sync(game, view, dt, clock, alpha)
 	thors.sync(game, view, dt, clock, alpha)
 	marauders.sync(game, view, dt, clock, alpha)
 	hellbat_mechs.sync(game, view, dt, alpha)
@@ -296,7 +291,7 @@ func _has_actors() -> bool:
 	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty() or not hellbat_mechs.entries.is_empty() or not tanks.entries.is_empty() or not vikings.entries.is_empty() or not assault_vikings.entries.is_empty()
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id) or hellbat_mechs.has_model(id) or tanks.has_model(id) or vikings.has_model(id) or assault_vikings.entries.has(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id) or hellbat_mechs.has_model(id) or tanks.has_model(id) or vikings.has_model(id) or assault_vikings.has_model(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return
