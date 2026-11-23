@@ -119,6 +119,7 @@ func _draw() -> void:
 	for projectile in sim.projectiles:
 		if not view.grow(1.0).has_point(projectile.pos):continue
 		if game.medivac_visual != null and game.medivac_visual.battlecruisers.owns_projectile(projectile):continue
+		if projectile.kind == "viking" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)) and game.medivac_visual.vikings.owns_projectile(projectile):continue
 		if projectile.kind == "marauder" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)) and game.medivac_visual.marauders.owns_projectile(projectile):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
 		var launch_offset := Vector2.ZERO
@@ -210,6 +211,7 @@ func _draw() -> void:
 		game.medivac_visual.thors.draw_ordnance(self, self, game, game.medivac_visual.thors.render_time(sim, alpha))
 		game.medivac_visual.marauders.draw_ordnance(self, self, game, game.medivac_visual.marauders.render_time(sim, alpha))
 		game.medivac_visual.tanks.draw_ordnance(self, self, game, game.medivac_visual.clock)
+		game.medivac_visual.vikings.draw_ordnance(self, self, game, game.medivac_visual.vikings.render_time(sim, alpha))
 		game.medivac_visual.draw_healing(self,self)
 		for effect in game.effects:
 			if effect.type == "cone_attack" and not game._hidden_team(int(effect.team)) and view.grow(float(effect.length)).has_point(effect.from):

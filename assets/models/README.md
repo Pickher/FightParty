@@ -48,8 +48,10 @@
 
 更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
 
-## 维京机甲
+## 维京机甲和维京战机
 
-地面形态 `viking_assault` 使用玩家上传的[维京机甲白模](viking/viking_assault.glb)。源文件是一个网格，包含 41 个独立的几何部件。[战场模型](viking/viking_assault_rig.glb)把这些部件组合成机身、左右腿和双臂机炮，并添加钢蓝色装甲和琥珀色舱窗。行走时双腿按实际移动距离交替摆动，双炮在武器发射时后坐。战场采用共享 3D 视口。部队招募和编队面板使用同一模型渲染的[独立肖像](../ui/recruits/viking_assault.png)。
+地面机甲 `viking_assault` 和空中战机 `viking` 在战场上共用[可变形模型](viking/viking_rig.glb)。[上传的机甲白模](viking/viking_assault.glb)由 41 个网格部件构成。行走时两条腿交替承重；格林炮按真实开火事件左右交替，转管加速、炮组后坐。变形成战机时，双腿折入机腹，后掠翼展开，机鼻向前伸出。地面和空中被毁都会从当时的姿态解体。[行走、开火与被毁](../../docs/media/viking-actions.gif) · [机甲变形特写](../../docs/media/viking-transform.gif)
 
-在项目根目录运行 `python tools/art/build_viking_assault_rig.py` 可重建分件和涂装。招募肖像使用上节的脚本，兵种参数填 `viking_assault`。
+招募空中战机时，每架新出场的维京先起步 0.30 秒，接着用 1.20 秒展开升空，左右挂架按已有的对空导弹事件开火。招募地面机甲时，单位保持地面形态。可在 Godot 中打开[维京动作预览](../../scenes/art/viking_actions.tscn)，按 F6 查看两个形态的动作、起飞和反向降落。
+
+在项目根目录运行 `python tools/art/build_viking_rig.py` 可从白模重建可动分件、关节、炮口和涂装。招募界面的[机甲肖像](../ui/recruits/viking_assault.png)沿用[招募用分件](viking/viking_assault_rig.glb)，可用 `python tools/art/build_viking_assault_rig.py` 和上节的肖像渲染脚本重建。
