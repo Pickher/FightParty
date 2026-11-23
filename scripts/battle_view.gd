@@ -249,7 +249,8 @@ func _draw() -> void:
 			var fleet = game.medivac_visual.vikings if unit.kind == "viking" else game.medivac_visual.assault_vikings
 			if fleet.has_model(unit.id):
 				var flight: float = fleet.entries[unit.id].actor.flight_progress
-				clearance = maxf(dimensions.x, dimensions.y) * lerpf(0.72, 1.08, smoothstep(0.0, 1.0, flight))
+				# The upper wing is fully extended before the aircraft finishes rising.
+				clearance = maxf(dimensions.x, dimensions.y) * lerpf(0.72, 1.16, smoothstep(0.0, 0.85, flight))
 		var bar_origin := p + Vector2(-dimensions.x * 0.5, -clearance)
 		bar(bar_origin + Vector2.UP * 5, dimensions.x, float(unit.hp) / float(stats.hp), color)
 		if float(stats.get("shield",0))>0:
