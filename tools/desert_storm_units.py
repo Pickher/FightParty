@@ -18,7 +18,7 @@ PACK_COUNT_SOURCE = 'FightParty 试玩平衡：每组数量由兵种配置指定
 PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
  'rifle':'Marine', 'hellbat':'Hellion', 'hellbat_mech':'Hellbat', 'marauder':'Marauder', 'medic':'Medic',
- 'agent':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter',
+ 'agent':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter', 'viking_assault':'VikingAssault',
  'liberator':'Liberator', 'thor':'Thor', 'battlecruiser':'Battlecruiser',
  'zergling':'Zergling','baneling':'Baneling','roach':'Roach','hydralisk':'Hydralisk',
  'ravager':'Ravager','piercer':'LurkerMP','tunneler':'SwarmHostMP','mutalisk':'Mutalisk',
@@ -37,6 +37,7 @@ MODES = {
  'agent':[('armor_piercing','C10CanisterRifleFake','C10CanisterRifle')],
  'mortar':[('mobile_cannon','90mmCannons','90mmCannons'),('siege_cannon','CrucioShockCannon','CrucioShockCannonDirected')],
  'viking':[('anti_air_missile','LanzerTorpedoes','LanzerTorpedoesU')],
+ 'viking_assault':[('gatling_cannon','TwinGatlingCannon','TwinGatlingCannons')],
  'liberator':[('anti_air_burst','LiberatorMissileLaunchers','LiberatorMissileDamage'),('defender_cannon','LiberatorAGWeapon','LiberatorAGDamage')],
  'thor':[('hammer','ThorsHammer','ThorsHammerDamage'),('javelin','JavelinMissileLaunchers','JavelinMissileLaunchersDamage')],
  'battlecruiser':[('ats_laser','ATSLaserBattery','ATSLaserBatteryU'),('ata_laser','ATALaserBattery','ATALaserBatteryU')],
@@ -112,6 +113,26 @@ def apply_infantry_stimulants(cat, units, write):
   write(uid, prefix+'min_health_cost_multiplier', 2, 'FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍')
   write(uid, prefix+'display_name', '兴奋剂', 'FightParty 技能显示名称')
 
+def apply_viking_assault(cat, write):
+ """Ordinary ground Viking from the patrol port; apply the built-in Phobos range upgrade."""
+ uid = 'viking_assault'
+ prefix = 'attack_modes/0/'
+ write(uid,'spawn_count',cat.scalar('UnitData','InfestedDominionHousing1','EnergyMax'),
+       '普通巡逻空港 UnitData/InfestedDominionHousing1/EnergyMax；GameStrings/DSVikingAssault：每组3台')
+ write(uid,'armor_type','heavy','Liberty UnitData/VikingAssault/Attributes[Armored]')
+ write(uid,'tags',['mechanical'],'Liberty UnitData/VikingAssault/Attributes[Mechanical]；GameStrings/DSVikingAssault')
+ write(uid,'speed',2.25,'Liberty UnitData/VikingAssault/Speed')
+ write(uid,'size',[1.5,1.5],'Liberty UnitData/VikingAssault/Radius=0.75；项目按直径表示模型大小')
+ write(uid,'collision_radius',0.75,'Liberty UnitData/VikingAssault/SeparationRadius')
+ write(uid,'energy',0,'VikingAssault 无能量池；巡逻空港的 EnergyMax 用来记录编组人数')
+ write(uid,prefix+'range',7,'Liberty WeaponData/TwinGatlingCannon/Range=6；MapScript:21136 启用 AresClassWeaponsSystemViking，Liberty Campaign UpgradeData 使对地射程+1')
+ write(uid,prefix+'target_layers',['ground'],'Liberty WeaponData/TwinGatlingCannon/TargetFilters[Ground]')
+ write(uid,prefix+'hit_count',1,'Liberty WeaponData/TwinGatlingCannon 直接引用单一 Damage 效果 TwinGatlingCannons')
+ write(uid,prefix+'attack_duration',0.167,'Core WeaponData/CWeapon/DamagePoint=0.167，单发出手后结算')
+ write(uid,prefix+'backswing',0.5,'Core WeaponData/CWeapon/Backswing')
+ write(uid,prefix+'delivery',{'type':'projectile','flight':'fixed','seconds':0,'tracking':True},
+       'Liberty WeaponData/TwinGatlingCannon/Effect 直接引用 EffectData/TwinGatlingCannons，无飞行弹体')
+
 def apply_medivac(cat, write):
  """The deployed Medivac inherits Liberty campaign effects. Convert its game seconds to Faster real seconds."""
  uid = 'medivac'
@@ -164,6 +185,8 @@ def apply():
  def skill(uid,key,config,source):
   units[uid].setdefault('skills',{})
   write(uid,'skills/'+key,config,source)
+ # Seed inherited values before importing the local damage, round duration and pack price.
+ apply_viking_assault(cat, write)
  for uid,sid in UNIT_IDS.items():
   unit=units[uid];node=cat.node('UnitData',sid)
   if node is None:pending(uid,'unit','未找到对应UnitData条目');continue
@@ -250,6 +273,9 @@ def apply():
    if cat.scalar('WeaponData',wid,'DisplayAttackCount') is None:pending(uid,prefix+'hit_count','每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数')
    if not cat.children('EffectData',eid,'AttributeBonus'):
     pending(uid,prefix+'bonus','加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0')
+ # Filter inheritance warnings now resolved from the ground Viking's underlying catalogs.
+ viking_fields=audit['units']['viking_assault']['fields']
+ audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='viking_assault' or item['path'] not in viking_fields]
  # Confirmed skill overrides. Other native abilities remain in unresolved inventory.
  apply_infantry_stimulants(cat, units, write)
  # Additional Adept fields come from its inherited weapon and the map's two mutually exclusive orders.

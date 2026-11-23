@@ -24,6 +24,7 @@ VIEWS = {
     "marauder": (MODELS / "marauder/marauder_rig.glb", (1.0, -.55, .33)),
     "medivac": (MODELS / "medivac/medivac.glb", (.79, -.97, 1.02)),
     "mortar": (MODELS / "mortar/mortar_rig.glb", (.83, -1.0, .87)),
+    "viking_assault": (MODELS / "viking/viking_assault_rig.glb", (1.0, -.70, .43)),
     "thor": (MODELS / "thor/thor_rig.glb", (1.0, -.55, .39)),
     "battlecruiser": (MODELS / "battlecruiser/battlecruiser.glb", (.76, -1.0, .94)),
 }

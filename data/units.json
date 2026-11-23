@@ -1,5 +1,5 @@
 {
- "version": "0.13.5",
+ "version": "0.13.6",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -1007,6 +1007,88 @@
     "status": "explicit_overrides"
    },
    "core_cost": 0
+  },
+  "viking_assault": {
+   "name": "维京机甲",
+   "symbol": "G",
+   "race": "terran",
+   "status": "ready",
+   "sc2": "维京机甲 VikingAssault（沙漠风暴）",
+   "cost": 990,
+   "hp": 220,
+   "armor_type": "heavy",
+   "armor": 3,
+   "layer": "ground",
+   "speed": 2.25,
+   "color": "9caec1",
+   "role": "地面火力支援 · 克机械",
+   "counter": "高速格林机关炮对机械额外造成14点伤害，福波斯级武器系统将射程提升至7格。",
+   "size": [
+    1.5,
+    1.5
+   ],
+   "spawn_count": 3,
+   "shield": 0,
+   "shield_armor": 0,
+   "energy": 0,
+   "initial_energy": 0,
+   "health_regen": 0,
+   "health_regen_delay": 0,
+   "shield_regen": 0,
+   "shield_regen_delay": 0,
+   "energy_regen": 0,
+   "energy_regen_delay": 0,
+   "unit_type": "unit",
+   "tags": [
+    "mechanical"
+   ],
+   "collision_radius": 0.75,
+   "primary_mode": "gatling_cannon",
+   "attack_modes": [
+    {
+     "damage": 18,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {
+      "mechanical": 14
+     },
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 7,
+     "interval": 0.083,
+     "windup": 0,
+     "backswing": 0.5,
+     "splash": 0.0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground"
+     ],
+     "attacks_base": true,
+     "attacks_structures": true,
+     "id": "gatling_cannon",
+     "label": "高速格林机关炮",
+     "attack_duration": 0.167,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "flight": "fixed",
+      "seconds": 0,
+      "tracking": true
+     }
+    }
+   ],
+   "gas_cost": 0,
+   "skills": {},
+   "source_profile": {
+    "map_unit": "VikingAssault",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   },
+   "core_cost": 0,
+   "separate_when_stopped": true
   },
   "liberator": {
    "name": "解放者",

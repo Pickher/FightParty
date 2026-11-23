@@ -80,3 +80,9 @@
 当前表仍在 `data/units/兵种配置.xlsx`：兵种属性/武器模式/技能参数是可编辑运行数据；新增“沙漠风暴来源”列出逐字段写入依据，“沙漠风暴待确认”列出继承或技能效果未齐的地方。黄色底色保留现有回退数值，而不是伪造原图结果。旧“技能核对”页标为旧原型记录，不应当作本版完整技能清单。
 
 自动测试已于 2026-11-14 迁移到当前规则 0.11.3 并全部通过，覆盖范围见 [测试报告](TEST_REPORT.md)。APK不会因源码变化自行更新。
+
+## 维京机甲
+
+通用维京机甲使用原图 `VikingAssault`。巡逻空港默认每波生产 3 台，单台成本 330 矿。FightParty 将这项生产选择放进人族招募列表，每组 990 矿。原图在单位描述中说明通用机甲已拆除变形系统；它以地面形态出兵并对地作战。[机甲配置](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L15412) · [生产建筑](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L8772) · [单位说明](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L4235)
+
+每台有 220 生命、3 点护甲，属于重甲机械单位。高速格林机关炮每 0.75 秒射击一次，每发基础伤害 18，对机械额外加 14。原图开局授予福波斯级武器系统，机炮射程从 6 格增至 7 格。[伤害效果](../reference/desert-storm/Base.SC2Data/GameData/EffectData.xml#L22047) · [武器周期](../reference/desert-storm/Base.SC2Data/GameData/WeaponData.xml#L2924) · [开局升级](../reference/desert-storm/MapScript.galaxy#L21136)

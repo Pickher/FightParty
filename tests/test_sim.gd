@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_viking_assault"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -2229,6 +2229,32 @@ func _adepts() -> void:
 		if advancing.has("shade_position") or waves.teleports.has(advancing.id):
 			check(false, "support transfer launched again for the same adept")
 			break
+
+func _viking_assault() -> void:
+	var shop = bare(42, {"start_minerals":1980, "first_wave_seconds":0.05})
+	var terran_roster := Catalog.race_units(shop.catalog, "terran")
+	check(terran_roster.has("viking_assault") and AI.new(1,"terran").pool.has("viking_assault"), "Viking assault mech is available in the Terran shop and AI pool")
+	check(not Catalog.race_units(shop.catalog, "protoss").has("viking_assault"), "Viking assault mech is exclusive to Terrans")
+	var saved := [{"kind":"viking","cell":0}]
+	check(shop.submit_formation(0, saved).is_empty(), "a saved Viking fighter group still loads by its original ID")
+	check(shop.buy(0, "viking_assault", 1).is_empty() and shop.minerals[0] == 0, "990 minerals buy a separate group of Viking assault mechs")
+	shop.step()
+	var fighters: Array = shop.units.filter(func(unit): return unit.kind == "viking")
+	var mechs: Array = shop.units.filter(func(unit): return unit.kind == "viking_assault")
+	check(fighters.size() == 2 and mechs.size() == 3, "one fighter group and one assault group deploy two aircraft and three ground mechs")
+	check(shop.catalog.viking.layer == "air" and shop.catalog.viking_assault.layer == "ground", "the two Viking forms occupy different target layers")
+
+	for tag in ["mechanical", "biological"]:
+		var duel = bare()
+		tune(duel, "dummy", {"tags":[tag], "armor":2, "speed":0, "damage":0})
+		tune(duel, "viking", {"speed":0})
+		duel.spawn_unit(0, "viking_assault", field(0,0))
+		var aircraft: Dictionary = duel.spawn_unit(1, "viking", field(0,2))
+		var ground: Dictionary = duel.spawn_unit(1, "dummy", field(3,0))
+		var initial_hp := float(ground.hp)
+		wait_until(duel, func(): return ground.hp < initial_hp, 40)
+		var damage := 30 if tag == "mechanical" else 16
+		check(ground.hp == initial_hp - damage and aircraft.hp == duel.catalog.viking.hp, "assault cannon ignores air and applies mechanical bonus before armor: " + tag)
 
 ## 车型在行军与接敌之间保持同一个实体；机甲喷火使用独立的扇形判定。
 func _hellbat_mechs() -> void:

@@ -1,5 +1,5 @@
 {
-  "version": "0.13.5",
+  "version": "0.13.6",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -170,6 +170,36 @@
       "behaviors": [
         "speed225"
       ]
+    },
+    "viking_assault": {
+      "source_unit": "VikingAssault",
+      "fields": {
+        "spawn_count": "普通巡逻空港 UnitData/InfestedDominionHousing1/EnergyMax；GameStrings/DSVikingAssault：每组3台",
+        "armor_type": "Liberty UnitData/VikingAssault/Attributes[Armored]",
+        "tags": "Liberty UnitData/VikingAssault/Attributes[Mechanical]；GameStrings/DSVikingAssault",
+        "speed": "Liberty UnitData/VikingAssault/Speed",
+        "size": "Liberty UnitData/VikingAssault/Radius=0.75；项目按直径表示模型大小",
+        "collision_radius": "Liberty UnitData/VikingAssault/SeparationRadius",
+        "energy": "VikingAssault 无能量池；巡逻空港的 EnergyMax 用来记录编组人数",
+        "attack_modes/0/range": "Liberty WeaponData/TwinGatlingCannon/Range=6；MapScript:21136 启用 AresClassWeaponsSystemViking，Liberty Campaign UpgradeData 使对地射程+1",
+        "attack_modes/0/target_layers": "Liberty WeaponData/TwinGatlingCannon/TargetFilters[Ground]",
+        "attack_modes/0/hit_count": "Liberty WeaponData/TwinGatlingCannon 直接引用单一 Damage 效果 TwinGatlingCannons",
+        "attack_modes/0/attack_duration": "Core WeaponData/CWeapon/DamagePoint=0.167，单发出手后结算",
+        "attack_modes/0/backswing": "Core WeaponData/CWeapon/Backswing",
+        "attack_modes/0/delivery": "Liberty WeaponData/TwinGatlingCannon/Effect 直接引用 EffectData/TwinGatlingCannons，无飞行弹体",
+        "hp": "UnitData/VikingAssault/LifeMax",
+        "armor": "UnitData/VikingAssault/LifeArmor",
+        "cost": "UnitData/VikingAssault/CostResource[Minerals] × spawn_count",
+        "gas_cost": "UnitData/VikingAssault/CostResource[Vespene] × spawn_count",
+        "attack_modes/0/damage": "EffectData/TwinGatlingCannons/Amount",
+        "attack_modes/0/bonus_tags/mechanical": "EffectData/TwinGatlingCannons/AttributeBonus[Mechanical]",
+        "attack_modes/0/interval": "WeaponData/TwinGatlingCannon/Period（完整周期减出手与前后摇）"
+      },
+      "abilities": [
+        "wanttoattackG",
+        "wanttoattackCG2"
+      ],
+      "behaviors": []
     },
     "liberator": {
       "source_unit": "Liberator",
