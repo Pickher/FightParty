@@ -119,6 +119,7 @@ func _draw() -> void:
 	for projectile in sim.projectiles:
 		if not view.grow(1.0).has_point(projectile.pos):continue
 		if game.medivac_visual != null and game.medivac_visual.battlecruisers.owns_projectile(projectile):continue
+		if projectile.kind == "viking" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)) and game.medivac_visual.vikings.owns_projectile(projectile):continue
 		if projectile.kind == "marauder" and game.medivac_visual != null and not game._hidden_team(int(projectile.team)) and game.medivac_visual.marauders.owns_projectile(projectile):continue
 		var tint: Color = game.MINT if int(projectile.team)==0 else game.CORAL
 		var launch_offset := Vector2.ZERO
@@ -210,6 +211,8 @@ func _draw() -> void:
 		game.medivac_visual.thors.draw_ordnance(self, self, game, game.medivac_visual.thors.render_time(sim, alpha))
 		game.medivac_visual.marauders.draw_ordnance(self, self, game, game.medivac_visual.marauders.render_time(sim, alpha))
 		game.medivac_visual.tanks.draw_ordnance(self, self, game, game.medivac_visual.clock)
+		game.medivac_visual.assault_vikings.draw_ordnance(self, self, game, game.medivac_visual.assault_vikings.render_time(sim, alpha))
+		game.medivac_visual.vikings.draw_ordnance(self, self, game, game.medivac_visual.vikings.render_time(sim, alpha))
 		game.medivac_visual.draw_healing(self,self)
 		for effect in game.effects:
 			if effect.type == "cone_attack" and not game._hidden_team(int(effect.team)) and view.grow(float(effect.length)).has_point(effect.from):
@@ -241,12 +244,20 @@ func _draw() -> void:
 				draw_arc(p,maxf(4,dimensions.x*.6),-PI*.5,-PI*.5+TAU*charge,24,Color("ffb347"),2)
 				var locked = sim.by_id.get(int(unit.yamato_target))
 				if locked!=null:draw_line(p,point(locked.pos),Color(Color("ffb347"),0.35),1)
-		bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5-5),dimensions.x,float(unit.hp)/float(stats.hp),color)
+		var clearance := dimensions.y * 0.5
+		if game.medivac_visual != null and unit.kind in ["viking", "viking_assault"]:
+			var fleet = game.medivac_visual.vikings if unit.kind == "viking" else game.medivac_visual.assault_vikings
+			if fleet.has_model(unit.id):
+				var flight: float = fleet.entries[unit.id].actor.flight_progress
+				# The upper wing is fully extended before the aircraft finishes rising.
+				clearance = maxf(dimensions.x, dimensions.y) * lerpf(0.72, 1.16, smoothstep(0.0, 0.85, flight))
+		var bar_origin := p + Vector2(-dimensions.x * 0.5, -clearance)
+		bar(bar_origin + Vector2.UP * 5, dimensions.x, float(unit.hp) / float(stats.hp), color)
 		if float(stats.get("shield",0))>0:
-			bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5-9),dimensions.x,float(unit.shield)/float(stats.shield),game.SHIELD)
+			bar(bar_origin + Vector2.UP * 9, dimensions.x, float(unit.shield) / float(stats.shield), game.SHIELD)
 		if float(stats.get("energy",0))>0:
 			var energy_y: float = -13.0 if float(stats.shield)>0 else -9.0
-			bar(p+Vector2(-dimensions.x*.5,-dimensions.y*.5+energy_y),dimensions.x,float(unit.energy)/float(stats.energy),Color("ad86ef"))
+			bar(bar_origin + Vector2(0, energy_y), dimensions.x, float(unit.energy) / float(stats.energy), Color("ad86ef"))
 		if sim.tick<int(unit.get("stim_until_tick",0)):
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color("ffbe65"),false,1.5)
 		if sim.tick<int(unit.get("slow_until_tick",0)):
