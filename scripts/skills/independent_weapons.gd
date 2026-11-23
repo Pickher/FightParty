@@ -2,9 +2,6 @@ extends "res://scripts/skills/skill.gd"
 const AttackCycle = preload("res://scripts/units/attack_cycle.gd")
 const Sequences = preload("res://scripts/skills/services/attack_sequence_service.gd")
 const AttackTypes = preload("res://scripts/attacks/attack_registry.gd")
-const Stimulant = preload("res://scripts/skills/stimulant.gd")
-
-var crew_stimulants: Dictionary = {}
 
 ## 一组可复用的驻军炮位：count 决定独立炮位数量，weapon 决定每套武器。
 ## 不生成可走出建筑的友军实体；建筑被摧毁时全部炮位随组件回收。
@@ -18,27 +15,7 @@ func on_spawn(_sim) -> void:
 		for i in range(int(group.count)):
 			var mount := AttackCycle.create()
 			mount.group_index=group_index
-			if group.has("stimulant"):
-				var index: int = state.mounts.size()
-				mount.crew = {"id":owner.id, "mount_index":index, "hp":float(group.crew_hp)}
-				var stimulant := Stimulant.new()
-				stimulant.configure("stimulant", mount.crew, group.stimulant)
-				crew_stimulants[index] = stimulant
-				mount.stimulant = stimulant.state
 			state.mounts.append(mount)
-
-func crew_attack_rate(sim, index: int, group: Dictionary, dt: float, engaged: bool) -> float:
-	if not crew_stimulants.has(index):
-		return 1.0
-	var crew: Dictionary = state.mounts[index].crew
-	var max_hp := float(group.crew_hp)
-	crew.hp = minf(max_hp, float(crew.hp) + float(group.get("crew_regen", 0)) * dt)
-	var stimulant: Stimulant = crew_stimulants[index]
-	if engaged:
-		var cost := stimulant.activate(sim, max_hp)
-		if cost >= 0.0:
-			crew.hp -= cost
-	return stimulant.current_attack_rate(sim.tick)
 
 func valid_target(sim, target, weapon: Dictionary) -> bool:
 	return target!=null and target.hp>0 and target.team!=owner.team and owner.pos.distance_to(target.pos)<=float(weapon.range) and sim._can_hit_unit(owner,target,weapon)
@@ -76,7 +53,7 @@ func before_target(ctx: Dictionary) -> bool:
 			target=pick_target(sim,weapon,assigned)
 			if not target.is_empty():assigned[target.id]=int(assigned.get(target.id,0))+1
 		var eligible: bool = target!=null and not target.is_empty() and float(weapon.damage)>0
-		var rate := structure_rate * crew_attack_rate(sim, index, group, float(ctx.dt), eligible and structure_rate > 0.0)
+		var rate := structure_rate * float(group.get("attack_speed_multiplier", 1.0))
 		AttackCycle.tick_attack(mount, float(ctx.dt), rate)
 		var target_id: int = int(target.id) if eligible else 0
 		var attack_behavior := AttackTypes.for_weapon(weapon)

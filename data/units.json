@@ -1,5 +1,5 @@
 {
- "version": "0.13.4",
+ "version": "0.13.5",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -4950,30 +4950,14 @@
        "label": "驻军特战队员",
        "count": 6,
        "mode_id": "garrison_rifle",
-       "crew_hp": 90,
-       "crew_regen": 1,
-       "stimulant": {
-        "health_cost": 10,
-        "cooldown": 15,
-        "duration": 15,
-        "attack_multiplier": 1.5,
-        "speed_multiplier": 1
-       }
+       "attack_speed_multiplier": 1.5
       },
       {
        "id": "garrison_marauder",
        "label": "驻军劫掠者",
        "count": 2,
        "mode_id": "garrison_marauder",
-       "crew_hp": 250,
-       "crew_regen": 1,
-       "stimulant": {
-        "health_cost": 10,
-        "cooldown": 15,
-        "duration": 15,
-        "attack_multiplier": 1.5,
-        "speed_multiplier": 1
-       }
+       "attack_speed_multiplier": 1.5
       },
       {
        "id": "shrike_turret",

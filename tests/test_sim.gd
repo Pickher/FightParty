@@ -1496,34 +1496,44 @@ func _terran_bunker() -> void:
 	# 飞行目标仅在步枪射程内，地面目标仅在榴弹射程内。记录两组独立炮位的实际出手。
 	var flyer: Dictionary = sim.spawn_unit(1, "medivac", field(0,6.5))
 	var ground: Dictionary = sim.spawn_unit(1, "dummy", field(7.5,0))
-	var first_volley := {"garrison_rifle":0, "garrison_marauder":0}
-	var volleys := {"garrison_rifle":[], "garrison_marauder":[]}
-	var injections: Dictionary = {}
-	for _step in range(rate):
-		for event in sim.step():
-			if event.type == "skill_used" and event.id == hull.id and event.skill == "stimulant":
-				injections[event.mount] = event.health_cost
-			if event.type != "attack" or event.kind != "terran_bunker":
-				continue
-			var mode := str(event.mode)
-			if not volleys.has(mode):
-				continue
-			var times: Array = volleys[mode]
-			if times.is_empty() or not is_equal_approx(times.back(), event.time):
-				times.append(event.time)
-			if times.size() == 1:
-				first_volley[mode] += 1
-	check(first_volley == {"garrison_rifle":6, "garrison_marauder":2}, "six independent rifles and two grenadiers can engage air and ground simultaneously")
-	check(injections.size() == 8 and hull.hp == 900, "each garrison soldier injects without damaging the bunker")
 	var mounts: Array = sim.skill_system.get_component(hull, "independent_weapons").state.mounts
-	for index in injections:
-		var mount: Dictionary = mounts[index]
+	check(mounts.size() == 9, "the bunker has eight garrison weapons and one turret")
+	for mount in mounts:
 		var group: Dictionary = sim.catalog.terran_bunker.skills.independent_weapons.weapons[mount.group_index]
-		check(injections[index] == 10 and is_equal_approx(mount.crew.hp, float(group.crew_hp) - 10 + (rate - 1.0) / rate), "each soldier regenerates its own lost health")
-	for mode in volleys:
-		var times: Array = volleys[mode]
-		var base_period := 0.8608 / 3.0 if mode == "garrison_rifle" else 0.5
-		check(times.size() >= 2 and absf(times[1] - times[0] - base_period / 1.5) < 0.002, "garrison stimulant scales volley cadence once " + str(mode))
+		var expected_rate := 1.0 if group.mode_id == "shrike_turret" else 1.5
+		check(is_equal_approx(mount.attack_rate, expected_rate), "mount has its permanent rate while idle: " + str(group.mode_id))
+		check(not mount.has("crew") and not mount.has("stimulant"), "mount has no virtual soldier health or stimulant timer")
+
+	for engagement in range(2):
+		if engagement == 1:
+			flyer.pos = field(0,12)
+			ground.pos = field(12,0)
+			ticks(sim, 16 * rate)
+			flyer.pos = field(0,6.5)
+			ground.pos = field(7.5,0)
+		var first_volley := {"garrison_rifle":0, "garrison_marauder":0}
+		var volleys := {"garrison_rifle":[], "garrison_marauder":[]}
+		var injections := 0
+		for _step in range(rate):
+			for event in sim.step():
+				if event.type == "skill_used" and event.id == hull.id and event.skill == "stimulant":
+					injections += 1
+				if event.type != "attack" or event.source_id != hull.id:
+					continue
+				var mode := str(event.mode)
+				if not volleys.has(mode):
+					continue
+				var times: Array = volleys[mode]
+				if times.is_empty() or not is_equal_approx(times.back(), event.time):
+					times.append(event.time)
+				if times.size() == 1:
+					first_volley[mode] += 1
+		check(first_volley == {"garrison_rifle":6, "garrison_marauder":2}, "six rifles and two grenadiers engage simultaneously")
+		check(injections == 0 and hull.hp == 900, "passive garrison fire neither injects nor costs hull health")
+		for mode in volleys:
+			var times: Array = volleys[mode]
+			var base_period := 0.8608 / 3.0 if mode == "garrison_rifle" else 0.5
+			check(times.size() >= 2 and absf(times[1] - times[0] - base_period / 1.5) < 0.002, "opening volleys have full passive rate, engagement %d: %s" % [engagement, mode])
 	check(flyer.hp < 5000 and int(flyer.get("slow_until_tick", 0)) == 0, "rifle impacts never apply concussive slow")
 	check(ground.hp < 5000 and ground.get("slow_multiplier", 1.0) == 0.5, "grenade impacts slow an eligible ground target")
 	var immune: Dictionary = sim.spawn_unit(1, "thor", field(7,1))
@@ -1537,6 +1547,15 @@ func _terran_bunker() -> void:
 			if event.type == "attack" and event.kind == "terran_bunker" and event.mode == "shrike_turret":
 				turret_times.append(event.time)
 	check(turret_times.size() >= 2 and absf(turret_times[1] - turret_times[0] - 0.8608 / 3.0) < 0.002, "the built-in Shrike turret fires independently with no crew stimulant")
+	hull.hp = 0
+	sim.step()
+	check(sim.skill_system.get_component(hull, "independent_weapons") == null, "destroying the bunker removes its mounts")
+	var shots_after_destruction := 0
+	for _step in range(rate):
+		for event in sim.step():
+			if event.type == "attack" and event.source_id == hull.id:
+				shots_after_destruction += 1
+	check(shots_after_destruction == 0, "destroyed bunker emits no new shots")
 
 ## 开局设置选项：推荐值即 rules 默认值，预设都在自定义范围内且能被步进到达。
 func _setup_options() -> void:
