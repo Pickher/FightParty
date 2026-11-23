@@ -28,7 +28,7 @@ PARAM_LABELS = {
     'acquire_range':'自动选取目标半径（格）', 'secondary_range':'副束搜索半径（格）', 'scan_interval':'副束扫描间隔（秒）',
     'max_targets':'同时作用目标上限', 'start_energy':'启动所需最低能量', 'sustain_energy':'维持所需最低能量',
     'energy_cost':'每次生效消耗的能量', 'follow_distance':'跟随前排的距离（格）', 'danger_distance':'与威胁保持的距离（格）',
-    'crew_hp':'驻军个体生命上限','crew_regen':'驻军个体每秒回血',
+    'attack_speed_multiplier':'炮位常驻攻速倍率',
     'max_health_ratio':'可恢复至最大生命的比例', 'weapon_modes':'可触发的武器模式', 'exclude_tags':'免疫此效果的目标标签',
     'strike_offsets':'各段出手时刻（秒）','armor_multiplier':'护甲减免倍率','splash_rings':'溅射分圈',
     'launch_delay':'出场后投影延迟（秒）','shade_speed':'支援投影速度（格/秒）','contact_range':'投影遇敌半径（格）',
@@ -189,7 +189,7 @@ def validate(units):
             if key == 'min_health_cost_multiplier' and (not isinstance(value,(int,float)) or isinstance(value,bool) or value < 1):
                 raise ValueError(where + '/'.join(path) + ' 须为不小于1的生命消耗倍数。')
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
-            if key in ('interval','speed','scan_seconds','scan_interval','length','crew_hp') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
+            if key in ('interval','speed','scan_seconds','scan_interval','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
             if key in ('hit_count','max_targets','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
             if key in ('hit_count','max_targets') and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
@@ -326,7 +326,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['恶火','开火距离4.5格，火焰固定传播5格，总宽0.6格（half_width为0.3）。'],
         ['特工弹药','使用穿甲弹/狙击弹模式内的单段伤害30，移除旧顶层未使用的40；各模式伤害和加成独立。'],
         ['明确覆盖与回退','原图明确值已导入单位和武器；旧的额外加成、缺失的原版间隔等以待确认页为准。不得把Weapon.Level当伤害、MinScanRange当射程。'],
-        ['人族防御塔','地堡驻军和堡顶机炮独立索敌。武器模式页的 count 决定各类炮位数量，hit_count 决定单个炮位每轮的命中段数。生命与护甲见兵种属性，自动维修和减速弹见技能参数。'],
+        ['人族防御塔','地堡驻军和堡顶机炮独立索敌。武器模式页的 count 决定炮位数量，attack_speed_multiplier 决定该组常驻攻速倍率，hit_count 决定每轮命中段数。生命与护甲见兵种属性，自动维修和减速弹见技能参数。'],
         ['基地防御模块','gate_tower不再生成独立单位；hp为基地额外生命5000，射程8，每0.5秒300真实伤害，0.5秒结算一次；health_regen为防御层存在时整座基地的回血5/秒。'],
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。地图点位见data/rules.json。'],

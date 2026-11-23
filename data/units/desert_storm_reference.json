@@ -1,5 +1,5 @@
 {
-  "version": "0.13.4",
+  "version": "0.13.5",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -819,8 +819,8 @@
         "attack_modes/2/damage": "Liberty Campaign WeaponData/ShrikeTurret → EffectData/ShrikeTurretDamage=6，直接伤害",
         "attack_modes/2/range": "ShrikeTurret 继承 CWeaponLegacy 默认射程5；堡顶无驻舱射程加成",
         "attack_modes/2/interval": "Liberty Campaign ShrikeTurret/Period=0.8608；地图 RateMultiplier=3，总周期÷3并扣除出手与后摇",
-        "skills/independent_weapons/weapons/0/stimulant": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1",
-        "skills/independent_weapons/weapons/1/stimulant": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+        "skills/independent_weapons/weapons/0/attack_speed_multiplier": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。",
+        "skills/independent_weapons/weapons/1/attack_speed_multiplier": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。"
       }
     }
   },
@@ -2284,28 +2284,28 @@
     {
       "id": "terran_bunker",
       "path": "skills/independent_weapons/weapons/0/stimulant",
-      "before": null,
-      "after": {
+      "before": {
         "health_cost": 10,
         "cooldown": 15,
         "duration": 15,
         "attack_multiplier": 1.5,
         "speed_multiplier": 1
       },
-      "source": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1"
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
     },
     {
       "id": "terran_bunker",
       "path": "skills/independent_weapons/weapons/1/stimulant",
-      "before": null,
-      "after": {
+      "before": {
         "health_cost": 10,
         "cooldown": 15,
         "duration": 15,
         "attack_multiplier": 1.5,
         "speed_multiplier": 1
       },
-      "source": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
     },
     {
       "id": "rifle",
@@ -2348,6 +2348,48 @@
       "before": null,
       "after": 2,
       "source": "FightParty 施放条件：当前生命须严格高于本次生命消耗的两倍"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/0/crew_hp",
+      "before": 90,
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/0/crew_regen",
+      "before": 1,
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/1/crew_hp",
+      "before": 250,
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/1/crew_regen",
+      "before": 1,
+      "after": null,
+      "source": "FightParty 0.13.5：地堡内的步兵使用常驻攻速倍率，移除独立兵员生命和主动注射。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/0/attack_speed_multiplier",
+      "before": null,
+      "after": 1.5,
+      "source": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。"
+    },
+    {
+      "id": "terran_bunker",
+      "path": "skills/independent_weapons/weapons/1/attack_speed_multiplier",
+      "before": null,
+      "after": 1.5,
+      "source": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。"
     }
   ],
   "unresolved": [
@@ -3500,11 +3542,6 @@
       "id": "medivac",
       "path": "ability:MedivacSpeedBoost",
       "reason": "原图存在推进加速，本次还原双束治疗，推进加速尚未接入。"
-    },
-    {
-      "id": "terran_bunker",
-      "path": "ability:DSStimpack",
-      "reason": "私人依赖未随图上传，运输行为只显式开放基础 Stimpack，舱内 DSStimpack 的引擎触发条件无法完全核实。本项目按地图说明实现普通驻军交战时自动注射，堡顶炮台独立。"
     }
   ]
 }

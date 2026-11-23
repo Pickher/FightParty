@@ -1,18 +1,18 @@
 # 三族防御塔
 
-## 0.13.3 可建造的人族地堡
+## 0.13.5 可建造的人族地堡
 
 地堡花费 600 矿，拥有 1800 生命、0 护盾、3 护甲，标签为重甲、机械、建筑、英雄。生命低于半血时，自动灭火系统每秒恢复 15 生命，最多恢复到 900。堡内有六名特战队员和两名劫掠者，堡顶另装一门尖牙炮塔。九个火力点各自索敌和计时，可分开射击，也可集火同一目标。驻军随地堡被摧毁。
 
 | 火力点 | 数量 | 目标 | 射程（格） | 每次伤害 | 完整攻击周期（秒） |
 |---|---:|---|---:|---|---:|
-| 驻军特战队员 | 6 | 空、地 | 7 | 9，瞬间命中 | 0.28693 |
-| 驻军劫掠者 | 2 | 地 | 8 | 13，对重甲再加 13，弹道命中 | 0.5 |
+| 驻军特战队员 | 6 | 空、地 | 7 | 9，瞬间命中 | 0.19129 |
+| 驻军劫掠者 | 2 | 地 | 8 | 13，对重甲再加 13，弹道命中 | 0.33333 |
 | 堡顶尖牙炮塔 | 1 | 空、地 | 5 | 6，瞬间命中 | 0.28693 |
 
-劫掠者命中后使地面单位减速 50%，持续 1.5 秒，巨型单位、建筑与带狂暴标签的单位免疫。上表次数取普通地堡的实际驻军，射程计入驻舱加成。表中为未注射时的完整周期，已含原图武器的三倍射速，时间口径与其他种族防御塔一致。敌人在 7 格以外、8 格以内时，只有劫掠者能对地开火。[驻军生成脚本](../reference/desert-storm/MapScript.galaxy#L32731-L32757) · [地堡单位](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L5968) · [武器配置](../reference/desert-storm/Base.SC2Data/GameData/WeaponData.xml)
+劫掠者命中后使地面单位减速 50%，持续 1.5 秒，巨型单位、建筑与带狂暴标签的单位免疫。上表次数取普通地堡的实际驻军，射程计入驻舱加成。表中为实战完整射击周期，已计入原图武器的三倍射速和各炮位的常驻倍率。敌人在 7 格以外、8 格以内时，只有劫掠者能对地开火。[驻军生成脚本](../reference/desert-storm/MapScript.galaxy#L32731-L32757) · [地堡单位](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L5968) · [武器配置](../reference/desert-storm/Base.SC2Data/GameData/WeaponData.xml)
 
-地图说明写明驻军能在堡内注射强化剂。这里按该说明实现为每名驻军交战时自行扣除 10 点生命，15 秒内攻速提高 50%，驻军各自每秒恢复 1 生命。强化期间步枪周期约 0.191 秒，榴弹约 0.333 秒，堡顶尖牙炮塔仍为 0.287 秒。地图引用的私人模组未随源码上传，无法独立验证原引擎中的舱内自动施放条件。[地堡说明](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L2933) · [强化剂能力](../reference/desert-storm/Base.SC2Data/GameData/AbilData.xml) · [灭火系统的合作模式数值](https://github.com/SC2Mapster/SC2GameData/blob/6dd323aae4209a01f110719a00b4e8f7a88389bc/mods/starcoop/starcoop.sc2mod/base.sc2data/GameData/BehaviorData.xml#L4432-L4440)
+沙漠风暴的地堡说明提到驻军可以使用兴奋剂。FightParty 将其设计为地堡驻军常驻攻速。独立炮位从建成起按各自的 `attack_speed_multiplier` 计时，驻军两组均为 1.5，尖牙炮塔取默认值 1。建筑承担全部生命和受伤结算。驻军在脱战、换目标和再次接敌时都保持该倍率，随地堡摧毁而停止射击。[地堡说明](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L2933) · [灭火系统的合作模式数值](https://github.com/SC2Mapster/SC2GameData/blob/6dd323aae4209a01f110719a00b4e8f7a88389bc/mods/starcoop/starcoop.sc2mod/base.sc2data/GameData/BehaviorData.xml#L4432-L4440)
 
 ## 0.11.3 三族平衡记录
 

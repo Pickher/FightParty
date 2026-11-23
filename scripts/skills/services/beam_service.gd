@@ -31,7 +31,7 @@ static func apply(ctx: Dictionary, clock_owner: Dictionary, weapon: Dictionary, 
 	var elapsed: float = clampf(now+float(ctx.dt)-maxf(now,float(state.wait_until)),0.0,float(ctx.dt))
 	if elapsed<=0.000001:return
 	var step_seconds: float = float(delivery.tick_interval)
-	var rate: float = sim.skill_system.attack_rate(sim,source)
+	var rate: float = float(clock_owner.attack_rate)
 	if rate<=0:return
 	var cost: float = float(ctx.get("healing_energy_per_period",0))
 	if healing and not sim.can_spend_energy(source,cost):

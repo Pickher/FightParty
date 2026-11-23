@@ -1,5 +1,5 @@
 {
-  "version": "0.13.3",
+  "version": "0.13.5",
   "policy": "地堡采用普通玩家建造脚本及已核对的战役/合作依赖；神族与虫族的原图覆盖和主动平衡逐项标记。",
   "units": {
     "terran_bunker": {
@@ -29,8 +29,8 @@
         "attack_modes/2/damage": "Liberty Campaign WeaponData/ShrikeTurret → EffectData/ShrikeTurretDamage=6，直接伤害",
         "attack_modes/2/range": "ShrikeTurret 继承 CWeaponLegacy 默认射程5；堡顶无驻舱射程加成",
         "attack_modes/2/interval": "Liberty Campaign ShrikeTurret/Period=0.8608；地图 RateMultiplier=3，总周期÷3并扣除出手与后摇",
-        "skills/independent_weapons/weapons/0/stimulant": "地图地堡说明、UnitData/WarPig、AbilData/DSStimpack：驻军交战自动使用；90生命、自身每秒恢复1",
-        "skills/independent_weapons/weapons/1/stimulant": "地图地堡说明、UnitData/Marauder2、AbilData/DSStimpack：驻军交战自动使用；250生命、自身每秒恢复1"
+        "skills/independent_weapons/weapons/0/attack_speed_multiplier": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。",
+        "skills/independent_weapons/weapons/1/attack_speed_multiplier": "FightParty 地堡规则：驻军炮位常驻兴奋剂攻速，沿用 Liberty BehaviorData/Stimpack 的 AttackSpeedMultiplier=1.5。"
       }
     },
     "protoss_photon_cannon": {
@@ -122,11 +122,6 @@
       "id": "zerg_tower_cluster",
       "path": "cost",
       "reason": "两座孢子明确150/座，脊针采用原版100/座回退，合并价格500。"
-    },
-    {
-      "id": "terran_bunker",
-      "path": "ability:DSStimpack",
-      "reason": "私人依赖未随图上传，运输行为只显式开放基础 Stimpack，舱内 DSStimpack 的引擎触发条件无法完全核实。本项目按地图说明实现普通驻军交战时自动注射，堡顶炮台独立。"
     }
   ],
   "hellion_comparison": {
