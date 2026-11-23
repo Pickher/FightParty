@@ -1,6 +1,6 @@
 # 兵种数值总表
 
-> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.2）生成，请勿手改；改数值后重新生成。
+> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.3）生成，请勿手改；改数值后重新生成。
 > 价格按组（每组 `spawn_count` 名），生命、护盾、伤害按个体。间隔单位秒，射程与速度单位格、格/秒。
 > 攻击模式列：伤害（类型/标签加成）×每轮段数 / 轮后间隔 / 射程（可打的层，投送类型）。
 
@@ -13,7 +13,7 @@
 | `hellbat_mech` | 恶蝠 | 可用 | 260/0/0 | 1 | 235 | 轻 5 | 地 | 2.25 | 凝固汽油喷射器 24（+25轻） / 1.333 / 2（地，cone） | — |
 | `marauder` | 劫掠者 | 可用 | 560/0/0 | 4 | 125 | 重 4 | 地 | 2.25 | 震荡榴弹 13（+13重） / 1.5 / 6（地，projectile） | `stimulant`、`on_hit_slow` |
 | `medic` | 医疗兵 | 暂时停用 | 380/380/0 | 1 | 78 | 轻 4 | 地 | 2.25 | 治疗光束 0 / 0 / 4，治疗 12（地、空，beam） | `healing` |
-| `medivac` | 医疗运输机 | 可用 | 850/0/0 | 2 | 150 | 重 4 | 空 | 2.5 | 双束医疗 0 / 0 / 4，治疗 12（地、空，beam） | `medivac_healing` |
+| `medivac` | 医疗运输机 | 可用 | 850/0/0 | 2 | 150 | 重 4 | 空 | 2.5 | 双束医疗 0 / 0 / 4，治疗 1（地、空，beam） | `medivac_healing` |
 | `agent` | 特工 | 可用 | 750/0/0 | 1 | 125 | 轻 3 | 地 | 2.75 | 穿甲弹 13（+60重、+13轻） / 0.05 / 7（地、空，projectile）<br>狙击弹 30（+30轻） / 1.07 / 8（地、空，projectile） | `weapon_switch`、`combat_mobility` |
 | `widow_mine` | 寡妇雷 | 可用 | 360/0/0 | 2 | 90 | 轻 3 | 地 | 2.8125 | 哨戒导弹 85（+30重） / 23 / 4，溅射 1.75（地、空，projectile） | `deployment`、`combat_mobility` |
 | `mortar` | 坦克 | 可用 | 850/0/0 | 1 | 175 | 重 4 | 地 | 2.25 | 机动炮击 21（+14重） / 1.04 / 7（地，projectile）<br>攻城炮击 52（+33重） / 3 / 13，溅射 2.5（地，projectile） | `deployment` |
@@ -21,7 +21,7 @@
 | `liberator` | 解放者 | 可用 | 1200/0/0 | 1 | 180 | 重 3 | 空 | 3.38 | 对空散射 10 / 1.29 / 5（空，projectile）<br>防卫炮击 160（+30重） / 2.36 / 17（地，projectile） | `defender_zone`、`combat_mobility` |
 | `thor` | 雷神 | 可用 | 1250/0/0 | 1 | 400 | 特殊 4 | 地 | 1.88 | 高射炮击 23（+15重）×2 / 1 / 10（空，projectile）<br>雷神之锤导弹 9（+9轻）×4 / 1.9 / 14，溅射 1.2（空，projectile）<br>重炮射击 39（+11重）×2 / 1 / 7（地，projectile） | `weapon_switch`、`combat_mobility` |
 | `battlecruiser` | 大和舰 | 可用 | 1200/0/0 | 1 | 550 | 重 6 | 空 | 1.875 | 对地激光炮组 11 / 0.16 / 6（地，projectile）<br>对空激光炮组 9 / 0.16 / 6（空，projectile） | `weapon_switch`、`yamato`、`mobile_attack`、`combat_mobility` |
-| `terran_bunker` | 防御塔 | 结构体 | 500/0/0 | 1 | 1200 | 重 3 | 地 | 0 | 驻军特战队员 15 / 0.43 / 6（地、空，projectile）<br>驻军劫掠者 20（+20重） / 0.75 / 7（地，projectile） | `independent_weapons` |
+| `terran_bunker` | 地堡 | 结构体 | 600/0/0 | 1 | 1800 | 重 3 | 地 | 0 | 驻军特战队员 9 / 0.2526 / 7（地、空，projectile）<br>驻军劫掠者 13（+13重） / 0.499 / 8（地，projectile）<br>尖牙炮塔 6 / 0.186933 / 5（地、空，projectile） | `independent_weapons`、`regen`、`on_hit_slow` |
 
 ## 虫族 `zerg`
 

@@ -1005,7 +1005,7 @@ func queue_strike_hit(ctx: Dictionary, weapon: Dictionary, victim: Dictionary, s
 	events.append({"type":"attack_hit","id":victim.id,"kind":unit.kind,"team":unit.team,"strike":strike,"amount":amount,"mode":weapon.get("id","primary"),"time":float(ctx.get("impact_time",float(tick)/float(rules.tick_rate)))})
 	if ctx.has("impact_skills"):
 		skill_system.wave_hit(self,{"source_id":unit.id,"kind":unit.kind,"team":unit.team,"source":unit.pos,"impact_skills":ctx.impact_skills,"weapon":weapon,"damage_multiplier":multiplier},victim,ctx.hits,ctx.pending_slows)
-	else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows)
+	else:skill_system.hit(self,unit,victim,ctx.hits,ctx.pending_slows,weapon)
 
 ## 所有移动行为共用增益/减速倍率；不修改兵种基础数值。
 func _movement_speed(unit: Dictionary) -> float:

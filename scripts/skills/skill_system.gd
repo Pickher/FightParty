@@ -124,8 +124,8 @@ func after_attack(ctx: Dictionary) -> void:
 	for component in components(ctx.unit):component.after_attack(ctx)
 	publish(ctx.unit)
 
-func hit(sim, unit: Dictionary, victim: Dictionary, hits: Dictionary, slows = null) -> void:
-	var ctx := {"sim":sim,"unit":unit,"victim":victim,"hits":hits,"pending_slows":incoming_slows if slows==null else slows}
+func hit(sim, unit: Dictionary, victim: Dictionary, hits: Dictionary, slows = null, weapon: Dictionary = {}) -> void:
+	var ctx := {"sim":sim,"unit":unit,"victim":victim,"hits":hits,"pending_slows":incoming_slows if slows==null else slows,"weapon":weapon}
 	for component in components(unit):component.on_hit(ctx)
 	publish(unit)
 

@@ -8,13 +8,15 @@
 
 桌面的“FightParty指导.txt”是这份 README 的相同内容副本。以后修改 README 后，桌面副本不会自动更新，需要重新复制。
 
-FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.13.2**，使用 Godot 和 GDScript；Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
+FightParty 是公平配兵、按波次出兵、残兵推进的原创自动战斗游戏。当前源码为 Windows + Android 离线人机原型，规则版本 **0.13.3**，使用 Godot 和 GDScript。Windows 原环境为 4.7.2，云端验证环境为 4.6.3。最近一次打包的测试 APK 仍是 0.7.4，之后的改动需要重新打包才会进入手机。
 
 当前玩法规则见 [游戏设计](docs/DESIGN.md)，兵种数值见 [兵种数值总表](docs/UNIT_TABLE.md)，已有测试结果见 [测试报告](docs/TEST_REPORT.md)，不代表当前特性分支已验收。需要用户安排验证时，可用一条命令执行检查（见第十一节）；日常代码修改不自动运行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File tools\check.ps1 -Godot 'C:\Users\ASUS\Documents\Codex\2026-11-01\2\work\tools\godot\Godot_v4.7.2-stable_win64_console.exe'
 ```
+
+0.13.3 人族地堡造价改为 600 矿，拥有 1800 点生命和 3 点护甲。医疗运输机最多同时治疗两名受伤的生物友军，多架运输机会分开救治伤员。Android 导出预设版本号为 50。[地堡火力](docs/DEFENSE_BALANCE.md) · [医疗运输机](docs/MEDIVAC.md)
 
 0.13.2 人族可以用 380 矿招募 1 辆恶火，或用 260 矿直接招募 1 台恶蝠。前线没有上一波友军作战时，恶火放慢速度随队，本波部队发现地面敌人便开始变形。前方有残兵交战时，恶火全速支援，等自己发现地面敌人再变形。变形后，恶蝠会走近敌人并向正前方喷射扇形火焰。Android 导出预设版本号为 49。[恶蝠动作预览](docs/media/hellbat-mech-actions.gif)
 
@@ -185,7 +187,7 @@ data/races.json 是种族表：每个种族的中文名、主题色、一句风�
 - base_regen_per_second：仅剩核心时每秒回血，默认5；防御层存在时采用gate_tower.health_regen，同为整座基地5/秒，不叠加。回血不能复活基地或恢复失效的防御层。
 - structures：是否启用基地防御层和放置宝库，默认true；false时基地只有核心生命、不反击，供隔离单位行为使用。基地防御模块不生成独立单位，在基地中心以8格射程、每0.5秒造成300点无视护甲的光束伤害，可对地对空。
 - treasury_reward：旧矿物奖励保留为0；宝库现在按economy.outpost_core_reward奖励灵核。
-- tower_max_builds：每方每局可建造防御塔的次数，默认 1；被摧毁不归还次数。防御塔按种族不同：人族 terran_bunker、虫族 zerg_tower_cluster、神族 protoss_photon_cannon、腐族 tower，价格取各自的 cost（神族 600，其他 500）。
+- `tower_max_builds` 决定每方每局可建造防御塔的次数，默认 1 次，被摧毁后次数耗尽。建造价格取各塔的 `cost`。人族地堡和神族光子炮台各需 600 矿，虫族爬虫防御群和腐族防御塔各需 500 矿。
 - unit_lifetime：单位最多存活秒数，默认 0 表示不撤离。
 - tick_rate：每秒模拟步数，当前 20，初学时保持不变。main.gd 里还有 0.05 秒节拍、插值与按 20 换算的显示逻辑，不能只改 JSON。
 - columns、rows：布阵列数和行数，当前 18×8。UI 网格按这两个数自动等分，AI 的前后排格子顺序也按它们生成；改尺寸时要同步调整 layout 的出生参数，并检查 races.json 测试用示例阵容的格子编号。

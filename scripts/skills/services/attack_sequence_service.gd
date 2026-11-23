@@ -34,7 +34,11 @@ static func advance(sim, frame: Dictionary) -> void:
 		var current := source_and_state(sim,sequence)
 		if current.is_empty() or int(sequence.serial)<=int(current.state.get("attack_cancelled_through",-1)):continue
 		var source: Dictionary = current.source
-		var rate: float = 1.0 if int(sequence.base_team)>=0 else sim.skill_system.attack_rate(sim,source)
+		var rate := 1.0
+		if int(sequence.mount) >= 0:
+			rate = float(current.state.attack_rate)
+		elif int(sequence.base_team) < 0:
+			rate = sim.skill_system.attack_rate(sim,source)
 		if rate<=0:
 			active.append(sequence)
 			continue

@@ -1,5 +1,5 @@
 {
- "version": "0.13.2",
+ "version": "0.13.3",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -463,14 +463,18 @@
    "speed": 2.5,
    "color": "85efd9",
    "role": "空中医疗 · 双束治疗 · 避战",
-   "counter": "优先治疗受伤生物友军；不回盾、不维修机械，无攻击能力",
+   "counter": "优先治疗受伤生物友军，同一伤员同时只接受一架医疗运输机的治疗",
    "skills": {
     "medivac_healing": {
      "max_targets": 2,
      "acquire_range": 9,
      "follow_distance": 3.2143,
      "danger_distance": 3.5714,
-     "energy_cost": 1
+     "energy_cost": 0.33,
+     "secondary_range": 4.5,
+     "scan_interval": 0.0446428571,
+     "start_energy": 2,
+     "sustain_energy": 1
     }
    },
    "layer": "air",
@@ -487,7 +491,7 @@
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
-   "energy_regen": 1.125,
+   "energy_regen": 1.575,
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
@@ -521,15 +525,15 @@
      "attacks_structures": false,
      "id": "medivac_heal",
      "label": "双束医疗",
-     "attack_duration": 0.5,
+     "attack_duration": 0.0792857143,
      "continue_on_target_death": false,
      "delivery": {
       "type": "beam",
-      "tick_interval": 0.5,
-      "switch_delay": 0.3,
+      "tick_interval": 0.0792857143,
+      "switch_delay": 0,
       "tracking": true
      },
-     "healing": 12
+     "healing": 1
     }
    ],
    "gas_cost": 0,
@@ -537,11 +541,11 @@
     "map_unit": "Medivac",
     "source": "desert-storm",
     "status": "partial_overrides",
-    "notes": "StarportReactor商店基础价850矿/2架，Medivac目录425/架；脚本250是首个升级费用，不是购买价。缺失依赖字段采用明确标注的项目临时值，见docs/MEDIVAC.md。"
+    "notes": "StarportReactor 基础价850矿/2架，治疗沿用自由之翼战役双束技能，并按沙漠风暴 Faster 速度折算。详见 docs/MEDIVAC.md。"
    },
    "core_cost": 0,
    "pending": [
-    "依赖数据缺失：生命150、速度2.5、最大能量200、治疗范围4、12生命/0.5秒/每束耗能1均为项目临时参数，不宣称原图精确值",
+    "生命150、速度2.5、最大能量200沿用项目参数，地图本体未直接覆盖",
     "推进加速、装载运输、升级分支不在本次范围"
    ]
   },
@@ -4902,21 +4906,21 @@
    "core_cost": 0
   },
   "terran_bunker": {
-   "name": "防御塔",
+   "name": "地堡",
    "symbol": "D",
    "race": "terran",
-   "cost": 500,
+   "cost": 600,
    "structure": true,
-   "hp": 1200,
+   "hp": 1800,
    "armor_type": "heavy",
    "armor": 3,
    "speed": 0,
    "color": "b8a1ff",
-   "role": "驻军火力 · 独立索敌",
-   "counter": "8名特战队员对空对地，2名劫掠者只对地；各自锁定与冷却",
+   "role": "驻军火力 · 半血自修",
+   "counter": "6名特战队员与堡顶尖牙炮塔对地对空，2名劫掠者以震荡榴弹对地",
    "size": [
-    2,
-    2
+    3,
+    3
    ],
    "spawn_count": 1,
    "shield": 0,
@@ -4931,7 +4935,8 @@
    "energy_regen_delay": 0,
    "unit_type": "structure",
    "tags": [
-    "mechanical"
+    "mechanical",
+    "heroic"
    ],
    "skills": {
     "independent_weapons": {
@@ -4939,33 +4944,75 @@
       {
        "id": "garrison_rifle",
        "label": "驻军特战队员",
-       "count": 8,
-       "mode_id": "garrison_rifle"
+       "count": 6,
+       "mode_id": "garrison_rifle",
+       "crew_hp": 90,
+       "crew_regen": 1,
+       "stimulant": {
+        "health_cost": 10,
+        "cooldown": 15,
+        "duration": 15,
+        "attack_multiplier": 1.5,
+        "speed_multiplier": 1
+       }
       },
       {
        "id": "garrison_marauder",
        "label": "驻军劫掠者",
        "count": 2,
-       "mode_id": "garrison_marauder"
+       "mode_id": "garrison_marauder",
+       "crew_hp": 250,
+       "crew_regen": 1,
+       "stimulant": {
+        "health_cost": 10,
+        "cooldown": 15,
+        "duration": 15,
+        "attack_multiplier": 1.5,
+        "speed_multiplier": 1
+       }
+      },
+      {
+       "id": "shrike_turret",
+       "label": "尖牙炮塔",
+       "count": 1,
+       "mode_id": "shrike_turret"
       }
+     ]
+    },
+    "regen": {
+     "display_name": "自动灭火系统",
+     "per_second": 15,
+     "delay": 0,
+     "max_health_ratio": 0.5
+    },
+    "on_hit_slow": {
+     "speed_multiplier": 0.5,
+     "duration": 1.5,
+     "weapon_modes": [
+      "garrison_marauder"
+     ],
+     "exclude_tags": [
+      "massive",
+      "structure",
+      "frenzied"
      ]
     }
    },
-   "collision_radius": 1.0,
+   "collision_radius": 1.25,
    "primary_mode": "garrison_rifle",
    "attack_modes": [
     {
-     "damage": 15,
+     "damage": 9,
      "hit_count": 1,
      "bonus": {},
      "bonus_tags": {},
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 6,
-     "interval": 0.43,
+     "range": 7,
+     "interval": 0.2526,
      "windup": 0,
-     "backswing": 0,
+     "backswing": 0.03333333,
      "splash": 0,
      "splash_multiplier": 1,
      "splash_inner_ratio": 0,
@@ -4978,27 +5025,30 @@
      "attacks_structures": true,
      "id": "garrison_rifle",
      "label": "驻军特战队员",
-     "attack_duration": 0.1,
+     "attack_duration": 0.001,
      "continue_on_target_death": false,
      "delivery": {
       "type": "projectile",
       "seconds": 0,
       "tracking": true,
       "flight": "fixed"
-     }
+     },
+     "strike_offsets": [
+      0
+     ]
     },
     {
-     "damage": 20,
+     "damage": 13,
      "hit_count": 1,
      "bonus": {
-      "heavy": 20
+      "heavy": 13
      },
      "bonus_tags": {},
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": false,
-     "range": 7,
-     "interval": 0.75,
+     "range": 8,
+     "interval": 0.499,
      "windup": 0,
      "backswing": 0,
      "splash": 0,
@@ -5012,18 +5062,63 @@
      "attacks_structures": true,
      "id": "garrison_marauder",
      "label": "驻军劫掠者",
-     "attack_duration": 0.18,
+     "attack_duration": 0.001,
      "continue_on_target_death": false,
      "delivery": {
       "type": "projectile",
       "speed": 20,
       "tracking": true,
       "flight": "distance"
-     }
+     },
+     "strike_offsets": [
+      0
+     ]
+    },
+    {
+     "damage": 6,
+     "hit_count": 1,
+     "bonus": {},
+     "bonus_tags": {},
+     "damage_type": "physical",
+     "shield_bonus": 0,
+     "range_from_edge": false,
+     "range": 5,
+     "interval": 0.18693333,
+     "windup": 0,
+     "backswing": 0.08333333,
+     "splash": 0,
+     "splash_multiplier": 1,
+     "splash_inner_ratio": 0,
+     "splash_inner_multiplier": 1,
+     "target_layers": [
+      "ground",
+      "air"
+     ],
+     "attacks_base": false,
+     "attacks_structures": true,
+     "id": "shrike_turret",
+     "label": "尖牙炮塔",
+     "attack_duration": 0.01666667,
+     "continue_on_target_death": false,
+     "delivery": {
+      "type": "projectile",
+      "seconds": 0,
+      "tracking": true,
+      "flight": "fixed"
+     },
+     "strike_offsets": [
+      0.01666667
+     ]
     }
    ],
    "gas_cost": 0,
-   "core_cost": 0
+   "core_cost": 0,
+   "sc2": "地堡 Bunker（沙漠风暴）",
+   "source_profile": {
+    "map_unit": "Bunker",
+    "source": "desert-storm",
+    "status": "explicit_overrides"
+   }
   },
   "locust": {
    "cost": 0,

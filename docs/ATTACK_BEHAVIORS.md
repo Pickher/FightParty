@@ -7,7 +7,7 @@
 | 攻击类型 | 实现 | 常用参数 | 当前例子 |
 |---|---|---|---|
 | 射弹 projectile | scripts/attacks/projectile_attack.gd | flight、seconds/speed、tracking | 特战队员、特工、坦克、雷神、维京；接触武器也使用零飞行的接触子方式 |
-| 激光 beam | scripts/attacks/beam_attack.gd | tick_interval、switch_delay，伤害或healing | 医疗兵、哨兵、虚空辉光舰、基地反击 |
+| 激光 beam | scripts/attacks/beam_attack.gd | tick_interval、switch_delay，伤害或healing | 医疗兵、医疗运输机、哨兵、虚空辉光舰、基地反击 |
 | 直线推进 line | scripts/attacks/line_attack.gd | pattern、length、speed、half_width、effect | 恶火、穿刺者、巨像 |
 | 即时扇形 cone | scripts/attacks/cone_attack.gd | length、angle_degrees | 恶蝠 |
 
@@ -29,7 +29,7 @@
 {"type":"projectile","flight":"distance","speed":25,"tracking":true}
 ```
 
-激光仍按当前规则每0.5秒完整结算一次，切换目标先等待0.3秒再重新累计0.5秒。首次接敌0.5秒后首结算，换目标后0.8秒首结算；本次抽象不调整该节奏。模式attack_duration=0.5、hit_count=1、interval=0，治疗量使用模式healing而非单位属性。
+光束每经过一个完整的 `tick_interval` 结算一次，换目标后先等待 `switch_delay`，再累计新目标的时间。模式的 `attack_duration` 与结算周期一致，`hit_count` 为 1，`interval` 为 0。治疗量由武器模式的 `healing` 决定。下例用于普通光束。医疗运输机的双束治疗每束约每 0.0793 秒恢复 1 生命，换目标后直接开始新周期。[双束治疗](MEDIVAC.md)
 
 ```json
 {"type":"beam","tick_interval":0.5,"switch_delay":0.3,"tracking":true}

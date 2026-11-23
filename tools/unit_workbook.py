@@ -25,6 +25,11 @@ LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multipl
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
     'target_kind':'变形后的兵种ID', 'escort_speed':'随队移速上限（格/秒）',
+    'acquire_range':'自动选取目标半径（格）', 'secondary_range':'副束搜索半径（格）', 'scan_interval':'副束扫描间隔（秒）',
+    'max_targets':'同时作用目标上限', 'start_energy':'启动所需最低能量', 'sustain_energy':'维持所需最低能量',
+    'energy_cost':'每次生效消耗的能量', 'follow_distance':'跟随前排的距离（格）', 'danger_distance':'与威胁保持的距离（格）',
+    'crew_hp':'驻军个体生命上限','crew_regen':'驻军个体每秒回血',
+    'max_health_ratio':'可恢复至最大生命的比例', 'weapon_modes':'可触发的武器模式', 'exclude_tags':'免疫此效果的目标标签',
     'strike_offsets':'各段出手时刻（秒）','armor_multiplier':'护甲减免倍率','splash_rings':'溅射分圈',
     'launch_delay':'出场后投影延迟（秒）','shade_speed':'支援投影速度（格/秒）','contact_range':'投影遇敌半径（格）',
     'retreat_shield_threshold':'触发后撤的护盾下限（低于时触发）','retreat_cooldown':'后撤冷却（秒）','retreat_distance':'后撤距离（格）',
@@ -181,11 +186,11 @@ def validate(units):
         for path, value in leaves(unit):
             key = path[-1]
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
-            if key in ('interval','speed','scan_seconds','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
+            if key in ('interval','speed','scan_seconds','scan_interval','length','crew_hp') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
-            if key in ('hit_count','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
-            if key=='hit_count' and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
-            if key in ('splash_multiplier','splash_inner_ratio','splash_inner_multiplier','health_cost_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
+            if key in ('hit_count','max_targets','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
+            if key in ('hit_count','max_targets') and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
+            if key in ('splash_multiplier','splash_inner_ratio','splash_inner_multiplier','health_cost_ratio','max_health_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
         for key in ('size',):
             val = unit.get(key,[1,1])
             if not isinstance(val,list) or len(val)!=2 or any(not isinstance(x,(int,float)) or isinstance(x,bool) or x<=0 for x in val): raise ValueError(where + 'size 须为两个正数的 JSON 数组。')
@@ -318,11 +323,11 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['恶火','开火距离4.5格，火焰固定传播5格，总宽0.6格（half_width为0.3）。'],
         ['特工弹药','使用穿甲弹/狙击弹模式内的单段伤害30，移除旧顶层未使用的40；各模式伤害和加成独立。'],
         ['明确覆盖与回退','原图明确值已导入单位和武器；旧的额外加成、缺失的原版间隔等以待确认页为准。不得把Weapon.Level当伤害、MinScanRange当射程。'],
-        ['人族防御塔','1200生命/重甲/建筑/不自然回血；驻军8名特战队员、2名劫掠者。武器模式页count是独立炮位数，hit_count是每炮位每轮段数。'],
+        ['人族防御塔','地堡驻军和堡顶机炮独立索敌。武器模式页的 count 决定各类炮位数量，hit_count 决定单个炮位每轮的命中段数。生命与护甲见兵种属性，自动维修和减速弹见技能参数。'],
         ['基地防御模块','gate_tower不再生成独立单位；hp为基地额外生命5000，射程8，每0.5秒300真实伤害，0.5秒结算一次；health_regen为防御层存在时整座基地的回血5/秒。'],
         ['基地核心规则','data/rules.json中base_hp=10000、base_regen_per_second=5（核心阶段回血）。初始15000，降至10000及以下永久失去额外上限与反击；两阶段均只回血5/秒，不能复活。'],
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。地图点位见data/rules.json。'],
-        ['连续光束','医疗兵、哨兵、虚空辉光舰、基地反击：面板总量按0.5秒，每0.5秒一次完整伤害/治疗结算，护甲按这次完整命中扣除；不拆0.05秒采样。光束画面持续，切换目标等待0.3秒并重新计结算周期，轮后间隔0。治疗用healing字段。'],
+        ['连续光束','武器的 tick_interval 是结算周期，switch_delay 是切换目标的额外等待。每个周期结算一次伤害或治疗，治疗量填在 healing。医疗运输机每束约每0.0793秒恢复1生命，每次消耗0.33能量，换目标直接开始新周期。'],
         ['攻击类型','projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进、cone瞬发扇形。扇形的length从发射者前缘算起，angle_degrees为两条侧边的全夹角。'],
         ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
         ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
@@ -354,7 +359,9 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
                     i=p.index('weapons')
                     group=u['skills'][p[1]]['weapons'][int(p[i+1])]
                     context=group.get('label',group.get('id',context))
-                label=context+' · '+PARAM_LABELS.get(p[-1],LABELS.get(p[-1],p[-1]))
+                if context == 'medivac_healing': context = '双束医疗'
+                field = p[-2] if p[-1].isdigit() and p[-2] in ('weapon_modes','exclude_tags') else p[-1]
+                label=context+' · '+PARAM_LABELS.get(field,LABELS.get(field,field))
                 if key=='attack_modes' and u[key][int(p[1])].get('delivery',{}).get('type')=='beam':
                     period=u[key][int(p[1])]['attack_duration']
                     if p[-1] in ('damage','healing','heavy','light','shield_bonus') or 'bonus' in p or 'bonus_tags' in p:label+='（每%s秒总量）'%period

@@ -53,7 +53,7 @@
 - `UnitDefinition` 保存兵种公共属性与多套 `WeaponDefinition`；`primary_mode` 指定默认模式，技能用 `mode_id`/`mode_ids` 引用其他模式。`Catalog` 为旧 UI/技能生成兼容投影，JSON 不保留单位顶层武器真值。见 [公共单位模型](UNIT_MODEL.md) 与 [攻击模式](ATTACK_MODES.md)。
 - `Unit` 是每个战场实体唯一的可变状态；`sim.units`、`by_id` 与技能都引用同一个 `Unit.state` 字典，`sim.unit_model(unit)` 取实例。死亡或到期后释放。
 - `AttackCycle` 区分出手阶段（`attack_duration`、前后摇、`strike_offsets`）与轮后冷却（`interval`）；每轮 `hit_count` 段，每段独立扣甲并触发命中效果。
-- 攻击行为（[攻击行为抽象](ATTACK_BEHAVIORS.md)）：`projectile` 经 AttackSequence 逐段发射、Projectile 飞行，命中才进入 `queue_direct_strike`；`beam` 由 BeamService 每 0.5 秒结算一次，切换目标等 0.3 秒；`line` 由 LineService 推进固定起点、方向和长度的传播波，按相对运动做连续碰撞。行为对象共享且无单位状态。
+- 攻击行为（[攻击行为抽象](ATTACK_BEHAVIORS.md)）：`projectile` 经 AttackSequence 逐段发射、Projectile 飞行，命中才进入 `queue_direct_strike`；`beam` 依照武器的 `tick_interval` 和 `switch_delay` 推进结算与换目标；`line` 由 LineService 推进固定起点、方向和长度的传播波，按相对运动做连续碰撞。行为对象共享且无单位状态。
 - 基地防御层、独立炮位（地堡、爬虫防御群）和医疗兵复用同一套攻击周期与行为。
 
 ## 技能组件

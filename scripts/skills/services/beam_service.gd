@@ -1,9 +1,19 @@
 extends RefCounted
-## 连续武器/治疗共用目标切换与周期结算；每0.5秒完整命中一次，光束画面持续存在。
+## 连续武器与治疗共用光束画面和治疗结算。每种发射模式指定自己的周期。
 static func state_for(owner: Dictionary) -> Dictionary:
 	if not owner.has("beam_state"):
 		owner.beam_state={"target_id":0,"mode_id":"","wait_until":0.0,"accumulator":0.0}
 	return owner.beam_state
+
+static func show_beam(sim, source: Dictionary, weapon: Dictionary, target: Dictionary, target_id: int, healing: bool) -> void:
+	sim.active_beams.append({"source_id":source.id,"target_id":target_id,"from":source.pos,"to":target.pos,
+		"kind":source.kind,"mode":weapon.id,"team":source.team,"healing":healing})
+
+static func heal_tick(ctx: Dictionary, target_id: int, amount: float, cost: float) -> bool:
+	if not ctx.sim.spend_energy(ctx.unit, cost):
+		return false
+	ctx.heals[target_id] = float(ctx.heals.get(target_id, 0)) + amount
+	return true
 
 static func apply(ctx: Dictionary, clock_owner: Dictionary, weapon: Dictionary, target: Dictionary, target_id: int, healing: bool = false) -> void:
 	var sim = ctx.sim
@@ -21,7 +31,6 @@ static func apply(ctx: Dictionary, clock_owner: Dictionary, weapon: Dictionary, 
 	var elapsed: float = clampf(now+float(ctx.dt)-maxf(now,float(state.wait_until)),0.0,float(ctx.dt))
 	if elapsed<=0.000001:return
 	var step_seconds: float = float(delivery.tick_interval)
-	var goal: Vector2 = target.pos
 	var rate: float = sim.skill_system.attack_rate(sim,source)
 	if rate<=0:return
 	var cost: float = float(ctx.get("healing_energy_per_period",0))
@@ -30,13 +39,11 @@ static func apply(ctx: Dictionary, clock_owner: Dictionary, weapon: Dictionary, 
 		return
 	state.accumulator=float(state.accumulator)+elapsed*rate
 	clock_owner.locked_target_id=target_id if target_id>0 else 0
-	sim.active_beams.append({"source_id":source.id,"target_id":target_id,"from":source.pos,"to":goal,
-		"kind":source.kind,"mode":weapon.id,"team":source.team,"healing":healing})
+	show_beam(sim, source, weapon, target, target_id, healing)
 	while float(state.accumulator)+0.000001>=step_seconds:
 		state.accumulator=maxf(0.0,float(state.accumulator)-step_seconds)
 		if healing:
-			if not sim.spend_energy(source,cost):continue
-			ctx.heals[target_id]=float(ctx.heals.get(target_id,0))+float(weapon.get("healing",0))
+			heal_tick(ctx, target_id, float(weapon.get("healing",0)), cost)
 		else:
 			var multiplier: float = float(ctx.get("damage_multiplier",1))
 			if target_id<0:
