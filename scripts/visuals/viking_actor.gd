@@ -208,6 +208,9 @@ func _pose() -> void:
 		if not _at_air_endpoint:
 			for i in _nodes.size():
 				_nodes[i].transform = _flown[i]
+	elif p == 0.:
+		for i in _nodes.size():
+			_nodes[i].transform = _rest[i]
 	else:
 		for i in _nodes.size():
 			var timing := _timing[i]
