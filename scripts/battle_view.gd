@@ -2,7 +2,7 @@ extends Node2D
 const Yamato = preload("res://scripts/skills/yamato.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 # 只隐藏普通攻击连线和弹丸尾线，保留命中效果与动作。
-const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","agent","marauder","terran_bunker"]
+const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","agent","marauder","terran_bunker","viking_assault"]
 ## 独立的战场画布由 SubViewport 裁剪；缩放只影响显示，不改模拟单位。
 var game
 func viewport_size() -> Vector2:

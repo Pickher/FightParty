@@ -82,7 +82,7 @@ godot --headless --path . --export-debug Android build/FightParty-android-test.a
 godot --headless --path . --export-debug 'Android Cloud Test' build/FightParty-cloud-test.apk
 ```
 
-导出预设：`Windows Desktop`；`Android`（包名 `org.pickher.fightparty`）；`Android Cloud Test`（包名 `org.pickher.fightparty.cloudtest`，显示名 FightParty Test，可与原包并存）。当前两个 Android 预设均为 versionName 0.13.5 / versionCode 52。签名 keystore 只保存在本机或云端编辑器设置中，绝不提交；同包名升级必须使用同一签名。产物放在已忽略的 `build/` 目录。
+导出预设：`Windows Desktop`；`Android`（包名 `org.pickher.fightparty`）；`Android Cloud Test`（包名 `org.pickher.fightparty.cloudtest`，显示名 FightParty Test，可与原包并存）。当前两个 Android 预设均为 versionName 0.13.6 / versionCode 53。签名 keystore 只保存在本机或云端编辑器设置中，绝不提交；同包名升级必须使用同一签名。产物放在已忽略的 `build/` 目录。
 
 最近一次实际构建并发布的测试 APK 是 0.7.4（versionCode 24），之后的源码改动没有重新打包；手机上的安装包不会随源码更新。
 

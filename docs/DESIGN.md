@@ -1,4 +1,4 @@
-# FightParty 游戏设计（规则 0.13.5）
+# FightParty 游戏设计（规则 0.13.6）
 
 本文描述当前源码的玩法规则。权威数值是 `data/rules.json`、`data/units.json`、`data/races.json`；兵种逐项数值见 [兵种数值总表](UNIT_TABLE.md)（由数据生成）。各版本的演变过程见 [历史归档](archive/README.md)，其中的旧数值不再适用。
 

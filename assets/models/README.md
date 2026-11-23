@@ -48,4 +48,8 @@
 
 更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
 
-维京机甲（地面突击形态）源模型位于 [viking_assault.glb](viking/viking_assault.glb)，来自用户提供的 `维京机甲3d模型.glb`，按维京单位 ID `viking` 建立目录。该 GLB 未包含纹理图片，无外置文件依赖；供后续机甲形态、动画和变形接入使用。当前单位配置为战斗机形态。
+## 维京机甲
+
+地面形态 `viking_assault` 使用玩家上传的[维京机甲白模](viking/viking_assault.glb)。源文件是一个网格，包含 41 个独立的几何部件。[战场模型](viking/viking_assault_rig.glb)把这些部件组合成机身、左右腿和双臂机炮，并添加钢蓝色装甲和琥珀色舱窗。行走时双腿按实际移动距离交替摆动，双炮在武器发射时后坐。战场采用共享 3D 视口。部队招募和编队面板使用同一模型渲染的[独立肖像](../ui/recruits/viking_assault.png)。
+
+在项目根目录运行 `python tools/art/build_viking_assault_rig.py` 可重建分件和涂装。招募肖像使用上节的脚本，兵种参数填 `viking_assault`。

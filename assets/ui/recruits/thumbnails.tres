@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=47 format=3]
+[gd_resource type="SpriteFrames" load_steps=48 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/ui/recruits/thumbnails.png" id="1_atlas"]
 
@@ -227,6 +227,11 @@ atlas = ExtResource("1_atlas")
 region = Rect2(256, 320, 64, 64)
 filter_clip = true
 
+[sub_resource type="AtlasTexture" id="Tile_45"]
+atlas = ExtResource("1_atlas")
+region = Rect2(320, 320, 64, 64)
+filter_clip = true
+
 [resource]
 animations = [
 {"frames": [{"duration": 1.0, "texture": SubResource("Tile_0")}], "loop": false, "name": &"abomination", "speed": 1.0},
@@ -271,7 +276,8 @@ animations = [
 {"frames": [{"duration": 1.0, "texture": SubResource("Tile_39")}], "loop": false, "name": &"ultralisk", "speed": 1.0},
 {"frames": [{"duration": 1.0, "texture": SubResource("Tile_40")}], "loop": false, "name": &"vanguard", "speed": 1.0},
 {"frames": [{"duration": 1.0, "texture": SubResource("Tile_41")}], "loop": false, "name": &"viking", "speed": 1.0},
-{"frames": [{"duration": 1.0, "texture": SubResource("Tile_42")}], "loop": false, "name": &"void_ray", "speed": 1.0},
-{"frames": [{"duration": 1.0, "texture": SubResource("Tile_43")}], "loop": false, "name": &"widow_mine", "speed": 1.0},
-{"frames": [{"duration": 1.0, "texture": SubResource("Tile_44")}], "loop": false, "name": &"zergling", "speed": 1.0}
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_42")}], "loop": false, "name": &"viking_assault", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_43")}], "loop": false, "name": &"void_ray", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_44")}], "loop": false, "name": &"widow_mine", "speed": 1.0},
+{"frames": [{"duration": 1.0, "texture": SubResource("Tile_45")}], "loop": false, "name": &"zergling", "speed": 1.0}
 ]

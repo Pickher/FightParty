@@ -155,6 +155,11 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 			canvas.draw_line(p-Vector2(0,radius*1.2),p+Vector2(0,radius*1.2),color,2)
 		"zergling", "hellbat":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0),p+Vector2(-radius*0.8,-radius),p+Vector2(-radius*0.3,0),p+Vector2(-radius*0.8,radius)]),color)
+		"viking_assault":
+			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(radius,0), p+Vector2(0,radius*0.6), p+Vector2(-radius*0.8,radius*0.35), p+Vector2(-radius*0.8,-radius*0.35), p+Vector2(0,-radius*0.6)]),color)
+			for side in [-1.0,1.0]:
+				var port := p + Vector2(-0.4,side*0.75)*radius
+				canvas.draw_line(port,port+Vector2.RIGHT*radius*1.4,color,maxf(1,radius*0.45))
 		"viking", "fly_swarm", "spore_drifter":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.2),p+Vector2(radius*1.3,radius*0.7),p+Vector2(-radius*1.3,radius*0.7)]),color)
 			canvas.draw_circle(p,radius*0.3,Color("223751"))

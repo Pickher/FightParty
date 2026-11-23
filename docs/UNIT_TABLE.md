@@ -1,6 +1,6 @@
 # 兵种数值总表
 
-> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.5）生成，请勿手改；改数值后重新生成。
+> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.6）生成，请勿手改；改数值后重新生成。
 > 价格按组（每组 `spawn_count` 名），生命、护盾、伤害按个体。间隔单位秒，射程与速度单位格、格/秒。
 > 攻击模式列：伤害（类型/标签加成）×每轮段数 / 轮后间隔 / 射程（可打的层，投送类型）。
 
@@ -18,6 +18,7 @@
 | `widow_mine` | 寡妇雷 | 可用 | 360/0/0 | 2 | 90 | 轻 3 | 地 | 2.8125 | 哨戒导弹 85（+30重） / 23 / 4，溅射 1.75（地、空，projectile） | `deployment`、`combat_mobility` |
 | `mortar` | 坦克 | 可用 | 850/0/0 | 1 | 175 | 重 4 | 地 | 2.25 | 机动炮击 21（+14重） / 1.04 / 7（地，projectile）<br>攻城炮击 52（+33重） / 3 / 13，溅射 2.5（地，projectile） | `deployment` |
 | `viking` | 维京 | 可用 | 990/0/0 | 2 | 180 | 重 3 | 空 | 2.25 | 对空导弹 26（+8重） / 2 / 11（空，projectile） | `combat_mobility` |
+| `viking_assault` | 维京机甲 | 可用 | 990/0/0 | 3 | 220 | 重 3 | 地 | 2.25 | 高速格林机关炮 18（+14 mechanical） / 0.083 / 7（地，projectile） | — |
 | `liberator` | 解放者 | 可用 | 1200/0/0 | 1 | 180 | 重 3 | 空 | 3.38 | 对空散射 10 / 1.29 / 5（空，projectile）<br>防卫炮击 160（+30重） / 2.36 / 17（地，projectile） | `defender_zone`、`combat_mobility` |
 | `thor` | 雷神 | 可用 | 1250/0/0 | 1 | 400 | 特殊 4 | 地 | 1.88 | 高射炮击 23（+15重）×2 / 1 / 10（空，projectile）<br>雷神之锤导弹 9（+9轻）×4 / 1.9 / 14，溅射 1.2（空，projectile）<br>重炮射击 39（+11重）×2 / 1 / 7（地，projectile） | `weapon_switch`、`combat_mobility` |
 | `battlecruiser` | 大和舰 | 可用 | 1200/0/0 | 1 | 550 | 重 6 | 空 | 1.875 | 对地激光炮组 11 / 0.16 / 6（地，projectile）<br>对空激光炮组 9 / 0.16 / 6（空，projectile） | `weapon_switch`、`yamato`、`mobile_attack`、`combat_mobility` |
