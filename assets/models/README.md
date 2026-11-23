@@ -50,7 +50,7 @@
 
 ## 维京机甲和维京战机
 
-地面机甲 `viking_assault` 和空中战机 `viking` 在战场上共用[可变形模型](viking/viking_rig.glb)。[上传的机甲白模](viking/viking_assault.glb)由 41 个网格部件构成。行走时两条腿交替承重；格林炮按真实开火事件左右交替，转管加速、炮组后坐。变形成战机时，双腿折入机腹，后掠翼展开，机鼻向前伸出。地面和空中被毁都会从当时的姿态解体。[行走、开火与被毁](../../docs/media/viking-actions.gif) · [机甲变形特写](../../docs/media/viking-transform.gif)
+地面机甲 `viking_assault` 和空中战机 `viking` 在战场上共用[可变形模型](viking/viking_rig.glb)。[上传的机甲白模](viking/viking_assault.glb)由 41 个网格部件构成。行走时两条腿交替承重。两臂的格林炮按实际开火事件左右交替发射，转管加速、炮组后坐。变形成战机时，双腿折入机腹，后掠翼展开，机鼻向前伸出。地面和空中被毁都会从当时的姿态解体。[行走、开火与被毁](../../docs/media/viking-actions.gif) · [机甲变形特写](../../docs/media/viking-transform.gif)
 
 招募空中战机时，每架新出场的维京先起步 0.30 秒，接着用 1.20 秒展开升空，左右挂架按已有的对空导弹事件开火。招募地面机甲时，单位保持地面形态。可在 Godot 中打开[维京动作预览](../../scenes/art/viking_actions.tscn)，按 F6 查看两个形态的动作、起飞和反向降落。
 
