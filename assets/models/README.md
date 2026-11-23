@@ -47,3 +47,5 @@
 部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。已有兵模的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景，其余肖像的造型源在[肖像美术目录](../../tools/art/recruit_portraits/)。
 
 更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
+
+维京机甲（地面突击形态）源模型位于 [viking_assault.glb](viking/viking_assault.glb)，来自用户提供的 `维京机甲3d模型.glb`，按维京单位 ID `viking` 建立目录。该 GLB 未包含纹理图片，无外置文件依赖；供后续机甲形态、动画和变形接入使用。当前单位配置为战斗机形态。
