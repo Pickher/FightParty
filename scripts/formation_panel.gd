@@ -225,8 +225,9 @@ func draw() -> void:
 	var info: String = str(preview.get("error","")) if dragging and not str(preview.get("error","")).is_empty() else notice
 	var bad: bool = not str(preview.get("error","")).is_empty() if dragging else notice_bad
 	if dragging and str(preview.get("error","")).is_empty():info="松手布置 %d 名；拖出方框或 Esc 取消。" % drag_selection.size()
-	game.draw_multiline_string(game.FONT,Vector2(446,803),info,HORIZONTAL_ALIGNMENT_LEFT,930,18,2,game.CORAL if bad else game.MINT)
+	game.draw_multiline_string(game.FONT,Vector2(446,803),info,HORIZONTAL_ALIGNMENT_LEFT,710,18,2,game.CORAL if bad else game.MINT)
 	game._text(Vector2(446,846),"电脑：左键单选/双击同类/框选，右键点放或长按拖线；触屏沿用点放/拖线",16,game.MUTED)
+	game._draw_tower_button(Rect2(1174,802,202,44))
 
 func _draw_list() -> void:
 	var recruiting: bool=tab=="recruit"

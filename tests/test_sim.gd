@@ -1431,7 +1431,7 @@ func _structures() -> void:
 	check(destroyed and not loot.units.has(treasury) and loot.economy.cores==[reward,0] and loot.kills==[0,0],"destroying treasury rewards attacker cores once without kill credit")
 	ticks(loot,10)
 	check(loot.economy.cores==[reward,0],"treasury reward is not repeated")
-	# 可建造防御塔：种族专用、扣矿、选址校验、每局一次、被摧毁不给奖励。
+	# 可建造防御塔：种族专用、按次扣矿、选址校验、摧毁后按模拟时间冷却。
 	var build = Sim.new(42,{"races":["terran","terran"],"start_minerals":600})
 	var tower_kind: String = build.tower_kind(0)
 	var tower_cost: int = int(build.catalog[tower_kind].cost)
@@ -1442,12 +1442,32 @@ func _structures() -> void:
 	var built: Dictionary = build.units.filter(func(u): return u.kind==tower_kind)[0]
 	check(built.team==0 and built.pos==build.layout_pos(0,"tower"),"tower without position uses layout site")
 	build.minerals[0] = 5000
-	check(build.build_tower(0)!="" and build.minerals[0]==5000,"only one tower per match")
+	check(build.tower_alive(0) and build.build_tower(0)!="" and build.minerals[0]==5000,"a standing tower blocks a duplicate purchase")
 	built.hp = 1
 	tune(build,"rifle",{"speed":0,"hp":100000,"skills":{}})
 	build.spawn_unit(1,"rifle",built.pos+Vector2(3.0,0))
 	wait_until(build,func(): return not build.units.has(built),60)
-	check(not build.units.has(built) and build.economy.cores==[0,0] and build.kills[1]==0 and build.build_tower(0)!="","destroyed tower gives no reward and cannot be rebuilt")
+	check(not build.tower_alive(0) and build.economy.cores==[0,0] and build.kills[1]==0,"destroyed tower gives no reward")
+	var remaining: float = build.tower_cooldown_left(0)
+	check(is_equal_approx(remaining,60.0) and build.tower_cooldown_left(1)==0,"destruction starts a full minute of cooldown for its owner")
+	check(build.build_tower(1)=="" and build.tower_alive(1),"opponent can build during the owner’s cooldown")
+	var rate := int(build.rules.tick_rate)
+	ticks(build,60*rate-1)
+	var new_site: Vector2 = build.suggested_tower_position(0)
+	var held: int = build.minerals[0]
+	var recorded: int = build.journal.actions.size()
+	check(is_equal_approx(build.tower_cooldown_left(0),1.0/rate) and build.build_tower(0,new_site)=="1秒后才能再次建造","rebuild remains locked on the final cooldown tick")
+	check(build.minerals[0]==held and build.journal.actions.size()==recorded,"cooldown rejection spends and records nothing")
+	build.step()
+	held = build.minerals[0]
+	check(build.tower_cooldown_left(0)==0 and build.build_tower(0,new_site)=="" and build.minerals[0]==held-tower_cost,"rebuild opens exactly sixty seconds after death and charges the full price")
+	check(build.tower_alive(0) and build.tower_builds[0]==2 and build.journal.actions.back().position==[new_site.x,new_site.y],"second purchase records its selected location")
+	var replacements: Array = build.units.filter(func(u): return u.team==0 and u.kind==tower_kind)
+	check(replacements.size()==1 and replacements[0].id!=built.id,"replacement is a single new tower")
+	if replacements.size()==1:
+		replacements[0].hp=0
+		build.step()
+		check(not build.tower_alive(0) and is_equal_approx(build.tower_cooldown_left(0),60.0),"destruction of a rebuilt tower starts a fresh cooldown")
 	var poor = Sim.new(42,{"races":["terran","terran"],"start_minerals":tower_cost-1})
 	check(poor.build_tower(1)!="" and poor.minerals[1]==tower_cost-1 and poor.tower_builds==[0,0],"unaffordable bunker spends neither minerals nor build allowance")
 	check(build.journal.actions.any(func(a): return a.type=="build_tower" and a.team==0),"tower build is journaled")
@@ -1474,6 +1494,7 @@ func _structures() -> void:
 	var bunker: int = int(ai.catalog[Catalog.tower_kind(ai.race)].cost)
 	check(ai.wants_tower(Catalog.starter(),[],bunker,0) and not ai.wants_tower([],[],bunker,0) and not ai.wants_tower(Catalog.starter(),[],bunker,1),"AI builds tower only when behind and allowed")
 	check(ai.tower_plan(Catalog.starter(),[],bunker-1,0)=="save","AI saves minerals for tower when behind")
+	check(not ai.wants_tower(Catalog.starter(),[],bunker,0,0.05),"AI waits through the final fraction of the cooldown")
 	check(not ai.wants_tower(Catalog.starter(),Catalog.starter(),2000,0),"AI skips tower when roster is not behind")
 	_terran_bunker()
 
