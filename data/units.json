@@ -1,5 +1,5 @@
 {
- "version": "0.13.7",
+ "version": "0.13.8",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -99,7 +99,7 @@
    "race": "terran",
    "status": "ready",
    "sc2": "恶火 Hellion",
-   "cost": 380,
+   "cost": 460,
    "hp": 90,
    "armor_type": "light",
    "armor": 5,
@@ -115,7 +115,7 @@
     1.2,
     1.2
    ],
-   "spawn_count": 1,
+   "spawn_count": 2,
    "shield": 0,
    "shield_armor": 0,
    "energy": 0,
@@ -187,7 +187,7 @@
    "race": "terran",
    "status": "ready",
    "sc2": "恶蝠 Hellbat",
-   "cost": 260,
+   "cost": 380,
    "hp": 235,
    "armor_type": "light",
    "armor": 5,

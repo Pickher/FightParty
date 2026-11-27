@@ -1,5 +1,5 @@
 {
-  "version": "0.13.7",
+  "version": "0.13.8",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -772,10 +772,10 @@
       "fields": {
         "hp": "UnitData/Hellbat/LifeMax",
         "armor": "UnitData/Hellbat/LifeArmor",
-        "cost": "UnitData/Hellbat/CostResource[Minerals] × spawn_count",
+        "cost": "FightParty 试玩平衡：保留兵种配置中的数值；原图参考 UnitData/Hellbat/CostResource[Minerals] × spawn_count",
         "attack_modes/0/damage": "EffectData/HellionTankDamage/Amount",
         "attack_modes/0/bonus/light": "EffectData/HellionTankDamage/AttributeBonus[Light]",
-        "spawn_count": "MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台",
+        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定；原图参考 MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台",
         "speed": "Swarm/UnitData/HellionTank/Speed=2.25（游戏秒）",
         "energy": "Hellbat、HellionTank 及 Core/CUnit 均未设置能量池，使用 SC2 单位缺省值 0",
         "size": "Swarm/UnitData/HellionTank/Radius=0.625，模型宽高按直径填写",
@@ -2066,8 +2066,8 @@
       "id": "hellbat",
       "path": "cost",
       "before": 130,
-      "after": 380,
-      "source": "FightParty 0.13.2 平衡调整，每组1台；原图 Hellion 价格为130矿"
+      "after": 460,
+      "source": "FightParty 0.13.8 平衡调整：从 380 矿 1 辆调整为 460 矿 2 辆；原图 Hellion 单价为 130 矿"
     },
     {
       "id": "medivac",
@@ -2443,6 +2443,20 @@
       "before": 2,
       "after": 1.5,
       "source": "FightParty 短扇形调校，自机体前缘起算；原图 Void/EffectData/HellionTankSearch/AreaArray@Radius=2"
+    },
+    {
+      "id": "hellbat",
+      "path": "spawn_count",
+      "before": 1,
+      "after": 2,
+      "source": "FightParty 0.13.8 平衡调整：恶火每组 2 辆"
+    },
+    {
+      "id": "hellbat_mech",
+      "path": "cost",
+      "before": 260,
+      "after": 380,
+      "source": "FightParty 0.13.8 平衡调整：恶蝠每组 380 矿 1 台；原图 Hellbat 单价为 260 矿"
     }
   ],
   "unresolved": [

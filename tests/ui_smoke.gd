@@ -277,9 +277,9 @@ func run() -> void:
 ## 仅准备待运行回归：不写设置文件，检查迁移先于提交/恢复排布。
 func _saved_medic_migration() -> void:
 	var saved: Array = [
-		{"kind":"hellbat","cell":2,"member_positions":[[-4,0]]},
+		{"kind":"hellbat","cell":2,"member_positions":[[-4,0],[-4,2]]},
 		{"kind":"medic","cell":3,"member_positions":[[-4,0]]},
-		{"kind":"hellbat","cell":9,"member_positions":[[4,0]]}
+		{"kind":"hellbat","cell":9,"member_positions":[[4,0],[4,2]]}
 	]
 	var untouched: Array = saved.duplicate(true)
 	var migrated: Array = game._migrate_saved_formation(saved)
@@ -318,6 +318,9 @@ func _empty_starts_all_races() -> void:
 	var actions_before: int=game.sim.journal.actions.size()
 	verify(game._load_formation_preset()!="" and game.sim.formations[0].is_empty() and game.sim.minerals[0]==20000 and game.sim.journal.actions.size()==actions_before,"invalid positions do not purchase, spend, or journal")
 	game.saved_formation_preset=saved
-	verify(game._load_formation_preset()=="" and game.sim.formations[0][0].member_positions==saved[0].member_positions,"explicit preset load retains positions")
+	verify(game._load_formation_preset()=="" and game.sim.formations[0].size()==1 and game.sim.minerals[0]==20000-460,"legacy Hellion slot buys one current pack")
+	if game.sim.formations[0].size()==1:
+		var points: Array = game.sim.formations[0][0].get("member_positions",[])
+		verify(points.size()==2 and points[0]==saved[0].member_positions[0] and points[1]!=points[0],"legacy Hellion keeps its position and the second vehicle receives its own")
 	game._new_match()
 	verify(game.sim.formations==[[],[]],"a preset never auto-applies in a new match")

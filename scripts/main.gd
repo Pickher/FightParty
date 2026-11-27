@@ -254,8 +254,8 @@ func _read_formation_preset(config: ConfigFile) -> Array:
 	var saved = config.get_value("player","manual_formation_"+race,config.get_value("player","formation_"+race,config.get_value("player","formation",[])))
 	return saved.duplicate(true) if saved is Array else []
 
-## 兼容 0.13.0 前的四种固定编组。只用于本地预设，不放宽战报恢复规则。
-const PREVIOUS_PACK_COUNTS := {"rifle":4,"zergling":1,"roach":1,"hydralisk":1}
+## 本地阵容允许按旧组数恢复已放置的成员，新成员由排布器补位。
+const PREVIOUS_PACK_COUNTS := {"rifle":4,"zergling":1,"roach":1,"hydralisk":1,"hellbat":1}
 
 func _preset_placements(formation: Array, target) -> Dictionary:
 	var saved_by_cell: Dictionary = {}
