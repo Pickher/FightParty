@@ -311,18 +311,17 @@ def apply():
   'armor_type':'GameStrings/Button/Tooltip/DSSupplyDepot1 轻甲',
   'tags':'Swarm/UnitData/HellionTank 的 Mechanical 及 Void/UnitData/HellionTank 的 Biological；GameStrings/DSSupplyDepot1 及 TechAliasArray[4]=1 表示冲击性',
   'attack_modes/0/target_layers':'Hellbat/WeaponArray → HellionTank；HellionTankSearch 的地面目标过滤',
-  'attack_modes/0/range':'Swarm/WeaponData/HellionTank/Range=2',
+  'attack_modes/0/range':'FightParty 近距开火调校，按双方碰撞边缘计；原图 Swarm/WeaponData/HellionTank/Range=2',
   'attack_modes/0/hit_count':'Swarm/EffectData/HellionTank → HellionTankDamage 主目标一次，HellionTankSearch 排除主目标',
   'attack_modes/0/attack_duration':'Core/WeaponData/DamagePoint=0.167，映射为一次出手',
   'attack_modes/0/backswing':'Core/WeaponData/Backswing=0.5',
   'attack_modes/0/interval':'Void/WeaponData/HellionTank/Period=2游戏秒，扣除0.167出手和0.5后摇',
   'attack_modes/0/delivery/angle_degrees':'Void/EffectData/HellionTankSearch/AreaArray@Arc=45',
-  'attack_modes/0/delivery/length':'Void/EffectData/HellionTankSearch/AreaArray@Radius=2',
+  'attack_modes/0/delivery/length':'FightParty 短扇形调校，自机体前缘起算；原图 Void/EffectData/HellionTankSearch/AreaArray@Radius=2',
  })
  audit['units']['hellbat']['fields'].update({
-  'skills/proximity_morph/target_kind':'FightParty 接敌变形；目标来自 AbilData/MorphToHellionTank → Hellbat',
-  'skills/proximity_morph/duration':'AbilData/MorphToHellionTank；升级 SmartServos 后变形2游戏秒',
-  'skills/proximity_morph/escort_speed':'FightParty 随队行军速度上限；增援前线时使用车型基础移速',
+  'collision_radius':'UnitData/HellionBlackOps、HHHellionTank/SeparationRadius=0.75（Hellion本体未覆盖，取图内恶火变体的分离半径）',
+  'separate_when_stopped':'试玩反馈：同特战队员在攻击冷却中散开，降低溅射叠伤',
   'tags':'机械车型继承 UnitData/Hellion；具有原图变形恶火 HellionMorph/TechAliasArray[4]=1 的冲击性',
  })
  audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='hellbat_mech' or item['path'] not in hellbat_fields]

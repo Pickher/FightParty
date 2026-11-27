@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_viking_assault"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_proximity_morph","_viking_assault"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -1881,10 +1881,6 @@ func _hellion_data() -> void:
 ## 六辆恶火从紧密方阵冲向一排靶子；身后的远程炮持续溅射。返回 {splash 暴露度, 恶火实际损失生命}。
 func _hellion_run(kind: String) -> Dictionary:
 	var sim = bare()
-	# 单独比较车身分散的效果，两个样本都保留车形。
-	var vehicle_skills: Dictionary = sim.catalog[kind].skills.duplicate(true)
-	vehicle_skills.erase("proximity_morph")
-	tune(sim,kind,{"skills":vehicle_skills})
 	var hellions: Array = []
 	for i in range(6):
 		hellions.append(sim.spawn_unit(0, kind, field(-38.0 + float(i % 2) * 1.2, -3.0 + float(i / 2) * 1.2)))
@@ -2256,7 +2252,7 @@ func _viking_assault() -> void:
 		var damage := 30 if tag == "mechanical" else 16
 		check(ground.hp == initial_hp - damage and aircraft.hp == duel.catalog.viking.hp, "assault cannon ignores air and applies mechanical bonus before armor: " + tag)
 
-## 车型在行军与接敌之间保持同一个实体；机甲喷火使用独立的扇形判定。
+## 两个购买项在战场上保持自己的形态、行军速度和攻击方式。
 func _hellbat_mechs() -> void:
 	var shop = bare(42, {"start_minerals":640, "first_wave_seconds":0.05})
 	check(shop.buy(0,"hellbat",0)=="" and shop.minerals[0]==260, "380 minerals buy one Hellion")
@@ -2264,7 +2260,63 @@ func _hellbat_mechs() -> void:
 	shop.step()
 	check(shop.units.filter(func(u): return u.kind=="hellbat").size()==1 and shop.units.filter(func(u): return u.kind=="hellbat_mech").size()==1, "each recruitment deploys one unit in its purchased form")
 
+	for team in range(2):
+		var raid = bare()
+		tune(raid, "dummy", {"speed":0, "damage":0})
+		var forward := Vector2.RIGHT if team == 0 else Vector2.LEFT
+		var car: Dictionary = raid.spawn_unit(team, "hellbat", field(0,0))
+		var escort: Dictionary = raid.spawn_unit(team, "hellbat_mech", car.pos - forward * 5)
+		var start: Vector2 = car.pos
+		var escort_start: Vector2 = escort.pos
+		var rate := int(raid.rules.tick_rate)
+		ticks(raid, rate)
+		var distance := start.distance_to(car.pos)
+		check(absf(distance - float(raid.catalog.hellbat.speed)) < 0.01 and distance > escort_start.distance_to(escort.pos), "the Hellion scouts at full vehicle speed ahead of its slower wave")
+		var front: Dictionary = raid.spawn_unit(1-team, "dummy", car.pos + forward * 3.0)
+		var rear: Dictionary = raid.spawn_unit(1-team, "dummy", car.pos + forward * 4.9)
+		var side: Dictionary = raid.spawn_unit(1-team, "dummy", rear.pos + Vector2.UP * 1.5)
+		var weapon: Dictionary = raid.definitions.hellbat.primary_weapon_data
+		ticks(raid, 2 * rate + 1)
+		check(car.kind == "hellbat" and not car.has("morph_start_tick"), "a Hellion stays in vehicle form throughout ground combat")
+		check(front.hp == DUMMY.hp - weapon.damage and rear.hp == front.hp and side.hp == DUMMY.hp, "vehicle flame pierces the front and rear targets in one narrow line")
+
+	for team in range(2):
+		var sim = bare()
+		tune(sim,"hellbat_mech",{"speed":0, "separate_when_stopped":false})
+		tune(sim,"dummy",{"speed":0, "damage":0})
+		tune(sim,"rifle",{"speed":0, "damage":0, "skills":{}, "separate_when_stopped":false})
+		tune(sim,"viking",{"speed":0, "skills":{}})
+		var direction := Vector2.RIGHT if team == 0 else Vector2.LEFT
+		var mech: Dictionary = sim.spawn_unit(team,"hellbat_mech",field(0,0))
+		var muzzle: Vector2 = mech.pos + direction * sim.body_radius(mech)
+		# 假人半径为0.5，因此从枪口到圆心1.8格对应1.3格边缘间距。
+		var primary: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.8)
+		ticks(sim, int(sim.rules.tick_rate))
+		check(primary.hp == DUMMY.hp and mech.attack_serial == 0, "Hellbat holds fire beyond the 1.25 edge-to-edge trigger, even inside the old range")
+		primary.pos = muzzle + direction * 0.55
+		var light: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.4 + Vector2.UP * 0.3)
+		var edge: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.3 + Vector2.DOWN * 0.85)
+		var side: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.1 + Vector2.UP * 1.25)
+		var far_target: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 2.1)
+		var aircraft: Dictionary = sim.spawn_unit(1-team,"viking",muzzle + direction * 1.6)
+		var ally: Dictionary = sim.spawn_unit(team,"dummy",muzzle + direction * 1.7)
+		var hp := float(DUMMY.hp)
+		check(wait_until(sim,func(): return primary.hp < hp, 20)>0, "hellbat fires at a ground target")
+		check(sim.events.any(func(e): return e.type == "cone_attack" and is_equal_approx(e.length,1.5) and is_equal_approx(e.angle_degrees,45.0)), "Hellbat flame uses a 45-degree sector reaching 1.5 from its muzzle")
+		check(is_equal_approx(float(primary.hp),hp-24.0) and is_equal_approx(float(edge.hp),hp-24.0), "one hit on the primary and a ground unit whose body touches the cone")
+		var light_damage := 49.0 - float(sim.catalog.rifle.armor)
+		check(is_equal_approx(float(light.hp),float(sim.catalog.rifle.hp)-light_damage), "light splash target takes 24 + 25 before armor")
+		check(side.hp==hp and far_target.hp==hp and ally.hp==hp and aircraft.hp==sim.catalog.viking.hp, "side, range, team and layer limit the flame cone")
+
+## 变形组件可单独挂载，生产配置中的恶火不使用这个技能。
+func _enable_test_morph(sim) -> void:
+	var skills: Dictionary = sim.catalog.hellbat.skills.duplicate(true)
+	skills.proximity_morph = {"target_kind":"hellbat_mech", "duration":2.0, "escort_speed":2.25}
+	tune(sim, "hellbat", {"skills":skills})
+
+func _proximity_morph() -> void:
 	var solo = bare()
+	_enable_test_morph(solo)
 	var car: Dictionary = solo.spawn_unit(0,"hellbat",field(0,0))
 	var original_id: int = car.id
 	var full_speed := float(solo.catalog.hellbat.speed)
@@ -2299,32 +2351,10 @@ func _hellbat_mechs() -> void:
 		_hellion_wave_contact(team, false)
 		_hellion_wave_contact(team, true)
 
-	for team in range(2):
-		var sim = bare()
-		tune(sim,"hellbat_mech",{"speed":0, "separate_when_stopped":false})
-		tune(sim,"dummy",{"speed":0, "damage":0})
-		tune(sim,"rifle",{"speed":0, "damage":0, "skills":{}, "separate_when_stopped":false})
-		tune(sim,"viking",{"speed":0, "skills":{}})
-		var direction := Vector2.RIGHT if team == 0 else Vector2.LEFT
-		var mech: Dictionary = sim.spawn_unit(team,"hellbat_mech",field(0,0))
-		var muzzle: Vector2 = mech.pos + direction * sim.body_radius(mech)
-		var primary: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 0.55)
-		var light: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.7 + Vector2.UP * 0.55)
-		var edge: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.3 + Vector2.DOWN * 0.85)
-		var side: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.4 + Vector2.UP * 2.0)
-		var far_target: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 3.0)
-		var aircraft: Dictionary = sim.spawn_unit(1-team,"viking",muzzle + direction * 1.6)
-		var ally: Dictionary = sim.spawn_unit(team,"dummy",muzzle + direction * 1.7)
-		var hp := float(DUMMY.hp)
-		check(wait_until(sim,func(): return primary.hp < hp, 20)>0, "hellbat fires at a ground target")
-		check(is_equal_approx(float(primary.hp),hp-24.0) and is_equal_approx(float(edge.hp),hp-24.0), "one hit on the primary and a ground unit whose body touches the cone")
-		var light_damage := 49.0 - float(sim.catalog.rifle.armor)
-		check(is_equal_approx(float(light.hp),float(sim.catalog.rifle.hp)-light_damage), "light splash target takes 24 + 25 before armor")
-		check(side.hp==hp and far_target.hp==hp and ally.hp==hp and aircraft.hp==sim.catalog.viking.hp, "side, range, team and layer limit the flame cone")
-
 ## 快速同伴也不能把随队速度抬至全速；前方舰艇的激光或拦截机交火属于真实支援目标。
 func _hellion_supports_ship(kind: String) -> void:
 	var sim = bare()
+	_enable_test_morph(sim)
 	tune(sim,"dummy",{"speed":8.0})
 	tune(sim,"roach",{"speed":0, "damage":0, "skills":{}})
 	var ship: Dictionary=sim.spawn_unit(0,kind,field(25,0))
@@ -2350,6 +2380,7 @@ func _hellion_supports_ship(kind: String) -> void:
 ## 先部署一名老兵，再部署有前哨和恶火的第二波。只有前方仍在战斗的老兵才让恶火独立侦察、全速增援。
 func _hellion_wave_contact(team: int, veteran_ahead: bool) -> void:
 	var sim = bare(42, {"start_minerals":600, "first_wave_seconds":0.05})
+	_enable_test_morph(sim)
 	tune(sim,"dummy",{"speed":1.8, "range":5, "damage":1})
 	tune(sim,"roach",{"speed":0, "damage":0, "skills":{}})
 	check(sim.buy(team,"dummy",0)=="", "first wave recruits a veteran")
