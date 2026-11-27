@@ -2543,19 +2543,23 @@ func _zerg_contact_and_splash() -> void:
 
 	for killed in [false,true]:
 		var blast = bare()
-		tune(blast,"baneling",{"speed":0,"separate_when_stopped":false})
+		# 死亡引爆使用不同的碰撞半径，验证爆炸随虫体尺寸变化。
+		var bomb_radius: float = 0.75 if killed else blast.catalog.baneling.collision_radius
+		tune(blast,"baneling",{"speed":0,"separate_when_stopped":false,"collision_radius":bomb_radius})
 		tune(blast,"dummy",{"speed":0,"damage":0})
 		tune(blast,"viking",{"speed":0,"damage":0,"skills":{}})
 		var bomb: Dictionary = blast.spawn_unit(0,"baneling",center)
-		var direct: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(1.05,0))
-		var clips_rim: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(0,-1.49))
-		var outside: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(0,1.55))
+		var contact := bomb_radius + float(DUMMY.collision_radius)
+		var rim := contact + 0.5
+		var direct: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2.RIGHT*(contact+0.05))
+		var clips_rim: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2.UP*(rim-0.01))
+		var outside: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2.DOWN*(rim+0.05))
 		var ally: Dictionary = blast.spawn_unit(0,"dummy",center + Vector2(0,0.4))
 		var airborne: Dictionary = blast.spawn_unit(1,"viking",center)
 		ticks(blast,12)
 		check(direct.hp==hp and bomb.hp>0,"baneling does not detonate with an edge gap")
 		if killed:bomb.hp=0
-		else:direct.pos = center + Vector2.RIGHT
+		else:direct.pos = center + Vector2.RIGHT*contact
 		check(wait_until(blast,func(): return direct.hp<hp,20)>0,"baneling damages at contact or when killed")
 		ticks(blast,3)
 		check(direct.hp==hp-52.0 and clips_rim.hp==hp-52.0,"blast hits overlapping disks exactly once")
@@ -2564,18 +2568,22 @@ func _zerg_contact_and_splash() -> void:
 	for team in range(2):
 		var cone = bare()
 		tune(cone,"ultralisk",{"speed":0,"separate_when_stopped":false})
-		tune(cone,"dummy",{"speed":0,"damage":0})
+		var armor := 0.0 if team==0 else 3.0
+		tune(cone,"dummy",{"speed":0,"damage":0,"armor":armor})
 		tune(cone,"viking",{"speed":0,"damage":0,"skills":{}})
 		var forward := Vector2.RIGHT if team==0 else Vector2.LEFT
 		var ultra: Dictionary = cone.spawn_unit(team,"ultralisk",center)
 		var muzzle: Vector2 = center + forward*1.25
 		var direct: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*1.5)
 		ultra.locked_target_id = direct.id
-		var side: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*1.26 + Vector2.UP*0.72)
+		var side: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*0.65 + Vector2.UP*1.04)
+		var outside_angle: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*0.21 + Vector2.DOWN*1.06)
+		var beyond_tip: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*1.55)
 		var behind: Dictionary = cone.spawn_unit(1-team,"dummy",center - forward*3.0)
 		var ally: Dictionary = cone.spawn_unit(team,"dummy",muzzle + forward)
 		var air: Dictionary = cone.spawn_unit(1-team,"viking",muzzle + forward)
 		check(is_equal_approx(cone.attack_reach(ultra,direct,cone._weapon_stats(ultra)),2.75),"ultralisk center to foe edge is radius plus one")
 		check(wait_until(cone,func(): return direct.hp<hp,24)>0,"ultralisk reaches target at the outer edge")
-		check(is_equal_approx(direct.hp,hp-44.0) and is_equal_approx(side.hp,hp-13.2),"ultralisk cone queues 100 and 30 percent before armor")
+		check(is_equal_approx(direct.hp,hp-(44.0-armor)) and is_equal_approx(side.hp,hp-(13.2-armor)),"ultralisk cone queues 100 and 30 percent before armor")
+		check(outside_angle.hp==hp and beyond_tip.hp==hp,"ultralisk cleave stops at its 45-degree half-angle and one-grid length")
 		check(behind.hp==hp and ally.hp==hp and air.hp==cone.catalog.viking.hp,"ultralisk cone excludes rear, friendly and airborne units")

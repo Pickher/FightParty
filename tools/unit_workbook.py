@@ -485,6 +485,8 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
                     row[column-1].comment=Comment(reason+'；此格保留项目回退值，可正常编辑。','FightParty')
         for ws in tabs.values():
             for row in ws.iter_rows(min_row=3):
+                uid,path=row[0].value,row[3].value
+                if path in ds['units'].get(uid,{}).get('fields',{}) and (uid,path) not in source_reviews:continue
                 reason=next((source_reviews[(row[0].value,'/'.join(str(row[3].value).split('/')[:i]))] for i in range(len(str(row[3].value).split('/')),0,-1) if (row[0].value,'/'.join(str(row[3].value).split('/')[:i])) in source_reviews),None)
                 if reason:
                     row[5].fill=PatternFill('solid',fgColor='FFF2CC')
