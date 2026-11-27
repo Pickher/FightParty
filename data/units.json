@@ -1,5 +1,5 @@
 {
- "version": "0.13.8",
+ "version": "0.13.9",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -1582,7 +1582,7 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": true,
-     "range": 0.1,
+     "range": 0,
      "interval": 0.497,
      "windup": 0,
      "backswing": 0,
@@ -1640,7 +1640,7 @@
    "speed": 3.5,
    "color": "a6e86b",
    "role": "近身自爆 · 反轻甲",
-   "counter": "接敌后自爆，伤害范围内地面敌军；会消耗自身",
+   "counter": "贴边自爆，对自身碰撞边缘外 0.5 格内的敌方地面目标造成伤害。",
    "layer": "ground",
    "size": [
     1,
@@ -1650,7 +1650,8 @@
    "skills": {
     "suicide": {
      "structure_damage": 95,
-     "structure_ignore_armor": true
+     "structure_ignore_armor": true,
+     "blast_edge_padding": 0.5
     }
    },
    "shield": 0,
@@ -1681,11 +1682,11 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": true,
-     "range": 0.25,
+     "range": 0,
      "interval": 1,
      "windup": 0,
      "backswing": 0,
-     "splash": 2.2,
+     "splash": 0,
      "splash_multiplier": 1,
      "splash_inner_ratio": 0,
      "splash_inner_multiplier": 1,
@@ -1697,7 +1698,7 @@
      "id": "volatile_burst",
      "label": "酸液自爆",
      "attack_duration": 0.1,
-     "continue_on_target_death": true,
+     "continue_on_target_death": false,
      "delivery": {
       "type": "projectile",
       "tracking": true,
@@ -2396,8 +2397,8 @@
    "armor": 6,
    "speed": 4.13,
    "color": "e0b8a0",
-   "role": "巨型前排 · 顺劈",
-   "counter": "重甲巨型生物，近战顺劈；狂暴免疫待实现",
+   "role": "巨型前排 · 扇形顺劈",
+   "counter": "碰撞边缘外1格出手，正面90度顺劈；主目标全伤，次目标30%",
    "layer": "ground",
    "size": [
     2.5,
@@ -2438,8 +2439,8 @@
      "interval": 0.61,
      "windup": 0,
      "backswing": 0,
-     "splash": 1.4286,
-     "splash_multiplier": 0.33,
+     "splash": 0,
+     "splash_multiplier": 0.3,
      "splash_inner_ratio": 0,
      "splash_inner_multiplier": 1,
      "target_layers": [
@@ -2452,9 +2453,9 @@
      "attack_duration": 0.35,
      "continue_on_target_death": true,
      "delivery": {
-      "type": "projectile",
-      "tracking": true,
-      "flight": "contact"
+      "type": "cone",
+      "length": 1,
+      "angle_degrees": 90
      }
     }
    ],
@@ -4862,7 +4863,7 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": true,
-     "range": 0.1,
+     "range": 0,
      "interval": 0.57,
      "windup": 0,
      "backswing": 0,

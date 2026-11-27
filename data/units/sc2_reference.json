@@ -677,13 +677,6 @@
       "runtime_value": 0.5
     },
     {
-      "id": "ultralisk",
-      "path": "attack_modes/0/splash",
-      "reason": "原版顺劈是定向区域，现有圆形半径不能确认等价",
-      "kind": "待确认",
-      "runtime_value": 1.4286
-    },
-    {
       "id": "archon",
       "path": "attack_modes/0/splash",
       "reason": "原版存在分层溅射，现有单圆半径不能完整表示",

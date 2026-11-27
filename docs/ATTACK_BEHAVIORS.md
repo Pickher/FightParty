@@ -9,7 +9,7 @@
 | 射弹 projectile | scripts/attacks/projectile_attack.gd | flight、seconds/speed、tracking | 特战队员、特工、坦克、雷神、维京；接触武器也使用零飞行的接触子方式 |
 | 激光 beam | scripts/attacks/beam_attack.gd | tick_interval、switch_delay，伤害或healing | 医疗兵、医疗运输机、哨兵、虚空辉光舰、基地反击 |
 | 直线推进 line | scripts/attacks/line_attack.gd | pattern、length、speed、half_width、effect | 恶火、穿刺者、巨像 |
-| 即时扇形 cone | scripts/attacks/cone_attack.gd | length、angle_degrees | 恶蝠 |
+| 即时扇形 cone | scripts/attacks/cone_attack.gd | length、angle_degrees、武器的 splash_multiplier | 恶蝠、雷兽 |
 
 所有行为实现AttackBehavior公共接口：is_continuous区分连续作用与分段出手，tick处理连续作用，can_emit/emit处理一段出手，advance推进在场攻击，target_died处理失去目标，hit_count/expected_dps/skill_name提供类型对应的预估和简介。行为对象共享且不持有单位状态；单位、独立炮位、基地分别保存自己的纯字典时钟与目标。
 
@@ -41,10 +41,10 @@
 {"type":"line","pattern":"forward","length":5,"speed":15,"half_width":0.3,"effect":"flame","tracking":false}
 ```
 
-即时扇形从发射者碰撞圆的前缘沿目标方向展开。`length` 是扇形半径，`angle_degrees` 是两条边之间的总夹角。主目标结算一次，其他可攻击敌人的碰撞圆只要碰到扇面，就在同一次喷射中各结算一次全额伤害。
+即时扇形从发射者碰撞圆的前缘沿目标方向展开。`length` 是扇形半径，`angle_degrees` 是两条边之间的总夹角。主目标结算一次全额伤害。其他可攻击敌人的碰撞圆与扇面相交时，各结算一次次目标伤害。武器的 `splash_multiplier` 在护甲减免前生效，恶蝠取 1，雷兽取 0.3。
 
 ```json
-{"type":"cone","length":2,"angle_degrees":45}
+{"type":"cone","length":1,"angle_degrees":90}
 ```
 
 ## 新兵种与新类型

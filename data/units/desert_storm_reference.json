@@ -1,5 +1,5 @@
 {
-  "version": "0.13.8",
+  "version": "0.13.9",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -270,7 +270,9 @@
         "cost": "FightParty 试玩平衡：保留兵种配置中的数值；原图参考 UnitData/Zergling/CostResource[Minerals] × spawn_count",
         "skills/combat_mobility": "BehaviorData/speed295land; ValidatorData/Speedfixcancel",
         "attack_modes/0/damage": "EffectData/PrimalZergling/Amount",
-        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定"
+        "spawn_count": "FightParty 试玩平衡：每组数量由兵种配置指定",
+        "attack_modes/0/range": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "attack_modes/0/range_from_edge": "FightParty 近战规则，按双方碰撞边缘的间距开火"
       },
       "abilities": [
         "wanttoattackG",
@@ -287,7 +289,11 @@
         "armor": "UnitData/Baneling/LifeArmor",
         "cost": "UnitData/Baneling/CostResource[Minerals] × spawn_count",
         "gas_cost": "UnitData/Baneling/CostResource[Vespene] × spawn_count",
-        "attack_modes/0/damage": "EffectData/VolatileBurstU/Amount"
+        "attack_modes/0/damage": "EffectData/VolatileBurstU/Amount",
+        "attack_modes/0/range": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "attack_modes/0/range_from_edge": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "skills/suicide/blast_edge_padding": "FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离",
+        "attack_modes/0/splash": "FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离"
       },
       "abilities": [
         "wanttoattackG",
@@ -425,7 +431,14 @@
         "cost": "UnitData/Ultralisk/CostResource[Minerals] × spawn_count",
         "gas_cost": "UnitData/Ultralisk/CostResource[Vespene] × spawn_count",
         "skills/combat_mobility": "BehaviorData/speed295land; ValidatorData/Speedfixcancel",
-        "attack_modes/0/damage": "EffectData/KaiserBladesDamage/Amount"
+        "attack_modes/0/damage": "EffectData/KaiserBladesDamage/Amount",
+        "attack_modes/0/range": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "attack_modes/0/range_from_edge": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "attack_modes/0/splash": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率",
+        "attack_modes/0/splash_multiplier": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率",
+        "attack_modes/0/delivery/type": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率",
+        "attack_modes/0/delivery/length": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率",
+        "attack_modes/0/delivery/angle_degrees": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率"
       },
       "abilities": [
         "wanttoattackG",
@@ -662,7 +675,9 @@
       "source_unit": "Broodling",
       "fields": {
         "hp": "UnitData/Broodling/LifeMax",
-        "tags": "UnitData/Broodling/Attributes[Summoned]"
+        "tags": "UnitData/Broodling/Attributes[Summoned]",
+        "attack_modes/0/range": "FightParty 近战规则，按双方碰撞边缘的间距开火",
+        "attack_modes/0/range_from_edge": "FightParty 近战规则，按双方碰撞边缘的间距开火"
       },
       "abilities": [
         "wanttoattackG",
@@ -2457,6 +2472,77 @@
       "before": 260,
       "after": 380,
       "source": "FightParty 0.13.8 平衡调整：恶蝠每组 380 矿 1 台；原图 Hellbat 单价为 260 矿"
+    },
+    {
+      "id": "zergling",
+      "path": "attack_modes/0/range",
+      "before": 0.1,
+      "after": 0,
+      "source": "FightParty 近战规则，按双方碰撞边缘的间距开火"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/range",
+      "before": 0.25,
+      "after": 0,
+      "source": "FightParty 近战规则，按双方碰撞边缘的间距开火"
+    },
+    {
+      "id": "baneling",
+      "path": "skills/suicide/blast_edge_padding",
+      "before": null,
+      "after": 0.5,
+      "source": "FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/splash",
+      "before": 2.2,
+      "after": 0,
+      "source": "FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离"
+    },
+    {
+      "id": "baneling",
+      "path": "attack_modes/0/continue_on_target_death",
+      "before": true,
+      "after": false,
+      "source": "FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/splash",
+      "before": 1.4286,
+      "after": 0,
+      "source": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/splash_multiplier",
+      "before": 0.33,
+      "after": 0.3,
+      "source": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率"
+    },
+    {
+      "id": "ultralisk",
+      "path": "attack_modes/0/delivery",
+      "before": {
+        "type": "projectile",
+        "tracking": true,
+        "flight": "contact"
+      },
+      "after": {
+        "type": "cone",
+        "length": 1,
+        "angle_degrees": 90
+      },
+      "source": "FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率"
+    },
+    {
+      "id": "broodling",
+      "path": "attack_modes/0/range",
+      "before": 0.1,
+      "after": 0,
+      "source": "FightParty 近战规则，按双方碰撞边缘的间距开火"
     }
   ],
   "unresolved": [
@@ -3102,11 +3188,6 @@
     },
     {
       "id": "zergling",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/PrimalZergling/Range继承原版，不把MinScanRange当成射程"
-    },
-    {
-      "id": "zergling",
       "path": "attack_modes/0/interval",
       "reason": "WeaponData/PrimalZergling/Period继承原版，保留当前轮后间隔"
     },
@@ -3119,11 +3200,6 @@
       "id": "zergling",
       "path": "attack_modes/0/bonus",
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
-    },
-    {
-      "id": "baneling",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/None/Range继承原版，不把MinScanRange当成射程"
     },
     {
       "id": "baneling",
@@ -3219,11 +3295,6 @@
       "id": "mutalisk",
       "path": "attack_modes/0/bonus",
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
-    },
-    {
-      "id": "ultralisk",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/KaiserBlades2/Range继承原版，不把MinScanRange当成射程"
     },
     {
       "id": "ultralisk",

@@ -15,6 +15,10 @@ REFERENCE = ROOT/'reference/desert-storm/Base.SC2Data/GameData'
 # These packs have editable FightParty group prices. Map resources are per unit.
 PROJECT_PACKS = {'rifle', 'hellbat', 'hellbat_mech', 'zergling', 'roach', 'hydralisk'}
 PACK_COUNT_SOURCE = 'FightParty 试玩平衡：每组数量由兵种配置指定'
+CONTACT_MODE_IDS = {'claw_strike', 'broodling_claws', 'volatile_burst', 'kaiser_blades'}
+EDGE_RANGE_SOURCE = 'FightParty 近战规则，按双方碰撞边缘的间距开火'
+BLAST_SOURCE = 'FightParty 毒爆虫自爆，从自身碰撞边缘向外扩展技能配置的距离'
+CLEAVE_SOURCE = 'FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇形，主目标全伤，次目标使用溅射倍率'
 PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
  'rifle':'Marine', 'hellbat':'Hellion', 'hellbat_mech':'Hellbat', 'marauder':'Marauder', 'medic':'Medic',
@@ -238,6 +242,8 @@ def apply():
    if mid not in modes:pending(uid,'attack_modes/'+mid,'当前模式ID不匹配');continue
    i,mode=modes[mid];prefix=f'attack_modes/{i}/'
    for native,key in [('Range','range'),('DamagePoint','windup'),('Backswing','backswing'),('DisplayAttackCount','hit_count')]:
+    # Preserve project-approved melee/contact ranges when refreshing the source map.
+    if mid in CONTACT_MODE_IDS and key=='range':continue
     val=cat.scalar('WeaponData',wid,native)
     if isinstance(val,(int,float)):write(uid,prefix+key,int(val) if key=='hit_count' else val,f'WeaponData/{wid}/{native}')
    effect=cat.node('EffectData',eid)
@@ -253,7 +259,7 @@ def apply():
      val=cat.scalar('EffectData',eid,native)
      if isinstance(val,(int,float)):write(uid,prefix+key,val,f'EffectData/{eid}/{native}')
     # Only whole explicit areas with Fraction are safe: indexed radius-only edits inherit unknown fractions.
-    areas=cat.children('EffectData',eid,'AreaArray')
+    areas=[] if mid in ('volatile_burst','kaiser_blades') else cat.children('EffectData',eid,'AreaArray')
     rings=[{'radius':float(a.get('Radius')),'multiplier':float(a.get('Fraction'))} for a in areas if a.get('Radius') and a.get('Fraction')]
     if rings and len(rings)==len(areas):
      rings.sort(key=lambda r:r['radius']);write(uid,prefix+'splash_rings',rings,f'EffectData/{eid}/AreaArray')
@@ -268,7 +274,7 @@ def apply():
     else:
      wait=max(.001,round(period-mode.get('attack_duration',.1)-mode.get('windup',0)-mode.get('backswing',0),6))
      write(uid,prefix+'interval',wait,f'WeaponData/{wid}/Period（完整周期减出手与前后摇）')
-   if cat.scalar('WeaponData',wid,'Range') is None:pending(uid,prefix+'range',f'WeaponData/{wid}/Range继承原版，不把MinScanRange当成射程')
+   if mid not in CONTACT_MODE_IDS and cat.scalar('WeaponData',wid,'Range') is None:pending(uid,prefix+'range',f'WeaponData/{wid}/Range继承原版，不把MinScanRange当成射程')
    if cat.scalar('WeaponData',wid,'Period') is None:pending(uid,prefix+'interval',f'WeaponData/{wid}/Period继承原版，保留当前轮后间隔')
    if cat.scalar('WeaponData',wid,'DisplayAttackCount') is None:pending(uid,prefix+'hit_count','每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数')
    if not cat.children('EffectData',eid,'AttributeBonus'):
@@ -358,6 +364,15 @@ def apply():
  for uid,entry in audit['units'].items():
   covered={mid for mid,_,_ in MODES.get(uid,[])}
   for i,mode in enumerate(units[uid]['attack_modes']):
+   prefix=f'attack_modes/{i}/'
+   if mode['id'] in CONTACT_MODE_IDS:
+    for key in ('range','range_from_edge'):entry['fields'][prefix+key]=EDGE_RANGE_SOURCE
+   if mode['id']=='volatile_burst':
+    entry['fields']['skills/suicide/blast_edge_padding']=BLAST_SOURCE
+    entry['fields'][prefix+'splash']=BLAST_SOURCE
+   if mode['id']=='kaiser_blades':
+    for key in ('splash','splash_multiplier','delivery/type','delivery/length','delivery/angle_degrees'):
+     entry['fields'][prefix+key]=CLEAVE_SOURCE
    if mode['id'] not in covered and mode['damage']>0:
     pending(uid,f'attack_modes/{i}','该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原')
   for aid in entry.get('abilities',[]):

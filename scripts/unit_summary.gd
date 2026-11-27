@@ -70,6 +70,7 @@ static func text(stats: Dictionary) -> String:
 	for mode in modes:
 		var weapon: Dictionary = mode.data
 		var reach := number(weapon.get("range",stats.range))
+		if bool(weapon.get("range_from_edge",false)) and float(weapon.get("range",stats.range)) == 0.0:reach="贴身"
 		if not ranges.has(reach):ranges.append(reach)
 		var extra: Array = []
 		for armor in weapon.get("bonus",{}):

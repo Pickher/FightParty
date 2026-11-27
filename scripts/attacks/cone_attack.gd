@@ -1,5 +1,5 @@
 extends "res://scripts/attacks/attack_behavior.gd"
-## 开火时从单位前缘向目标喷出扇形。主目标单独命中，其余敌人按碰撞圆判定。
+## 从单位前缘打出扇形。主目标全伤，次目标按碰撞圆判定并使用武器的溅射倍率。
 
 func type_id() -> String:
 	return "cone"
@@ -34,6 +34,7 @@ func emit(ctx: Dictionary, sequence: Dictionary) -> void:
 	var target_id := int(sequence.target_id)
 	var strike := int(ctx.strike)
 	var multiplier := float(ctx.damage_multiplier)
+	var secondary := multiplier * float(weapon.get("splash_multiplier",1.0))
 	ctx.impact_time = float(sim.tick - 1) * float(ctx.dt) + float(ctx.fire_offset)
 	sim.events.append({"type":"cone_attack", "kind":unit.kind, "team":unit.team, "source_id":unit.id,
 		"from":origin, "to":origin + direction * length, "angle_degrees":angle_degrees,
@@ -48,6 +49,6 @@ func emit(ctx: Dictionary, sequence: Dictionary) -> void:
 			continue
 		var position: Vector2 = victim.pos.lerp(ctx.moves.get(victim.id, victim.pos), fraction)
 		if intersects_disk(origin, direction, length, half_angle, position, sim.body_radius(victim)):
-			sim.queue_strike_hit(ctx, weapon, victim, strike, multiplier, false)
+			sim.queue_strike_hit(ctx, weapon, victim, strike, secondary, false)
 	if weapon.attacks_base and intersects_disk(origin, direction, length, half_angle, sim.base_pos(enemy), float(sim.rules.layout.base_radius)):
-		ctx.base_hits[enemy] += float(weapon.damage) * multiplier
+		ctx.base_hits[enemy] += float(weapon.damage) * (multiplier if target_id < 0 else secondary)

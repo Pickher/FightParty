@@ -450,7 +450,7 @@ func advance_tick() -> void:
 		if ship_owns_effect and event.type in ["attack", "yamato"]:
 			continue
 		if event.type == "cone_attack":
-			event.ttl = Medivac3D.HellbatMechLayer.FLAME_DURATION
+			event.ttl = Medivac3D.HellbatMechLayer.FLAME_DURATION if event.kind == "hellbat_mech" else 0.16
 			effects.append(event)
 		elif event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)

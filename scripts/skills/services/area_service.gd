@@ -20,13 +20,16 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 		var ticks_total := 1 if bool(config.get("dot_on_impact",false)) else maxi(1,ceili(duration*float(sim.rules.tick_rate)))
 		var amount: float = float(config.get("damage",0))/ticks_total
 		var stats: Dictionary = sim.catalog[area.kind]
+		var radius := float(config.radius)
+		var intersect_body := bool(config.get("intersect_body",false))
 		# 先决定全部单位位置，再在本步末尾按实际位置判定法术范围。
 		for victim in sim.units:
 			if victim.hp<=0 or not eligible(sim,stats,config,victim):continue
 			if victim.team==area.team and not bool(config.get("friendly_fire",false)):continue
 			if bool(config.get("immune_same_kind",false)) and victim.kind==area.kind:continue
 			var position: Vector2 = moves.get(victim.id,victim.pos)
-			if position.distance_squared_to(area.pos)>pow(float(config.radius),2):continue
+			var reach: float = radius + (float(sim.body_radius(victim)) if intersect_body else 0.0)
+			if position.distance_squared_to(area.pos)>reach*reach:continue
 			if not area.rooted.has(victim.id):
 				Status.queue_root(sim,victim,float(config.get("root_seconds",0)))
 				area.rooted[victim.id]=true
