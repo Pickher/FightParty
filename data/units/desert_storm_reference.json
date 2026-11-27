@@ -1,5 +1,5 @@
 {
-  "version": "0.13.9",
+  "version": "0.13.10",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {

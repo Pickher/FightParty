@@ -1,5 +1,5 @@
 {
- "version": "0.13.9",
+ "version": "0.13.10",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -232,7 +232,7 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": true,
-     "range": 1.25,
+     "range": 1,
      "interval": 1.333,
      "windup": 0,
      "backswing": 0.5,
@@ -251,7 +251,7 @@
      "continue_on_target_death": false,
      "delivery": {
       "type": "cone",
-      "length": 1.5,
+      "length": 1,
       "angle_degrees": 45
      }
     }

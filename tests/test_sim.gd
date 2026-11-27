@@ -2283,29 +2283,39 @@ func _hellbat_mechs() -> void:
 	for team in range(2):
 		var sim = bare()
 		tune(sim,"hellbat_mech",{"speed":0, "separate_when_stopped":false})
-		tune(sim,"dummy",{"speed":0, "damage":0})
-		tune(sim,"rifle",{"speed":0, "damage":0, "skills":{}, "separate_when_stopped":false})
-		tune(sim,"viking",{"speed":0, "skills":{}})
+		tune(sim,"dummy",{"speed":0, "damage":0, "separate_when_stopped":false})
 		var direction := Vector2.RIGHT if team == 0 else Vector2.LEFT
 		var mech: Dictionary = sim.spawn_unit(team,"hellbat_mech",field(0,0))
 		var muzzle: Vector2 = mech.pos + direction * sim.body_radius(mech)
-		# 假人半径为0.5，因此从枪口到圆心1.8格对应1.3格边缘间距。
-		var primary: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.8)
+		# 0.5 格半径的假人，圆心距枪口 1.51 / 1.49 分别对应 1.01 / 0.99 格边缘间距。
+		var primary: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.51)
 		ticks(sim, int(sim.rules.tick_rate))
-		check(primary.hp == DUMMY.hp and mech.attack_serial == 0, "Hellbat holds fire beyond the 1.25 edge-to-edge trigger, even inside the old range")
-		primary.pos = muzzle + direction * 0.55
-		var light: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.4 + Vector2.UP * 0.3)
-		var edge: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.3 + Vector2.DOWN * 0.85)
+		check(primary.hp == DUMMY.hp and mech.attack_serial == 0, "Hellbat holds fire at a 1.01-grid edge gap")
+		primary.pos = muzzle + direction * 1.49
+		var hp := float(DUMMY.hp)
+		check(wait_until(sim,func(): return primary.hp < hp, 20)>0, "Hellbat hits at a 0.99-grid edge gap")
+
+		sim = bare()
+		tune(sim,"hellbat_mech",{"speed":0, "separate_when_stopped":false})
+		tune(sim,"dummy",{"speed":0, "damage":0, "separate_when_stopped":false})
+		tune(sim,"rifle",{"speed":0, "damage":0, "skills":{}, "separate_when_stopped":false})
+		tune(sim,"viking",{"speed":0, "skills":{}})
+		mech = sim.spawn_unit(team,"hellbat_mech",field(0,0))
+		muzzle = mech.pos + direction * sim.body_radius(mech)
+		primary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 0.55)
+		var light: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.30 + Vector2.UP * 0.2)
+		var edge: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.30 + Vector2.DOWN * 0.6)
+		var old_rim: Dictionary = sim.spawn_unit(1-team,"rifle",muzzle + direction * 1.40 + Vector2.DOWN * 0.3)
 		var side: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 1.1 + Vector2.UP * 1.25)
 		var far_target: Dictionary = sim.spawn_unit(1-team,"dummy",muzzle + direction * 2.1)
 		var aircraft: Dictionary = sim.spawn_unit(1-team,"viking",muzzle + direction * 1.6)
 		var ally: Dictionary = sim.spawn_unit(team,"dummy",muzzle + direction * 1.7)
-		var hp := float(DUMMY.hp)
 		check(wait_until(sim,func(): return primary.hp < hp, 20)>0, "hellbat fires at a ground target")
-		check(sim.events.any(func(e): return e.type == "cone_attack" and is_equal_approx(e.length,1.5) and is_equal_approx(e.angle_degrees,45.0)), "Hellbat flame uses a 45-degree sector reaching 1.5 from its muzzle")
+		check(sim.events.any(func(e): return e.type == "cone_attack" and is_equal_approx(e.length,1.0) and is_equal_approx(e.angle_degrees,45.0)), "Hellbat flame uses a 45-degree sector reaching 1.0 from its muzzle")
 		check(is_equal_approx(float(primary.hp),hp-24.0) and is_equal_approx(float(edge.hp),hp-24.0), "one hit on the primary and a ground unit whose body touches the cone")
 		var light_damage := 49.0 - float(sim.catalog.rifle.armor)
 		check(is_equal_approx(float(light.hp),float(sim.catalog.rifle.hp)-light_damage), "light splash target takes 24 + 25 before armor")
+		check(is_equal_approx(float(old_rim.hp), float(sim.catalog.rifle.hp)), "targets in the old 1.5-grid sector but beyond the new 1.0-grid sector stay unharmed")
 		check(side.hp==hp and far_target.hp==hp and ally.hp==hp and aircraft.hp==sim.catalog.viking.hp, "side, range, team and layer limit the flame cone")
 
 ## 变形组件可单独挂载，生产配置中的恶火不使用这个技能。

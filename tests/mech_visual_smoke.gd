@@ -323,9 +323,16 @@ func check_battle_morph() -> void:
 	host.sync(view, 0.05)
 	check(actor == layer.entries[21].actor and is_zero_approx(actor.vehicle_progress),
 		"The same combat actor should stand on its feet as the gameplay form changes")
+	var config: Dictionary = game.sim.catalog.hellbat_mech
+	var delivery: Dictionary = config.attack_modes[0].delivery
+	var origin: Vector2 = unit.pos + Vector2.RIGHT * float(config.collision_radius)
+	var endpoint := origin + Vector2.RIGHT * float(delivery.length)
+	var diameter := float(layer.entries[21].diameter)
+	var port := actor.to_local(actor.muzzle_world())
+	var expected_reach := maxf(0.1, (endpoint.x - unit.pos.x) / diameter - port.x)
 	host.events([{"type":"cone_attack","kind":"hellbat_mech","source_id":21,"team":0,
-		"from":unit.pos + Vector2.RIGHT * 0.75,"to":unit.pos + Vector2.RIGHT * 2.75,
-		"angle_degrees":45.0,"time":7.0}],{})
+		"from":origin,"to":endpoint,"angle_degrees":float(delivery.angle_degrees),"time":7.0}],{})
+	check(is_equal_approx(actor.shot_reach, expected_reach), "The Hellbat flame uses the configured gameplay endpoint")
 	check(actor.flame != null and actor.flame.is_visible_in_tree(), "The actual cone event should fire the rig nozzle")
 	host.events([{"type":"death","id":21,"team":0,"pos":unit.pos}],{})
 	check(not host.has_model(21) and actor.wreck != null, "The combat actor should break from its final pose")
