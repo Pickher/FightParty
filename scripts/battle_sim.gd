@@ -723,12 +723,13 @@ func _neighbors(pos: Vector2, radius: float = FINE) -> Array:
 func _weapon_stats(unit: Dictionary) -> Dictionary:
 	return skill_system.weapon(self,unit)
 
-## 仅显式启用的原版近战武器按接触边缘量射程，避免0.1格武器要求模型重叠。
+## 显式启用的武器按两个碰撞圆边缘量射程；零间距武器只留浮点误差容差。
 func attack_reach(unit: Dictionary, target: Dictionary, weapon: Dictionary) -> float:
 	var reach: float = float(weapon.range)
 	if bool(weapon.get("range_from_edge",false)):
 		reach+=body_radius(unit)
 		if not target.is_empty():reach+=body_radius(target)
+		if float(weapon.range) == 0.0:reach+=0.0001
 	return reach
 
 func _search_stats(unit: Dictionary) -> Dictionary:

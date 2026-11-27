@@ -3102,11 +3102,6 @@
     },
     {
       "id": "zergling",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/PrimalZergling/Range继承原版，不把MinScanRange当成射程"
-    },
-    {
-      "id": "zergling",
       "path": "attack_modes/0/interval",
       "reason": "WeaponData/PrimalZergling/Period继承原版，保留当前轮后间隔"
     },
@@ -3119,11 +3114,6 @@
       "id": "zergling",
       "path": "attack_modes/0/bonus",
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
-    },
-    {
-      "id": "baneling",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/None/Range继承原版，不把MinScanRange当成射程"
     },
     {
       "id": "baneling",
@@ -3219,11 +3209,6 @@
       "id": "mutalisk",
       "path": "attack_modes/0/bonus",
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
-    },
-    {
-      "id": "ultralisk",
-      "path": "attack_modes/0/range",
-      "reason": "WeaponData/KaiserBlades2/Range继承原版，不把MinScanRange当成射程"
     },
     {
       "id": "ultralisk",

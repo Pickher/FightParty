@@ -215,8 +215,19 @@ func _draw() -> void:
 		game.medivac_visual.vikings.draw_ordnance(self, self, game, game.medivac_visual.vikings.render_time(sim, alpha))
 		game.medivac_visual.draw_healing(self,self)
 		for effect in game.effects:
-			if effect.type == "cone_attack" and not game._hidden_team(int(effect.team)) and view.grow(float(effect.length)).has_point(effect.from):
+			if effect.type == "cone_attack" and effect.kind == "hellbat_mech" and not game._hidden_team(int(effect.team)) and view.grow(float(effect.length)).has_point(effect.from):
 				game.medivac_visual.hellbat_mechs.draw_fallback_flame(self, self, effect)
+	# 雷兽与恶蝠共用命中几何，不共用喷火画法。
+	for effect in game.effects:
+		if effect.type != "cone_attack" or effect.kind != "ultralisk" or game._hidden_team(int(effect.team)) or not view.grow(float(effect.length)).has_point(effect.from):
+			continue
+		var origin := point(effect.from)
+		var heading := point(effect.to) - origin
+		var half_angle := deg_to_rad(float(effect.angle_degrees) * 0.5)
+		var sweep := PackedVector2Array([origin])
+		for i in range(13):
+			sweep.append(origin + heading.rotated(lerpf(-half_angle, half_angle, float(i) / 12.0)))
+		draw_colored_polygon(sweep, Color("e7ccaf", 0.22 * clampf(float(effect.ttl) / 0.16, 0.0, 1.0)))
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)

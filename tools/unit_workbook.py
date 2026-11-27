@@ -22,7 +22,7 @@ LABELS['primary_mode']='默认攻击模式ID'
 LABELS['collision_radius']='碰撞半径（最终值）'
 LABELS.update(gas_cost='每组瓦斯价格',core_cost='每组灵核价格',source_profile='参考配置来源')
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
-LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按模型边缘量射程',pending='未研究或待实现项目')
+LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按双方碰撞边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
     'target_kind':'变形后的兵种ID', 'escort_speed':'随队移速上限（格/秒）',
     'acquire_range':'自动选取目标半径（格）', 'secondary_range':'副束搜索半径（格）', 'scan_interval':'副束扫描间隔（秒）',
@@ -37,7 +37,7 @@ PARAM_LABELS = {
     'speed_maximum':'交战速度上限','health_cost':'固定扣血量','shield_threshold':'触发护盾阈值','armor_override':'部署后生命护甲',
     'shield_armor_buff':'临时护盾护甲','damage_trigger':'仅受伤后触发','initial_cooldown':'初始冷却',
     'healing':'治疗量','tick_interval':'光束结算间隔（秒）','switch_delay':'切换目标等待（秒）','attack_duration':'本轮持续/光束面板周期（秒）','delivery':'攻击行为','seconds':'固定弹道耗时（秒）','tracking':'弹道跟踪目标','continue_on_target_death':'目标死亡后继续打完本轮','type':'攻击类型（projectile/beam/line/cone）','flight':'射弹飞行方式（contact/fixed/distance）','label':'攻击模式名称','id':'模式ID（勿改）','damage_type':'伤害类型',
-    'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','range_from_edge':'按模型边缘量射程',
+    'shield_bonus':'仅对护盾额外伤害','structure_damage':'对建筑伤害','blast_edge_padding':'自爆超出自身碰撞边缘的距离（格）','range_from_edge':'按双方碰撞边缘量射程',
     'hit_count':'每轮命中次数', 'preferred_distance':'期望距离（格）', 'single_target_limit':'移动追击敌人数上限',
     'damage':'基础伤害', 'heavy':'重甲额外伤害', 'light':'轻甲额外伤害',
     'range':'射程（格）', 'interval':'攻击间隔（秒）', 'splash':'溅射半径（格）',

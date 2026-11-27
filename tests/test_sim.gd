@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_proximity_morph","_viking_assault"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_proximity_morph","_viking_assault","_zerg_contact_and_splash"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -2522,3 +2522,60 @@ func _medivac_patient_priority() -> void:
 	rifle.hp = 20
 	ticks(sim, 4)
 	check(primary.hp > 33 and rifle.hp > 20 and other_hellbat.hp == 45, "primary prefers lowest life fraction, secondary prefers lowest current life and biological-mechanical units qualify")
+
+
+## 同样基于碰撞半径的三类命中：贴身、圆形爆炸、带次目标倍率的正面顺劈。
+func _zerg_contact_and_splash() -> void:
+	var center := field(0,0)
+	var hp := float(DUMMY.hp)
+	for kind in ["zergling","broodling"]:
+		var melee = bare()
+		tune(melee,kind,{"speed":0,"separate_when_stopped":false})
+		tune(melee,"dummy",{"speed":0,"damage":0})
+		var attacker: Dictionary = melee.spawn_unit(0,kind,center)
+		var victim: Dictionary = melee.spawn_unit(1,"dummy",center)
+		var touch: float = melee.body_radius(attacker) + melee.body_radius(victim)
+		victim.pos = center + Vector2(touch+0.05,0)
+		ticks(melee,12)
+		check(victim.hp==hp,"no melee damage before touching: "+kind)
+		victim.pos = center + Vector2(touch,0)
+		check(wait_until(melee,func(): return victim.hp<hp,20)>0,"melee hits when the collision circles touch: "+kind)
+
+	for killed in [false,true]:
+		var blast = bare()
+		tune(blast,"baneling",{"speed":0,"separate_when_stopped":false})
+		tune(blast,"dummy",{"speed":0,"damage":0})
+		tune(blast,"viking",{"speed":0,"damage":0,"skills":{}})
+		var bomb: Dictionary = blast.spawn_unit(0,"baneling",center)
+		var direct: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(1.05,0))
+		var clips_rim: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(0,-1.49))
+		var outside: Dictionary = blast.spawn_unit(1,"dummy",center + Vector2(0,1.55))
+		var ally: Dictionary = blast.spawn_unit(0,"dummy",center + Vector2(0,0.4))
+		var airborne: Dictionary = blast.spawn_unit(1,"viking",center)
+		ticks(blast,12)
+		check(direct.hp==hp and bomb.hp>0,"baneling does not detonate with an edge gap")
+		if killed:bomb.hp=0
+		else:direct.pos = center + Vector2.RIGHT
+		check(wait_until(blast,func(): return direct.hp<hp,20)>0,"baneling damages at contact or when killed")
+		ticks(blast,3)
+		check(direct.hp==hp-52.0 and clips_rim.hp==hp-52.0,"blast hits overlapping disks exactly once")
+		check(outside.hp==hp and ally.hp==hp and airborne.hp==blast.catalog.viking.hp,"blast excludes outside, ally and aircraft")
+
+	for team in range(2):
+		var cone = bare()
+		tune(cone,"ultralisk",{"speed":0,"separate_when_stopped":false})
+		tune(cone,"dummy",{"speed":0,"damage":0})
+		tune(cone,"viking",{"speed":0,"damage":0,"skills":{}})
+		var forward := Vector2.RIGHT if team==0 else Vector2.LEFT
+		var ultra: Dictionary = cone.spawn_unit(team,"ultralisk",center)
+		var muzzle: Vector2 = center + forward*1.25
+		var direct: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*1.5)
+		ultra.locked_target_id = direct.id
+		var side: Dictionary = cone.spawn_unit(1-team,"dummy",muzzle + forward*1.26 + Vector2.UP*0.72)
+		var behind: Dictionary = cone.spawn_unit(1-team,"dummy",center - forward*3.0)
+		var ally: Dictionary = cone.spawn_unit(team,"dummy",muzzle + forward)
+		var air: Dictionary = cone.spawn_unit(1-team,"viking",muzzle + forward)
+		check(is_equal_approx(cone.attack_reach(ultra,direct,cone._weapon_stats(ultra)),2.75),"ultralisk center to foe edge is radius plus one")
+		check(wait_until(cone,func(): return direct.hp<hp,24)>0,"ultralisk reaches target at the outer edge")
+		check(is_equal_approx(direct.hp,hp-44.0) and is_equal_approx(side.hp,hp-13.2),"ultralisk cone queues 100 and 30 percent before armor")
+		check(behind.hp==hp and ally.hp==hp and air.hp==cone.catalog.viking.hp,"ultralisk cone excludes rear, friendly and airborne units")

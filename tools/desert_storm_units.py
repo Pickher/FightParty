@@ -238,6 +238,8 @@ def apply():
    if mid not in modes:pending(uid,'attack_modes/'+mid,'当前模式ID不匹配');continue
    i,mode=modes[mid];prefix=f'attack_modes/{i}/'
    for native,key in [('Range','range'),('DamagePoint','windup'),('Backswing','backswing'),('DisplayAttackCount','hit_count')]:
+    # Preserve project-approved melee/contact ranges when refreshing the source map.
+    if uid in ('zergling','baneling','ultralisk') and key=='range':continue
     val=cat.scalar('WeaponData',wid,native)
     if isinstance(val,(int,float)):write(uid,prefix+key,int(val) if key=='hit_count' else val,f'WeaponData/{wid}/{native}')
    effect=cat.node('EffectData',eid)
@@ -255,7 +257,8 @@ def apply():
     # Only whole explicit areas with Fraction are safe: indexed radius-only edits inherit unknown fractions.
     areas=cat.children('EffectData',eid,'AreaArray')
     rings=[{'radius':float(a.get('Radius')),'multiplier':float(a.get('Fraction'))} for a in areas if a.get('Radius') and a.get('Fraction')]
-    if rings and len(rings)==len(areas):
+    if uid in ('baneling','ultralisk'):pass  # Project uses collision-based blast / sector, not source radius rings.
+    elif rings and len(rings)==len(areas):
      rings.sort(key=lambda r:r['radius']);write(uid,prefix+'splash_rings',rings,f'EffectData/{eid}/AreaArray')
      write(uid,prefix+'splash',rings[-1]['radius'],f'EffectData/{eid}/AreaArray')
     elif areas:pending(uid,prefix+'splash','溅射区域只覆盖半径或部分索引，倍率继承未齐，不根据其他武器猜测')
@@ -268,7 +271,7 @@ def apply():
     else:
      wait=max(.001,round(period-mode.get('attack_duration',.1)-mode.get('windup',0)-mode.get('backswing',0),6))
      write(uid,prefix+'interval',wait,f'WeaponData/{wid}/Period（完整周期减出手与前后摇）')
-   if cat.scalar('WeaponData',wid,'Range') is None:pending(uid,prefix+'range',f'WeaponData/{wid}/Range继承原版，不把MinScanRange当成射程')
+   if uid not in ('zergling','baneling','ultralisk') and cat.scalar('WeaponData',wid,'Range') is None:pending(uid,prefix+'range',f'WeaponData/{wid}/Range继承原版，不把MinScanRange当成射程')
    if cat.scalar('WeaponData',wid,'Period') is None:pending(uid,prefix+'interval',f'WeaponData/{wid}/Period继承原版，保留当前轮后间隔')
    if cat.scalar('WeaponData',wid,'DisplayAttackCount') is None:pending(uid,prefix+'hit_count','每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数')
    if not cat.children('EffectData',eid,'AttributeBonus'):
