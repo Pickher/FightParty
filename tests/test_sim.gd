@@ -2254,11 +2254,11 @@ func _viking_assault() -> void:
 
 ## 两个购买项在战场上保持自己的形态、行军速度和攻击方式。
 func _hellbat_mechs() -> void:
-	var shop = bare(42, {"start_minerals":640, "first_wave_seconds":0.05})
-	check(shop.buy(0,"hellbat",0)=="" and shop.minerals[0]==260, "380 minerals buy one Hellion")
-	check(shop.buy(0,"hellbat_mech",1)=="" and shop.minerals[0]==0, "260 minerals buy one Hellbat")
+	var shop = bare(42, {"start_minerals":840, "first_wave_seconds":0.05})
+	check(shop.buy(0,"hellbat",0)=="" and shop.minerals[0]==380, "460 minerals buy a pair of Hellions")
+	check(shop.buy(0,"hellbat_mech",1)=="" and shop.minerals[0]==0, "380 minerals buy one Hellbat")
 	shop.step()
-	check(shop.units.filter(func(u): return u.kind=="hellbat").size()==1 and shop.units.filter(func(u): return u.kind=="hellbat_mech").size()==1, "each recruitment deploys one unit in its purchased form")
+	check(shop.units.filter(func(u): return u.kind=="hellbat").size()==2 and shop.units.filter(func(u): return u.kind=="hellbat_mech").size()==1, "one pack of each deploys two vehicles and one mech")
 
 	for team in range(2):
 		var raid = bare()
@@ -2381,6 +2381,7 @@ func _hellion_supports_ship(kind: String) -> void:
 func _hellion_wave_contact(team: int, veteran_ahead: bool) -> void:
 	var sim = bare(42, {"start_minerals":600, "first_wave_seconds":0.05})
 	_enable_test_morph(sim)
+	tune(sim,"hellbat",{"spawn_count":1})
 	tune(sim,"dummy",{"speed":1.8, "range":5, "damage":1})
 	tune(sim,"roach",{"speed":0, "damage":0, "skills":{}})
 	check(sim.buy(team,"dummy",0)=="", "first wave recruits a veteran")

@@ -13,7 +13,7 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = ROOT/'reference/desert-storm/Base.SC2Data/GameData'
 # These packs have editable FightParty group prices. Map resources are per unit.
-PROJECT_PACKS = {'rifle', 'hellbat', 'zergling', 'roach', 'hydralisk'}
+PROJECT_PACKS = {'rifle', 'hellbat', 'hellbat_mech', 'zergling', 'roach', 'hydralisk'}
 PACK_COUNT_SOURCE = 'FightParty 试玩平衡：每组数量由兵种配置指定'
 PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
@@ -303,7 +303,7 @@ def apply():
  # The ordinary Hellbat equips weapon HellionTank. The unit with that second ID is a different variant.
  hellbat_fields=audit['units']['hellbat_mech']['fields']
  hellbat_fields.update({
-  'spawn_count':'MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台',
+  'spawn_count':PACK_COUNT_SOURCE+'；原图参考 MapScript/Upgrade_BZZDB=8 → Hellbat；GameStrings/Button/Tooltip/DSSupplyDepot1 部署1台',
   'speed':'Swarm/UnitData/HellionTank/Speed=2.25（游戏秒）',
   'energy':'Hellbat、HellionTank 及 Core/CUnit 均未设置能量池，使用 SC2 单位缺省值 0',
   'size':'Swarm/UnitData/HellionTank/Radius=0.625，模型宽高按直径填写',
