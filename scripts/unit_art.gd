@@ -30,7 +30,8 @@ static func _draw_medivac_model(canvas: CanvasItem, p: Vector2, radius: float, a
 	return true
 
 static func structure(canvas: CanvasItem, p: Vector2, kind: String, race: String, radius: float, tint: Color) -> void:
-	var dark := Color("162334")
+	var dark := Color(Color("162334"), tint.a)
+	var detail := Color(INK, tint.a)
 	match race:
 		"terran":
 			draw(canvas,p,kind,tint,radius)
@@ -47,9 +48,9 @@ static func structure(canvas: CanvasItem, p: Vector2, kind: String, race: String
 				# 四个炮位共用建筑；下方脊针、上方孢子以不同外形区分。
 				for side in [-1,1]:
 					var spore: Vector2 = p+Vector2(side*radius*0.55,-radius*0.45)
-					canvas.draw_circle(spore,radius*0.28,Color("a5ce85"))
+					canvas.draw_circle(spore,radius*0.28,Color(Color("a5ce85"),tint.a))
 					var spine: Vector2 = p+Vector2(side*radius*0.55,radius*0.4)
-					canvas.draw_colored_polygon(PackedVector2Array([spine+Vector2(-radius*.25,radius*.2),spine+Vector2(0,-radius*.4),spine+Vector2(radius*.25,radius*.2)]),INK)
+					canvas.draw_colored_polygon(PackedVector2Array([spine+Vector2(-radius*.25,radius*.2),spine+Vector2(0,-radius*.4),spine+Vector2(radius*.25,radius*.2)]),detail)
 			elif kind == "tower":
 				canvas.draw_circle(p,radius*0.2,tint)
 		"protoss":
@@ -60,9 +61,9 @@ static func structure(canvas: CanvasItem, p: Vector2, kind: String, race: String
 				canvas.draw_colored_polygon(hexagon,tint)
 			else:
 				canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*(1.0 if kind=="protoss_photon_cannon" else 1.35)),p+Vector2(radius*0.7,0),p+Vector2(0,radius*(1.0 if kind=="protoss_photon_cannon" else 1.1)),p+Vector2(-radius*0.7,0)]),tint)
-			canvas.draw_arc(p,radius*0.55,0,TAU,20,INK,2)
+			canvas.draw_arc(p,radius*0.55,0,TAU,20,detail,2)
 			if kind != "treasury":
-				canvas.draw_circle(p,radius*0.25,INK)
+				canvas.draw_circle(p,radius*0.25,detail)
 		"blight":
 			var blob := PackedVector2Array()
 			for i in range(10):
@@ -93,7 +94,7 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"tower", "terran_bunker", "protoss_photon_cannon", "zerg_tower_cluster":
 			canvas.draw_rect(Rect2(p-Vector2(radius*0.8,radius*0.3),Vector2(radius*1.6,radius*1.1)),color)
 			canvas.draw_circle(p+Vector2(0,-radius*0.3),radius*0.55,color)
-			canvas.draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),INK,3)
+			canvas.draw_line(p+Vector2(0,-radius*0.3),p+Vector2(0,-radius*1.2),Color(INK,color.a),3)
 		"liberator":
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*1.4),p+Vector2(radius*1.5,radius*0.8),p+Vector2(0,radius*0.35),p+Vector2(-radius*1.5,radius*0.8)]),color)
 			for side in [-1,1]:

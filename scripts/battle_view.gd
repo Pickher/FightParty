@@ -31,6 +31,13 @@ func bar(pos: Vector2, width: float, value: float, color: Color) -> void:
 func ring(center: Vector2, reach: float, color: Color) -> void:
 	draw_arc(point(center),pixels(reach),0,TAU,48,color,1)
 
+func _draw_structure(center: Vector2, dimensions: Vector2, kind: String, race: String, team_color: Color, opacity: float = 1.0) -> void:
+	var footprint := Rect2(center - dimensions * 0.5, dimensions)
+	draw_rect(footprint, Color(team_color, 0.3 * opacity))
+	draw_rect(footprint, Color(team_color, opacity), false, 1)
+	var art_radius := minf(dimensions.x, dimensions.y) / 3.0
+	UnitArt.structure(self, center, kind, race, art_radius, Color(game._race_color(race), opacity))
+
 func _draw() -> void:
 	if game==null:return
 	var sim = game.sim
@@ -185,9 +192,7 @@ func _draw() -> void:
 		var tint: Color = Color("4a5a6c") if hidden else Color(stats.color)
 		# 模型的边界与配置的宽高一致；全图不额外放大，近景下才显示细节。
 		if sim.is_structure(unit):
-			draw_rect(Rect2(p-dimensions*0.5,dimensions),Color(color,0.3))
-			draw_rect(Rect2(p-dimensions*0.5,dimensions),color,false,1)
-			UnitArt.structure(self,p,unit.kind,game.sim.visible_race(0,int(unit.team)),minf(dimensions.x,dimensions.y)/3.0,game._race_color(game.sim.visible_race(0,int(unit.team))))
+			_draw_structure(p, dimensions, unit.kind, sim.visible_race(0, int(unit.team)), color)
 			if pixels(1.0)>=8.0:label(p+Vector2(-16,-dimensions.y*0.5-5),"?" if hidden else str(stats.name),color)
 		else:
 			draw_rect(Rect2(p-dimensions*.5,dimensions),Color(tint,0.14))
@@ -303,16 +308,12 @@ func _draw_tower_placement() -> void:
 	draw_rect(Rect2(point(enemy_origin),Vector2(pixels(enemy_size.x),pixels(enemy_size.y))),Color(game.CORAL,0.07))
 	if not game.tower_preview_visible:return
 	var location: Vector2 = game.tower_preview
-	var error: String = sim.tower_error(0,location)
-	var color: Color = game.MINT if error.is_empty() else game.CORAL
-	var stats: Dictionary = sim.catalog[sim.tower_kind(0)]
+	var kind: String = sim.tower_kind(0)
+	var stats: Dictionary = sim.catalog[kind]
 	var reach := 0.0
 	for mode in stats.attack_modes:reach=maxf(reach,float(mode.range))
-	ring(location,reach,Color(color,0.45))
-	var radius: float = sim.tower_placement_radius(0)
-	var center := point(location)
-	draw_circle(center,pixels(radius),Color(color,0.25))
-	ring(location,radius,color)
-	draw_line(center-Vector2(5,0),center+Vector2(5,0),color,2)
-	draw_line(center-Vector2(0,5),center+Vector2(0,5),color,2)
-	label(center+Vector2(10,-10),"可建造" if error.is_empty() else error,color,13)
+	ring(location, reach, Color(game.MINT, 0.45))
+	ring(location, sim.tower_placement_radius(0), Color(game.MINT, 0.85))
+	var body: Array = stats["size"]
+	var dimensions := Vector2(pixels(float(body[0])), pixels(float(body[1])))
+	_draw_structure(point(location), dimensions, kind, sim.visible_race(0, 0), game.MINT, 0.62)

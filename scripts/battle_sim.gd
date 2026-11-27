@@ -50,8 +50,10 @@ var last_formations: Array = [[], []]
 var minerals: Array = [0, 0]
 var economy: Economy
 var next_wave_tick: int = 0
-# 双方已建造防御塔的次数（被摧毁不会归还次数）。
+# 每队累计建造次数；建造资格按最近建造的塔和摧毁时刻判断。
 var tower_builds: Array = [0, 0]
+var _built_tower_ids: Array[int] = [0, 0]
+var _tower_rebuild_at: Array[int] = [0, 0]
 var units: Array = []
 # 已发出的传播攻击独立于发射者存活，按固定步推进。
 var attack_waves: Array = []
@@ -113,9 +115,15 @@ func _place_structure(team: int, kind: String, slot: String) -> Dictionary:
 func is_structure(unit: Dictionary) -> bool:
 	return bool(catalog[unit.kind].get("structure", false))
 
-## 建造种族专用防御建筑，选址、扣费和次数校验仍使用同一入口。
+## 当前种族的可建造防御塔和基地防御层独立结算。
 func tower_kind(team: int) -> String:
 	return Catalog.tower_kind(str(races[team]))
+
+func tower_alive(team: int) -> bool:
+	return unit_instances.has(_built_tower_ids[team])
+
+func tower_cooldown_left(team: int) -> float:
+	return float(maxi(0, _tower_rebuild_at[team] - tick)) / float(rules.tick_rate)
 
 ## 建造使用完整占地半径，模型和碰撞都必须留在己方半场。
 func tower_placement_radius(team: int) -> float:
@@ -143,13 +151,13 @@ func tower_position_error(team: int, position: Vector2) -> String:
 ## 未选位置时只校验资格；给出位置时，购买和预览使用完全相同的选址规则。
 func tower_error(team: int, position: Variant = null) -> String:
 	var error := _editable(team)
-	if error.is_empty() and int(tower_builds[team]) >= int(rules.tower_max_builds):
-		error = "防御塔已达建造上限"
-	if error.is_empty() and int(minerals[team]) < int(catalog[tower_kind(team)].cost):
-		error = "矿物不足"
-	if error.is_empty() and position!=null:
-		error=tower_position_error(team,position) if position is Vector2 else "建造位置无效"
-	return error
+	if not error.is_empty():return error
+	if tower_alive(team):return "已建造防御塔"
+	var remaining := tower_cooldown_left(team)
+	if remaining > 0.0:return "%d秒后才能再次建造" % ceili(remaining)
+	if int(minerals[team]) < int(catalog[tower_kind(team)].cost):return "矿物不足"
+	if position!=null:return tower_position_error(team,position) if position is Vector2 else "建造位置无效"
+	return ""
 
 ## 在所选位置建造，全部校验通过后才扣矿。无坐标仅兼容旧调用与旧战报。
 func build_tower(team: int, position: Variant = null) -> String:
@@ -161,6 +169,7 @@ func build_tower(team: int, position: Variant = null) -> String:
 		minerals[team] -= int(catalog[tower_kind(team)].cost)
 		tower_builds[team] += 1
 		var built := spawn_unit(team,tower_kind(team),point)
+		_built_tower_ids[team] = int(built.id)
 		events.append({"type":"tower_built","team":team,"id":built.id,"pos":point})
 		_log(team, {"type":"build_tower","position":[point.x,point.y]})
 	return error
@@ -1209,6 +1218,8 @@ func step() -> Array:
 			# 结构体不计击杀；宝库奖励灵核，同一座宝库只会死亡一次。
 			if unit.kind == "treasury":
 				economy.reward_outpost(self,1-int(unit.team))
+			elif int(unit.id) == _built_tower_ids[unit.team]:
+				_tower_rebuild_at[unit.team] = tick + ceili(float(rules.tower_rebuild_seconds) * float(rules.tick_rate))
 			events.append({"type":"structure_destroyed","id":unit.id,"kind":unit.kind,"pos":unit.pos,"team":unit.team})
 		else:
 			kills[1 - int(unit.team)] += 1
@@ -1269,6 +1280,7 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 	public_formations[viewer] = last_formations[viewer].duplicate(true)
 	public_formations[1 - viewer] = visible_enemy_formation(viewer)
 	return {"tick":tick,"wave":wave,"minerals":minerals[viewer],"economy":economy.snapshot(viewer,wave),"next_wave_tick":next_wave_tick,"bases":bases.duplicate(),
+		"own_tower":{"alive":tower_alive(viewer),"cooldown_left":tower_cooldown_left(viewer),"builds":tower_builds[viewer]},
 		"active_beams":active_beams.duplicate(true),
 		"attack_sequences":attack_sequences.duplicate(true),"projectiles":projectiles.duplicate(true),"next_projectile_id":next_projectile_id,
 		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),

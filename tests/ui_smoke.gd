@@ -129,6 +129,7 @@ func run() -> void:
 	verify(game.unit_page==last_page,"unit pages wrap backward")
 	game.handle_action("select:rifle")
 	verify(game.unit_page==0,"select keeps chosen card visible")
+	await _tower_placement_flow()
 	# 完整对局只用会写入战报的设置：开局资金来自设置，缩短的波数与终局上限进入 settings，
 	# 因此 tests/replay.gd 能逐 tick 复现这一局。默认 64 波整局与终局规则由 test_sim 的 _final_phase 覆盖。
 	game.handle_action("restart")
@@ -187,19 +188,6 @@ func run() -> void:
 	game.handle_action("select:rifle")
 	game.handle_action("cell:%d" % deployed_cell)
 	verify(game.sim.formations[0].size()==3 and game.sim.minerals[0]==minerals_before-int(game.sim.catalog.rifle.cost),"buy into freed cell")
-	# 防御塔：按钮进入选址，在己方半场点击落点建成一座；再按一次被拒绝。
-	var affordable: bool=int(game.sim.minerals[0])>=int(game.sim.catalog[game.sim.tower_kind(0)].cost)
-	game.handle_action("build_tower")
-	verify(game.placing_tower==affordable,"build tower button enters placement")
-	if affordable:
-		var click := InputEventMouseButton.new()
-		click.button_index = MOUSE_BUTTON_LEFT
-		click.pressed = true
-		click.position = game._world(game.sim.suggested_tower_position(0))*game.size/Vector2(1440,900)
-		game._gui_input(click)
-	verify(game.sim.tower_builds[0]==(1 if affordable else 0) and not game.placing_tower,"tower built at clicked site")
-	game.handle_action("build_tower")
-	verify(game.sim.tower_builds[0]<=1 and not game.placing_tower,"only one tower")
 	game.effects.clear()
 	game.selected="rifle"
 	game.queue_redraw()
@@ -273,6 +261,82 @@ func run() -> void:
 	game.queue_free()
 	await process_frame
 	quit(1 if failed else 0)
+
+## 发送原生单指触屏事件，位置使用实际窗口坐标，包括宽屏留边。
+func _tower_touch(pressed: bool, screen_point: Vector2) -> void:
+	var finger := InputEventScreenTouch.new()
+	finger.index = 0
+	finger.pressed = pressed
+	finger.position = screen_point
+	game._gui_input(finger)
+
+func _tower_placement_flow() -> void:
+	var site: Vector2 = game.sim.suggested_tower_position(0)
+	var funds: int = game.sim.minerals[0]
+	var cost: int = game.sim.catalog[game.sim.tower_kind(0)].cost
+	game._set_camera_scale(32.0)
+	game.camera_center = site + Vector2(-4,2)
+	var view: Rect2 = game._camera_rect()
+	game.handle_action("build_tower")
+	verify(game.placing_tower and not game.tower_preview_visible and game._camera_rect()==view,"placement from battle preserves its camera and starts without a ghost")
+	game.handle_action("build_tower")
+	verify(not game.placing_tower and game.sim.minerals[0]==funds,"the build button cancels site selection without charging")
+	game.handle_action("build_tower")
+	await process_frame
+	await process_frame
+	var point: Vector2 = game._ui_origin() + game._world(site)*game._ui_scale()
+	_tower_touch(true,point)
+	verify(not game.tower_preview_visible,"touch down cannot propose a tower site")
+	var drag := InputEventScreenDrag.new()
+	drag.index = 0
+	drag.relative = Vector2(70,0)*game._ui_scale()
+	drag.position = point+drag.relative
+	game._gui_input(drag)
+	_tower_touch(false,drag.position)
+	verify(game._camera_rect()!=view and game.placing_tower and not game.tower_preview_visible,"drag pans the battlefield without proposing a site on release")
+	point = game._ui_origin()+game._world(site)*game._ui_scale()
+	_tower_touch(true,point)
+	_tower_touch(false,point)
+	verify(game.tower_preview_visible and game.tower_preview.is_equal_approx(site) and not game.sim.tower_alive(0),"a touch tap previews the selected world position without building")
+	game.handle_action("tower_reselect")
+	verify(game.placing_tower and not game.tower_preview_visible and game.sim.minerals[0]==funds,"cancel in the confirmation returns to free site selection")
+	await process_frame
+	await process_frame
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.position = point
+	click.pressed = true
+	game._gui_input(click)
+	verify(not game.tower_preview_visible,"mouse down does not select a site")
+	click.pressed = false
+	game._gui_input(click)
+	verify(game.tower_preview_visible and game.sim.minerals[0]==funds,"mouse release requests confirmation before charging")
+	await process_frame
+	await process_frame
+	var confirm_buttons: Array = game.buttons.filter(func(b): return b.action=="tower_confirm")
+	verify(confirm_buttons.size()==1,"tower preview offers a confirmation button")
+	if confirm_buttons.size()!=1:return
+	var confirm_center: Vector2 = game._ui_origin()+confirm_buttons[0].rect.get_center()*game._ui_scale()
+	_tower_touch(true,confirm_center)
+	verify(not game.sim.tower_alive(0),"touching confirm does not spend before release")
+	drag.relative=Vector2(24,0)*game._ui_scale()
+	drag.position=confirm_center+drag.relative
+	game._gui_input(drag)
+	_tower_touch(false,confirm_center)
+	verify(game.tower_preview_visible and game.sim.minerals[0]==funds,"sliding off and back onto confirm does not buy")
+	_tower_touch(true,confirm_center)
+	_tower_touch(false,confirm_center)
+	game.handle_action("tower_confirm")
+	verify(not game.placing_tower and not game.tower_preview_visible and game.sim.tower_alive(0) and game.sim.minerals[0]==funds-cost,"only one confirmed purchase is charged")
+	var towers: Array = game.sim.units.filter(func(u): return u.team==0 and u.kind==game.sim.tower_kind(0))
+	verify(towers.size()==1 and towers[0].pos.is_equal_approx(site),"built tower matches ghost position")
+	game.handle_action("build_tower")
+	verify(not game.placing_tower,"a live tower disables further site selection")
+	if towers.size()==1:
+		towers[0].hp=0
+		game.advance_tick()
+		game.handle_action("build_tower")
+		verify(not game.placing_tower and game.messages[0]=="60秒后才能再次建造","cooldown click reports the remaining seconds")
 
 ## 仅准备待运行回归：不写设置文件，检查迁移先于提交/恢复排布。
 func _saved_medic_migration() -> void:
