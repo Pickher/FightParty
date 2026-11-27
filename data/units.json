@@ -1,5 +1,5 @@
 {
- "version": "0.13.6",
+ "version": "0.13.7",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -105,16 +105,10 @@
    "armor": 5,
    "speed": 4.25,
    "color": "ff9f5a",
-   "role": "机动支援 · 接敌变形",
-   "counter": "平时随队行进，前线有上一波友军交战时全速增援。接敌后变为恶蝠，擅长对抗密集地面轻甲。",
+   "role": "高速骚扰 · 直线火焰",
+   "counter": "高速突前骚扰，直线火焰可穿透成排的地面轻甲单位。",
    "skills": {
-    "line_attack": {},
-    "proximity_morph": {
-     "display_name": "接敌变形",
-     "target_kind": "hellbat_mech",
-     "duration": 2,
-     "escort_speed": 2.25
-    }
+    "line_attack": {}
    },
    "layer": "ground",
    "size": [
@@ -238,7 +232,7 @@
      "damage_type": "physical",
      "shield_bonus": 0,
      "range_from_edge": true,
-     "range": 2,
+     "range": 1.25,
      "interval": 1.333,
      "windup": 0,
      "backswing": 0.5,
@@ -257,7 +251,7 @@
      "continue_on_target_death": false,
      "delivery": {
       "type": "cone",
-      "length": 2,
+      "length": 1.5,
       "angle_degrees": 45
      }
     }
