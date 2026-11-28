@@ -14,6 +14,10 @@ from mathutils import Matrix, Quaternion, Vector
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools/art"))
+sys.path.insert(0, str(ROOT / "tools/art/recruit_portraits"))
+import protoss_finishes
+
 OUTPUT = ROOT / "assets/ui/recruits"
 MODELS = ROOT / "assets/models"
 # Camera positions in Blender Z-up space. The GLB models face +X.
@@ -50,6 +54,8 @@ def model_scene(unit, source):
         bpy.ops.wm.read_factory_settings(use_empty=True)
         bpy.ops.import_scene.gltf(filepath=str(source))
         scene = bpy.context.scene
+    if unit in protoss_finishes.MODEL_UNITS:
+        protoss_finishes.apply_finish(unit, source, scene)
     if unit == "marauder":
         # Use the in-game aiming axes to present the forearm launchers and their bores.
         for side in ("P", "N"):
@@ -115,13 +121,21 @@ def softbox(scene, name, center, offset, diameter, power, color, span):
     light.rotation_euler = (-offset).to_track_quat("-Z", "Y").to_euler()
 
 
-def render(unit, temp):
-    source, camera_offset = VIEWS[unit]
+def render(unit, temp, output=OUTPUT):
+    protoss = unit in protoss_finishes.MODEL_UNITS
+    if protoss:
+        source = MODELS / unit / f"{unit}.glb"
+        camera_offset = protoss_finishes.view(unit)
+    else:
+        source, camera_offset = VIEWS[unit]
     scene = model_scene(unit, source)
     points = geometry_points(scene)
     span = float(np.ptp(points, axis=0).max())
     front = Vector(camera_offset).normalized()
     rotation = (-front).to_track_quat("-Z", "Y")
+    if unit == "carrier":
+        # Fit the long bow along the diagonal while exposing the hangar in profile.
+        rotation = rotation @ Quaternion((0, 0, 1), math.radians(30))
     right = rotation @ Vector((1, 0, 0))
     up = rotation @ Vector((0, 1, 0))
 
@@ -143,14 +157,22 @@ def render(unit, temp):
     camera.location = center + front * span * 5.0
     scene.camera = camera
 
+    # Broader light and less frontal fill keep the raised ornament readable
+    # across adjoining gold and ivory plates.
+    if protoss:
+        key_size, key, fill, warm, cool = 1.86, 138, 43, 80, 53
+        warm_tint, cool_tint = (.97, .86, .68), (.61, .81, 1.)
+    else:
+        key_size, key, fill, warm, cool = 1.55, 170, 89, 145, 98
+        warm_tint, cool_tint = (1., .68, .39), (.66, .59, 1.)
     softbox(scene, "Cool upper key", center, front*1.65 - right*1.0 + up*1.8,
-            1.55, 170, (.78, .89, 1.0), span)
+            key_size, key, (.78, .89, 1.0), span)
     softbox(scene, "Face fill", center, front*1.75 + right*1.5 + up*.20,
-            1.70, 89, (.96, .88, .83), span)
+            1.70, fill, (.96, .88, .83), span)
     softbox(scene, "Amber edge", center, -front*.88 + right*1.18 + up*1.20,
-            .95, 145, (1.0, .68, .39), span)
+            .95, warm, warm_tint, span)
     softbox(scene, "Violet edge", center, -front*.68 - right*1.60 + up*.45,
-            1.1, 98, (.66, .59, 1.0), span)
+            1.1, cool, cool_tint, span)
     scene.world = bpy.data.worlds.new("Recruit studio")
     scene.world.use_nodes = True
     background = scene.world.node_tree.nodes["Background"]
@@ -174,12 +196,12 @@ def render(unit, temp):
     scene.render.filepath = str(temp)
     bpy.ops.render.render(write_still=True)
     with Image.open(temp) as image:
-        image.resize((256, 256), Image.Resampling.LANCZOS).save(OUTPUT / f"{unit}.png",
+        image.resize((256, 256), Image.Resampling.LANCZOS).save(output / f"{unit}.png",
                                                                 optimize=True)
 
 
 if __name__ == "__main__":
-    units = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else list(VIEWS)
+    units = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [*VIEWS, *protoss_finishes.MODEL_UNITS]
     OUTPUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as temp_dir:
         for unit_id in units:

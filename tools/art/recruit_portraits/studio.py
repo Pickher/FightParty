@@ -2,7 +2,7 @@
 
 Render with blender -b -t 3 -P tools/art/recruit_portraits/studio.py -- <unit IDs>.
 Geometry uses Z up, -Y forward. Framing is fitted to the projected subject.
-Protoss IDs are exported from the painted masters by render_protoss.
+Protoss IDs use their original game model or painted master via render_protoss.
 """
 import math
 import sys
@@ -221,17 +221,20 @@ def render(unit,build,direction,output):
 
 def main():
     from terran import BUILDERS as terran
-    from render_protoss import MASTERS, export
+    from render_protoss import UNITS as protoss, rebuild
 
-    protoss = sorted(path.stem for path in MASTERS.glob("*.webp"))
-    selection=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [*terran, *protoss]
+    selection = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [*terran, *protoss]
+    for unit in selection:
+        if unit not in terran and unit not in protoss:
+            raise ValueError(f"Unknown recruit portrait: {unit}")
+
     OUT.mkdir(exist_ok=True,parents=True)
     angles={'agent':(3.1,-7.7,2.5),'widow_mine':(3.2,-7.,4.7),'viking':(4.6,-7.,5.8),'liberator':(4.4,-7.2,5.2)}
+    # GLB import resets Blender's scene and materials. Finish the modeled Terran portraits first.
     for unit in selection:
-        if unit in protoss:
-            export(unit, OUT)
-        else:
+        if unit in terran:
             render(unit,terran[unit],angles.get(unit,(4.6,-7.7,4.4)),OUT)
+    rebuild([unit for unit in selection if unit in protoss])
 
 
 if __name__ == '__main__':

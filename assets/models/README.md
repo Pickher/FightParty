@@ -44,9 +44,11 @@
 
 ## 招募肖像
 
-部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。已有兵模的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景，其余肖像的造型源在[肖像美术目录](../../tools/art/recruit_portraits/)。
+部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。使用游戏模型的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景。其余兵种的原画或造型脚本在[肖像美术目录](../../tools/art/recruit_portraits/)。
 
-神族 11 个兵种的[透明肖像原画](../../tools/art/recruit_portraits/protoss/)共用招募界面的翡翠色底板。运行 `python tools/art/recruit_portraits/render_protoss.py` 从原画重建全部神族肖像，也可以在命令末尾指定单位 ID，例如 `stalker`。
+神族的航母、哨兵、巨像、追猎者、干扰者和不朽者直接从各自的源 GLB 渲染，拍摄时为原网格上色。使徒、执政官、高阶圣堂武士、先锋和虚空辉光舰从[五张透明原画](../../tools/art/recruit_portraits/protoss/)缩放导出。肖像均保留透明背景，招募界面统一绘制翡翠色底板。
+
+在项目根目录使用 Python 环境中含有 Pillow、NumPy 和 SciPy 的 Blender 4.3 或更新版本，运行 `blender -b -t 3 --python-exit-code 1 -P tools/art/recruit_portraits/render_protoss.py` 可重建全部 11 张神族肖像。若只重建追猎者和使徒，在命令末尾追加 `-- stalker adept`。
 
 更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
 
