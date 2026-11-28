@@ -46,7 +46,7 @@
 
 部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。使用游戏模型的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景。其余兵种的原画或造型脚本在[肖像美术目录](../../tools/art/recruit_portraits/)。
 
-神族的航母、哨兵、巨像、追猎者、干扰者和不朽者直接从各自的源 GLB 渲染，拍摄时为原网格上色。使徒、执政官、高阶圣堂武士、先锋和虚空辉光舰从[五张透明原画](../../tools/art/recruit_portraits/protoss/)缩放导出。肖像均保留透明背景，招募界面统一绘制翡翠色底板。
+神族的航母、巨像、追猎者和不朽者从源 GLB 渲染，拍摄时为原网格上色。哨兵和干扰者的肖像使用下文的战场展示模型。使徒、执政官、高阶圣堂武士、先锋和虚空辉光舰从[五张透明原画](../../tools/art/recruit_portraits/protoss/)缩放导出。肖像均保留透明背景，招募界面统一绘制翡翠色底板。
 
 在项目根目录使用 Python 环境中含有 Pillow、NumPy 和 SciPy 的 Blender 4.3 或更新版本，运行 `blender -b -t 3 --python-exit-code 1 -P tools/art/recruit_portraits/render_protoss.py` 可重建全部 11 张神族肖像。若只重建追猎者和使徒，在命令末尾追加 `-- stalker adept`。
 
@@ -72,3 +72,9 @@
 - 干扰者（`disruptor`）：[disruptor.glb](disruptor/disruptor.glb)，来自 `干扰者模型.glb`，未包含纹理图片，无外置文件依赖。
 - 高阶圣堂武士（`high_templar`）：[high_templar.glb](high_templar/high_templar.glb)，来自 `高阶圣堂武士模型.glb`，未包含纹理图片，无外置文件依赖。
 - 追猎者（`stalker`）：[stalker.glb](stalker/stalker.glb)，来自 `追猎者模型.glb`，未包含纹理图片，无外置文件依赖。
+
+### 哨兵与干扰者的展示模型
+
+[哨兵](sentry/sentry_display.glb)以机首为行进方向，蓝色灵能球位于抬高的后部。招募肖像从斜前方取景，球在画面右上方，机首在右下方。运行 `blender -b --python-exit-code 1 -P tools/art/build_sentry_display.py` 可从上传的白模重建。
+
+[干扰者](disruptor/disruptor_display.glb)的金铜悬甲围着一层透光护罩，罩内有一颗独立的太阳核心。Godot 将模型内嵌的 `SolarIdle-loop` 导入为循环动画 `SolarIdle`。日面翻动，橙色热流持续越过护罩边缘，战场暂停时一起定格。运行 `python tools/art/build_disruptor_display.py` 可重建模型与动画。[核心动态预览](../../docs/media/disruptor-solar-core.gif)

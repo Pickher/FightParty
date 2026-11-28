@@ -267,6 +267,8 @@ func _draw() -> void:
 				var flight: float = fleet.entries[unit.id].actor.flight_progress
 				# The upper wing is fully extended before the aircraft finishes rising.
 				clearance = maxf(dimensions.x, dimensions.y) * lerpf(0.72, 1.16, smoothstep(0.0, 0.85, flight))
+		elif game.medivac_visual != null and unit.kind in ["sentry", "disruptor"]:
+			clearance = game.medivac_visual.protoss.bar_clearance(unit.id, dimensions)
 		var bar_origin := p + Vector2(-dimensions.x * 0.5, -clearance)
 		bar(bar_origin + Vector2.UP * 5, dimensions.x, float(unit.hp) / float(stats.hp), color)
 		if float(stats.get("shield",0))>0:

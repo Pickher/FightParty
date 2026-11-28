@@ -3,11 +3,11 @@ import numpy as np
 from scipy.spatial import cKDTree
 
 
-# Blender world directions. The shell gaps and the orb lie broadside on the
-# sentry. The disruptor's lens instead faces through its negative-Z field cage.
+# Blender camera directions. Look down the sentry's rails from the nose and
+# through the open side of the disruptor's containment frame.
 VIEWS = {
-    "sentry": (-.52, -.72, .45),
-    "disruptor": (.82, .48, .31),
+    "sentry": (.805, -.484, .342),
+    "disruptor": (.74, .62, .28),
 }
 
 

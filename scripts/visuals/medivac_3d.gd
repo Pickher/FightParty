@@ -8,6 +8,7 @@ const HellbatMechLayer = preload("res://scripts/visuals/hellbat_mech_layer.gd")
 const VikingLayer = preload("res://scripts/visuals/viking_layer.gd")
 const TankLayer = preload("res://scripts/visuals/tank_layer.gd")
 const MarauderLayer = preload("res://scripts/visuals/marauder_layer.gd")
+const ProtossLayer = preload("res://scripts/visuals/protoss_support_layer.gd")
 const ENABLED := true # Source-level fallback/performance comparison switch.
 const MODEL_PATH := "res://assets/models/medivac/medivac.glb"
 const MAX_LIVE := 32
@@ -21,6 +22,7 @@ var hellbat_mechs = HellbatMechLayer.new()
 var vikings = VikingLayer.new()
 var tanks = TankLayer.new()
 var marauders = MarauderLayer.new()
+var protoss = ProtossLayer.new()
 var viewport: SubViewport
 var camera: Camera3D
 var scene: Node3D
@@ -63,7 +65,8 @@ func _ready() -> void:
 	var fighter_bounds := _model_bounds(fighter)
 	if maxf(fighter_bounds.size.x, fighter_bounds.size.z) < 0.0001:
 		fighter = null
-	if packed == null and flagship == null and walker == null and infantry == null and mech == null and tank == null and fighter == null:return
+	protoss.load_models()
+	if protoss.models.is_empty() and packed == null and flagship == null and walker == null and infantry == null and mech == null and tank == null and fighter == null:return
 	viewport=SubViewport.new()
 	viewport.transparent_bg=true
 	viewport.own_world_3d=true
@@ -119,6 +122,7 @@ func reset() -> void:
 	assault_vikings.reset()
 	thors.reset()
 	marauders.reset()
+	protoss.reset()
 	hellbat_mechs.reset()
 	tanks.reset()
 	vikings.reset()
@@ -282,16 +286,17 @@ func sync(view, delta: float) -> void:
 	assault_vikings.sync(game, view, dt, clock, alpha)
 	thors.sync(game, view, dt, clock, alpha)
 	marauders.sync(game, view, dt, clock, alpha)
+	protoss.sync(scene, game, view, dt, clock, alpha)
 	hellbat_mechs.sync(game, view, dt, alpha)
 	tanks.sync(game, view, dt, clock, alpha)
 	vikings.sync(game, view, dt, clock, alpha)
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS if _has_actors() else SubViewport.UPDATE_DISABLED
 
 func _has_actors() -> bool:
-	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty() or not hellbat_mechs.entries.is_empty() or not tanks.entries.is_empty() or not vikings.entries.is_empty() or not assault_vikings.entries.is_empty()
+	return not entries.is_empty() or not battlecruisers.entries.is_empty() or not thors.entries.is_empty() or not marauders.entries.is_empty() or not hellbat_mechs.entries.is_empty() or not tanks.entries.is_empty() or not vikings.entries.is_empty() or not assault_vikings.entries.is_empty() or not protoss.entries.is_empty()
 
 func has_model(id: int) -> bool:
-	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id) or hellbat_mechs.has_model(id) or tanks.has_model(id) or vikings.has_model(id) or assault_vikings.has_model(id))
+	return ready_model and ((entries.has(id) and not bool(entries[id].dead)) or battlecruisers.has_model(id) or thors.has_model(id) or marauders.has_model(id) or hellbat_mechs.has_model(id) or tanks.has_model(id) or vikings.has_model(id) or assault_vikings.has_model(id) or protoss.entries.has(id))
 
 func draw_layer(canvas: CanvasItem, view) -> void:
 	if not ready_model:return

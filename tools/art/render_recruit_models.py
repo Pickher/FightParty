@@ -20,6 +20,8 @@ import protoss_finishes
 
 OUTPUT = ROOT / "assets/ui/recruits"
 MODELS = ROOT / "assets/models"
+PROTOSS_DISPLAY_MODELS = {"sentry", "disruptor"}
+PORTRAIT_ROLL = {"carrier": 30.0, "sentry": 25.0}
 # Camera positions in Blender Z-up space. The GLB models face +X.
 VIEWS = {
     "rifle": (ROOT / "assets/units/rifle/source/special_ops.blend", (-.88, -1.0, .40)),
@@ -54,7 +56,7 @@ def model_scene(unit, source):
         bpy.ops.wm.read_factory_settings(use_empty=True)
         bpy.ops.import_scene.gltf(filepath=str(source))
         scene = bpy.context.scene
-    if unit in protoss_finishes.MODEL_UNITS:
+    if unit in protoss_finishes.MODEL_UNITS and source.stem == unit:
         protoss_finishes.apply_finish(unit, source, scene)
     if unit == "marauder":
         # Use the in-game aiming axes to present the forearm launchers and their bores.
@@ -124,7 +126,8 @@ def softbox(scene, name, center, offset, diameter, power, color, span):
 def render(unit, temp, output=OUTPUT):
     protoss = unit in protoss_finishes.MODEL_UNITS
     if protoss:
-        source = MODELS / unit / f"{unit}.glb"
+        stem = unit + "_display" if unit in PROTOSS_DISPLAY_MODELS else unit
+        source = MODELS / unit / f"{stem}.glb"
         camera_offset = protoss_finishes.view(unit)
     else:
         source, camera_offset = VIEWS[unit]
@@ -133,9 +136,8 @@ def render(unit, temp, output=OUTPUT):
     span = float(np.ptp(points, axis=0).max())
     front = Vector(camera_offset).normalized()
     rotation = (-front).to_track_quat("-Z", "Y")
-    if unit == "carrier":
-        # Fit the long bow along the diagonal while exposing the hangar in profile.
-        rotation = rotation @ Quaternion((0, 0, 1), math.radians(30))
+    if unit in PORTRAIT_ROLL:
+        rotation = rotation @ Quaternion((0, 0, 1), math.radians(PORTRAIT_ROLL[unit]))
     right = rotation @ Vector((1, 0, 0))
     up = rotation @ Vector((0, 1, 0))
 
@@ -151,6 +153,9 @@ def render(unit, temp, output=OUTPUT):
     data = bpy.data.cameras.new("Recruit camera")
     data.type = "ORTHO"
     data.ortho_scale = max(width, height) / .90
+    if unit == "sentry":
+        # Keep the elevated blue tail and forward aperture on the right of frame.
+        data.shift_x = -.062
     camera = bpy.data.objects.new("Recruit camera", data)
     scene.collection.objects.link(camera)
     camera.rotation_euler = rotation.to_euler()
@@ -193,6 +198,11 @@ def render(unit, temp, output=OUTPUT):
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Medium High Contrast"
     scene.view_settings.exposure = .68 if unit == "battlecruiser" else 0
+    if unit == "disruptor":
+        # Keep the orange solar surface distinct from its white-hot filaments.
+        scene.view_settings.view_transform = "Khronos PBR Neutral"
+        scene.view_settings.look = "None"
+        scene.view_settings.exposure = -.48
     scene.render.filepath = str(temp)
     bpy.ops.render.render(write_still=True)
     with Image.open(temp) as image:
