@@ -1,6 +1,6 @@
 # 兵种数值总表
 
-> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.11）生成，请勿手改；改数值后重新生成。
+> 由 `python tools/unit_table.py` 从 `data/units.json`（规则 0.13.12）生成，请勿手改；改数值后重新生成。
 > 价格按组（每组 `spawn_count` 名），生命、护盾、伤害按个体。间隔单位秒，射程与速度单位格、格/秒。
 > 攻击模式列：伤害（类型/标签加成）×每轮段数 / 轮后间隔 / 射程（可打的层，投送类型）。
 
@@ -14,7 +14,7 @@
 | `marauder` | 劫掠者 | 可用 | 560/0/0 | 4 | 125 | 重 4 | 地 | 2.25 | 震荡榴弹 13（+13重） / 1.5 / 6（地，projectile） | `stimulant`、`on_hit_slow` |
 | `medic` | 医疗兵 | 暂时停用 | 380/380/0 | 1 | 78 | 轻 4 | 地 | 2.25 | 治疗光束 0 / 0 / 4，治疗 12（地、空，beam） | `healing` |
 | `medivac` | 医疗运输机 | 可用 | 850/0/0 | 2 | 150 | 重 4 | 空 | 2.5 | 双束医疗 0 / 0 / 4，治疗 1（地、空，beam） | `medivac_healing` |
-| `agent` | 特工 | 可用 | 750/0/0 | 1 | 125 | 轻 3 | 地 | 2.75 | 穿甲弹 13（+60重、+13轻） / 0.05 / 7（地、空，projectile）<br>狙击弹 30（+30轻） / 1.07 / 8（地、空，projectile） | `weapon_switch`、`combat_mobility` |
+| `ghost` | 幽灵 | 可用 | 750/0/0 | 1 | 125 | 轻 3 | 地 | 2.75 | C-10步枪 13（+13轻） / 0.05 / 7（地、空，projectile） | `permanent_cloak`、`emp`、`snipe`、`combat_mobility` |
 | `widow_mine` | 寡妇雷 | 可用 | 360/0/0 | 2 | 90 | 轻 3 | 地 | 2.8125 | 哨戒导弹 85（+30重） / 23 / 4，溅射 1.75（地、空，projectile） | `deployment`、`combat_mobility` |
 | `mortar` | 坦克 | 可用 | 850/0/0 | 1 | 175 | 重 4 | 地 | 2.25 | 机动炮击 21（+14重） / 1.04 / 7（地，projectile）<br>攻城炮击 52（+33重） / 3 / 13，溅射 2.5（地，projectile） | `deployment` |
 | `viking` | 维京 | 可用 | 990/0/0 | 2 | 180 | 重 3 | 空 | 2.25 | 对空导弹 26（+8重） / 2 / 11（空，projectile） | `combat_mobility` |
@@ -41,7 +41,7 @@
 | `brood_lord` | 巢虫领主 | 可用 | 1450/0/0 | 1 | 225 | 重 4 | 空 | 2.5 | 巢虫轰击 26×2 / 1.79 / 10（地，projectile） | `summon` |
 | `broodling` | 巢虫 | 召唤物 | 0/0/0 | 1 | 20 | 轻 3 | 地 | 4.13 | 巢虫撕咬 7 / 0.57 / 0（地，projectile） | — |
 | `locust` | 蝗虫 | 召唤物 | 0/0/0 | 1 | 130 | 轻 3 | 地 | 2.62 | 蝗虫喷吐 13 / 0.5 / 3（地，projectile） | — |
-| `zerg_tower_cluster` | 爬虫防御群 | 结构体 | 500/0/0 | 1 | 2400 | 重 1 | 地 | 0 | 脊针爬虫 25（+5重） / 0.399 / 7（地，projectile）<br>孢子爬虫 15（+5 biological） / 0.249 / 7（空，projectile） | `independent_weapons` |
+| `zerg_tower_cluster` | 爬虫防御群 | 结构体 | 500/0/0 | 1 | 2400 | 重 1 | 地 | 0 | 脊针爬虫 25（+5重） / 0.399 / 7（地，projectile）<br>孢子爬虫 15（+5 biological） / 0.249 / 7（空，projectile） | `independent_weapons`、`detector` |
 
 ## 神族 `protoss`
 
@@ -59,7 +59,7 @@
 | `void_ray` | 虚空辉光舰 | 可用 | 300/0/0 | 1 | 150/100 | 重 3 | 空 | 3.3203 | 棱镜光束 9（+4重） / 0 / 6（地、空，beam） | `weapon_buff`、`combat_mobility` |
 | `carrier` | 航母 | 可用 | 1600/0/0 | 1 | 300/150 | 重 5 | 空 | 2.62 | 舰载机支援（无普通攻击） 0 / 1 / 8（地、空，projectile） | `summon`、`combat_mobility` |
 | `interceptor` | 拦截机 | 召唤物 | 0/0/0 | 1 | 40/40 | 轻 3 | 空 | 10.5 | 脉冲炮击 8×2 / 2.14 / 2（地、空，projectile） | `strafe_attack` |
-| `protoss_photon_cannon` | 光子炮台 | 结构体 | 600/0/0 | 1 | 1500/1500 | 重 1 | 地 | 0 | 光子炮 20 / 0.124 / 9（地、空，projectile） | — |
+| `protoss_photon_cannon` | 光子炮台 | 结构体 | 600/0/0 | 1 | 1500/1500 | 重 1 | 地 | 0 | 光子炮 20 / 0.124 / 9（地、空，projectile） | `detector` |
 
 ## 腐族 `blight`
 

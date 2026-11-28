@@ -13,9 +13,9 @@ COLUMNS = 8
 
 def build():
     units = json.loads((ROOT / "data/units.json").read_text(encoding="utf-8"))["units"]
-    kinds = sorted(kind for kind, stats in units.items()
-                   if stats.get("status") == "ready" and stats.get("available", True)
-                   and not stats.get("structure", False))
+    kinds = sorted({stats.get("portrait", kind) for kind, stats in units.items()
+                    if stats.get("status") == "ready" and stats.get("available", True)
+                    and not stats.get("structure", False)})
     rows = (len(kinds) + COLUMNS - 1) // COLUMNS
     sheet = Image.new("RGBA", (COLUMNS * EDGE, rows * EDGE))
     resources = [

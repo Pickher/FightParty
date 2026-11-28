@@ -125,7 +125,7 @@ func _safe_x(sim, unit: Dictionary) -> float:
 		if front.is_empty() or float(ally.pos.x)*forward>float(front.pos.x)*forward:front=ally
 	var spawn_x: float = sim.mirror_x(unit.team, float(sim.rules.layout.spawn_x))
 	var safe: float = float(front.pos.x)*forward-float(config.follow_distance) if not front.is_empty() else spawn_x*forward
-	for enemy in sim.nearby_team(unit.pos, float(config.nearby_radius), 1-int(unit.team)):
+	for enemy in sim.visible_enemies_near(unit.pos, float(config.nearby_radius), int(unit.team)):
 		safe=minf(safe, float(enemy.pos.x)*forward-float(config.danger_distance))
 	return safe
 

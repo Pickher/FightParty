@@ -54,7 +54,7 @@ static func draw(game, rect: Rect2, kind: String, selected: bool = false, enable
 		bevel = Color("a5d6bb33")
 	game.draw_rect(rect, border)
 	game.draw_texture_rect(_background(protoss), inner, false)
-	var texture := _texture(kind, rect.size.x <= THUMBNAIL_SIZE)
+	var texture := _texture(str(stats.get("portrait", kind)), rect.size.x <= THUMBNAIL_SIZE)
 	if texture != null:
 		game.draw_texture_rect(texture, inner, false, Color.WHITE if enabled else Color(0.67, 0.68, 0.71, 0.65))
 	else:

@@ -48,6 +48,9 @@ static func advance(sim, frame: Dictionary) -> void:
 		var weapon: Dictionary = sequence.weapon
 		var behavior := AttackTypes.for_weapon(weapon)
 		var target = sim.by_id.get(int(sequence.target_id))
+		# 揭隐过期会失去原目标，停止尚未发射的段，已发射的弹体仍飞向目标。
+		if target != null and not sim.is_visible_to(int(source.team), target):
+			continue
 		if target!=null and float(target.hp)>0:sequence.goal=target.pos
 		elif int(sequence.target_id)>0 and not bool(weapon.continue_on_target_death):continue
 		while int(sequence.next_strike)<int(sequence.count):

@@ -54,7 +54,7 @@ func run() -> void:
 	_empty_starts_all_races()
 	_saved_medic_migration()
 	game.handle_action("clear")
-	# 推荐开局资金买不起医疗运输机、特工、雷神、大和舰；编辑器路径测试直接补足资源。
+	# 推荐开局资金买不起医疗运输机、幽灵、雷神、大和舰；编辑器路径测试直接补足资源。
 	game.sim.minerals[0] = 20000
 	game.sim.economy.gas[0] = 2000
 	game.handle_action("select:hellbat")
@@ -87,16 +87,16 @@ func run() -> void:
 	game.handle_action("erase")
 	game.handle_action("cell:7")
 	verify(game.sim.formations[0].is_empty(),"erase mortar")
-	game.handle_action("select:agent")
+	game.handle_action("select:ghost")
 	game.handle_action("cell:2")
-	verify(game.sim.formations[0][0].kind=="agent","place agent")
+	verify(game.sim.formations[0][0].kind=="ghost","place ghost")
 	game.handle_action("move")
 	game.handle_action("cell:2")
 	game.handle_action("cell:8")
-	verify(game.sim.formations[0][0].cell==8,"move agent")
+	verify(game.sim.formations[0][0].cell==8,"move ghost")
 	game.handle_action("erase")
 	game.handle_action("cell:8")
-	verify(game.sim.formations[0].is_empty(),"erase agent")
+	verify(game.sim.formations[0].is_empty(),"erase ghost")
 	game.handle_action("units_next")
 	verify(game.unit_page==1,"next unit page")
 	game.handle_action("select:viking_assault")
@@ -138,8 +138,8 @@ func run() -> void:
 	game.match_settings.final_phase_max_seconds = 120
 	game.handle_action("setup_confirm")
 	verify(game.sim.races==["terran","zerg"] and int(game.sim.journal.settings.wave_limit)==3,"replayable match settings journaled")
-	# 混编覆盖劫掠者、喷火直线攻击与特工换弹的完整对局。
-	game._commit([{"kind":"marauder","cell":5},{"kind":"hellbat","cell":8},{"kind":"agent","cell":6}])
+	# 混编覆盖劫掠者、喷火直线攻击与幽灵技能的完整对局。
+	game._commit([{"kind":"marauder","cell":5},{"kind":"hellbat","cell":8},{"kind":"ghost","cell":6}])
 	game.handle_action("start")
 	game.accumulator=0.025
 	game.handle_action("battle_layout")
@@ -353,6 +353,16 @@ func _saved_medic_migration() -> void:
 	game.sim.minerals[0]=20000
 	verify(game.sim.submit_formation(0,migrated)=="" and game._restore_deployment(migrated)=="","retained formation and positions restore after retired medic removed")
 	verify(game.sim.formations[0].size()==2 and game.sim.formations[0][0].member_positions==saved[0].member_positions and game.sim.formations[0][1].member_positions==saved[2].member_positions,"retained member positions are not reset")
+	# 显式读取历史特工预设并恢复到本局，新兵种仍占原来的格位和单兵坐标。
+	game.sim.submit_formation(0,[])
+	var old_preset: Array = [{"kind":"agent","cell":4,"member_positions":[[-1,0]]}]
+	var previous_preset: Array = game.saved_formation_preset
+	game.saved_formation_preset = old_preset
+	verify(game._load_formation_preset()=="","restore a legacy Ghost preset")
+	var slots: Array = game.sim.formations[0]
+	verify(slots.size()==1 and slots[0].kind=="ghost" and slots[0].cell==4 and slots[0].member_positions==old_preset[0].member_positions,"legacy Ghost keeps its cell and member position")
+	verify(old_preset[0].kind=="agent","loading leaves the original preset intact")
+	game.saved_formation_preset = previous_preset
 	var only_medic: Array = game._migrate_saved_formation([saved[1]])
 	verify(only_medic.is_empty() and game.sim.submit_formation(0,only_medic)=="" and game.sim.formations[0].is_empty(),"medic-only save intentionally restores empty army, not starter")
 	verify(game._migrate_saved_formation([{"kind":"unknown","cell":0},17]).size()==2,"migration does not hide unrelated invalid entries")

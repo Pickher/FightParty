@@ -9,10 +9,10 @@ func cast(sim, unit: Dictionary) -> bool:
 	var chosen: Dictionary = {}
 	var count := -1
 	var distance := INF
-	for enemy in sim.nearby_team(unit.pos,reach,1-int(unit.team)):
+	for enemy in sim.visible_enemies_near(unit.pos,reach,int(unit.team)):
 		if enemy.hp<=0 or not Areas.eligible(sim,stats,config,enemy):continue
 		var neighbors := 0
-		for other in sim.nearby_team(enemy.pos,radius,1-int(unit.team)):
+		for other in sim.visible_enemies_near(enemy.pos,radius,int(unit.team)):
 			if other.hp>0 and Areas.eligible(sim,stats,config,other):neighbors+=1
 		var d: float = unit.pos.distance_to(enemy.pos)
 		if neighbors>count or (neighbors==count and (d<distance or (is_equal_approx(d,distance) and int(enemy.id)<int(chosen.get("id",2147483647))))):

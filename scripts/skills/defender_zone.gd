@@ -33,7 +33,7 @@ func prepare(sim, unit: Dictionary, motion: Dictionary) -> bool:
 		var in_range: bool = not nearest.is_empty() and in_sector(unit,nearest.pos,reach,float(config.angle_degrees))
 		return Deployment.can_act(sim,unit,state,in_range,false,motion,context)
 	var occupied := false
-	for enemy in sim.nearby_team(unit.pos,reach,1-int(unit.team)):
+	for enemy in sim.visible_enemies_near(unit.pos,reach,int(unit.team)):
 		if enemy.hp>0 and sim.catalog[enemy.kind].get("layer","ground")=="ground" and not sim.is_structure(enemy) and in_sector(unit,enemy.pos,reach,float(config.angle_degrees)):
 			occupied=true
 			break

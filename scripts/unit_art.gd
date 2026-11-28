@@ -149,8 +149,8 @@ static func draw(canvas: CanvasItem, p: Vector2, kind: String, color: Color, rad
 		"mortar":
 			canvas.draw_rect(Rect2(p-Vector2.ONE*radius,Vector2.ONE*radius*2),color)
 			canvas.draw_circle(p,radius*0.5,Color("162334"))
-		"agent":
-			# 十字准星叠菱形：远程狙击与穿甲两种弹药。
+		"ghost":
+			# 幽灵沿用特工的菱形准星剪影。
 			canvas.draw_colored_polygon(PackedVector2Array([p+Vector2(0,-radius*0.7),p+Vector2(radius*0.7,0),p+Vector2(0,radius*0.7),p+Vector2(-radius*0.7,0)]),color)
 			canvas.draw_line(p-Vector2(radius*1.2,0),p+Vector2(radius*1.2,0),color,2)
 			canvas.draw_line(p-Vector2(0,radius*1.2),p+Vector2(0,radius*1.2),color,2)

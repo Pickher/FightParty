@@ -4,7 +4,7 @@ func step(sim, unit: Dictionary, hits: Dictionary) -> bool:
 	var rate: float = float(sim.rules.tick_rate)
 	if state.has("yamato_target"):
 		var target = sim.by_id.get(int(state.yamato_target))
-		if target == null:
+		if target == null or not sim.is_visible_to(unit.team, target):
 			state.erase("yamato_target")
 			state.erase("yamato_fire_tick")
 			return false

@@ -78,7 +78,7 @@
 
 ### 人族已有单位
 
-- [ ] **特工。** 当前靠常规弹与精确弹切换，原图的特工常态隐形，需与反隐一起排期。补 EMP 范围削盾、削能及揭隐，以及对生命至少 120 的生物目标消耗能量和一次性充能的狙杀。[现有武器][T-ghost-current] · [原图特工](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L11932) · [EMP][T-emp] · [狙杀条件和充能][T-snipe]
+- [ ] **幽灵（原特工，0.13.12 已接入，待体验验收）。** 验收常态隐形和侦测、EMP 对敌群削盾削能及揭隐、一次性引导狙杀。确认旧兵营迁移、同批幽灵不重复锁定同一狙杀目标。[项目规则](DESIGN.md#幽灵与侦测) · [原图幽灵](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L11932) · [EMP][T-emp] · [狙杀][T-snipe]
 - [ ] **寡妇雷。** 当前导弹对主目标与邻敌同伤，采用重甲加成。原图将直接命中与溅射分开，各有独立护盾加伤，还需核对 6 格潜地、8 格出地的不同阈值。中文说明写地面敌人，实际验证器未限定地面，验收应覆盖纯空军接近。[现有导弹][T-mine-current] · [原图直接命中][T-mine-direct] · [原图溅射][T-mine-splash] · [进入条件][T-mine-in] · [离开条件][T-mine-out]
 - [ ] **大和舰。** 已有移动攻击与大和炮，补普通聚变芯体两种出兵战术。后撤型低血跳走并用防御矩阵自保，支援型跳到前线友军并使用大和炮。[现有技能][T-bc-current] · [两套跳跃战术][T-bc]
 - [ ] **维京机甲。** 已有通用机甲与独立的维京战机，同一机甲厂另可选择芬里尔战狼（重型，优先高生命目标）或克哈卫士（小型，反轻甲）。把两种生产选择列入现有机甲的扩充。[现有机甲][T-viking-current] · [工厂切换与武器][T-viking]
@@ -112,9 +112,9 @@
 
 ## 排期与验收
 
-- [ ] **R05 / X04 · 先定隐形与探测的对抗规则。** 特工在原图常态隐形，穿刺者潜地后隐形，普通先知靠天启揭隐。以这三例连同探测器进出范围，明确索敌、丢失锁定、显形持续时间和玩家能看到的反馈，再排女妖、黑暗圣堂武士和三族探测支援。[特工隐形标记](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L11932) · [天启](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L3812)
+- [ ] **R05 / X04 · 先定隐形与探测的对抗规则。** 幽灵在原图常态隐形，穿刺者潜地后隐形，普通先知靠天启揭隐。以这三例连同探测器进出范围，明确索敌、丢失锁定、显形持续时间和玩家能看到的反馈，再排女妖、黑暗圣堂武士和三族探测支援。[特工隐形标记](../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L11932) · [天启](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L3812)
 - [ ] **R11 · 复用按波选择战术的入口。** 跳虫随队或全速支援、大和舰支援或后撤、折跃棱镜增援哪种兵，均需记录玩家下波的选择。复用已有使徒战术入口，验收时分别检查场上旧单位与下一波新单位。[现有使徒选择](../scripts/formation_panel.gd#L205) · [普通战术指令](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L4347) · [棱镜增援](../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L4284)
-- [ ] **R04 / R11 · 按能改变交战结果的场景验收。** 优先核对特工对带盾施法者、虫群宿主隔前排放蝗虫、高阶圣堂武士耗能后合体。对每项记录触发条件、作用对象、反制手段和采用的简化。地图导出只包含覆盖值时，先补依赖数据，再填写未知参数。[原图数据继承说明](DESERT_STORM_UNITS.md#明确覆盖与继承边界)
+- [ ] **R04 / R11 · 按能改变交战结果的场景验收。** 优先核对幽灵对带盾施法者、虫群宿主隔前排放蝗虫、高阶圣堂武士耗能后合体。对每项记录触发条件、作用对象、反制手段和采用的简化。地图导出只包含覆盖值时，先补依赖数据，再填写未知参数。[原图数据继承说明](DESERT_STORM_UNITS.md#明确覆盖与继承边界)
 
 保留项目已确认的设计，包括恶火和恶蝠独立招募、解放者扇形防区、雷神自动切换对空武器、兴奋剂的生命门槛、虫族贴碰撞边缘攻击和雷兽扇扫。文中原图秒数沿用地图数据口径，排期实现时再换算为项目采用的实战时间。
 
@@ -134,7 +134,6 @@
 [T-predator]: ../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L3861
 [T-drill-prod]: ../reference/desert-storm/Base.SC2Data/GameData/UnitData.xml#L28369
 [T-drill]: ../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L3642
-[T-ghost-current]: ../data/units.json#L562
 [T-emp]: ../reference/desert-storm/zhCN.SC2Data/LocalizedData/GameStrings.txt#L3406
 [T-snipe]: ../reference/desert-storm/Base.SC2Data/GameData/AbilData.xml#L8749
 [T-mine-current]: ../data/units.json#L742

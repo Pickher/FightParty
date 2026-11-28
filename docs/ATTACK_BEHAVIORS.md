@@ -6,7 +6,7 @@
 
 | 攻击类型 | 实现 | 常用参数 | 当前例子 |
 |---|---|---|---|
-| 射弹 projectile | scripts/attacks/projectile_attack.gd | flight、seconds/speed、tracking | 特战队员、特工、坦克、雷神、维京；接触武器也使用零飞行的接触子方式 |
+| 射弹 projectile | scripts/attacks/projectile_attack.gd | flight、seconds/speed、tracking | 特战队员、幽灵、坦克、雷神、维京；接触武器也使用零飞行的接触子方式 |
 | 激光 beam | scripts/attacks/beam_attack.gd | tick_interval、switch_delay，伤害或healing | 医疗兵、医疗运输机、哨兵、虚空辉光舰、基地反击 |
 | 直线推进 line | scripts/attacks/line_attack.gd | pattern、length、speed、half_width、effect | 恶火、穿刺者、巨像 |
 | 即时扇形 cone | scripts/attacks/cone_attack.gd | length、angle_degrees、武器的 splash_multiplier | 恶蝠、雷兽 |

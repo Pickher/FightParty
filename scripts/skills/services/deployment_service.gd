@@ -19,7 +19,7 @@ static func can_act(sim, unit: Dictionary, state: Dictionary, in_range: bool, ba
 	var center: Vector2 = context.get("center",unit.pos)
 	var layers: Array = context.get("target_layers",stats.get("target_layers",["ground"]))
 	var hits_structures: bool = bool(context.get("attacks_structures",stats.get("attacks_structures", stats.get("attacks_base", true))))
-	for other in sim.nearby_team(center, reach * float(config.hold_range_multiplier), 1 - int(unit.team)):
+	for other in sim.visible_enemies_near(center, reach * float(config.hold_range_multiplier), int(unit.team)):
 		if other.hp <= 0 or (not hits_structures and sim.is_structure(other)):
 			continue
 		if not layers.has(sim.catalog[other.kind].get("layer","ground")):

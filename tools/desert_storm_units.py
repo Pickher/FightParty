@@ -22,7 +22,7 @@ CLEAVE_SOURCE = 'FightParty 雷兽顺劈，从自身碰撞前缘向前覆盖扇�
 PACK_BALANCE_SOURCE = 'FightParty 试玩平衡：保留兵种配置中的数值；原图参考 '
 UNIT_IDS = {
  'rifle':'Marine', 'hellbat':'Hellion', 'hellbat_mech':'Hellbat', 'marauder':'Marauder', 'medic':'Medic',
- 'agent':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter', 'viking_assault':'VikingAssault',
+ 'ghost':'Ghost', 'widow_mine':'WidowMine', 'mortar':'SiegeTank', 'viking':'VikingFighter', 'viking_assault':'VikingAssault',
  'liberator':'Liberator', 'thor':'Thor', 'battlecruiser':'Battlecruiser',
  'zergling':'Zergling','baneling':'Baneling','roach':'Roach','hydralisk':'Hydralisk',
  'ravager':'Ravager','piercer':'LurkerMP','tunneler':'SwarmHostMP','mutalisk':'Mutalisk',
@@ -38,7 +38,7 @@ MODES = {
  'hellbat':[('flame_jet','InfernalFlameThrower','InfernalFlameThrower')],
  'hellbat_mech':[('napalm_spray','HellionTank','HellionTankDamage')],
  'marauder':[('concussive_grenade','PunisherGrenades','PunisherGrenadesU')],
- 'agent':[('armor_piercing','C10CanisterRifleFake','C10CanisterRifle')],
+ 'ghost':[('c10_rifle','C10CanisterRifle','C10CanisterRifle')],
  'mortar':[('mobile_cannon','90mmCannons','90mmCannons'),('siege_cannon','CrucioShockCannon','CrucioShockCannonDirected')],
  'viking':[('anti_air_missile','LanzerTorpedoes','LanzerTorpedoesU')],
  'viking_assault':[('gatling_cannon','TwinGatlingCannon','TwinGatlingCannons')],
@@ -136,6 +136,47 @@ def apply_viking_assault(cat, write):
  write(uid,prefix+'backswing',0.5,'Core WeaponData/CWeapon/Backswing')
  write(uid,prefix+'delivery',{'type':'projectile','flight':'fixed','seconds':0,'tracking':True},
        'Liberty WeaponData/TwinGatlingCannon/Effect 直接引用 EffectData/TwinGatlingCannons，无飞行弹体')
+
+def apply_ghost(cat, unit, write, fields):
+ # The extra C10CanisterRifleFake has an empty Effect and is only a targeting aid.
+ # Liberty supplies the actual rifle timing and energy pool. The pack retains its project range.
+ uid = 'ghost'
+ mode = 'attack_modes/0/'
+ write(uid, 'energy', 200, 'Liberty UnitData/Ghost/EnergyMax')
+ write(uid, 'energy_regen', 0.5625, 'Liberty UnitData/Ghost/EnergyRegenRate（每游戏秒）')
+ write(uid, mode+'windup', 0.083, 'Liberty WeaponData/C10CanisterRifle/DamagePoint')
+ write(uid, mode+'backswing', 1.167, 'Liberty WeaponData/C10CanisterRifle/Backswing')
+ rifle = unit['attack_modes'][0]
+ wait = max(0.001, round(1.5 - rifle['attack_duration'] - rifle['windup'] - rifle['backswing'], 6))
+ write(uid, mode+'interval', wait, 'Liberty WeaponData/C10CanisterRifle/Period=1.5，轮后间隔扣除出手时长与前后摇')
+ fields.update({
+  mode+'range':'FightParty 保留 7 格；VoidMulti WeaponData/C10CanisterRifle/Range=7，地图普通实弹仅覆盖显示信息',
+  mode+'hit_count':'Liberty WeaponData/C10CanisterRifle 单次枪击',
+  mode+'target_layers':'GameStrings/Button/Tooltip/Ghost 可对地和对空',
+  mode+'delivery':'FightParty 沿用步枪发射时立即命中',
+  'skills/permanent_cloak':'UnitData/Ghost/FlagArray[Cloaked]；GameStrings/Button/Tooltip/Ghost',
+ })
+ emp = 'skills/emp/'
+ snipe = 'skills/snipe/'
+ for ability, prefix in [('EMP', emp), ('ChannelSnipe', snipe)]:
+  write(uid, prefix+'energy_cost', cat.scalar('AbilData',ability,'Cost/Vital','Energy'), f'AbilData/{ability}/Cost/Vital[Energy]')
+  write(uid, prefix+'range', cat.scalar('AbilData',ability,'AutoCastRange'), f'AbilData/{ability}/AutoCastRange')
+ write(uid, emp+'cooldown', float(cat.children('AbilData','EMP','Cost/Cooldown')[0].get('TimeUse')), 'AbilData/EMP/Cost/Cooldown@TimeUse')
+ write(uid, emp+'radius', float(cat.children('EffectData','EMPSearch','AreaArray')[0].get('Radius')), 'EffectData/EMPSearch/AreaArray@Radius')
+ write(uid, emp+'min_targets', cat.scalar('ValidatorData','EmpTargetSearch1Dot0605','Count'), 'ValidatorData/EmpTargetSearch1Dot0605/Count')
+ write(uid, emp+'min_vital', cat.scalar('ValidatorData','TargetEnergyGE60','Value'), 'ValidatorData/TargetEnergyOrShieldGE60 → TargetEnergyGE60 / TargetShieldGE60')
+ write(uid, emp+'reservation_seconds', cat.scalar('BehaviorData','EMP_JH_YY','Duration'), 'BehaviorData/EMP_JH_YY/Duration')
+ write(uid, emp+'shield_damage', 100, 'Swarm EffectData/EMPDamage/ShieldBonus')
+ write(uid, emp+'energy_drain', 100, 'Swarm EffectData/EMPModifyUnit/VitalArray[Energy]')
+ write(uid, emp+'reveal_seconds', 10, 'Liberty BehaviorData/EMPDecloak/Duration')
+ write(uid, emp+'projectile_speed', 30, 'Liberty MoverData/EMP2Weapon/MotionPhases/MaxSpeed=30，按直线飞向原落点')
+ write(uid, snipe+'range_slop', cat.scalar('AbilData','ChannelSnipe','RangeSlop'), 'AbilData/ChannelSnipe/RangeSlop')
+ write(uid, snipe+'min_target_hp', cat.scalar('ValidatorData','TargetLifeGE120','Value'), 'ValidatorData/TargetLifeGE120/Value')
+ write(uid, snipe+'charges', int(cat.children('AbilData','ChannelSnipe','Cost/Charge')[0].get('CountStart')), 'AbilData/ChannelSnipe/Cost/Charge@CountStart、CountUse')
+ write(uid, snipe+'damage', cat.scalar('EffectData','ChannelSnipeDamage','Amount'), 'EffectData/ChannelSnipeDamage/Amount')
+ persistent = 'ChannelSnipeCreatePersistent'
+ channel = cat.scalar('EffectData',persistent,'PeriodCount') * cat.scalar('EffectData',persistent,'PeriodicPeriodArray')
+ write(uid, snipe+'channel_seconds', channel, 'EffectData/ChannelSnipeCreatePersistent/PeriodCount × PeriodicPeriodArray')
 
 def apply_medivac(cat, write):
  """The deployed Medivac inherits Liberty campaign effects. Convert its game seconds to Faster real seconds."""
@@ -282,6 +323,9 @@ def apply():
  # Filter inheritance warnings now resolved from the ground Viking's underlying catalogs.
  viking_fields=audit['units']['viking_assault']['fields']
  audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='viking_assault' or item['path'] not in viking_fields]
+ ghost_fields=audit['units']['ghost']['fields']
+ apply_ghost(cat, units['ghost'], write, ghost_fields)
+ audit['unresolved']=[item for item in audit['unresolved'] if item['id']!='ghost' or item['path'] not in ghost_fields]
  # Confirmed skill overrides. Other native abilities remain in unresolved inventory.
  apply_infantry_stimulants(cat, units, write)
  # Additional Adept fields come from its inherited weapon and the map's two mutually exclusive orders.
@@ -376,9 +420,10 @@ def apply():
    if mode['id'] not in covered and mode['damage']>0:
     pending(uid,f'attack_modes/{i}','该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原')
   for aid in entry.get('abilities',[]):
+   if uid=='ghost' and aid in ('EMP','ChannelSnipe'):continue
    if aid.startswith('wanttoattack') or aid in ['move','attack','DSStimpack','DSStimpackMarauder','HydraliskFrenzynormal','ImmortalBarrierArmor','heal','SiegeMode','BurrowLurkerMPDown','SpawnLocustsTargeted']:continue
    pending(uid,'ability:'+aid,'已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装')
- for uid in ['agent','infestor','carrier','disruptor','colossus','void_ray','stalker']:
+ for uid in ['infestor','carrier','disruptor','colossus','void_ray','stalker']:
   pending(uid,'skill_semantics','保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植')
  # Descriptions reflect confirmed replacements; no effect text is mistaken for a mechanic.
  write('hellbat','sc2','恶火 Hellion','UnitData/Hellion 对应关系（内部ID保留hellbat）')

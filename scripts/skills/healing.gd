@@ -17,9 +17,8 @@ func step(sim, unit: Dictionary, dt: float, heals: Dictionary, moves: Dictionary
 	if not front.is_empty():
 		safe_x = float(front.pos.x) * forward - float(config.follow_distance)
 		goal = Vector2(safe_x * forward, front.pos.y)
-	for enemy in sim._nearby(unit.pos, float(stats.range) * 1.5):
-		if enemy.team != unit.team:
-			safe_x = minf(safe_x, float(enemy.pos.x) * forward - float(config.danger_distance))
+	for enemy in sim.visible_enemies_near(unit.pos, float(stats.range) * 1.5, int(unit.team)):
+		safe_x = minf(safe_x, float(enemy.pos.x) * forward - float(config.danger_distance))
 	var patient: Dictionary = {}
 	var chase: Dictionary = {}
 	var best_ratio := INF

@@ -4,6 +4,7 @@ Render with blender -b -t 3 -P tools/art/recruit_portraits/studio.py -- <unit ID
 Geometry uses Z up, -Y forward. Framing is fitted to the projected subject.
 Protoss IDs use their original game model or painted master via render_protoss.
 """
+import json
 import math
 import sys
 from pathlib import Path
@@ -223,7 +224,11 @@ def main():
     from terran import BUILDERS as terran
     from render_protoss import UNITS as protoss, rebuild
 
-    selection = sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [*terran, *protoss]
+    if '--' in sys.argv:
+        units = json.loads((HERE.parents[2] / 'data/units.json').read_text(encoding='utf-8'))['units']
+        selection = [units.get(unit, {}).get('portrait', unit) for unit in sys.argv[sys.argv.index('--')+1:]]
+    else:
+        selection = [*terran, *protoss]
     for unit in selection:
         if unit not in terran and unit not in protoss:
             raise ValueError(f"Unknown recruit portrait: {unit}")

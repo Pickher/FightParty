@@ -2,7 +2,7 @@ extends Node2D
 const Yamato = preload("res://scripts/skills/yamato.gd")
 const UnitArt = preload("res://scripts/unit_art.gd")
 # 只隐藏普通攻击连线和弹丸尾线，保留命中效果与动作。
-const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","agent","marauder","terran_bunker","viking_assault"]
+const NO_ATTACK_TRACER_KINDS := ["rifle","mortar","ghost","marauder","terran_bunker","viking_assault"]
 ## 独立的战场画布由 SubViewport 裁剪；缩放只影响显示，不改模拟单位。
 var game
 func viewport_size() -> Vector2:
@@ -95,6 +95,9 @@ func _draw() -> void:
 		ring(area.pos,float(config.radius),Color(tint,0.4 if pending else 0.9))
 		if not pending:draw_circle(point(area.pos),pixels(float(config.radius)),Color(tint,0.12))
 		if pending and bool(config.get("projectile",false)):
+			var caster = sim.by_id.get(int(area.source_id))
+			if caster != null and not sim.is_visible_to(0, caster):continue
+			if caster == null and int(area.team) != 0 and sim.catalog[area.kind].skills.has("permanent_cloak"):continue
 			var progress: float = clampf(float(sim.tick-int(area.born))/maxf(1.0,float(int(area.ready_tick)-int(area.born))),0,1)
 			draw_circle(point(area.origin.lerp(area.pos,progress)),maxf(2,pixels(0.35)),tint)
 	for unit in sim.units:
@@ -116,6 +119,7 @@ func _draw() -> void:
 		var to: Vector2 = beam.to
 		var source = sim.by_id.get(int(beam.source_id))
 		var target = sim.by_id.get(int(beam.target_id))
+		if target != null and not sim.is_visible_to(0, target):continue
 		if source!=null:from=source.pos
 		if target!=null:to=target.pos
 		var tint: Color = game.MINT if int(beam.team)==0 else game.CORAL
@@ -148,6 +152,12 @@ func _draw() -> void:
 		if effect.type=="area_impact":
 			ring(effect.to,float(effect.radius),Color(color,clampf(float(effect.ttl)/0.16,0,1)))
 			continue
+		if effect.type == "snipe_impact":
+			var flash := Color(color, clampf(float(effect.ttl) / 0.16, 0.0, 1.0))
+			var radius := maxf(3.0, pixels(0.4))
+			draw_arc(b, radius, 0.0, TAU, 16, flash, 1.5)
+			draw_circle(b, 1.4, flash)
+			continue
 		if effect.type=="yamato":
 			var fade: float = clampf(float(effect.ttl)/0.5,0,1)
 			draw_line(a,b,Color(Color("ffb347"),fade),maxf(2,pixels(0.35)))
@@ -177,6 +187,7 @@ func _draw() -> void:
 			game.rifle_visual.draw_corpse(self,point(corpse.pos),corpse,pixels(rifle_frame_world))
 	for unit in sim.units:
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
+		if not sim.is_visible_to(0, unit):continue
 		var stats: Dictionary = sim.catalog[unit.kind]
 		var body: Array = stats.get("size",[1.0,1.0])
 		if unit.has("shade_position") and not game._hidden_team(int(unit.team)):
@@ -190,6 +201,8 @@ func _draw() -> void:
 		var color: Color = game.MINT if unit.team==0 else game.CORAL
 		var hidden: bool = game._hidden_team(int(unit.team))
 		var tint: Color = Color("4a5a6c") if hidden else Color(stats.color)
+		if unit.get("cloaked", false) and sim.tick >= int(unit.get("revealed_until_tick", 0)):
+			tint.a = 0.55
 		# 模型的边界与配置的宽高一致；全图不额外放大，近景下才显示细节。
 		if sim.is_structure(unit):
 			_draw_structure(p, dimensions, unit.kind, sim.visible_race(0, int(unit.team)), color)
@@ -235,6 +248,7 @@ func _draw() -> void:
 		draw_colored_polygon(sweep, Color("e7ccaf", 0.22 * clampf(float(effect.ttl) / 0.16, 0.0, 1.0)))
 	# Overlay pass after the transparent aircraft layer; no bars/status information hidden by models.
 	for unit in sim.units:
+		if not sim.is_visible_to(0, unit):continue
 		var position: Vector2 = unit.prev.lerp(unit.pos,alpha)
 		var stats: Dictionary = sim.catalog[unit.kind]
 		var body: Array = stats.get("size",[1.0,1.0])
@@ -248,6 +262,10 @@ func _draw() -> void:
 		if hidden:
 			label(p+Vector2(-3,4),"?",color)
 			continue
+		if unit.get("channeling_skill", "") == "snipe":
+			var aim_radius := maxf(4.0, dimensions.x * 0.62)
+			draw_arc(p, aim_radius, -PI * 0.3, PI * 0.3, 10, Color("ffcd70"), 1.5)
+			draw_arc(p, aim_radius, PI * 0.7, PI * 1.3, 10, Color("ffcd70"), 1.5)
 		if sim.tick<int(unit.get("barrier_until_tick",0)) and float(unit.get("barrier_hp",0))>0:
 			draw_arc(p,maxf(4,dimensions.x*.7),0,TAU,20,Color("b9a2ff"),2)
 		if sim.tick<int(unit.get("root_until_tick",0)):

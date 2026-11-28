@@ -11,7 +11,7 @@ func best_index(sim, unit: Dictionary, target: Dictionary) -> int:
 		var heavy := 0
 		var scan_range := 0.0
 		for weapon in weapons:scan_range=maxf(scan_range,float(weapon.range))
-		for enemy in sim.nearby_team(unit.pos,scan_range,1-int(unit.team)):
+		for enemy in sim.visible_enemies_near(unit.pos,scan_range,int(unit.team)):
 			if enemy.hp<=0 or sim.catalog[enemy.kind].get("layer","ground")!="air":
 				continue
 			var armor: String = sim.catalog[enemy.kind].get("armor_type","none")

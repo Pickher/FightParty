@@ -321,6 +321,7 @@ func draw_healing(canvas: CanvasItem, view) -> void:
 		if not owns_heal(beam):continue
 		var entry: Dictionary = entries[int(beam.source_id)]
 		var target = game.sim.by_id.get(int(beam.target_id))
+		if target != null and not game.sim.is_visible_to(0, target):continue
 		var end: Vector2 = target.prev.lerp(target.pos,alpha) if target!=null else beam.to
 		# Screen anchor uses the same interpolated root and hover as the actual model.
 		var from := Vector2(float(entry.root.position.x),float(entry.root.position.z))
