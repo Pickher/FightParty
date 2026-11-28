@@ -55,3 +55,16 @@
 招募空中战机时，每架新出场的维京先起步 0.30 秒，接着用 1.20 秒展开升空，左右挂架按已有的对空导弹事件开火。招募地面机甲时，单位保持地面形态。可在 Godot 中打开[维京动作预览](../../scenes/art/viking_actions.tscn)，按 F6 查看两个形态的动作、起飞和反向降落。
 
 在项目根目录运行 `python tools/art/build_viking_rig.py` 可从白模重建可动分件、关节、炮口和涂装。招募界面的[机甲肖像](../ui/recruits/viking_assault.png)沿用[招募用分件](viking/viking_assault_rig.glb)，可用 `python tools/art/build_viking_assault_rig.py` 和上节的肖像渲染脚本重建。
+
+## 星灵源模型
+
+以下八份源模型由用户提供，按 `data/units.json` 中的单位 ID 保存，供后续战场模型、动画与特效接入使用。
+
+- 先锋（`vanguard`）：[vanguard.glb](vanguard/vanguard.glb)，来自 `先锋模型.glb`，未包含纹理图片，无外置文件依赖。
+- 哨兵（`sentry`）：[sentry.glb](sentry/sentry.glb)，来自 `哨兵模型.glb`，未包含纹理图片，无外置文件依赖。
+- 不朽者（`immortal`）：[immortal.glb](immortal/immortal.glb)，来自 `不朽者模型.glb`，未包含纹理图片，无外置文件依赖。
+- 巨像（`colossus`）：[colossus.glb](colossus/colossus.glb)，来自 `巨像模型.glb`，未包含纹理图片，无外置文件依赖。
+- 航母（`carrier`）：[carrier.glb](carrier/carrier.glb)，来自 `航母模型.glb`，未包含纹理图片，无外置文件依赖。
+- 干扰者（`disruptor`）：[disruptor.glb](disruptor/disruptor.glb)，来自 `干扰者模型.glb`，未包含纹理图片，无外置文件依赖。
+- 高阶圣堂武士（`high_templar`）：[high_templar.glb](high_templar/high_templar.glb)，来自 `高阶圣堂武士模型.glb`，未包含纹理图片，无外置文件依赖。
+- 追猎者（`stalker`）：[stalker.glb](stalker/stalker.glb)，来自 `追猎者模型.glb`，未包含纹理图片，无外置文件依赖。
