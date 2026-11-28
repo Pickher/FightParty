@@ -46,6 +46,8 @@
 
 部队配置和格阵商店共用[兵种肖像](../ui/recruits/)。每个可招募单位对应一张以单位 ID 命名的 256 × 256 透明 PNG。已有兵模的肖像由 [Blender 渲染脚本](../../tools/art/render_recruit_models.py) 取景，其余肖像的造型源在[肖像美术目录](../../tools/art/recruit_portraits/)。
 
+神族 11 个兵种的[透明肖像原画](../../tools/art/recruit_portraits/protoss/)共用招募界面的翡翠色底板。运行 `python tools/art/recruit_portraits/render_protoss.py` 从原画重建全部神族肖像，也可以在命令末尾指定单位 ID，例如 `stalker`。
+
 更换兵模后，可在项目根目录运行 `blender -b -P tools/art/render_recruit_models.py -- thor` 单独重拍雷神。更新任意肖像后，运行 `python tools/art/pack_recruit_thumbnails.py` 重建列表使用的 64 像素图集。详情直接显示大图。[招募菜单实机截图](../../docs/media/recruit-menu.jpg) · [四族肖像总览](../../docs/media/recruit-roster.jpg)
 
 ## 维京机甲和维京战机

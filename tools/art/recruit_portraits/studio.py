@@ -2,6 +2,7 @@
 
 Render with blender -b -t 3 -P tools/art/recruit_portraits/studio.py -- <unit IDs>.
 Geometry uses Z up, -Y forward. Framing is fitted to the projected subject.
+Protoss IDs are exported from the painted masters by render_protoss.
 """
 import math
 import sys
@@ -219,16 +220,18 @@ def render(unit,build,direction,output):
 
 
 def main():
-    from protoss_machines import BUILDERS as machines
     from terran import BUILDERS as terran
-    from templars import BUILDERS as templars
-    builders={**machines,**terran,**templars}
-    selection=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else list(builders)
+    from render_protoss import MASTERS, export
+
+    protoss = sorted(path.stem for path in MASTERS.glob("*.webp"))
+    selection=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [*terran, *protoss]
     OUT.mkdir(exist_ok=True,parents=True)
-    angles={'agent':(3.1,-7.7,2.5),'widow_mine':(3.2,-7.,4.7),'viking':(4.6,-7.,5.8),'liberator':(4.4,-7.2,5.2),
-            'carrier':(5.2,-8.6,5.8),'void_ray':(5.6,-8.,5.7),'colossus':(4.,-8.,3.8)}
+    angles={'agent':(3.1,-7.7,2.5),'widow_mine':(3.2,-7.,4.7),'viking':(4.6,-7.,5.8),'liberator':(4.4,-7.2,5.2)}
     for unit in selection:
-        render(unit,builders[unit],angles.get(unit,(3.3,-7.7,2.15) if unit in templars else (4.6,-7.7,4.4)),OUT)
+        if unit in protoss:
+            export(unit, OUT)
+        else:
+            render(unit,terran[unit],angles.get(unit,(4.6,-7.7,4.4)),OUT)
 
 
 if __name__ == '__main__':
