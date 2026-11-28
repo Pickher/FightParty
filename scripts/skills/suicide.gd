@@ -23,7 +23,7 @@ func on_attack(ctx: Dictionary) -> bool:
 	var fraction := float(ctx.fire_offset)/float(ctx.dt)
 	var search_radius: float = radius+float(ctx.motion_margin)+(float(sim.max_body_radius) if overlap else 0.0)
 	for victim in sim.nearby_team(origin,search_radius,enemy):
-		if not sim._can_hit_unit(unit,victim,stats):continue
+		if not sim._weapon_affects_unit(unit,victim,stats):continue
 		var position: Vector2 = victim.pos.lerp(ctx.moves.get(victim.id,victim.pos),fraction)
 		var victim_reach: float = radius+(float(sim.body_radius(victim)) if overlap else 0.0)
 		if position.distance_squared_to(origin)>victim_reach*victim_reach:continue

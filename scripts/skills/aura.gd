@@ -16,7 +16,7 @@ func prepare(sim, unit: Dictionary) -> void:
 		if sim.tick>=int(state.get("aura_until_tick",0)):
 			if sim.tick<int(state.get("aura_ready_tick",0)):return
 			var threat := false
-			for enemy in sim.nearby_team(unit.pos,float(config.radius)+3,1-int(unit.team)):
+			for enemy in sim.visible_enemies_near(unit.pos,float(config.radius)+3,int(unit.team)):
 				if enemy.hp>0:
 					threat=true
 					break

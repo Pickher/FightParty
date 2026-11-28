@@ -81,6 +81,7 @@ var buckets: Dictionary = {}
 # 按阵营分开的同尺寸空间桶，以及本步的 id → 单位索引；只用于索敌加速，不改变选择结果。
 var team_buckets: Array = [{}, {}]
 var by_id: Dictionary = {}
+var detectors: Array = [{}, {}]
 # 分离按模型体积检查邻居；粗桶 4 格，细桶 2 格。
 var fine_buckets: Dictionary = {}
 const BUCKET := 4.0
@@ -183,9 +184,12 @@ func suggested_tower_position(team: int) -> Vector2:
 func formation_cost(formation: Array) -> int:
 	var total := 0
 	for slot in formation:
-		if not slot is Dictionary or not _buyable(slot.get("kind", "")):
+		if not slot is Dictionary:
 			return -1
-		total += int(catalog[slot.kind].cost)
+		var kind := Catalog.saved_unit_kind(slot.get("kind"))
+		if not _buyable(kind):
+			return -1
+		total += int(catalog[kind].cost)
 	return total
 
 func _buyable(kind) -> bool:
@@ -218,7 +222,7 @@ func validate_formation(formation: Array, allowed_budget: int, team: int = 0) ->
 	for slot in formation:
 		if not slot is Dictionary:
 			return "未知兵种"
-		var kind_problem := kind_error(team, slot.get("kind", ""))
+		var kind_problem := kind_error(team, Catalog.saved_unit_kind(slot.get("kind")))
 		if not kind_problem.is_empty():
 			return kind_problem
 		var error := _cell_error(slot.get("cell", -1))
@@ -453,7 +457,7 @@ func submit_formation(team: int, formation: Array) -> String:
 		return error
 	var wanted: Dictionary = {}
 	for slot in formation:
-		wanted[int(slot.cell)] = slot.kind
+		wanted[int(slot.cell)] = Catalog.saved_unit_kind(slot.kind)
 	var sells: Array = []
 	var available: Dictionary = wallet(team)
 	for slot in formations[team]:
@@ -483,7 +487,7 @@ func apply_action(action: Dictionary) -> String:
 		"adept_tactic":
 			return set_adept_tactic(int(action.get("team",-1)), str(action.get("tactic","")))
 		"buy":
-			return buy(int(action.team), str(action.kind), int(action.cell))
+			return buy(int(action.team), Catalog.saved_unit_kind(action.kind), int(action.cell))
 		"sell":
 			return sell(int(action.team), int(action.cell))
 		"move":
@@ -546,6 +550,28 @@ func unit_model(unit: Dictionary) -> Unit:
 
 func has_tag(unit: Dictionary, tag: String) -> bool:
 	return definitions[unit.kind].has_tag(tag)
+
+## 本队总能看见友军。永久隐形只阻止敌人直接选中，已经发出的攻击和范围命中独立结算。
+func is_visible_to(team: int, target: Dictionary) -> bool:
+	if int(target.team) == team or not bool(target.get("cloaked", false)):
+		return true
+	if tick < int(target.get("revealed_until_tick", 0)):
+		return true
+	# 原图要塞本体与防御建筑各自提供侦测，此处随合并防御层永久损毁而缩小。
+	var base_radius: float = rules.base_defense_detection_range if base_has_defense(team) else rules.base_detection_range
+	if base_pos(team).distance_squared_to(target.pos) <= base_radius * base_radius:
+		return true
+	for id in detectors[team]:
+		var detector: Dictionary = detectors[team][id]
+		var observer: Dictionary = detector.unit
+		if observer.hp > 0 and observer.pos.distance_squared_to(target.pos) <= float(detector.radius) ** 2:
+			return true
+	return false
+
+func reveal_unit(unit: Dictionary, seconds: float) -> void:
+	if seconds > 0.0:
+		var until := tick + ceili(seconds * float(rules.tick_rate))
+		unit.revealed_until_tick = maxi(int(unit.get("revealed_until_tick", 0)), until)
 
 func can_spend_energy(unit: Dictionary, amount: float) -> bool:
 	var instance = unit_model(unit)
@@ -771,6 +797,10 @@ func expected_damage(weapon: Dictionary, victim: Dictionary) -> float:
 
 ## 索敌热点：避免 get(key, 默认数组) 每次创建临时容器。
 func _can_hit_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
+	return is_visible_to(int(unit.team), other) and _weapon_affects_unit(unit, other, weapon)
+
+## 弹道命中和范围波及只检查武器能否影响该单位，不需要重新锁定。
+func _weapon_affects_unit(unit: Dictionary, other: Dictionary, weapon: Dictionary) -> bool:
 	if bool(other.get("owner_dependent",false)) and not by_id.has(int(other.get("owner_id",0))):return false
 	if bool(unit.get("owner_dependent",false)):
 		var parent = by_id.get(int(unit.get("owner_id",0)))
@@ -869,7 +899,7 @@ func engage_target(unit: Dictionary) -> Dictionary:
 	if unit.has("engage_id") and (tick-int(unit.born))%ENGAGE_RESCAN!=0:
 		if int(unit.engage_id)==0:return {}
 		var cached = by_id.get(int(unit.engage_id))
-		if cached!=null and cached.hp>0 and unit.pos.distance_to(cached.pos)<=radius:return cached
+		if cached!=null and cached.hp>0 and is_visible_to(unit.team,cached) and unit.pos.distance_to(cached.pos)<=radius:return cached
 	unit.engage_id = 0
 	if is_structure(unit) or (float(catalog[unit.kind].damage)<=0.0 and not skill_system.contributes_damage(unit)):return {}
 	var weapon := _search_stats(unit)
@@ -910,7 +940,7 @@ func nearest_ground_enemy(unit: Dictionary, radius: float) -> Dictionary:
 			if bucket == null or _cell_distance(unit.pos, key) > minf(best_distance, radius):
 				continue
 			for other in bucket:
-				if other.hp <= 0 or catalog[other.kind].get("layer","ground") != "ground" or catalog[other.kind].get("structure", false):
+				if other.hp <= 0 or not is_visible_to(unit.team, other) or catalog[other.kind].get("layer","ground") != "ground" or catalog[other.kind].get("structure", false):
 					continue
 				var distance: float = unit.pos.distance_to(other.pos)
 				if distance > radius:
@@ -954,7 +984,7 @@ func _ring_cells(area: Dictionary, ring: int) -> Array:
 	return cells
 
 ## 只返回指定阵营、位于半径内的单位；顺序与 _nearby 无关，调用处不得依赖顺序。
-func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
+func nearby_team(pos: Vector2, radius: float, team: int, viewer: int = -1) -> Array:
 	var found: Array = []
 	var side: Dictionary = team_buckets[team]
 	for x in range(floori((pos.x - radius) / BUCKET), floori((pos.x + radius) / BUCKET) + 1):
@@ -963,9 +993,13 @@ func nearby_team(pos: Vector2, radius: float, team: int) -> Array:
 			if bucket == null:
 				continue
 			for unit in bucket:
-				if pos.distance_squared_to(unit.pos) <= radius * radius:
+				if pos.distance_squared_to(unit.pos) <= radius * radius and (viewer < 0 or is_visible_to(viewer, unit)):
 					found.append(unit)
 	return found
+
+## 行为决策只使用本方可见的敌人。区域效果用 nearby_team 查询实际在场单位。
+func visible_enemies_near(pos: Vector2, radius: float, team: int) -> Array:
+	return nearby_team(pos, radius, 1 - team, team)
 
 ## 把一次命中的原始伤害（含穿甲加成）排入本步待结算列表；hits 是 id → 原始伤害数组。
 func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = false, ignore_armor: bool = false, shield_bonus: float = 0.0, armor_multiplier: float = 1.0, direct_source_id: int = 0) -> void:
@@ -981,6 +1015,14 @@ func queue_hit(hits: Dictionary, victim: Dictionary, raw: float, ranged: bool = 
 		hits[victim.id].append(hit)
 	else:hits[victim.id].append(raw)
 
+## EMP 只烧毁护盾。与普通命中共用队列，按本步命中顺序扣除当时剩余的护盾。
+func queue_shield_damage(hits: Dictionary, victim: Dictionary, amount: float, source_team: int) -> void:
+	if amount <= 0.0:
+		return
+	if not hits.has(victim.id):
+		hits[victim.id] = []
+	hits[victim.id].append({"shield_damage": amount, "source_team": source_team})
+
 ## 普通、传播、弹射武器共用伤害属性。true 额外跳过远程光环减伤。
 func queue_weapon_hit(hits: Dictionary, victim: Dictionary, weapon: Dictionary, raw: float, ranged: bool = false, bonus_multiplier: float = 1.0, direct_source_id: int = 0) -> void:
 	queue_hit(hits, victim, raw, ranged and str(weapon.get("damage_type", "physical")) != "true", WeaponDefinition.ignores_armor(weapon),float(weapon.get("shield_bonus",0))*bonus_multiplier,float(weapon.get("armor_multiplier",1)),direct_source_id)
@@ -992,7 +1034,7 @@ func queue_direct_strike(ctx: Dictionary, weapon: Dictionary, target: Dictionary
 	var direct = by_id.get(int(target.id))
 	var victims: Array = ([] if direct==null else [direct]) if float(weapon.splash)==0 else nearby_team(center,float(weapon.splash)+float(ctx.get("motion_margin",0)),1-int(unit.team))
 	for victim in victims:
-		if victim.team==unit.team or not _can_hit_unit(unit,victim,weapon):continue
+		if victim.team==unit.team or not _weapon_affects_unit(unit,victim,weapon):continue
 		var position: Vector2 = victim.pos
 		if ctx.has("impact_fraction"):position=victim.pos.lerp(ctx.moves.get(victim.id,victim.pos),float(ctx.impact_fraction))
 		var distance: float = center.distance_to(position)
@@ -1186,7 +1228,17 @@ func step() -> Array:
 		if hits.has(unit.id):
 			var shield_before: float = float(unit.shield)
 			var hp_loss := 0.0
+			var took_hit := false
 			for hit in hits[unit.id]:
+				if hit is Dictionary and hit.has("shield_damage"):
+					var shield_at_impact := minf(float(unit.shield), float(hit.shield_damage))
+					if shield_at_impact > 0.0:
+						var drained := skill_system.absorb(self, unit, shield_at_impact)
+						unit.shield -= drained
+						damage_done[int(hit.source_team)] += drained
+						took_hit = took_hit or drained > 0.0
+					continue
+				took_hit = true
 				var raw: float = float(hit.raw) if hit is Dictionary else float(hit)
 				var ignore_armor: bool = bool(hit.ignore_armor) if hit is Dictionary else false
 				raw=skill_system.absorb(self,unit,raw)
@@ -1200,8 +1252,9 @@ func step() -> Array:
 					unit.direct_hit_tick=tick
 					unit.direct_hit_sources[hit.direct_source_id]=true
 			lost += hp_loss
-			unit.last_hit_tick = tick
-			events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})
+			if took_hit:
+				unit.last_hit_tick = tick
+				events.append({"type":"damage","id":unit.id,"amount":hp_loss + shield_before - float(unit.shield)})
 		unit.hp -= lost
 		if self_destruct.has(unit.id):unit.hp=0.0
 		if unit.hp<=0:deaths.append(unit)
@@ -1284,6 +1337,6 @@ func get_snapshot(viewer: int = 0) -> Dictionary:
 		"active_beams":active_beams.duplicate(true),
 		"attack_sequences":attack_sequences.duplicate(true),"projectiles":projectiles.duplicate(true),"next_projectile_id":next_projectile_id,
 		"base_max_hp":[base_max_hp(0),base_max_hp(1)],"base_defenses":base_defenses.duplicate(true),
-		"units":units.map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
+		"units":units.filter(func(unit): return is_visible_to(viewer, unit)).map(func(unit): return unit_model(unit).snapshot()),"attack_waves":attack_waves.duplicate(true),"skill_areas":skill_areas.duplicate(true),"last_formations":public_formations,
 		"races":[visible_race(viewer, 0), visible_race(viewer, 1)],"revealed":revealed,
 		"own_formation":formations[viewer].duplicate(true),"finished":finished,"winner":winner}

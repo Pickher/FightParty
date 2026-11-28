@@ -52,7 +52,7 @@ func ticks(sim, count: int) -> void:
 const DUMMY := {"name":"训练假人","symbol":"?","race":"terran","status":"ready","cost":100,"hp":480,"armor_type":"heavy","armor":0,"damage":16,"interval":1.2,"range":1.0,"speed":2.25,"splash":0,"size":[1.0,1.0],"collision_radius":0.5,"color":"7ed8ed","role":"测试","counter":"测试","layer":"ground","target_layers":["ground"],"sc2":"测试","attack_duration":0.1}
 
 ## SceneTree 脚本启动时运行测试集，覆盖校验、波次、残兵、胜负、AI 和性能。
-const SECTIONS := ["_formation_pace","_core","_targeting","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_proximity_morph","_viking_assault","_zerg_contact_and_splash"]
+const SECTIONS := ["_formation_pace","_core","_targeting","_ghosts","_medics","_siege","_siege_scanning","_piercers","_colossi_and_skills","_marauders","_stimulant_and_slow","_liberators","_spatial_equivalence","_structures","_setup_options","_armor_and_shields","_roster_data","_races","_battlecruisers","_economy","_desert_economy","_final_phase","_playtest_fixes","_sentry","_adepts","_medivacs","_hellbat_mechs","_proximity_morph","_viking_assault","_zerg_contact_and_splash"]
 
 ## 可用 `-- --only=_siege,_piercers` 只跑部分分组；每组打印耗时，便于定位慢测试。
 func _initialize() -> void:
@@ -161,11 +161,11 @@ func _core() -> void:
 	replay.submit_formation(1,Catalog.starter())
 	ticks(replay,first_wave+1200)
 	check(replay.get_snapshot()==mirror.get_snapshot(),"same inputs reproduce same simulation")
-	_counter("agent","dummy",1500,"armor-piercing agent vs heavy")
+	_counter("ghost","dummy",1500,"ghost vs armored ground")
 	_counter("rifle","swarm",600,"rifle vs light")
 	_counter("mortar","swarm",1700,"splash vs swarm")
 	_counter("ultralisk","rifle",1800,"ultralisk armor vs rifles")
-	_counter("mortar","agent",1700,"siege outranges agent")
+	_counter("mortar","marauder",1700,"siege outranges marauders")
 	_counter("hellbat","zergling",900,"flame vs light melee")
 	_counter("immortal","roach",1500,"immortal vs heavy")
 	_counter("viking","liberator",2400,"viking vs heavy air")
@@ -268,32 +268,6 @@ func _targeting() -> void:
 	closer.born = sim.tick - int(sim.rules.unit_lifetime * sim.rules.tick_rate)
 	sim.step()
 	check(shooter.locked_target_id==0,"expired target releases lock")
-	# 特工：按目标护甲选择预期秒伤更高的弹种；换弹 1.5 秒内不能开火或移动。
-	var spec = bare()
-	tune(spec,"dummy",{"speed":0,"damage":0,"hp":10000})
-	tune(spec,"rifle",{"speed":0,"damage":0,"hp":10000,"skills":{}})
-	var modes: Array = spec.catalog.agent.skills.weapon_switch.weapons
-	var agent = spec.spawn_unit(0,"agent",field(0,0))
-	var heavy = spec.spawn_unit(1,"dummy",field(5,0))
-	var opening: Array = []
-	for i in range(strike_ticks(spec,"agent")):
-		opening.append_array(spec.step())
-	check(int(agent.get("weapon_index",0))==0 and heavy.hp==10000-spec.expected_damage(modes[0],heavy) and not opening.any(func(e): return e.type=="weapon_switch"),"agent opens with armor-piercing rounds on heavy armor")
-	spec.units.erase(heavy)
-	var light = spec.spawn_unit(1,"rifle",field(5,0))
-	# 正在进行的一轮（含后摇）结束后才判断换弹。
-	var switching: Array = []
-	var waited := 0
-	while not switching.any(func(e): return e.type=="weapon_switch") and waited<60:
-		switching = spec.step()
-		waited += 1
-	check(int(agent.get("weapon_index",0))==1 and light.hp==10000 and switching.any(func(e): return e.type=="weapon_switch" and e.weapon=="precision"),"light target starts switch to precision rounds")
-	check(waited>1,"switch waits for the current round's backswing")
-	var switch_ticks: int = ceili(float(spec.catalog.agent.skills.weapon_switch.switch_seconds)*float(spec.rules.tick_rate))
-	ticks(spec,switch_ticks-1)
-	check(light.hp==10000 and agent.pos==field(0,0),"agent cannot fire or move during 1.5-second switch")
-	ticks(spec,1+strike_ticks(spec,"agent",1))
-	check(light.hp==10000-spec.expected_damage(modes[1],light) and agent.locked_target_id==light.id,"precision rounds fire after switch with light bonus")
 	# 雷神：对地固定用重锤炮，目标换成空中时立即换到默认对空模式，无需换弹等待。
 	var hammer = bare()
 	tune(hammer,"dummy",{"speed":0,"damage":0,"hp":10000})
@@ -328,6 +302,71 @@ func tune(sim, kind: String, fields: Dictionary) -> void:
 			if mode.has(key) or key in ["damage","interval","range"]:mode[key]=fields[key]
 	sim.definitions[kind] = Catalog.UnitDefinition.new(kind,data,sim.rules)
 	sim.catalog[kind] = sim.definitions[kind].to_data()
+
+## 幽灵的隐身、范围电磁脉冲和每名一次的狙杀均从实际战斗入口验证。
+func _ghosts() -> void:
+	var vision = bare()
+	var rifle = vision.spawn_unit(0,"rifle",field(0,0))
+	var hidden = vision.spawn_unit(1,"ghost",field(4,0))
+	vision._build_buckets()
+	check(not vision.catalog.has("agent") and vision.catalog.ghost.name=="幽灵","only Ghost is registered")
+	check(vision.is_visible_to(1,hidden) and vision._target(rifle).is_empty(),"friendly Ghost is visible and enemy rifle cannot acquire it")
+	vision.reveal_unit(hidden,0.5)
+	check(vision._target(rifle).get("id")==hidden.id,"revealed Ghost can be acquired")
+	rifle.locked_target_id=hidden.id
+	vision.tick+=ceili(0.5*float(vision.rules.tick_rate))
+	check(vision._target(rifle).is_empty() and rifle.locked_target_id==0,"an existing lock is lost at reveal expiry")
+	vision.spawn_unit(0,"protoss_photon_cannon",rifle.pos)
+	vision._build_buckets()
+	check(vision._target(rifle).get("id")==hidden.id,"nearby allied detector enables the rifle to see the Ghost")
+
+	# 三个目标挤在同一落点，其中只有一个可见敌人时不会发射，友军不计入施放阈值。
+	var emp = bare()
+	tune(emp,"ghost",{"speed":0,"energy_regen":0,"damage":0,"bonus":{}})
+	tune(emp,"dummy",{"hp":500,"speed":0,"damage":0,"energy":150,"initial_energy":120,
+		"energy_regen":0,"shield":70,"shield_regen":0,"collision_radius":0.1})
+	var caster = emp.spawn_unit(0,"ghost",field(0,0))
+	var first = emp.spawn_unit(1,"dummy",field(8.5,0))
+	var ally = emp.spawn_unit(0,"dummy",field(8.5,0.3))
+	var unseen = emp.spawn_unit(1,"ghost",field(8.5,-0.3))
+	caster.energy=200
+	unseen.energy=0
+	unseen.hp=100
+	ticks(emp,2)
+	check(caster.energy==200 and first.shield==70,"a friendly and a cloaked contact do not satisfy EMP's two-enemy trigger")
+	var second = emp.spawn_unit(1,"dummy",field(8.5,0.6))
+	wait_until(emp,func(): return second.shield==0,40)
+	check(caster.energy==170 and first.shield==0 and second.shield==0 and first.energy==20 and second.energy==20,"one EMP costs 30 and drains up to 100 shield and energy per enemy")
+	check(first.hp==500 and second.hp==500 and ally.shield==70 and ally.energy==120,"EMP shield overflow spares health and allies")
+	check(emp.is_visible_to(0,unseen),"EMP reveals a hidden enemy caught in its area")
+
+	var aim = bare()
+	tune(aim,"ghost",{"speed":0,"energy_regen":0,"damage":0,"bonus":{}})
+	tune(aim,"marauder",{"hp":400,"armor":300,"speed":0,"damage":0,"skills":{}})
+	var sniper = aim.spawn_unit(0,"ghost",field(0,0))
+	sniper.energy=200
+	var too_small = aim.spawn_unit(1,"marauder",field(8.5,-1))
+	too_small.hp=119
+	var machine = aim.spawn_unit(1,"dummy",field(8.5,1))
+	ticks(aim,3)
+	check(sniper.energy==200 and machine.hp==aim.catalog.dummy.hp,"no snipe against low-life biological or mechanical targets")
+	var victim = aim.spawn_unit(1,"marauder",field(8.5,0))
+	aim.step()
+	check(victim.hp==400,"snipe channels before damaging its target")
+	wait_until(aim,func(): return victim.hp<400,60)
+	check(victim.hp==230 and sniper.energy==150,"snipe deals 170 through armor for 50 energy")
+	var replacement = aim.spawn_unit(1,"marauder",victim.pos+Vector2(0,2))
+	ticks(aim,80)
+	check(victim.hp==230 and replacement.hp==400 and sniper.energy==150,"only one snipe per Ghost despite spare energy")
+	# 新出场的幽灵有独立充能。引导期间丢失目标返还能量，充能仍然耗尽。
+	var next_sniper = aim.spawn_unit(0,"ghost",field(0,0))
+	aim.step()
+	var cast: Dictionary = next_sniper.skill_states.snipe
+	check(cast.has("target_id") and int(cast.charges)==0,"new Ghost starts its own snipe")
+	if cast.has("target_id"):
+		aim.units.erase(aim.by_id[int(cast.target_id)])
+		aim.step()
+		check(next_sniper.energy==200 and int(next_sniper.skill_states.snipe.charges)==0 and not next_sniper.has("channeling_skill"),"aborted snipe refunds energy without rearming the charge")
 
 ## 治疗、冷却、上限、阵营与前排安全站位，双方方向均需一致。
 ## 医疗兵为持续光束：首个病人无切换等待，每 tick_interval 秒完整结算一次 healing。
@@ -512,13 +551,13 @@ func _siege() -> void:
 	wait_until(base,func(): return base.bases[1]<full,30)
 	var regen_tick: float=float(base.rules.base_regen_per_second)/float(base.rules.tick_rate)
 	check(is_equal_approx(base.bases[1],full-float(base_config.weapon.damage)+regen_tick) and siege.siege_state=="deployed","deployed tank attacks base; base regenerates in the same step")
-	# 受伤坦克在完成架设前仍可被射程内的特工击杀。
+	# 受伤坦克在完成架设前仍可被射程内的特战队员击杀。
 	var ambush=bare()
 	var fragile=ambush.spawn_unit(0,"mortar",field(0,0))
-	fragile.hp=50
-	ambush.spawn_unit(1,"agent",field(6,0))
+	fragile.hp=1
+	ambush.spawn_unit(1,"rifle",field(4,0))
 	ticks(ambush,10)
-	check(not ambush.units.has(fragile),"agent ambush kills tank before setup")
+	check(not ambush.units.has(fragile),"rifle ambush kills wounded tank before setup")
 
 ## 推进模拟直到条件成立；返回推进的步数，超过上限仍未成立返回 -1。
 func wait_until(sim, condition: Callable, limit: int) -> int:
@@ -572,7 +611,7 @@ func _siege_scanning() -> void:
 		cannon.cooldown=10
 		var victim=sim.spawn_unit(1-team,"dummy",field(direction*reach*0.9,0))
 		victim.hp=1
-		sim.spawn_unit(team,"agent",field(direction*(reach*0.9-5.0),0))
+		sim.spawn_unit(team,"rifle",field(direction*(reach*0.9-4.0),0))
 		var incoming=sim.spawn_unit(1-team,"dummy",field(direction*(hold-0.4),1.7))
 		wait_until(sim,func(): return not sim.units.has(victim),20)
 		check(not sim.units.has(victim),"ally kills original target")
@@ -688,7 +727,7 @@ func _piercers() -> void:
 	setup.step()
 	check(burrower.siege_state=="deployed","burrow completes after deploy_seconds")
 	check(wait_until(setup,func(): return setup.attack_waves.size()==1,20)>0,"burrowed piercer launches attack")
-	var hunter=setup.spawn_unit(1,"agent",burrower.pos+Vector2(6,0))
+	var hunter=setup.spawn_unit(1,"rifle",burrower.pos+Vector2(4,0))
 	wait_until(setup,func(): return burrower.hp<float(setup.catalog.piercer.hp),20)
 	check(hunter.locked_target_id==burrower.id and burrower.hp<float(setup.catalog.piercer.hp),"burrowed unit remains visible and attackable")
 	setup.units.erase(enemy)
@@ -1106,16 +1145,17 @@ func _economy() -> void:
 	var funds := 1000
 	var sim = bare(42,{"start_minerals":funds})
 	var cost: Dictionary = {}
-	for kind in ["dummy","agent","rifle","hellbat"]:cost[kind]=int(sim.catalog[kind].cost)
+	for kind in ["dummy","ghost","rifle","hellbat"]:cost[kind]=int(sim.catalog[kind].cost)
 	check(sim.buy(0,"dummy",5)=="" and sim.minerals[0]==funds-cost.dummy,"buy deducts cost immediately")
 	check(sim.buy(0,"rifle",5)!="" and sim.minerals[0]==funds-cost.dummy,"cannot buy into occupied cell")
 	check(sim.buy(0,"gate_tower",6)!="" and sim.buy(0,"unknown",6)!="","cannot buy unknown kinds")
 	check(sim.refund_value(0,5)==cost.dummy and sim.sell(0,5)=="" and sim.minerals[0]==funds,"undeployed unit refunds 100 percent")
 	check(sim.sell(0,5)!="","cannot sell empty cell")
 	sim.buy(0,"dummy",5)
-	sim.buy(0,"agent",0)
+	var recorded := {"team":0,"type":"buy","kind":"agent","cell":0}
+	check(sim.apply_action(recorded)=="" and sim.formations[0].back().kind=="ghost" and sim.journal.actions.back().kind=="ghost", "legacy purchase resolves to ghost in barracks and new journal")
 	check(sim.move(0,5,11)=="" and sim.move(0,0,11)=="" and sim.formations[0].any(func(s): return s.kind=="dummy" and s.cell==0),"move swaps cells for free")
-	var spent: int = funds-cost.dummy-cost.agent
+	var spent: int = funds-cost.dummy-cost.ghost
 	check(sim.minerals[0]==spent,"moves cost nothing")
 	var income_ticks: int = int(float(sim.rules.economy.income_seconds)*float(sim.rules.tick_rate))
 	ticks(sim,int(sim.next_wave_tick)+1)
@@ -1363,7 +1403,7 @@ func _brute_ground(sim, unit: Dictionary, radius: float) -> Dictionary:
 	var best: Dictionary = {}
 	var best_distance := INF
 	for other in sim.units:
-		if other.team == unit.team or other.hp <= 0 or sim.catalog[other.kind].get("layer","ground") != "ground" or sim.is_structure(other):
+		if other.team == unit.team or other.hp <= 0 or not sim.is_visible_to(unit.team,other) or sim.catalog[other.kind].get("layer","ground") != "ground" or sim.is_structure(other):
 			continue
 		var distance: float = unit.pos.distance_to(other.pos)
 		if distance > radius:
@@ -1417,8 +1457,8 @@ func _structures() -> void:
 	var loot = Sim.new()
 	var treasury: Dictionary = loot.units.filter(func(u): return u.kind=="treasury" and u.team==1)[0]
 	var treasury_weapon: Dictionary = loot.definitions.treasury.primary_weapon_data
-	tune(loot,"agent",{"speed":0,"hp":10000})
-	var looter = loot.spawn_unit(0,"agent",treasury.pos-Vector2(float(treasury_weapon.range)-0.5,0))
+	tune(loot,"marauder",{"speed":0,"hp":10000,"skills":{}})
+	var looter = loot.spawn_unit(0,"marauder",treasury.pos-Vector2(float(treasury_weapon.range)-0.5,0))
 	check(wait_until(loot,func(): return looter.hp<10000,60)>=0 and looter.hp==10000-loot.expected_damage(treasury_weapon,looter),"treasury counterattack is weak")
 	treasury.hp = 1
 	treasury.shield = 0

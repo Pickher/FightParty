@@ -1,5 +1,5 @@
 {
-  "version": "0.13.11",
+  "version": "0.13.12",
   "source": "reference/desert-storm",
   "policy": "仅导入本地图明确覆盖项；普通组价按地图单价×每组数量。标注 FightParty 主动平衡的组价、组数和生命值沿用兵种配置。已核对的战役或合作模组继承值逐项注明，其余缺失字段保留回退。",
   "units": {
@@ -85,7 +85,7 @@
       ],
       "behaviors": []
     },
-    "agent": {
+    "ghost": {
       "source_unit": "Ghost",
       "fields": {
         "hp": "UnitData/Ghost/LifeMax",
@@ -96,12 +96,36 @@
         "gas_cost": "UnitData/Ghost/CostResource[Vespene] × spawn_count",
         "armor_type": "UnitData/Ghost/Attributes[Light]",
         "skills/combat_mobility": "BehaviorData/speed225; ValidatorData/Speedfixcancel",
-        "attack_modes/0/range": "WeaponData/C10CanisterRifleFake/Range",
-        "attack_modes/0/windup": "WeaponData/C10CanisterRifleFake/DamagePoint",
-        "attack_modes/0/backswing": "WeaponData/C10CanisterRifleFake/Backswing",
         "attack_modes/0/damage": "EffectData/C10CanisterRifle/Amount",
         "attack_modes/0/bonus/light": "EffectData/C10CanisterRifle/AttributeBonus[Light]",
-        "attack_modes/0/interval": "WeaponData/C10CanisterRifleFake/Period（完整周期减出手与前后摇）"
+        "energy": "Liberty UnitData/Ghost/EnergyMax",
+        "energy_regen": "Liberty UnitData/Ghost/EnergyRegenRate（每游戏秒）",
+        "attack_modes/0/windup": "Liberty WeaponData/C10CanisterRifle/DamagePoint",
+        "attack_modes/0/backswing": "Liberty WeaponData/C10CanisterRifle/Backswing",
+        "attack_modes/0/interval": "Liberty WeaponData/C10CanisterRifle/Period=1.5，轮后间隔扣除出手时长与前后摇",
+        "attack_modes/0/range": "FightParty 保留 7 格；VoidMulti WeaponData/C10CanisterRifle/Range=7，地图普通实弹仅覆盖显示信息",
+        "attack_modes/0/hit_count": "Liberty WeaponData/C10CanisterRifle 单次枪击",
+        "attack_modes/0/target_layers": "GameStrings/Button/Tooltip/Ghost 可对地和对空",
+        "attack_modes/0/delivery": "FightParty 沿用步枪发射时立即命中",
+        "skills/permanent_cloak": "UnitData/Ghost/FlagArray[Cloaked]；GameStrings/Button/Tooltip/Ghost",
+        "skills/emp/energy_cost": "AbilData/EMP/Cost/Vital[Energy]",
+        "skills/emp/range": "AbilData/EMP/AutoCastRange",
+        "skills/snipe/energy_cost": "AbilData/ChannelSnipe/Cost/Vital[Energy]",
+        "skills/snipe/range": "AbilData/ChannelSnipe/AutoCastRange",
+        "skills/emp/cooldown": "AbilData/EMP/Cost/Cooldown@TimeUse",
+        "skills/emp/radius": "EffectData/EMPSearch/AreaArray@Radius",
+        "skills/emp/min_targets": "ValidatorData/EmpTargetSearch1Dot0605/Count",
+        "skills/emp/min_vital": "ValidatorData/TargetEnergyOrShieldGE60 → TargetEnergyGE60 / TargetShieldGE60",
+        "skills/emp/reservation_seconds": "BehaviorData/EMP_JH_YY/Duration",
+        "skills/emp/shield_damage": "Swarm EffectData/EMPDamage/ShieldBonus",
+        "skills/emp/energy_drain": "Swarm EffectData/EMPModifyUnit/VitalArray[Energy]",
+        "skills/emp/reveal_seconds": "Liberty BehaviorData/EMPDecloak/Duration",
+        "skills/emp/projectile_speed": "Liberty MoverData/EMP2Weapon/MotionPhases/MaxSpeed=30，按直线飞向原落点",
+        "skills/snipe/range_slop": "AbilData/ChannelSnipe/RangeSlop",
+        "skills/snipe/min_target_hp": "ValidatorData/TargetLifeGE120/Value",
+        "skills/snipe/charges": "AbilData/ChannelSnipe/Cost/Charge@CountStart、CountUse",
+        "skills/snipe/damage": "EffectData/ChannelSnipeDamage/Amount",
+        "skills/snipe/channel_seconds": "EffectData/ChannelSnipeCreatePersistent/PeriodCount × PeriodicPeriodArray"
       },
       "abilities": [
         "wanttoattackGA",
@@ -723,7 +747,8 @@
         "cost": "UnitData/PhotonCannon/CostResource[Minerals]=600",
         "attack_modes/0/range": "WeaponData/PhotonCannon/Range=9",
         "attack_modes/0/interval": "WeaponData/PhotonCannon/Period=0.125，减0.001秒出手",
-        "attack_modes/0/strike_offsets": "WeaponData/PhotonCannon/DamagePoint=0；发射当步开始弹道"
+        "attack_modes/0/strike_offsets": "WeaponData/PhotonCannon/DamagePoint=0；发射当步开始弹道",
+        "skills/detector/radius": "Liberty UnitData/PhotonCannon/BehaviorArray → Detector11"
       }
     },
     "zerg_tower_cluster": {
@@ -738,7 +763,8 @@
         "attack_modes/0/target_layers": "WeaponData/ImpalerTentacle/TargetFilters=Ground",
         "attack_modes/1/target_layers": "WeaponData/AcidSpew/TargetFilters=Air",
         "attack_modes/1/damage": "0.11.3主动平衡：孢子每发15伤害，非原图覆盖值",
-        "attack_modes/1/bonus_tags/biological": "0.11.3主动平衡：对生物额外5伤害，非原图覆盖值"
+        "attack_modes/1/bonus_tags/biological": "0.11.3主动平衡：对生物额外5伤害，非原图覆盖值",
+        "skills/detector/radius": "UnitData/SporeCrawler/BehaviorArray → Detector11（合并虫塔中的孢子爬虫）"
       }
     },
     "adept": {
@@ -967,42 +993,6 @@
       "before": null,
       "after": 380,
       "source": "UnitData/Medic/CostResource[Vespene] × spawn_count"
-    },
-    {
-      "id": "agent",
-      "path": "initial_energy",
-      "before": 0,
-      "after": 200,
-      "source": "UnitData/Ghost/EnergyStart"
-    },
-    {
-      "id": "agent",
-      "path": "speed",
-      "before": 2.25,
-      "after": 2.75,
-      "source": "UnitData/Ghost/Speed"
-    },
-    {
-      "id": "agent",
-      "path": "gas_cost",
-      "before": null,
-      "after": 0,
-      "source": "UnitData/Ghost/CostResource[Vespene] × spawn_count"
-    },
-    {
-      "id": "agent",
-      "path": "skills/combat_mobility",
-      "before": null,
-      "after": {
-        "modifiers": [
-          {
-            "speed_maximum": 2.25,
-            "speed_multiplier": 2.0
-          }
-        ],
-        "display_name": "交战机动"
-      },
-      "source": "BehaviorData/speed225; ValidatorData/Speedfixcancel"
     },
     {
       "id": "widow_mine",
@@ -1688,48 +1678,6 @@
       "before": 19,
       "after": 14,
       "source": "EffectData/InfernalFlameThrower/AttributeBonus[Light]"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/range",
-      "before": 8.0,
-      "after": 7,
-      "source": "WeaponData/C10CanisterRifleFake/Range"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/windup",
-      "before": 0,
-      "after": 0.083,
-      "source": "WeaponData/C10CanisterRifleFake/DamagePoint"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/backswing",
-      "before": 0,
-      "after": 1.167,
-      "source": "WeaponData/C10CanisterRifleFake/Backswing"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/damage",
-      "before": 30,
-      "after": 13,
-      "source": "EffectData/C10CanisterRifle/Amount"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/bonus/light",
-      "before": null,
-      "after": 13,
-      "source": "EffectData/C10CanisterRifle/AttributeBonus[Light]"
-    },
-    {
-      "id": "agent",
-      "path": "attack_modes/0/interval",
-      "before": 1.5,
-      "after": 0.05,
-      "source": "WeaponData/C10CanisterRifleFake/Period（完整周期减出手与前后摇）"
     },
     {
       "id": "liberator",
@@ -2543,6 +2491,169 @@
       "before": 0.1,
       "after": 0,
       "source": "FightParty 近战规则，按双方碰撞边缘的间距开火"
+    },
+    {
+      "id": "ghost",
+      "path": "energy",
+      "before": 0,
+      "after": 200,
+      "source": "Liberty UnitData/Ghost/EnergyMax"
+    },
+    {
+      "id": "ghost",
+      "path": "energy_regen",
+      "before": 0,
+      "after": 0.5625,
+      "source": "Liberty UnitData/Ghost/EnergyRegenRate（每游戏秒）"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/permanent_cloak",
+      "before": null,
+      "after": {
+        "display_name": "永久隐形"
+      },
+      "source": "UnitData/Ghost/FlagArray[Cloaked]；GameStrings/Button/Tooltip/Ghost"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/energy_cost",
+      "before": null,
+      "after": 30,
+      "source": "AbilData/EMP/Cost/Vital[Energy]"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/range",
+      "before": null,
+      "after": 10,
+      "source": "AbilData/EMP/AutoCastRange"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/energy_cost",
+      "before": null,
+      "after": 50,
+      "source": "AbilData/ChannelSnipe/Cost/Vital[Energy]"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/range",
+      "before": null,
+      "after": 10,
+      "source": "AbilData/ChannelSnipe/AutoCastRange"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/cooldown",
+      "before": null,
+      "after": 3,
+      "source": "AbilData/EMP/Cost/Cooldown@TimeUse"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/radius",
+      "before": null,
+      "after": 1.0605,
+      "source": "EffectData/EMPSearch/AreaArray@Radius"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/min_targets",
+      "before": null,
+      "after": 2,
+      "source": "ValidatorData/EmpTargetSearch1Dot0605/Count"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/min_vital",
+      "before": null,
+      "after": 60,
+      "source": "ValidatorData/TargetEnergyOrShieldGE60 → TargetEnergyGE60 / TargetShieldGE60"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/reservation_seconds",
+      "before": null,
+      "after": 1.2,
+      "source": "BehaviorData/EMP_JH_YY/Duration"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/shield_damage",
+      "before": null,
+      "after": 100,
+      "source": "Swarm EffectData/EMPDamage/ShieldBonus"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/energy_drain",
+      "before": null,
+      "after": 100,
+      "source": "Swarm EffectData/EMPModifyUnit/VitalArray[Energy]"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/reveal_seconds",
+      "before": null,
+      "after": 10,
+      "source": "Liberty BehaviorData/EMPDecloak/Duration"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/emp/projectile_speed",
+      "before": null,
+      "after": 30,
+      "source": "Liberty MoverData/EMP2Weapon/MotionPhases/MaxSpeed=30，按直线飞向原落点"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/range_slop",
+      "before": null,
+      "after": 20,
+      "source": "AbilData/ChannelSnipe/RangeSlop"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/min_target_hp",
+      "before": null,
+      "after": 120,
+      "source": "ValidatorData/TargetLifeGE120/Value"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/charges",
+      "before": null,
+      "after": 1,
+      "source": "AbilData/ChannelSnipe/Cost/Charge@CountStart、CountUse"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/damage",
+      "before": null,
+      "after": 170,
+      "source": "EffectData/ChannelSnipeDamage/Amount"
+    },
+    {
+      "id": "ghost",
+      "path": "skills/snipe/channel_seconds",
+      "before": null,
+      "after": 2,
+      "source": "EffectData/ChannelSnipeCreatePersistent/PeriodCount × PeriodicPeriodArray"
+    },
+    {
+      "id": "protoss_photon_cannon",
+      "path": "skills/detector/radius",
+      "before": null,
+      "after": 11,
+      "source": "Liberty UnitData/PhotonCannon/BehaviorArray → Detector11"
+    },
+    {
+      "id": "zerg_tower_cluster",
+      "path": "skills/detector/radius",
+      "before": null,
+      "after": 11,
+      "source": "UnitData/SporeCrawler/BehaviorArray → Detector11（合并虫塔中的孢子爬虫）"
     }
   ],
   "unresolved": [
@@ -2600,16 +2711,6 @@
       "id": "medic",
       "path": "energy",
       "reason": "Medic/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
-    },
-    {
-      "id": "agent",
-      "path": "energy",
-      "reason": "地图明确写出初始能量，但能量上限继承原版；保留现有上限"
-    },
-    {
-      "id": "agent",
-      "path": "energy",
-      "reason": "Ghost/EnergyMax未在地图显式覆盖，保留现值；须合并对应原版/模组才可确认"
     },
     {
       "id": "widow_mine",
@@ -3028,11 +3129,6 @@
     },
     {
       "id": "marauder",
-      "path": "attack_modes/0/hit_count",
-      "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
-    },
-    {
-      "id": "agent",
       "path": "attack_modes/0/hit_count",
       "reason": "每轮段数未显式覆盖，仍用现有参数；不使用显示Level反推段数"
     },
@@ -3467,21 +3563,6 @@
       "reason": "加成未显式覆盖，可能继承原版；保留现有加成，不把缺失当作0"
     },
     {
-      "id": "agent",
-      "path": "attack_modes/1",
-      "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
-    },
-    {
-      "id": "agent",
-      "path": "ability:EMP",
-      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
-    },
-    {
-      "id": "agent",
-      "path": "ability:ChannelSnipe",
-      "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
-    },
-    {
       "id": "widow_mine",
       "path": "attack_modes/0",
       "reason": "该模式未找到完整原图对应，保留项目回退；不宣称已按原图还原"
@@ -3570,11 +3651,6 @@
       "id": "interceptor",
       "path": "ability:InterceptorAutoAttack",
       "reason": "已识别挂载，但效果链/原版继承/施法条件未全部还原；不将参数登记冒充完整实装"
-    },
-    {
-      "id": "agent",
-      "path": "skill_semantics",
-      "reason": "保留现有原型技能；原图的额外技能和未齐效果链须合并原版/依赖后继续移植"
     },
     {
       "id": "infestor",

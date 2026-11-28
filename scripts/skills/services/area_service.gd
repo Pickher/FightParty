@@ -30,6 +30,13 @@ static func advance(sim, dt: float, moves: Dictionary, hits: Dictionary, base_hi
 			var position: Vector2 = moves.get(victim.id,victim.pos)
 			var reach: float = radius + (float(sim.body_radius(victim)) if intersect_body else 0.0)
 			if position.distance_squared_to(area.pos)>reach*reach:continue
+			if config.get("effect", "") == "emp":
+				if sim.tick < int(victim.get("invulnerable_until_tick", 0)):
+					continue
+				sim.queue_shield_damage(hits, victim, float(config.shield_damage), int(area.team))
+				sim.unit_model(victim).energy -= float(config.energy_drain)
+				sim.reveal_unit(victim, float(config.reveal_seconds))
+				continue
 			if not area.rooted.has(victim.id):
 				Status.queue_root(sim,victim,float(config.get("root_seconds",0)))
 				area.rooted[victim.id]=true

@@ -36,6 +36,12 @@ static func definitions(source: Dictionary, game_rules: Dictionary) -> Dictionar
 static func races() -> Dictionary:
 	return JSON.parse_string(FileAccess.get_file_as_string("res://data/races.json"))["races"]
 
+## 读入历史阵容或战报时映射已改名的单位。商店、战场和新存档始终使用当前 ID。
+static func saved_unit_kind(kind: Variant) -> String:
+	if not kind is String:
+		return ""
+	return "ghost" if kind == "agent" else kind
+
 ## 已实装（status 为 ready）的兵种才能购买和被电脑选择；stub 只是预留数据。
 static func is_ready(stats: Dictionary) -> bool:
 	return str(stats.get("status", "")) == "ready" and bool(stats.get("available", true)) and not bool(stats.get("structure", false))

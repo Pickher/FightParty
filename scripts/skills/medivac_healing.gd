@@ -159,8 +159,8 @@ func _move_with_allies(ctx: Dictionary, candidates: Array, weapon: Dictionary) -
 		var next_patient := _best_patient(ctx, candidates, float(config.acquire_range), true)
 		if not next_patient.is_empty():
 			goal = next_patient.pos
-	for enemy in sim._nearby(owner.pos, float(config.acquire_range)):
-		if enemy.team == owner.team or enemy.hp <= 0:
+	for enemy in sim.visible_enemies_near(owner.pos, float(config.acquire_range), int(owner.team)):
+		if enemy.hp <= 0:
 			continue
 		for mode in sim.catalog[enemy.kind].get("attack_modes", []):
 			if float(mode.get("damage", 0)) > 0 and mode.get("target_layers", []).has("air"):

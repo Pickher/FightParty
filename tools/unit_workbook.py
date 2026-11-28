@@ -20,7 +20,7 @@ LABELS['hit_count']='每轮命中次数'
 LABELS['damage']='每段基础伤害'
 LABELS['primary_mode']='默认攻击模式ID'
 LABELS['collision_radius']='碰撞半径（最终值）'
-LABELS.update(gas_cost='每组瓦斯价格',core_cost='每组灵核价格',source_profile='参考配置来源')
+LABELS.update(portrait='复用招募肖像',gas_cost='每组瓦斯价格',core_cost='每组灵核价格',source_profile='参考配置来源')
 LABELS.update(splash_inner_ratio='溅射内圈半径比例',splash_inner_multiplier='溅射内圈伤害倍率')
 LABELS.update(bonus_tags='按单位标签额外伤害',shield_bonus='仅对护盾额外伤害',range_from_edge='按双方碰撞边缘量射程',pending='未研究或待实现项目')
 PARAM_LABELS = {
@@ -189,10 +189,10 @@ def validate(units):
             if key == 'min_health_cost_multiplier' and (not isinstance(value,(int,float)) or isinstance(value,bool) or value < 1):
                 raise ValueError(where + '/'.join(path) + ' 须为不小于1的生命消耗倍数。')
             if isinstance(value, (int,float)) and not isinstance(value,bool) and (not math.isfinite(value) or (value < 0 and key not in SIGNED_KEYS)): raise ValueError(where + '/'.join(path) + ' 须为非负有限数。')
-            if key in ('interval','speed','scan_seconds','scan_interval','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
+            if key in ('interval','speed','projectile_speed','scan_seconds','scan_interval','length') and isinstance(value,(int,float)) and value <= 0 and path[0]=='skills': raise ValueError(where + '/'.join(path) + ' 必须大于 0。')
             if len(path)>1 and path[-2] in ('target_layers','targetable_layers') and value not in ('ground','air'): raise ValueError(where + '/'.join(path) + ' 只能填 ground/air。')
-            if key in ('hit_count','max_targets','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
-            if key in ('hit_count','max_targets') and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
+            if key in ('hit_count','max_targets','min_targets','charges','single_target_limit','count','max_count','bounces','max_stacks','deploy_enemy_threshold','light_air_threshold','default_index') and (not isinstance(value,(int,float)) or isinstance(value,bool) or int(value)!=value): raise ValueError(where + '/'.join(path) + ' 必须为整数。')
+            if key in ('hit_count','max_targets','min_targets') and value<1: raise ValueError(where + '/'.join(path) + ' 必须至少为1。')
             if key in ('splash_multiplier','splash_inner_ratio','splash_inner_multiplier','health_cost_ratio','max_health_ratio') and not 0 <= value <= 1: raise ValueError(where + '/'.join(path) + ' 应在 0～1 之间。')
         for key in ('size',):
             val = unit.get(key,[1,1])
@@ -324,7 +324,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['生效范围','导入写入 data/units.json 并自动备份；重启源码游戏生效，已有APK/EXE需要重新打包。'],
         ['刷新表格','python tools/unit_workbook.py --output 新文件.xlsx；生成需安装 openpyxl，导入仅需 Python 标准库。请先保存并导入已有编辑。'],
         ['恶火','开火距离4.5格，火焰固定传播5格，总宽0.6格（half_width为0.3）。'],
-        ['特工弹药','使用穿甲弹/狙击弹模式内的单段伤害30，移除旧顶层未使用的40；各模式伤害和加成独立。'],
+        ['幽灵','C-10步枪对空地瞬时命中。永久隐形、电磁脉冲与狙杀的参数见技能参数页。'],
         ['明确覆盖与回退','原图明确值已导入单位和武器；旧的额外加成、缺失的原版间隔等以待确认页为准。不得把Weapon.Level当伤害、MinScanRange当射程。'],
         ['人族防御塔','地堡驻军和堡顶机炮独立索敌。武器模式页的 count 决定炮位数量，attack_speed_multiplier 决定该组常驻攻速倍率，hit_count 决定每轮命中段数。生命与护甲见兵种属性，自动维修和减速弹见技能参数。'],
         ['基地防御模块','gate_tower不再生成独立单位；hp为基地额外生命5000，射程8，每0.5秒300真实伤害，0.5秒结算一次；health_regen为防御层存在时整座基地的回血5/秒。'],
@@ -332,7 +332,7 @@ def export_workbook(source=ROOT/'data/units.json', destination=DEFAULT_WORKBOOK)
         ['宝库','5000生命/1000护盾；持续回血2/秒，15秒未受伤后回盾10/秒，回血和回盾同时进行。地图点位见data/rules.json。'],
         ['连续光束','武器的 tick_interval 是结算周期，switch_delay 是切换目标的额外等待。每个周期结算一次伤害或治疗，治疗量填在 healing。医疗运输机每束约每0.0793秒恢复1生命，每次消耗0.33能量，换目标直接开始新周期。'],
         ['攻击类型','projectile射弹（contact接触/fixed固定耗时/distance按距离飞行）、beam激光、line直线推进、cone瞬发扇形。扇形的length从发射者前缘算起，angle_degrees为两条侧边的全夹角。'],
-        ['零飞行耗时','特战队员、特工两弹药、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
+        ['零飞行耗时','特战队员、幽灵步枪、坦克双模式、地堡驻军特战队员：projectile + flight=fixed/seconds=0，发射当步命中，出手持续时间不变；地堡劫掠者保留飞行弹道。'],
         ['多段攻击','段数与出手持续时间共同决定发射时刻；各段独立飞行、命中、扣甲/盾及触发技能；最后一段出手（含后摇）后再等待interval，飞行不占冷却。目标死亡后的未发出段由continue_on_target_death控制，已发出范围弹仍爆炸。'],
         ['坦克分圈溅射','架设炮主目标全额伤害；2.5格溅射半径内，距离爆心≤1.25格的次目标受60%伤害，外圈受30%。内圈半径比例0.5、内圈倍率0.6、次目标伤害倍率0.3，均在武器模式页调整。比例先作用于基础伤害和对甲加成，再按每次命中扣甲。'],
         ['雷神','各模式伤害和射程以武器模式页实际数据为准；原图没有明确覆盖的另一对空模式保留回退并标记，未用Level推算伤害。'],

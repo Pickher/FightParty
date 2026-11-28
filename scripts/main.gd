@@ -250,10 +250,12 @@ func _recommended_settings() -> Dictionary:
 		result[field] = int(options[field].recommended)
 	return result
 
-## 仅迁移已停用的人族医疗兵：不自动换成医疗机、不重排、不改写设置文件。
-## 保留其余槽位和完整单兵坐标；其他非法内容仍交给正常校验处理。
+## 改名保留格位与单兵坐标。已停用的地面医疗兵沿用旧版移除策略。
 func _migrate_saved_formation(formation: Array) -> Array:
 	var migrated: Array = formation.duplicate(true)
+	for slot in migrated:
+		if slot is Dictionary and slot.get("kind") is String:
+			slot.kind = Catalog.saved_unit_kind(slot.kind)
 	if str(sim.races[0])!="terran" or not sim.catalog.has("medic") or bool(sim.catalog.medic.get("available",true)):
 		return migrated
 	return migrated.filter(func(slot):return not (slot is Dictionary and slot.get("kind","")=="medic"))
@@ -462,7 +464,7 @@ func advance_tick() -> void:
 		if event.type == "cone_attack":
 			event.ttl = Medivac3D.HellbatMechLayer.FLAME_DURATION if event.kind == "hellbat_mech" else 0.16
 			effects.append(event)
-		elif event.type == "attack" or event.type == "heal" or event.type == "line_attack" or event.type == "yamato" or event.type == "chain" or event.type == "mobility" or event.type == "area_impact":
+		elif event.type in ["attack", "heal", "line_attack", "yamato", "chain", "mobility", "area_impact", "snipe_impact"]:
 			event.ttl = 0.5 if event.type == "yamato" else (0.24 if event.type == "line_attack" else 0.16)
 			effects.append(event)
 		elif event.type == "wave":
@@ -663,6 +665,9 @@ func _remember_combat(events: Array) -> void:
 		if str(event.type) not in ["attack","line_attack","cone_attack","yamato","chain","area_impact"]:continue
 		if not event.has("from") or not event.has("to"):continue
 		var point: Vector2 = (event.from+event.to)*0.5
+		var source = sim.by_id.get(int(event.get("source_id", 0)))
+		if source != null and not sim.is_visible_to(0, source):
+			point = event.to
 		var distance: float = point.distance_squared_to(camera_center)
 		if distance<best:
 			best=distance
@@ -719,7 +724,7 @@ func _draw_minimap() -> void:
 	draw_line(middle,middle+Vector2(0,field.size.y),Color("3a5969"),1)
 	if placing_tower:draw_rect(Rect2(field.position,Vector2(field.size.x*0.5,field.size.y)),Color(MINT,0.12))
 	for unit in sim.units:
-		if float(unit.hp)<=0:continue
+		if float(unit.hp)<=0 or not sim.is_visible_to(0, unit):continue
 		# 未公开敌军一律同色同形，不显示兵种、空地、建筑类别或生命。
 		var color: Color = MINT if int(unit.team)==0 else (Color("87929d") if _hidden_team(int(unit.team)) else CORAL)
 		var point: Vector2 = _minimap_point(unit.pos).clamp(field.position+Vector2.ONE*2,field.end-Vector2.ONE*2)

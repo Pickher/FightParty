@@ -1,5 +1,5 @@
 {
-  "version": "0.13.11",
+  "version": "0.13.12",
   "tick_rate": 20,
   "wave_seconds": 45,
   "races": [
@@ -16,6 +16,8 @@
   "final_phase_max_seconds": 600,
   "base_hp": 10000,
   "base_regen_per_second": 5,
+  "base_detection_range": 6,
+  "base_defense_detection_range": 11,
   "unit_lifetime": 0,
   "structures": true,
   "treasury_reward": 0,

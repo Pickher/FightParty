@@ -20,7 +20,7 @@ func _near_ground_enemy(sim, position: Vector2) -> bool:
 	var enemy := 1-int(owner.team)
 	var reach := float(config.contact_range)
 	if position.distance_to(sim.base_pos(enemy))<=reach+float(sim.rules.layout.base_radius):return true
-	for unit in sim.nearby_team(position,reach+float(sim.max_body_radius),enemy):
+	for unit in sim.visible_enemies_near(position,reach+float(sim.max_body_radius),int(owner.team)):
 		if unit.hp<=0 or sim.catalog[unit.kind].get("layer","ground")!="ground":continue
 		if position.distance_to(unit.pos)<=reach+float(sim.body_radius(unit)):return true
 	return false
@@ -39,6 +39,7 @@ func _retreat_attacker(sim) -> Dictionary:
 		else:
 			attacker=sim.by_id.get(source_id,{})
 			if attacker.is_empty() or attacker.team!=enemy or attacker.hp<=0:continue
+			if not sim.is_visible_to(owner.team,attacker):continue
 			if sim.catalog[attacker.kind].get("layer","ground")!="ground":continue
 		var distance: float = owner.pos.distance_squared_to(attacker.pos)
 		if distance<best or (distance==best and int(attacker.id)<int(nearest.get("id",2147483647))):

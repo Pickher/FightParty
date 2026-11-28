@@ -45,7 +45,7 @@ func emit(ctx: Dictionary, sequence: Dictionary) -> void:
 	var fraction := float(ctx.fire_offset) / float(ctx.dt)
 	var search_radius: float = length + sim.max_body_radius + float(ctx.motion_margin)
 	for victim in sim.nearby_team(origin, search_radius, enemy):
-		if int(victim.id) == target_id or not sim._can_hit_unit(unit, victim, weapon):
+		if int(victim.id) == target_id or not sim._weapon_affects_unit(unit, victim, weapon):
 			continue
 		var position: Vector2 = victim.pos.lerp(ctx.moves.get(victim.id, victim.pos), fraction)
 		if intersects_disk(origin, direction, length, half_angle, position, sim.body_radius(victim)):

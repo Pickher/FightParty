@@ -1,5 +1,5 @@
 {
- "version": "0.13.11",
+ "version": "0.13.12",
  "units": {
   "rifle": {
    "name": "特战队员",
@@ -547,27 +547,47 @@
     "推进加速、装载运输、升级分支不在本次范围"
    ]
   },
-  "agent": {
-   "name": "特工",
+  "ghost": {
+   "name": "幽灵",
    "symbol": "A",
    "race": "terran",
    "status": "ready",
-   "sc2": "幽灵 Ghost + 旋风 Cyclone",
+   "sc2": "幽灵 Ghost",
    "cost": 750,
    "hp": 125,
    "armor_type": "light",
    "armor": 3,
    "speed": 2.75,
    "color": "a8b5ff",
-   "role": "远程狙击 · 按护甲换弹",
-   "counter": "穿甲弹打重甲、狙击弹打轻甲；换弹 1.5 秒不能开火",
+   "role": "隐形狙击 · 反制护盾",
+   "counter": "EMP降低护盾和能量，狙杀重伤高生命生物，能被侦测",
    "skills": {
-    "weapon_switch": {
-     "switch_seconds": 1.5,
-     "mode_ids": [
-      "armor_piercing",
-      "precision"
-     ]
+    "permanent_cloak": {
+     "display_name": "永久隐形"
+    },
+    "emp": {
+     "display_name": "电磁脉冲",
+     "energy_cost": 30,
+     "range": 10,
+     "radius": 1.0605,
+     "min_targets": 2,
+     "min_vital": 60,
+     "cooldown": 3,
+     "reservation_seconds": 1.2,
+     "shield_damage": 100,
+     "energy_drain": 100,
+     "reveal_seconds": 10,
+     "projectile_speed": 30
+    },
+    "snipe": {
+     "display_name": "狙杀",
+     "energy_cost": 50,
+     "range": 10,
+     "range_slop": 20,
+     "min_target_hp": 120,
+     "charges": 1,
+     "damage": 170,
+     "channel_seconds": 2
     },
     "combat_mobility": {
      "modifiers": [
@@ -587,13 +607,13 @@
    "spawn_count": 1,
    "shield": 0,
    "shield_armor": 0,
-   "energy": 0,
+   "energy": 200,
    "initial_energy": 200,
    "health_regen": 0,
    "health_regen_delay": 0,
    "shield_regen": 0,
    "shield_regen_delay": 0,
-   "energy_regen": 0,
+   "energy_regen": 0.5625,
    "energy_regen_delay": 0,
    "unit_type": "unit",
    "tags": [
@@ -602,13 +622,12 @@
     "caster"
    ],
    "collision_radius": 0.4,
-   "primary_mode": "armor_piercing",
+   "primary_mode": "c10_rifle",
    "attack_modes": [
     {
      "damage": 13,
      "hit_count": 1,
      "bonus": {
-      "heavy": 60,
       "light": 13
      },
      "bonus_tags": {},
@@ -629,43 +648,8 @@
      ],
      "attacks_base": true,
      "attacks_structures": true,
-     "id": "armor_piercing",
-     "label": "穿甲弹",
-     "attack_duration": 0.2,
-     "continue_on_target_death": false,
-     "delivery": {
-      "type": "projectile",
-      "seconds": 0,
-      "tracking": true,
-      "flight": "fixed"
-     }
-    },
-    {
-     "damage": 30,
-     "hit_count": 1,
-     "bonus": {
-      "light": 30
-     },
-     "bonus_tags": {},
-     "damage_type": "physical",
-     "shield_bonus": 0,
-     "range_from_edge": false,
-     "range": 8.0,
-     "interval": 1.07,
-     "windup": 0,
-     "backswing": 0,
-     "splash": 0.0,
-     "splash_multiplier": 1,
-     "splash_inner_ratio": 0,
-     "splash_inner_multiplier": 1,
-     "target_layers": [
-      "ground",
-      "air"
-     ],
-     "attacks_base": true,
-     "attacks_structures": true,
-     "id": "precision",
-     "label": "狙击弹",
+     "id": "c10_rifle",
+     "label": "C-10步枪",
      "attack_duration": 0.2,
      "continue_on_target_death": false,
      "delivery": {
@@ -682,7 +666,8 @@
     "source": "desert-storm",
     "status": "explicit_overrides"
    },
-   "core_cost": 0
+   "core_cost": 0,
+   "portrait": "agent"
   },
   "widow_mine": {
    "name": "寡妇雷",
@@ -5348,6 +5333,12 @@
     "map_unit": "PhotonCannon",
     "source": "desert-storm",
     "status": "explicit_with_native_fallbacks"
+   },
+   "skills": {
+    "detector": {
+     "display_name": "侦测",
+     "radius": 11
+    }
    }
   },
   "zerg_tower_cluster": {
@@ -5481,6 +5472,10 @@
       }
      ],
      "display_name": "独立火力"
+    },
+    "detector": {
+     "display_name": "侦测",
+     "radius": 11
     }
    },
    "source_profile": {

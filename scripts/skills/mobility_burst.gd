@@ -7,7 +7,7 @@ func on_target(ctx: Dictionary) -> void:
 	var sim = ctx.sim
 	if sim.tick<int(state.get("ready_tick",0)) or sim.tick<int(state.get("until_tick",0)):return
 	var nearby := false
-	for enemy in sim.nearby_team(owner.pos,float(config.enemy_radius),1-int(owner.team)):
+	for enemy in sim.visible_enemies_near(owner.pos,float(config.enemy_radius),int(owner.team)):
 		if float(enemy.hp)>0:nearby=true;break
 	if bool(config.get("only_out_of_combat",true)) and nearby:return
 	if not pay_energy(sim):return
