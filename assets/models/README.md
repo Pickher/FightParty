@@ -75,6 +75,6 @@
 
 ### 哨兵与干扰者的展示模型
 
-[哨兵](sentry/sentry_display.glb)以机首为行进方向，蓝色灵能球位于抬高的后部。招募肖像从斜前方取景，球在画面右上方，机首在右下方。运行 `blender -b --python-exit-code 1 -P tools/art/build_sentry_display.py` 可从上传的白模重建。
+[哨兵](sentry/sentry_display.glb)以机首为行进方向，蓝色灵能球位于抬高的后部。招募肖像采用横向构图，蓝球在左上，前甲和机首朝右略向下，下方的金色翼片向左延伸。运行 `blender -b --python-exit-code 1 -P tools/art/build_sentry_display.py` 可从上传的白模重建。
 
 [干扰者](disruptor/disruptor_display.glb)的金铜悬甲围着一层透光护罩，罩内有一颗独立的太阳核心。Godot 将模型内嵌的 `SolarIdle-loop` 导入为循环动画 `SolarIdle`。日面翻动，橙色热流持续越过护罩边缘，战场暂停时一起定格。运行 `python tools/art/build_disruptor_display.py` 可重建模型与动画。[核心动态预览](../../docs/media/disruptor-solar-core.gif)

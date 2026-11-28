@@ -21,7 +21,7 @@ import protoss_finishes
 OUTPUT = ROOT / "assets/ui/recruits"
 MODELS = ROOT / "assets/models"
 PROTOSS_DISPLAY_MODELS = {"sentry", "disruptor"}
-PORTRAIT_ROLL = {"carrier": 30.0, "sentry": 25.0}
+PORTRAIT_ROLL = {"carrier": 30.0, "sentry": -25.5}
 # Camera positions in Blender Z-up space. The GLB models face +X.
 VIEWS = {
     "rifle": (ROOT / "assets/units/rifle/source/special_ops.blend", (-.88, -1.0, .40)),
@@ -154,8 +154,8 @@ def render(unit, temp, output=OUTPUT):
     data.type = "ORTHO"
     data.ortho_scale = max(width, height) / .90
     if unit == "sentry":
-        # Keep the elevated blue tail and forward aperture on the right of frame.
-        data.shift_x = -.062
+        # Balance the trailing fins on the left with the prow on the right.
+        data.shift_x = -.033
     camera = bpy.data.objects.new("Recruit camera", data)
     scene.collection.objects.link(camera)
     camera.rotation_euler = rotation.to_euler()
@@ -198,8 +198,8 @@ def render(unit, temp, output=OUTPUT):
     scene.view_settings.view_transform = "AgX"
     scene.view_settings.look = "AgX - Medium High Contrast"
     scene.view_settings.exposure = .68 if unit == "battlecruiser" else 0
-    if unit == "disruptor":
-        # Keep the orange solar surface distinct from its white-hot filaments.
+    if unit in PROTOSS_DISPLAY_MODELS:
+        # Preserve the saturated core colours in the two baked display models.
         scene.view_settings.view_transform = "Khronos PBR Neutral"
         scene.view_settings.look = "None"
         scene.view_settings.exposure = -.48
